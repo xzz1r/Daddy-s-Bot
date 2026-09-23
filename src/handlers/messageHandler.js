@@ -4,7 +4,6 @@ const config = require('../config');
 const { isBotEnabled, incrementStat, isAntiLinkEnabled, isSoloAdminsEnabled, isAntiBusinessEnabled, vistoActivo } = require('../utils/state');
 const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
 const { cobrar: cobrarAura, devolver: devolverAura, textoSinSaldo, esSinServicio } = require('../utils/auraCobro');
-const { PRECIOS, SUELO_TODOS } = require('../utils/economia');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { aprenderDeMensaje } = require('../utils/usuarios');
 const { recordName } = require('../utils/nombreStore');
@@ -17,92 +16,23 @@ const { businessEvidence } = require('../utils/businessCheck');
 const { aplicarAUno } = require('../utils/participantes');
 const { allForms } = require('../commands/fk');
 const { checkCasinoMilestone } = require('../utils/casino');
-// Carga perezosa de los comandos gordos. percentLabels.js son 343 KB, robo.js
-// 184, aura 98, roast+wingman ~137: parsearlos al arrancar clavaba el event
-// loop antes de poder contestar. isMuted (group.js) y allForms (fk.js) se
-// quedan eager: el camino caliente los usa en cada mensaje.
-function lazyCmd(rel, name) {
-  let fn;
-  return async function (...args) {
-    if (!fn) fn = require(rel)[name];
-    return fn(...args);
-  };
-}
-const cmdPlay = lazyCmd('../commands/music', 'cmdPlay');
-const cmdCacheList = lazyCmd('../commands/music', 'cmdCacheList');
-const cmdClearCache = lazyCmd('../commands/music', 'cmdClearCache');
-// Perezosos tambien: arrastran utils/redes.js y este a downloader.js, que
-// construye su lista de proveedores al cargarse. Eso no tiene por que pasar en
-// el arranque de un bot que a lo mejor no recibe un enlace en todo el dia.
-const cmdTikTok = lazyCmd('../commands/redes', 'cmdTikTok');
-const cmdInstagram = lazyCmd('../commands/redes', 'cmdInstagram');
-const cmdPinterest = lazyCmd('../commands/redes', 'cmdPinterest');
-const cmdX = lazyCmd('../commands/redes', 'cmdX');
-const cmdNext = lazyCmd('../commands/redes', 'cmdNext');
-const cmdSticker = lazyCmd('../commands/sticker', 'cmdSticker');
-const { cmdTopRandom } = require('../commands/topsRandom');
-const { cmdK, privadoDelOwner, hallarMedio } = require('../commands/k');
-const { cmdCount, cmdResetCount } = require('../commands/count');
-const cmdRelevance = lazyCmd('../commands/relevance', 'cmdRelevance');
-const { cmdVisto, cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAntiLink, cmdAutoAceptar, cmdAllow, cmdClose, cmdOpen, cmdSoloAdmins, cmdAdm, cmdPresentarse } = require('../commands/group');
-const { cmdLimpiar } = require('../commands/limpiar');
-const cmdShip = lazyCmd('../commands/ship', 'cmdShip');
-const { cmdTtp } = require('../commands/ttp');
-const { cmdToImg, cmdToVid } = require('../commands/toimg');
-const { cmdPfp } = require('../commands/pfp');
-const { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdFkList, cmdAntiFake } = require('../commands/fk');
-const { cmdListaNegra } = require('../commands/listaNegra');
+// LOS COMANDOS YA NO SE IMPORTAN AQUI. Cada fila del registro (comandos.js)
+// pide su modulo cuando se usa por primera vez: percentLabels.js son 343 KB,
+// robo.js 184, aura 98, roast+wingman ~137, y parsearlos al arrancar clavaba el
+// event loop antes de poder contestar. Aqui solo se queda lo que usa el camino
+// caliente de cada mensaje: isMuted (group.js), allForms (fk.js) y lo del
+// privado del owner y los medios citados (k.js).
+const { privadoDelOwner, hallarMedio } = require('../commands/k');
+const { isMuted } = require('../commands/group');
 const { maybeIndex } = require('../utils/pfpIndexer');
-const cmdGay = lazyCmd('../commands/percent', 'cmdGay');
-const cmdSimp = lazyCmd('../commands/percent', 'cmdSimp');
-const cmdHot = lazyCmd('../commands/percent', 'cmdHot');
-const cmdRata = lazyCmd('../commands/percent', 'cmdRata');
-const cmdMaricon = lazyCmd('../commands/percent', 'cmdMaricon');
-const cmdFriki = lazyCmd('../commands/percent', 'cmdFriki');
-const cmdCrack = lazyCmd('../commands/percent', 'cmdCrack');
-const cmdCerdo = lazyCmd('../commands/percent', 'cmdCerdo');
-const cmdFeminidad = lazyCmd('../commands/percent', 'cmdFeminidad');
-const cmdMasculinidad = lazyCmd('../commands/percent', 'cmdMasculinidad');
-const cmdInutil = lazyCmd('../commands/percent', 'cmdInutil');
-const cmdFemboy = lazyCmd('../commands/percent', 'cmdFemboy');
-const cmdPerdedor = lazyCmd('../commands/percent', 'cmdPerdedor');
-const cmdGanador = lazyCmd('../commands/percent', 'cmdGanador');
-const cmdPuta = lazyCmd('../commands/percent', 'cmdPuta');
-const cmdGuarra = lazyCmd('../commands/percent', 'cmdGuarra');
-const cmdFiel = lazyCmd('../commands/percent', 'cmdFiel');
-const cmdInfiel = lazyCmd('../commands/percent', 'cmdInfiel');
-const cmdLinda = lazyCmd('../commands/percent', 'cmdLinda');
-const cmdFea = lazyCmd('../commands/percent', 'cmdFea');
-const cmdIncel = lazyCmd('../commands/percent', 'cmdIncel');
-// !iq no es un comando de porcentaje: saca una CIFRA de IQ y vive aparte.
-const { cmdIQ } = require('../commands/iq');
-const cmdRizz = lazyCmd('../commands/wingman', 'cmdRizz');
-const cmdPiropo = lazyCmd('../commands/wingman', 'cmdPiropo');
-const cmdWingman = lazyCmd('../commands/wingman', 'cmdWingman');
-const cmdAura = lazyCmd('../commands/aura', 'cmdAura');
-const { resetAura } = require('../utils/auraStore');
-const { cmdMog } = require('../commands/mog');
-const cmdRobo = lazyCmd('../commands/robo', 'cmdRobo');
-const cmdVault = lazyCmd('../commands/vault', 'cmdVault');
-const { cmdDuel } = require('../commands/duel');
-const { cmdScan } = require('../commands/scan');
-const { cmdAntiFoto } = require('../commands/cleanup');
-const cmdVs = lazyCmd('../commands/activity', 'cmdVs');
-const cmdFantasmas = lazyCmd('../commands/activity', 'cmdFantasmas');
-const cmdInactivos = lazyCmd('../commands/activity', 'cmdInactivos');
-const { cmdPurgaNumero, cmdPurge, cmdPurgeAll } = require('../commands/purgaNumero');
-const cmdRoast = lazyCmd('../commands/roast', 'cmdRoast');
-const cmdCaso = lazyCmd('../commands/caso', 'cmdCaso');
-const { cmdDar } = require('../commands/dar');
 const acciones = require('../commands/acciones');
-const { construirListas } = require('./comandos');
-const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, cmdCasino, cmdWhoami } = require('../commands/social');
+const { construirListas, cargarComando } = require('./comandos');
 const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, esBotCreador, extractText, getSender, canonicalJid, sameUser, indexGroupMeta } = require('../utils/wa');
 const logger = require('../utils/logger');
 const bitacoraEstados = require('../utils/bitacoraEstados');
 
 const { clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa, PERMISO_ENLACE, puedeAnunciar, anotarTropiezo, perfilMirado } = require('../utils/antilink');
-const { SIN_PERMISO, SOLO_GRUPOS, MAL_ESCRITO, OBJETIVO_DIA_CARTEL } = require('../data/avisos');
+const { MAL_ESCRITO, OBJETIVO_DIA_CARTEL } = require('../data/avisos');
 const { cartelDelDia } = require('../utils/objetivoDia');
 const { aviso } = require('../utils/helpers');
 
@@ -112,36 +42,34 @@ const { aviso } = require('../utils/helpers');
 //
 // Y se sacan las ACTIVAS, no todas: una accion sin frases escritas esta
 // apagada, y aqui eso significa que no pide metadata, no entra en el
-// interruptor del aura y no tiene handler. El `case` sigue en el switch —hace
-// falta para que los validadores vean que el nombre esta reservado— pero cae
-// en un handler que no existe y el comando se comporta como si nadie hubiera
-// escrito nada.
+// interruptor del aura y no tiene handler. Su nombre queda reservado
+// (RESERVADOS, abajo): el comando se comporta como si nadie hubiera escrito
+// nada, y ningun comando futuro se lo puede llevar.
 const NOMBRES_ACCION = acciones.ACTIVAS;
 const ALIAS_ACCION = acciones.ALIAS_ACTIVOS;
 
-// Los comandos de porcentaje comparten precio. Se listan por nombre porque el
-// dispatcher los reparte uno a uno y no hay forma de reconocerlos por patrón
-// sin arriesgarse a cobrar de más por algo que no lo es.
-const CMDS_PORCENTAJE = [
-  'gay', 'maricon', 'femboy', 'incel', 'simp', 'friki', 'rata', 'cerdo', 'inutil',
-  'perdedor', 'l', 'ganador', 'crack', 'puta', 'guarra', 'fea', 'linda', 'hot', 'sexy',
-  'iq', 'fiel', 'infiel', 'feminidad', 'masculinidad',
-];
-
-// LAS LISTAS POR COMANDO SALEN DEL REGISTRO (src/handlers/comandos.js). Antes
-// eran siete listas escritas a mano aqui abajo; un alias nuevo habia que
-// meterlo en todas y se hacia mal. Ahora se añade a su familia en el registro
+// LAS LISTAS POR COMANDO, Y LO QUE HACE CADA UNO, SALEN DEL REGISTRO
+// (src/handlers/comandos.js). Antes eran siete listas escritas a mano aqui y un
+// switch de 790 lineas que repetia los alias; ahora un comando es UNA fila alli
 // y hereda todo. Los comentarios de cada lista se quedan donde estaban: siguen
 // explicando por que cada comando esta en cada una.
 const LISTAS = construirListas({
-  ALIAS_ACCION, CMDS_PORCENTAJE,
+  ALIAS_ACCION,
   familiaDe: (c) => NOMBRES_ACCION.find((n) => acciones.ACCIONES[n].cmds.includes(c)),
 });
-// Del nombre TECLEADO al handler. Los alias no pueden colgar de un `case` que
-// llame al canonico a mano: se olvida uno y ese alias sale gratis o revienta.
-const ACCION_DE = {};
-for (const n of NOMBRES_ACCION) for (const c of acciones.ACCIONES[n].cmds) ACCION_DE[c] = acciones[n];
-const accionPorNombre = (c) => ACCION_DE[c];
+const CMDS_PORCENTAJE = LISTAS.CMDS_PORCENTAJE;
+const EJECUTA = LISTAS.EJECUTA;
+
+// Lo que el registro pide con `de(...)`: su modulo de src/commands, o este
+// mismo fichero para lo poco que vive aqui dentro (*!diag* lee sus guardas).
+// Es una funcion y no una tabla porque cmdDiag se declara mas abajo.
+const cargarDe = (mod) => (mod === 'manejador' ? { cmdDiag } : cargarComando(mod));
+
+// Los nombres de las acciones SIN frases: el bot no las hace, pero el nombre
+// queda reservado. Se callan del todo —ni cobro, ni corrector— como si nadie
+// hubiera escrito nada, y ningun comando futuro se los puede llevar.
+const RESERVADOS = new Set(Object.values(acciones.ACCIONES).flatMap((a) => a.cmds)
+  .filter((c) => !EJECUTA.has(c)));
 
 // Commands that need group metadata — skip the network call for everything else
 // autoaccept mira DOS cosas que solo estan en la metadata: si quien lo pide es
@@ -238,10 +166,10 @@ const NEEDS_META = LISTAS.NEEDS_META;
 // LOS ALIAS TAMBIEN COBRAN. El cobro mira el nombre TECLEADO, asi que un alias
 // que falte aqui sale gratis mientras su canonico cobra: !quemar era gratis y
 // !roast costaba 35, por el mismo comando y el mismo trabajo. Cinco estaban
-// asi. Si se añade un alias al switch, tiene que entrar tambien aqui.
+// asi. Ahora el precio va en la fila del registro y el alias lo hereda.
 // 'coach' NO esta: cobraba 30 y despues caia en el default con un "no existe
 // ese comando". Se le cobraba al usuario por un comando que el bot no tiene.
-// O se implementa el case, o no se cobra; lo segundo es lo honesto.
+// O se implementa el comando, o no se cobra; lo segundo es lo honesto.
 // Los tres de redes cobran DENTRO (estan en COBRAN_SOLOS): devuelven el aura
 // si el video no llega. Aqui entran igual para que la puerta del privado
 // —«eso se juega en el grupo»— los cubra como a los demas de pago.
@@ -267,7 +195,7 @@ const NEEDS_META = LISTAS.NEEDS_META;
 // clave del contador de usos: si no coincidiera, un reembolso descontaria del
 // contador equivocado y el precio de otro comando se movería solo.
 // 'count' e 'inactivos' NO estan, y es a proposito. El cobro central corre
-// ANTES del switch, asi que a un miembro se le cobraba y despues el comando
+// ANTES del reparto, asi que a un miembro se le cobraba y despues el comando
 // contestaba "solo los admins": pagaba por un rechazo. El catch solo
 // devuelve el aura si salta una excepcion, y un return no lo es. Se cobran
 // dentro, despues del permiso.
@@ -327,9 +255,9 @@ const COBRAN_SOLOS = LISTAS.COBRAN_SOLOS;
 //      dijera. Probado: con un comentario en medio, `!robo` deja de estar.
 //
 // Una lista a mano se pudre si nadie la vigila; el problema nunca fue la lista,
-// fue que no habia guarda. Ahora la hay: `npm run check` recorre los `case` que
-// van a cmdDar/cmdRobo/cmdDuel y exige que CADA UNO este clasificado aqui o en
-// SOLO_CONSULTA. Un alias nuevo sin clasificar pone el check en rojo.
+// fue que no habia guarda. Ahora la hay: `npm run check` ejecuta el registro,
+// mira que nombres llegan a cmdDar/cmdRobo/cmdDuel y exige que CADA UNO este
+// clasificado aqui o en SOLO_CONSULTA. Un alias sin clasificar sale en rojo.
 //
 // cmdAura queda fuera a proposito: mira el interruptor por dentro (ver
 // auraApagada en aura.js) y tiene ramas que deben seguir contestando con la
@@ -978,11 +906,10 @@ const MAX_AVISOS_GRUPO = 500;
 
 // ─── "¿Querías decir...?" ────────────────────────────────────────────────────
 //
-// La lista de comandos SE LEE DE ESTE MISMO FICHERO, de los `case` del
-// dispatcher. Mantenerla a mano en un array aparte garantiza que se quede
-// desfasada: se anyade un comando, nadie se acuerda del array, y el bot acaba
-// sugiriendo comandos que ya no existen o ignorando los nuevos. Leyendo la
-// fuente no hay dos sitios que puedan discrepar.
+// La lista de comandos SALE DEL REGISTRO, lo mismo que el reparto. Mantenerla
+// a mano en un array aparte garantiza que se quede desfasada: se añade un
+// comando, nadie se acuerda del array, y el bot acaba sugiriendo comandos que
+// ya no existen o ignorando los nuevos.
 //
 // Lo que el bot acepta pero NO anuncia en ningun sitio: ni en el menu, ni en el
 // "¿querias decir...?".
@@ -1003,7 +930,7 @@ const COMANDOS_OCULTOS = new Set(['p', 'purge', 'purgeall', 'visto', 'limpiar', 
 // fichero. Aqui se leia el propio fuente —100 KB en el arranque— y se sacaban
 // los `case` con una expresion regular: cualquier `case '...'` que un dia se
 // escribiera en otro switch de este fichero se habria colado como comando. El
-// registro ya es la lista de verdad (y la capa 4b la ata al switch).
+// registro ya es la lista de verdad: ahi esta lo que el bot despacha.
 //
 // Las acciones apagadas no entran solas: el registro solo tiene las que tienen
 // frases. Escribir "!hig" no puede ofrecer *!hug* si *!hug* no hace nada.
@@ -2483,7 +2410,7 @@ async function handleMessage(sock, msg, opciones = {}) {
   // WhatsApp ve un lector automatico. En un comando, marcar leido en paralelo
   // con la respuesta no le pone un round-trip delante.
   // EL VISTO VA AL FINAL, EN EL `finally`. Aqui estaba, setenta lineas por
-  // delante del switch, y eso mete un viaje a WhatsApp DELANTE de cada
+  // delante del reparto, y eso mete un viaje a WhatsApp DELANTE de cada
   // respuesta: el socket es uno y las tramas salen en el orden en que se
   // encolan, asi que el "visto" adelantaba a la contestacion en todos los
   // comandos.
@@ -2572,7 +2499,7 @@ async function handleMessage(sock, msg, opciones = {}) {
     sock.sendPresenceUpdate('composing', jid).catch(() => {});
   }
 
-  // Cobro central. Va antes del switch para que un comando sin saldo no llegue
+  // Cobro central. Va antes del reparto para que un comando sin saldo no llegue
   // ni a ejecutarse. El owner tier no paga (lo resuelve cobrarAura).
   const conceptoCobro = COBRO_CENTRAL[command];
   // Lo cobrado se guarda para poder DEVOLVERLO si el comando revienta. Ver el
@@ -2618,699 +2545,15 @@ async function handleMessage(sock, msg, opciones = {}) {
 
   try {
     let resultado;
-    switch (command) {
-      case 'musica':
-      case 'cancion':
-      case 'song':
-      case 'playsong':
-      case 'playaudio':
-      case 'play':
-        resultado = await cmdPlay(sock, msg, args, groupMeta);
-        break;
-
-      case 'tt':
-      case 'tiktok':
-        resultado = await cmdTikTok(sock, msg, args, groupMeta);
-        break;
-
-      case 'ig':
-      case 'insta':
-      case 'instagram':
-        resultado = await cmdInstagram(sock, msg, args, groupMeta);
-        break;
-
-      case 'pin':
-      case 'pinterest':
-        resultado = await cmdPinterest(sock, msg, args, groupMeta);
-        break;
-
-      // *!x* — la foto, el gif o el video de un tuit. Los alias son los dos
-      // nombres de la red (el de ahora y el de siempre) y lo que la gente
-      // escribe cuando no se acuerda de ninguno de los dos.
-      case 'x':
-      case 'twitter':
-      case 'tuit':
-      case 'tweet':
-        resultado = await cmdX(sock, msg, args, groupMeta);
-        break;
-      // *!next* sobre la foto que mando el bot: otra de la misma busqueda. No
-      // lleva argumentos —la busqueda sale del mensaje al que se responde— asi
-      // que no puede confundirse con nada.
-      case 'next':
-      case 'otra':
-      case 'siguiente':
-        resultado = await cmdNext(sock, msg, args, groupMeta);
-        break;
-
-      case 'cachelist':
-      case 'listacache':
-      case 'cache':
-        resultado = await cmdCacheList(sock, msg);
-        break;
-
-      case 'clearcache':
-      case 'borracache':
-        if (isOwner(sender, msg.key.fromMe, groupMeta)) {
-          resultado = await cmdClearCache(sock, msg);
-        } else {
-          await sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
-        }
-        break;
-
-      case 'whoami':
-        resultado = await cmdWhoami(sock, msg, args, groupMeta);
-        break;
-
-      case 's':
-      case 'sticker':
-      case 'stk':
-        resultado = await cmdSticker(sock, msg, groupMeta);
-        break;
-
-      // !k — se lleva al privado del owner el archivo citado. No responde nada
-      // en el grupo (ni siquiera un error) y no sale en el menu: es una
-      // herramienta de verificacion del owner, no una funcion del grupo.
-      //
-      // Solo se borra el mensaje del grupo cuando se tecleo "!k" a pelo: eso
-      // sí canta. Si se llego por un disparador de palabra suelta (viaTriggerK),
-      // el mensaje que lo disparo es una palabra corriente y NO se toca —
-      // borrarlo llamaria mas la atencion que dejarlo, por el aviso de "se
-      // elimino este mensaje" que deja WhatsApp a la vista de todo el grupo.
-      case 'k':
-        resultado = await cmdK(sock, msg, groupMeta, !viaTriggerK);
-        break;
-
-      case 'diag':
-        resultado = await cmdDiag(sock, msg, groupMeta);
-        break;
-
-      case 'top5':
-        resultado = await cmdTopRandom(sock, msg, 5, args, groupMeta);
-        break;
-
-      case 'top10':
-        resultado = await cmdTopRandom(sock, msg, 10, args, groupMeta);
-        break;
-
-      // El expediente: junta lo que el bot ya guarda de alguien. Ver caso.js.
-      case 'caso':
-      case 'expediente':
-        resultado = await cmdCaso(sock, msg, args, groupMeta);
-        break;
-
-      case 'conteo':
-      case 'count':
-        resultado = await cmdCount(sock, msg, groupMeta, args);
-        break;
-
-      case 'fiel':      resultado = await cmdFiel(sock, msg, groupMeta); break;
-      case 'infiel':    resultado = await cmdInfiel(sock, msg, groupMeta); break;
-
-      case 'importancia':
-      case 'relevancia':
-      case 'relevance':
-        resultado = await cmdRelevance(sock, msg, groupMeta);
-        break;
-
-      case 'resetcount':
-      case 'resetconteo':
-        resultado = await cmdResetCount(sock, msg, groupMeta);
-        break;
-
-
-      // !r — ping invisible pidiendo que los NUEVOS se presenten. En un grupo
-      // sale ahi; en el privado del bot sale en todos los grupos.
-      case 'r':
-      case 'presentarse':
-      case 'presentacion':
-        resultado = await cmdPresentarse(sock, msg, args, groupMeta);
-        break;
-
-      case 'tagall':
-      case 'todos':
-      case 'all':
-      case 'everyone':
-        resultado = await cmdTodos(sock, msg, args, groupMeta);
-        break;
-
-      // Convocatoria de admins. No se anuncia en !commands a proposito: es del
-      // owner y no hay nada que ganar enseñandoselo al grupo.
-      case 'adm':
-        resultado = await cmdAdm(sock, msg, args, groupMeta);
-        break;
-
-      case 'promote':
-      case 'ascender':
-        resultado = await cmdPromote(sock, msg, args, groupMeta);
-        break;
-
-      case 'demote':
-      case 'degradar':
-        resultado = await cmdDemote(sock, msg, args, groupMeta);
-        break;
-
-      case 'notifadmin':
-        resultado = await cmdNotifAdmin(sock, msg, args, groupMeta);
-        break;
-
-      case 'antiadmin':
-        resultado = await cmdAntiAdmin(sock, msg, args, groupMeta);
-        break;
-
-      case 'antifoto':
-        resultado = await cmdAntiFoto(sock, msg, args, groupMeta);
-        break;
-
-      case 'antiempresa':
-      case 'antibusiness':
-        resultado = await cmdAntiBusiness(sock, msg, args, groupMeta);
-        break;
-
-      case 'allow':
-      case 'permitir':
-        resultado = await cmdAllow(sock, msg, args, groupMeta);
-        break;
-
-      case 'adminmode':
-      case 'soloadmins':
-      case 'soloadmin':
-        resultado = await cmdSoloAdmins(sock, msg, args, groupMeta);
-        break;
-
-      // El nombre va en ingles; los dos en español se quedan de alias porque
-      // ya se habian anunciado.
-      case 'autoaccept':
-      case 'autoapprove':
-      case 'autoaceptar':
-      case 'autoaprobar':
-        resultado = await cmdAutoAceptar(sock, msg, args, groupMeta);
-        break;
-
-
-      case 'antilink':
-        resultado = await cmdAntiLink(sock, msg, args, groupMeta);
-        break;
-
-      case 'scan':
-      case 'escanear':
-        resultado = await cmdScan(sock, msg, groupMeta);
-        break;
-
-      case 'fk':
-      case 'verificar':
-      case 'verify':
-      case 'check':
-        resultado = await cmdFk(sock, msg, args, groupMeta);
-        break;
-
-      case 'marcarfake':
-      case 'fake':
-        resultado = await cmdMarkFake(sock, msg, args, groupMeta);
-        break;
-
-      case 'banear':
-      case 'ban':
-      case 'fkban':
-        resultado = await cmdFkBan(sock, msg, args, groupMeta);
-        break;
-
-      case 'desbanear':
-      case 'unban':
-      case 'fkunban':
-        resultado = await cmdFkUnban(sock, msg, args, groupMeta);
-        break;
-
-      case 'fklist':
-        resultado = await cmdFkList(sock, msg, args, groupMeta);
-        break;
-
-      // !listanegra — la lista negra global, y ya no es un alias de !fklist.
-      //
-      // Era el mismo comando, o sea: solo de lectura y abierto a los admins del
-      // grupo. Ahora es suyo —del dueño y los co-dueños— y hace las tres cosas:
-      // ver, meter numeros y sacarlos. *!fklist* sigue donde estaba para que un
-      // admin pueda mirar sin poder tocar.
-      case 'listanegra':
-        resultado = await cmdListaNegra(sock, msg, args, groupMeta);
-        break;
-
-      // !p / !purge — purgan cuentas de TODOS los grupos del bot y las vetan.
-      // Owner principal y nadie mas; a cualquier otro le responde con silencio,
-      // asi que no estan en el menu ni hace falta.
-      case 'p':
-        resultado = await cmdPurgaNumero(sock, msg, args, groupMeta);
-        break;
-      case 'purge':
-        resultado = await cmdPurge(sock, msg, args, groupMeta);
-        break;
-      // Vaciar el grupo entero. Solo el dueño principal, con confirmacion por
-      // codigo, y no toca al bot ni al guardian ni al tier dueño.
-      case 'purgeall':
-        resultado = await cmdPurgeAll(sock, msg, args, groupMeta);
-        break;
-
-      case 'antifake':
-      case 'antifk':
-        resultado = await cmdAntiFake(sock, msg, args, groupMeta);
-        break;
-
-      case 'close':
-      case 'cerrar':
-        resultado = await cmdClose(sock, msg, groupMeta);
-        break;
-
-      case 'open':
-      case 'abrir':
-        resultado = await cmdOpen(sock, msg, groupMeta);
-        break;
-
-      case 'sacar':
-      case 'echar':
-      case 'kick':
-      case 'expulsar':
-        resultado = await cmdKick(sock, msg, args, groupMeta);
-        break;
-
-      case 'del':
-      case 'borrar':
-      case 'delete':
-        resultado = await cmdDel(sock, msg, groupMeta);
-        break;
-
-      case 'limpiar':
-      case 'wipe':
-        resultado = await cmdLimpiar(sock, msg, args, groupMeta);
-        break;
-
-      case 'silenciar':
-      case 'callar':
-      case 'mute':
-        resultado = await cmdMute(sock, msg, args, groupMeta);
-        break;
-
-      case 'unmute':
-      case 'desmute':
-        resultado = await cmdUnmute(sock, msg, args, groupMeta);
-        break;
-
-      case 'ship':
-        resultado = await cmdShip(sock, msg, args, groupMeta);
-        break;
-
-      case 'texto':
-      case 'ttp':
-        resultado = await cmdTtp(sock, msg, args);
-        break;
-
-      case 'toimg':
-      case 'stimg':
-        resultado = await cmdToImg(sock, msg, groupMeta);
-        break;
-
-      case 'tovid':
-        resultado = await cmdToVid(sock, msg, groupMeta);
-        break;
-
-      case 'pfp':
-      case 'foto':
-        resultado = await cmdPfp(sock, msg, args, groupMeta);
-        break;
-
-      case 'gay':        resultado = await cmdGay(sock, msg, groupMeta); break;
-      case 'simp':       resultado = await cmdSimp(sock, msg, groupMeta); break;
-      case 'sexy':
-      case 'hot':        resultado = await cmdHot(sock, msg, groupMeta); break;
-      case 'rata':       resultado = await cmdRata(sock, msg, groupMeta); break;
-      case 'maricon':    resultado = await cmdMaricon(sock, msg, groupMeta); break;
-      case 'friki':      resultado = await cmdFriki(sock, msg, groupMeta); break;
-      case 'crack':          resultado = await cmdCrack(sock, msg, groupMeta); break;
-      case 'iq':             await cmdIQ(sock, msg); break;
-      case 'cerdo':          resultado = await cmdCerdo(sock, msg, groupMeta); break;
-      case 'feminidad':      resultado = await cmdFeminidad(sock, msg, groupMeta); break;
-      case 'masculinidad':   resultado = await cmdMasculinidad(sock, msg, groupMeta); break;
-      case 'inutil':         resultado = await cmdInutil(sock, msg, groupMeta); break;
-      case 'femboy':         resultado = await cmdFemboy(sock, msg, groupMeta); break;
-      // *!L* es el nombre bueno; *!perdedor* se queda como alias porque el
-      // comando se llamo asi hasta hoy y no tiene sentido romperle el habito a
-      // nadie por un cambio de nombre. Mismo criterio que !contrarobo.
-      case 'l':
-      case 'perdedor':       resultado = await cmdPerdedor(sock, msg, groupMeta); break;
-      case 'ganador':        resultado = await cmdGanador(sock, msg, groupMeta); break;
-      case 'puta':           resultado = await cmdPuta(sock, msg, groupMeta); break;
-      case 'guarra':         resultado = await cmdGuarra(sock, msg, groupMeta); break;
-      case 'incel':          resultado = await cmdIncel(sock, msg, groupMeta); break;
-      case 'linda':          resultado = await cmdLinda(sock, msg, groupMeta); break;
-      case 'fea':            resultado = await cmdFea(sock, msg, groupMeta); break;
-
-      case 'rizz':           await cmdRizz(sock, msg, groupMeta); break;
-      // piropo y wingman no USAN groupMeta (no miran roles). SI estan en
-      // NEEDS_META: el cobro central exime al owner y sin metadata no resuelve
-      // su LID.
-      case 'piropo':         await cmdPiropo(sock, msg); break;
-      case 'wingman':        await cmdWingman(sock, msg); break;
-
-      case 'aura':           await cmdAura(sock, msg, args, groupMeta); break;
-
-      // Los subcomandos, tambien sueltos.
-      //
-      // La gente escribe *!apostar 500*, no *!aura apostar 500*: el subcomando
-      // es lo que tiene nombre en su cabeza, y el contenedor se lo inventa el
-      // bot. Antes eso no hacia nada — silencio — y el que lo intentaba se
-      // quedaba pensando que el comando no existia.
-      //
-      // Se reinyecta el subcomando al principio de los argumentos y se llama al
-      // mismo sitio de siempre: una sola implementacion, dos puertas.
-      case 'apostar':
-      case 'apuesta':
-      case 'apuestas':
-        resultado = await cmdAura(sock, msg, ['apostar', ...args], groupMeta);
-        break;
-      case 'ranking':
-      case 'top':
-      case 'auratop':
-        // *!top 10 <tema>* ES *!top10 <tema>*. Alguien escribio "!top 10 que
-        // cojen bien piola" y le salio el RANKING DE AURA: 'top' cae aqui y los
-        // args se tiraban enteros, asi que el numero y el tema se perdian. El
-        // que lo escribe no tiene forma de saber que el espacio importa.
-        //
-        // Solo se desvia si HAY tema detras. *!top 10* a secas no es un sorteo
-        // sin asunto —cmdTopRandom se calla sin tema— sino la forma natural de
-        // pedir el ranking de aura, asi que eso se queda como estaba.
-        if (command === 'top' && ['5', '10'].includes(args[0]) && args.length > 1) {
-          resultado = await cmdTopRandom(sock, msg, Number(args[0]), args.slice(1), groupMeta);
-          break;
-        }
-        resultado = await cmdAura(sock, msg, ['top', ...args], groupMeta);
-        break;
-      case 'hoy':
-        resultado = await cmdAura(sock, msg, ['hoy', ...args], groupMeta);
-        break;
-
-      // Estos dos iban a 'hoy', que enseña mensajes del dia y racha. Se llaman
-      // saldo y no enseñaban ningun saldo; ahora van al numero.
-      case 'saldo':
-      case 'miaura':
-        resultado = await cmdAura(sock, msg, ['saldo', ...args], groupMeta);
-        break;
-
-      // La guia del aura, como comando propio.
-      //
-      // Existia solo como *!aura info*, que nadie descubre por su cuenta, y lo
-      // alternativo era meter la explicacion entera en !commands — que es
-      // exactamente lo que lo tenia hinchado. Con puerta propia el menu puede
-      // quedarse en una linea y la explicacion puede ser todo lo larga que haga
-      // falta sin estorbar a nadie.
-      case 'guia':
-      case 'aurahelp':
-      case 'guiaaura':
-        resultado = await cmdAura(sock, msg, ['info'], groupMeta);
-        break;
-
-      case 'resetaura':
-        if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-          await sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
-        } else if (!jid.endsWith('@g.us')) {
-          await sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
-        } else {
-          await resetAura(jid);
-          // "DESDE CERO" ERA MENTIRA. resetAura deja a todo el mundo en el
-          // suelo, no en cero, y por una razon buena que esta escrita alli: con
-          // el grupo a cero nadie puede gastar y el bot se queda muerto hasta
-          // que cada uno vuelva a tirar. Lo que estaba mal era el aviso, no el
-          // comportamiento — y la cifra se saca de la constante para que no se
-          // vuelva a separar de ella.
-          await sock.sendMessage(jid, {
-            text: `Aura de todos reseteada. El marcador vuelve a *${SUELO_TODOS}* para todo el mundo.`,
-          }, { quoted: msg });
-        }
-        break;
-
-      case 'mog':
-      case 'moggear':
-        resultado = await cmdMog(sock, msg, groupMeta);
-        break;
-
-      case 'quemar':
-      case 'destruir':
-      case 'roast':
-      case 'flamear':
-        resultado = await cmdRoast(sock, msg, groupMeta);
-        break;
-
-      case 'regalar':
-      case 'transferir':
-      case 'pagar':
-      case 'dar':
-      case 'donar':
-        resultado = await cmdDar(sock, msg, args);
-        break;
-
-      // 'atraco' ESTABA EN ESTE BLOQUE y era un bug: en un switch de JS gana el
-      // primer case, asi que *!atraco* caia aqui —sin reescribir args— y
-      // contestaba "Dime a quien robas" en vez de entrar a la tienda. El menu y
-      // la guia lo anunciaban como el asalto a la caja, o sea que el comando
-      // llevaba dos dias anunciado y roto. Su sitio es la rama de mas abajo.
-      //
-      // Y el comentario va AQUI ARRIBA, no entre los case y el await: la lista
-      // de comandos que tapa !aura off se deduce de ese patron, y meter una
-      // linea en medio la rompia. Lo cazo el propio check.
-      case 'robo':
-      case 'robar':
-        resultado = await cmdRobo(sock, msg, args, groupMeta);
-        break;
-
-      // Igual que arriba: la tienda y el bote tienen nombre propio para quien
-      // los usa, aunque por dentro cuelguen de !robo.
-      case 'tienda':
-      case 'shop':
-        resultado = await cmdRobo(sock, msg, ['tienda', ...args], groupMeta);
-        break;
-      case 'comprar':
-              resultado = await cmdRobo(sock, msg, ['comprar', ...args], groupMeta);
-        break;
-      case 'bote':
-        resultado = await cmdRobo(sock, msg, ['bote', ...args], groupMeta);
-        break;
-
-      // El contraataque, con nombre propio.
-      //
-      // Vivia solo como *!robo contra*, y un subcomando obliga a saberse la
-      // sintaxis justo cuando hay noventa segundos para responder y el que te
-      // acaba de robar esta mirando. Se escribe lo que se piensa: contrarobo.
-      case 'contrarobo':
-      case 'contraataque':
-      case 'contraatacar':
-      case 'vengarse':
-        resultado = await cmdRobo(sock, msg, ['contra', ...args], groupMeta);
-        break;
-      // !visto — oculto y solo del dueño. No sale en el menu ni lo sugiere el
-      // corrector: ver COMANDOS_OCULTOS y cmdVisto en group.js.
-      case 'visto':
-        resultado = await cmdVisto(sock, msg, args, groupMeta);
-        break;
-
-      // LA CAJA. Los verbos tienen nombre propio porque nadie escribe
-      // "!vault lock" cuando lo que piensa es "lock".
-      //
-      // Nombres cortos y en ingles porque es lo que se teclea con prisa, y las
-      // dos opciones castellanas obvias estaban pilladas de antes: *!sacar* es
-      // alias de expulsar y *!abrir* abre el grupo.
-      case 'vault':
-      case 'safe':
-        resultado = await cmdVault(sock, msg, args, groupMeta);
-        break;
-      case 'lock':
-      case 'stash':
-        resultado = await cmdVault(sock, msg, ['lock', ...args], groupMeta);
-        break;
-      case 'unlock':
-        resultado = await cmdVault(sock, msg, ['unlock', ...args], groupMeta);
-        break;
-
-      // LAS ACCIONES. Un solo destino para los sesenta nombres —veintiuna
-      // acciones con dos o tres formas cada una—: el modulo sabe cual le toca
-      // por el nombre tecleado.
-      //
-      // UNO POR LINEA, aunque ocupe sesenta. Los validadores leen los
-      // `case` con un patron de principio de linea, asi que dos en la misma
-      // cuentan como uno: los alias desapareceran de la comprobacion del menu y
-      // de la clasificacion del interruptor de aura sin que nadie lo note.
-      //
-      // Y SIN TILDES NI EÑES: el dispatcher normaliza antes de comparar, asi que
-      // un case con eñe no se alcanza jamas. Por eso es *!punetazo*.
-      case 'hug':
-      case 'abrazo':
-      case 'abrazar':
-      case 'kiss':
-      case 'beso':
-      case 'besar':
-      case 'cuddle':
-      case 'acurrucar':
-      case 'arrimar':
-      case 'pat':
-      case 'caricia':
-      case 'acariciar':
-      case 'punch':
-      case 'punetazo':
-      case 'golpe':
-      case 'slap':
-      case 'cachetada':
-      case 'bofetada':
-      case 'chomp':
-      case 'morder':
-      case 'mordisco':
-      case 'stomp':
-      case 'patada':
-      case 'patear':
-      case 'bonk':
-      case 'martillazo':
-      case 'coscorron':
-      case 'fuck':
-      case 'follar':
-      case 'joder':
-      case 'anal':
-      case 'culo':
-      case 'cum':
-      case 'correrse':
-      case 'acabar':
-      case 'tickle':
-      case 'cosquillas':
-      case 'nom':
-      case 'mordisquear':
-      case 'peck':
-      case 'piquito':
-      case 'besito':
-      case 'handhold':
-      case 'mano':
-      case 'manos':
-      case 'stare':
-      case 'mirar':
-      case 'mirada':
-      case 'laugh':
-      case 'burla':
-      case 'reirse':
-      case 'yeet':
-      case 'lanzar':
-      case 'tirar':
-      case 'kill':
-      case 'matar':
-      case 'rematar':
-      case 'feed':
-      case 'comer':
-      case 'comida':
-      // ─── La tercera tanda ────────────────────────────────────────────────
-      // Tres que no piden nada (nekos.best las sirve de serie) y seis que solo
-      // existen en la fuente NSFW. Van en el mismo bloque porque el reparto lo
-      // hace accionPorNombre, no el switch: aqui solo se reserva el nombre.
-      case 'sleep':
-      case 'dormir':
-      case 'siesta':
-      case 'pout':
-      case 'puchero':
-      case 'morros':
-      case 'bleh':
-      case 'lengua':
-      case 'mueca':
-      // De las seis explicitas que entraron solo quedo *!spank*: `npm run
-      // acciones` contra la fuente NSFW contesto 403 en las otras cinco, o sea
-      // que esa web no tiene esas categorias. Sus `case` se quitaron tambien —
-      // un comando que el bot ACEPTA y no hace nada es peor que uno que no
-      // conoce: no sale en el menu, no avisa, y no hay forma de saber por que
-      // no pasa nada. Las frases siguen escritas por si es cosa del nombre
-      // (ver la nota en accionPhrases.js).
-      case 'spank':
-      case 'azote':
-      case 'azotar':
-        // SIN FRASES, NADA. Si el pool de esa accion todavia no existe no hay
-        // handler que llamar: se sale en silencio, sin cobrar y sin contestar,
-        // igual que si el comando no se hubiera escrito nunca. El `case` sigue
-        // aqui para que el nombre quede reservado y ningun comando futuro se lo
-        // lleve por delante.
-        if (accionPorNombre(command)) {
-          resultado = await accionPorNombre(command)(sock, msg, args, groupMeta);
-        }
-        break;
-
-      case 'asalto':
-      case 'asaltar':
-        resultado = await cmdRobo(sock, msg, ['asalto', ...args], groupMeta);
-        break;
-      // El atraco a la tienda, tambien con nombre propio y por el mismo motivo
-      // que el contraataque: nadie escribe "!robo atraco" cuando lo que piensa
-      // es "atraco".
-      case 'atraco':
-      case 'atracar':
-        resultado = await cmdRobo(sock, msg, ['atraco', ...args], groupMeta);
-        break;
-      case 'caja':
-      case 'registradora':
-        resultado = await cmdRobo(sock, msg, ['caja', ...args], groupMeta);
-        break;
-      // Los mas buscados, con nombre propio. Vivia solo como *!robo top*, y el
-      // propio owner tuvo que preguntar cual era el comando dos dias despues de
-      // pedir la lista: si quien la encargo no lo encuentra, nadie lo va a
-      // encontrar. Mismo motivo que !contrarobo y !atraco.
-      case 'buscados':
-      case 'wanted':
-      case 'mostwanted':
-      case 'recompensas':
-      case 'cartel':
-        resultado = await cmdRobo(sock, msg, ['top', ...args], groupMeta);
-        break;
-
-      case 'duel':
-      case 'duelo':
-      case '1v1':
-        resultado = await cmdDuel(sock, msg, args, groupMeta);
-        break;
-
-      case 'vs':
-      case 'versus':
-        resultado = await cmdVs(sock, msg, args, groupMeta);
-        break;
-
-      // !fantasmas ordena a los que hablan POCO; !inactivos saca a los que no
-      // han escrito NUNCA. Son dos listas distintas a proposito.
-      case 'muertos':
-      case 'fantasma':
-      case 'fantasmas':
-        resultado = await cmdFantasmas(sock, msg, groupMeta);
-        break;
-
-      case 'inactivos':
-      case 'inactivo':
-        resultado = await cmdInactivos(sock, msg, groupMeta);
-        break;
-
-      case 'on':
-        resultado = await cmdOn(sock, msg, groupMeta);
-        break;
-
-      case 'off':
-        resultado = await cmdOff(sock, msg, groupMeta);
-        break;
-
-      case 'ping':
-        resultado = await cmdPing(sock, msg);
-        break;
-
-      case 'info':
-      case 'estado':
-      case 'status':
-        resultado = await cmdInfo(sock, msg);
-        break;
-
-      case 'casino':
-        resultado = await cmdCasino(sock, msg, groupMeta);
-        break;
-
-      case 'ayuda':
-      case 'help':
-      case 'menu':
-      case 'commands':
-        resultado = await cmdHelp(sock, msg, groupMeta, args);
-        break;
-
+    // EL REPARTO. Cada nombre lleva a su fila del registro (comandos.js) y la
+    // fila dice lo que hace; aqui solo se ejecuta y se recoge lo que devuelve,
+    // que es como llega SIN_SERVICIO al reembolso de abajo.
+    const hace = EJECUTA.get(command);
+    if (hace) {
+      resultado = await hace({
+        de: cargarDe, sock, msg, args, meta: groupMeta, command, jid, sender, viaTriggerK,
+      });
+    } else if (!RESERVADOS.has(command)) {
       // ¿QUERIAS DECIR...? Antes un comando mal escrito no hacia NADA.
       //
       // Ese silencio es el peor de los desenlaces: el que escribe *!apuestas* o
@@ -3321,31 +2564,28 @@ async function handleMessage(sock, msg, opciones = {}) {
       // parece de verdad (distancia 1 o 2 segun lo largo que sea), porque
       // sugerir cualquier cosa es peor que no sugerir nada: *!x* no "queria
       // decir" nada.
-      default: {
-        // El freno primero: si esta persona ya se llevo una correccion hace menos
-        // de treinta segundos, ni se busca.
-        const sugs = frenoLibre(sender) ? sugerenciasComando(command) : [];
-        if (sugs.length) {
-          apuntarSugerencia(sender);
-          // LA CORRECCION VA PRIMERO Y VA SIEMPRE. Lo pidio el dueño con esas
-          // palabras: «debes aclarar primero que asi no se escribe el comando.
-          // Siempre».
-          //
-          // Por eso va pegada al insulto en el MISMO mensaje y no en uno
-          // aparte: si fueran dos envios, el freno de treinta segundos o una
-          // caida de red podrian dejar salir el remate a secas, y entonces al
-          // que escribio mal se le estaria llamando corto sin decirle siquiera
-          // que estaba mal escrito. Informar y picar no compiten, pero el orden
-          // no es negociable.
-          const opciones = sugs.map((s) => `*${prefUsado}${s}*`);
-          const es = opciones.length === 1 ? opciones[0]
-            : `${opciones.slice(0, -1).join(', ')} o ${opciones[opciones.length - 1]}`;
-          await sock.sendMessage(jid, {
-            text: `Así no se escribe. Es ${es}, no *${prefUsado}${command}*.\n` +
-                  aviso(MAL_ESCRITO, jid, 'malescrito'),
-          }, { quoted: msg }).catch(() => {});
-        }
-        break;
+      // El freno primero: si esta persona ya se llevo una correccion hace menos
+      // de treinta segundos, ni se busca.
+      const sugs = frenoLibre(sender) ? sugerenciasComando(command) : [];
+      if (sugs.length) {
+        apuntarSugerencia(sender);
+        // LA CORRECCION VA PRIMERO Y VA SIEMPRE. Lo pidio el dueño con esas
+        // palabras: «debes aclarar primero que asi no se escribe el comando.
+        // Siempre».
+        //
+        // Por eso va pegada al insulto en el MISMO mensaje y no en uno
+        // aparte: si fueran dos envios, el freno de treinta segundos o una
+        // caida de red podrian dejar salir el remate a secas, y entonces al
+        // que escribio mal se le estaria llamando corto sin decirle siquiera
+        // que estaba mal escrito. Informar y picar no compiten, pero el orden
+        // no es negociable.
+        const opciones = sugs.map((s) => `*${prefUsado}${s}*`);
+        const es = opciones.length === 1 ? opciones[0]
+          : `${opciones.slice(0, -1).join(', ')} o ${opciones[opciones.length - 1]}`;
+        await sock.sendMessage(jid, {
+          text: `Así no se escribe. Es ${es}, no *${prefUsado}${command}*.\n` +
+                aviso(MAL_ESCRITO, jid, 'malescrito'),
+        }, { quoted: msg }).catch(() => {});
       }
     }
     // Un return no es una excepción: el catch de abajo no reembolsa. Los
@@ -3360,7 +2600,7 @@ async function handleMessage(sock, msg, opciones = {}) {
   } catch (err) {
     logger.error(`Command ${command} error: ${err.message}`);
 
-    // SE DEVUELVE LO COBRADO. El cobro central ocurre ANTES del switch, asi que
+    // SE DEVUELVE LO COBRADO. El cobro central ocurre ANTES del reparto, asi que
     // un comando que revienta dejaba al usuario pagando por un error: perdia el
     // aura Y se quedaba sin respuesta. Y no es hipotetico — paso con el
     // "sign is not defined" de !aura y con los pools vacios, que cobraban 25 y
@@ -3417,6 +2657,10 @@ module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGro
   // Las listas por comando, VIVAS. La puerta las lee de aqui en vez de
   // parsear el texto del fichero con regex.
   _listas: { NEEDS_META, COBRO_CENTRAL, LENTOS, COBRAN_SOLOS, CMDS_AURA, SOLO_CONSULTA, MEDIA_CMDS, CMDS_PORCENTAJE },
+  // El reparto vivo: nombre -> lo que hace, y los nombres reservados que callan.
+  // La puerta los ejecuta con los comandos sustituidos para ver adonde lleva
+  // cada uno, en vez de leer un switch como texto.
+  _reparto: { EJECUTA, RESERVADOS, FAMILIA: LISTAS.FAMILIA, cargarDe },
   // Para que el socket use la cache que ya existe en vez de preguntar por su cuenta.
   metaParaBaileys,
   // Y para que lo que ya trajo el arranque no se vuelva a pedir comando a comando.

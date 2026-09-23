@@ -285,7 +285,7 @@ async function cmdCount(sock, msg, groupMeta, args) {
 
   // EL COBRO VA AQUI, DESPUES DEL PERMISO, y no en la tabla central.
   //
-  // Estaba en COBRO_CENTRAL, que corre ANTES del switch: a un miembro se le
+  // Estaba en COBRO_CENTRAL, que corre ANTES del comando: a un miembro se le
   // cobraban 25 y justo despues le llegaba el "solo los admins". Pagaba por un
   // rechazo. Y el catch del handler solo devuelve el aura cuando salta una
   // excepcion — un `return` no lo es, asi que ese aura no volvia.

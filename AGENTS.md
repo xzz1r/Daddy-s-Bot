@@ -17,15 +17,16 @@ herramientas que GitHub no tiene. Cada run rojo es un correo al dueño; si
 
 ## Añadir un comando o un alias
 
-Dos sitios, y la puerta exige los dos:
+Un sitio: su fila en `src/handlers/comandos.js`. Lleva todos sus alias, sus
+propiedades (metadata, «escribiendo…», precio, cobra dentro, economía) y
+`hace`, lo que ejecuta: `(c) => c.de('modulo').cmdX(c.sock, c.msg, c.args, c.meta)`.
+Ya no hay `switch`.
 
-1. El `case` en el `switch` de `src/handlers/messageHandler.js` (el cuerpo).
-2. Su fila en `src/handlers/comandos.js`: la familia con todos sus alias y sus
-   propiedades (metadata, «escribiendo…», precio, cobra dentro, economía).
-
-Un alias nuevo se añade a la fila de su comando y hereda todo. No hay listas
-sueltas que tocar: salen del registro. La capa 4b falla si un alias está en un
-sitio y no en el otro.
+Un alias nuevo es un nombre más en la fila de su comando y hereda todo. Si una
+fila no tiene `hace` o un nombre está en dos filas, el bot no arranca. La capa
+4b ejecuta cada fila y falla si llega a una función que no existe o si no
+devuelve lo que devuelve el comando (el reembolso depende de eso). Las acciones
+no van aquí: se añaden en `src/commands/acciones.js` y entran solas.
 
 ## Una persona, una historia
 

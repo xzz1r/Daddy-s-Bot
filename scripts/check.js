@@ -353,7 +353,8 @@ async function capasDelMenu() {
     // Nivel esperado de cada comando que el menu mete en ADMIN o en OWNER.
     // !promote no esta: es el unico mixto de verdad (con !antiadmin puesto es
     // del dueño y sin el es de admins), y el menu ya lo dice en su linea.
-    // !resetaura y !clearcache tampoco: su puerta vive en el dispatcher.
+    // !resetaura y !clearcache tampoco: la puerta de !clearcache vive en su fila
+    // del registro (soloDueno), no en una funcion que se pueda leer aqui.
     const esperado = {
       admin: { kick: 'cmdKick', del: 'cmdDel', mute: 'cmdMute', unmute: 'cmdUnmute',
         tagall: 'cmdTodos', allow: 'cmdAllow', close: 'cmdClose', open: 'cmdOpen',
@@ -408,37 +409,17 @@ async function capasDelMenu() {
     // sueltas en el menu: dos sitios que no se hablan. Uno nuevo se añade a la
     // lista, cobra, funciona y no lo descubre nadie porque no esta escrito.
     //
-    // Los alias no cuentan como ausencia: *!L* y *!perdedor* son el MISMO case,
-    // asi que con que salga uno de los dos basta. Los grupos se sacan de las
-    // rafagas de "case" del dispatcher, que es donde esta la verdad de que dos
-    // nombres son la misma cosa — que es justo lo que fallaba al reves cuando
-    // el menu abria la lista con *!L*, un alias, en vez de con el comando.
+    // Los alias no cuentan como ausencia: *!L* y *!perdedor* son la MISMA
+    // fila del registro, asi que con que salga uno de los dos basta. Los grupos
+    // salen del registro vivo, que es donde esta la verdad de que dos nombres
+    // son la misma cosa — que es justo lo que fallaba al reves cuando el menu
+    // abria la lista con *!L*, un alias, en vez de con el comando.
     {
-      const mh3 = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
-      const sw3 = mh3.slice(mh3.indexOf('switch (command)'));
-      // Se recorre linea a linea, no con una expresion: el dispatcher escribe los
-      // alias de las dos formas —"case 'x':" a solas y "case 'y': await cmd(...)"
-      // en la misma linea— y una rafaga puede acabar de cualquiera de las dos.
-      // Un patron que exigiera la linea limpia parte el grupo justo en el ultimo,
-      // que es el que lleva el codigo; uno que la permitiera siempre pegaria
-      // entre si comandos vecinos que no tienen nada que ver.
-      const grupo = new Map();   // comando -> todos sus alias
-      {
-        let pend = [];
-        const cerrar = () => { for (const n of pend) grupo.set(n, pend); pend = []; };
-        for (const linea of sw3.split('\n')) {
-          const m = linea.match(/^[ \t]*case '([^']+)':(.*)$/);
-          if (!m) { cerrar(); continue; }
-          pend.push(m[1]);
-          if (m[2].trim()) cerrar();        // la rafaga acaba en la linea que trae codigo
-        }
-        cerrar();
-      }
-      const lista = mh3.match(/const CMDS_PORCENTAJE = \[([\s\S]*?)\];/);
-      const pct2 = lista ? [...lista[1].matchAll(/'([^']+)'/g)].map((x) => x[1]) : [];
+      const { familia: grupo } = await repartoVivo();
+      const pct2 = [...require(path.join(R, 'src/handlers/messageHandler'))._listas.CMDS_PORCENTAJE];
       if (pct2.length < 20) {
         fallos++;
-        console.log(rojo(`   ✗ solo leo ${pct2.length} comandos de porcentaje: el patron de CMDS_PORCENTAJE se rompio y esta comprobacion se quedo ciega`));
+        console.log(rojo(`   ✗ solo leo ${pct2.length} comandos de porcentaje: la lista del registro se ha roto y esta comprobacion se quedo ciega`));
       }
       const ausentes = pct2.filter((cmd) => !(grupo.get(cmd) || [cmd]).some((a) => cR.has(a)));
       if (ausentes.length) {
@@ -480,8 +461,7 @@ async function capasDelMenu() {
     if (m) {
       const tabla = Object.fromEntries([...m[1].matchAll(/^\s*([a-z0-9_]+):\s*'([^']+)',/gm)].map((x) => [x[1], x[2]]));
       exige(Object.keys(tabla).length > 0, 'la tabla COMO_SE_ESCRIBE se ha quedado vacia');
-      const disp = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
-      const reales = new Set([...disp.matchAll(/^\s*case '([a-z0-9_]+)':/gm)].map((x) => x[1]));
+      const reales = new Set((await repartoVivo()).nombres);
       for (const [clave, valor] of Object.entries(tabla)) {
         exige(reales.has(clave),
           `COMO_SE_ESCRIBE tiene "${clave}", que no es un comando: el menu ensenyaria algo que el bot no acepta`);
@@ -691,98 +671,128 @@ function restaurar(copia, antes) {
   }
 }
 
-// EL REGISTRO DE COMANDOS, CONTRA EL SWITCH.
+// EL REPARTO DE COMANDOS, VIVO.
 //
-// Esto vivia dentro de «4. GUARDAN», que SE SALTA cuando el bot esta corriendo
-// (state.json tocado en el ultimo minuto) — o sea SIEMPRE en la VPS. Ninguna de
-// estas comprobaciones toca datos: comparan el registro, la tabla de cobro y el
-// switch. Asi que ni las de antes (alias gratis, cobros por comandos que no
-// existen) ni la de familias habian corrido nunca en la maquina del dueño. Se
-// vio al probar la guarda al reves: con un alias metido a proposito en un solo
-// sitio seguia en verde, porque ni siquiera se estaba ejecutando.
+// El switch de messageHandler ya no existe: cada fila del registro
+// (src/handlers/comandos.js) lleva lo que hace. Antes la puerta sacaba de ese
+// switch, con expresiones sobre el texto, que comandos existen, cuales son
+// alias de cual y adonde va cada uno; y cada cambio de formato dejaba alguna
+// comprobacion ciega. Esto EJECUTA cada fila con los modulos de comandos
+// sustituidos por un apuntador y devuelve, por nombre, a que funcion llega y
+// con que argumentos. Lo que se comprueba es lo que el bot haria.
+//
+//   nombres    todos los que el bot acepta, en el orden del registro
+//   destino    nombre -> { mod, fn, args, devuelve } (como el tier dueño: las
+//              puertas de permiso de la propia fila no esconden el destino)
+//   familia    nombre -> los nombres de su misma fila
+async function repartoVivo(raiz = R) {
+  const mh = require(path.join(raiz, 'src/handlers/messageHandler'));
+  const { EJECUTA, FAMILIA } = mh._reparto;
+  const destino = new Map();
+  for (const [nombre, hace] of EJECUTA) {
+    const llamadas = [];
+    const de = (mod) => new Proxy({}, {
+      get: (_, fn) => (...args) => { llamadas.push({ mod, fn, args }); return `devuelto:${mod}.${fn}`; },
+    });
+    const sock = { sendMessage: async () => ({}) };
+    const msg = { key: { remoteJid: '120363000000000000@g.us', fromMe: true, participant: '34600000000@s.whatsapp.net', id: 'R' } };
+    let devuelve;
+    try {
+      devuelve = await hace({ de, sock, msg, args: ['a1', 'a2'], meta: null, command: nombre,
+        jid: msg.key.remoteJid, sender: msg.key.participant, viaTriggerK: false });
+    } catch (e) { devuelve = e; }
+    const l = llamadas[0];
+    destino.set(nombre, l ? { ...l, n: llamadas.length, devuelve } : { mod: null, fn: null, n: 0, devuelve });
+  }
+  const familia = new Map();
+  for (const n of EJECUTA.keys()) familia.set(n, [...EJECUTA.keys()].filter((m) => FAMILIA.get(m) === FAMILIA.get(n)));
+  return { nombres: [...EJECUTA.keys()], destino, familia };
+}
+
+// EL REGISTRO DE COMANDOS CUADRA, Y CADA FILA LLEGA A ALGUN SITIO.
+//
+// Antes esto comparaba el registro con el switch de messageHandler: los dos
+// sitios donde vivia un comando. El switch ya no existe —cada fila lleva su
+// `hace`— asi que lo que queda por vigilar es que cada fila haga lo que dice:
+// que llegue a una funcion que EXISTE en su modulo (un nombre mal escrito en
+// una fila solo reventaria al usarlo, con el grupo delante) y que devuelva lo
+// que devuelve el comando, que es como llega SIN_SERVICIO al reembolso.
+//
+// Va fuera de «4. GUARDAN», que se salta con el bot en marcha: nada de esto
+// toca datos.
 async function capaRegistro() {
-  console.log('\n4b. EL REGISTRO DE COMANDOS CUADRA CON EL SWITCH');
+  console.log('\n4b. CADA COMANDO DEL REGISTRO LLEGA A SU SITIO');
   const antesReg = fallos;
   const comprueba = (c, q) => {
     if (c) return;
     fallos++;
     console.log(rojo(`   ✗ ${q}`));
   };
-  // Y EL COBRO TIENE QUE CUADRAR CON EL SWITCH, en las dos direcciones:
+  const { nombres, destino, familia } = await repartoVivo();
+  comprueba(nombres.length >= 250, `el registro solo tiene ${nombres.length} nombres: esta capa no mira nada`);
+
+  // Y EL COBRO TIENE QUE CUADRAR CON LO QUE EXISTE, en las dos direcciones:
   //
-  //  · una clave de precio sin case cobra por un comando que no existe — le paso
+  //  · una clave de precio sin comando cobra por algo que no existe — le paso
   //    a !coach, que se llevaba 30 y contestaba "no existe";
-  //  · un alias fuera de la tabla sale GRATIS mientras su canonico cobra, que es
-  //    lo que pasaba con !quemar, !destruir, !muertos, !texto e !importancia.
+  //  · un alias sin precio sale GRATIS mientras su hermano cobra, que es lo
+  //    que pasaba con !quemar, !destruir, !muertos, !texto e !importancia.
   {
-    const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
-    const cases = new Set([...mh.matchAll(/case '([^']+)':/g)].map((m) => m[1]));
-    // LA TABLA VIVA, no el texto. Leida del fichero con regex, al pasar las
-    // listas al registro esto se quedaba vacio y las dos comprobaciones de abajo
-    // pasaban en verde SIN MIRAR NADA. Ahora sale del modulo cargado, porcentaje
-    // incluido.
-    const claves = Object.keys(require(path.join(R, 'src/handlers/messageHandler'))._listas.COBRO_CENTRAL);
+    const cobro = require(path.join(R, 'src/handlers/messageHandler'))._listas.COBRO_CENTRAL;
+    const claves = Object.keys(cobro);
     comprueba(claves.length >= 60, `la tabla de cobro solo tiene ${claves.length} entradas: esta guarda no mira nada`);
-    const huerfanos = claves.filter((c) => !cases.has(c));
-    comprueba(huerfanos.length === 0,
-      `cobro: se cobra por comandos que no existen: ${huerfanos.join(', ')}`);
-
-
-    // Alias gratis: se agrupan los case consecutivos que llaman al mismo
-    // handler; si UNO de ellos cobra, todos tienen que cobrar.
-    const grupos = [...mh.matchAll(/((?:\s*case '[^']+':[^\n]*\n)+)\s*await (cmd[A-Za-z]+)\(/g)];
+    const existen = new Set(nombres);
+    const huerfanos = claves.filter((c) => !existen.has(c));
+    comprueba(huerfanos.length === 0, `cobro: se cobra por comandos que no existen: ${huerfanos.join(', ')}`);
+    // Mismo destino, mismo trato: dos nombres que llegan a la misma funcion
+    // con los mismos argumentos son el mismo trabajo.
+    const clave = (n) => { const d = destino.get(n); return `${d.mod}.${d.fn}|${JSON.stringify(d.args)}`; };
+    const porTrabajo = new Map();
+    for (const n of nombres) { const k = clave(n); if (!porTrabajo.has(k)) porTrabajo.set(k, []); porTrabajo.get(k).push(n); }
     const sueltos = [];
-    for (const g of grupos) {
-      const alias = [...g[1].matchAll(/case '([^']+)'/g)].map((x) => x[1]);
-      const conCobro = alias.filter((a) => claves.includes(a));
-      if (conCobro.length && conCobro.length !== alias.length) {
-        sueltos.push(...alias.filter((a) => !claves.includes(a)));
-      }
+    for (const grupo of porTrabajo.values()) {
+      if (grupo.some((a) => cobro[a]) && !grupo.every((a) => cobro[a])) sueltos.push(...grupo.filter((a) => !cobro[a]));
     }
-    comprueba(sueltos.length === 0,
-      `cobro: alias gratis mientras su hermano cobra por el mismo trabajo: ${sueltos.join(', ')}`);
-
-    // LAS FAMILIAS DEL SWITCH Y LAS DEL REGISTRO SON LAS MISMAS.
-    //
-    // Aqui habia una comprobacion que perseguia alias descolgados de sus
-    // hermanos en NEEDS_META y COBRAN_SOLOS, y su comentario decia: «la solucion
-    // de verdad es una sola tabla por comando de la que salgan las cuatro
-    // cosas; eso es una reescritura del dispatcher y no se hace a ciegas». Se
-    // hizo, por pasos (src/handlers/comandos.js): las listas salen del registro,
-    // asi que un alias ya no puede tener propiedades distintas a su familia.
-    //
-    // Lo que queda por vigilar es el hueco entre los dos sitios que siguen
-    // existiendo: el `case` del switch y la fila del registro. Un alias en uno y
-    // no en el otro es exactamente como nacio *!conteo*: metido en una lista, sin
-    // `case`, y sin funcionar durante no se sabe cuanto.
-    {
-      const { FAMILIAS } = require(path.join(R, 'src/handlers/comandos'));
-      const accs = new Set(require(path.join(R, 'src/commands/acciones')).ALIAS_ACTIVOS);
-      const pcts = new Set(require(path.join(R, 'src/handlers/messageHandler'))._listas.CMDS_PORCENTAJE);
-      const sw = mh.slice(mh.indexOf('switch (command) {'));
-      const lin = sw.slice(0, sw.indexOf('\n      default:')).split('\n');
-      const delSwitch = []; let cur = [];
-      for (const l of lin) {
-        const m = [...l.matchAll(/case '([^']+)':/g)].map((x) => x[1]);
-        if (m.length && /^\s*case '/.test(l)) { cur.push(...m); continue; }
-        if (cur.length) { delSwitch.push(cur); cur = []; }
-      }
-      comprueba(delSwitch.length >= 80, `solo encuentro ${delSwitch.length} familias en el switch: la lectura se ha roto`);
-      const explicitas = FAMILIAS.filter((f) => f.nombres).map((f) => [...f.nombres].sort().join(','));
-      const reg = new Set(explicitas);
-      const sinFila = delSwitch.filter((g) => !g.every((c) => accs.has(c)) && !g.every((c) => pcts.has(c)))
-        .map((g) => [...g].sort().join(',')).filter((k) => !reg.has(k));
-      comprueba(sinFila.length === 0,
-        `familias del switch que no son una fila del registro (alias añadido en un sitio y no en el otro): ${sinFila.slice(0, 3).join(' | ')}`);
-      const enSwitch = new Set(delSwitch.flat());
-      const sinCase = FAMILIAS.filter((f) => f.nombres).flatMap((f) => f.nombres).filter((c) => !enSwitch.has(c));
-      comprueba(sinCase.length === 0,
-        `comandos en el registro sin \`case\` en el switch: ${sinCase.join(', ')} — existen en las listas pero no responden`);
-      const duplicados = explicitas.flatMap((k) => k.split(',')).filter((c, i, a) => a.indexOf(c) !== i);
-      comprueba(duplicados.length === 0, `comandos en dos familias del registro a la vez: ${duplicados.join(', ')}`);
-    }
+    comprueba(sueltos.length === 0, `cobro: alias gratis mientras su hermano cobra por el mismo trabajo: ${sueltos.join(', ')}`);
   }
-  if (fallos === antesReg) console.log(verde('   ✓ cada familia del switch es una fila del registro, y la tabla de cobro cuadra con los case'));
+
+  // CADA FILA LLEGA A UNA FUNCION QUE EXISTE Y DEVUELVE LO QUE ESTA DEVUELVE.
+  {
+    const rotos = [], mudos = [], tiran = [];
+    for (const n of nombres) {
+      const d = destino.get(n);
+      if (!d.n) { mudos.push(n); continue; }
+      let real;
+      try {
+        real = d.mod === 'manejador'
+          ? require(path.join(R, 'src/handlers/messageHandler'))._reparto.cargarDe('manejador')
+          : require(path.join(R, 'src/commands', d.mod));
+      } catch { real = null; }
+      if (!real || typeof real[d.fn] !== 'function') rotos.push(`${n} -> ${d.mod}.${d.fn}`);
+      else if (d.devuelve !== `devuelto:${d.mod}.${d.fn}`) tiran.push(n);
+    }
+    comprueba(mudos.length === 0, `filas que no llaman a ningun comando: ${mudos.join(', ')}`);
+    comprueba(rotos.length === 0, `filas que llaman a una funcion que no existe (reventaria al usarla): ${rotos.slice(0, 6).join(', ')}`);
+    comprueba(tiran.length === 0,
+      `${tiran.length} comando(s) tiran lo que devuelve su funcion, asi que no pueden reembolsar: ${tiran.slice(0, 6).join(', ')}`);
+  }
+
+  // UN NOMBRE, UNA FILA. comandos.js no arranca si uno esta en dos; aqui se
+  // mira que esa guarda siga puesta, porque es lo que evito el *!atraco* que
+  // contestaba "Dime a quien robas".
+  {
+    const { FAMILIAS, construirListas } = require(path.join(R, 'src/handlers/comandos'));
+    const copia = FAMILIAS.slice();
+    FAMILIAS.push({ nombres: ['robo'], hace: () => {} });
+    let lanza = false;
+    try { construirListas({ ALIAS_ACCION: [] }); } catch { lanza = true; }
+    FAMILIAS.length = 0; FAMILIAS.push(...copia);
+    comprueba(lanza, 'comandos.js deja poner un nombre en dos filas: la segunda quedaria muerta sin que nadie lo sepa');
+    const sinHace = FAMILIAS.filter((f) => typeof f.hace !== 'function');
+    comprueba(sinHace.length === 0, `filas sin \`hace\`: ${sinHace.map((f) => (f.nombres || [f.grupo])[0]).join(', ')}`);
+    comprueba(familia.get('perdedor')?.includes('l'), '*!L* ya no es la misma fila que *!perdedor*');
+  }
+  if (fallos === antesReg) console.log(verde(`   ✓ ${nombres.length} nombres: cada uno llega a una funcion que existe y devuelve lo suyo, y el cobro cuadra`));
 }
 
 async function capaStores() {
@@ -800,22 +810,13 @@ async function capaStores() {
     console.log(rojo(`   ✗ ${q}`));
   };
 
-  // El interruptor de !aura off tapa una lista de comandos que se deduce del
-  // propio dispatcher. Si un refactor rompe ese patron, la deduccion cae a la
-  // lista a mano de seis nombres y la economia se queda medio abierta con la
-  // economia apagada, EN SILENCIO. Por eso se comprueba que sigue encontrando
-  // los alias, no solo que arranca.
+  // Los comandos que llegan a !dar, !robo o !duel mueven aura, y el
+  // interruptor de !aura off tiene que taparlos todos. Se sacan del reparto
+  // vivo, no de leer el dispatcher: un parser de texto se caia con cada
+  // refactor y deducia cero comandos, que es justo lo que llego a pasar.
   {
-    const src = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
-    // `resultado = await cmdX(` y `await cmdX(` valen las dos: desde que el
-    // reembolso obliga a capturar lo que devuelve cada comando, el dispatcher
-    // escribe la primera forma. Un parser atado a UNA de las dos se cae con el
-    // siguiente refactor y deduce cero comandos, que es justo lo que paso.
-    const bloques = /((?:\s*case '[^']+':[^\n]*\n)+)\s*(?:resultado = )?await (cmdDar|cmdRobo|cmdDuel)\(/g;
-    const hallados = new Set();
-    for (const m of src.matchAll(bloques)) {
-      for (const c of m[1].matchAll(/case '([^']+)'/g)) hallados.add(c[1]);
-    }
+    const { nombres, destino } = await repartoVivo();
+    const hallados = new Set(nombres.filter((n) => ['cmdDar', 'cmdRobo', 'cmdDuel'].includes(destino.get(n).fn)));
     comprueba(hallados.size >= 20,
       `aura off: se deducen ${hallados.size} comandos que mueven aura (si baja de 20, el patron del dispatcher se ha roto y el interruptor deja puertas abiertas)`);
     for (const imprescindible of ['dar', 'regalar', 'robo', 'atraco', 'contrarobo', 'asalto', 'comprar']) {
@@ -832,8 +833,7 @@ async function capaStores() {
   //
   // Los dos son invisibles desde dentro: el bot no falla, contesta otra cosa.
   {
-    const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
-    const existen = new Set([...mh.matchAll(/case '([^']+)':/g)].map((m) => m[1]));
+    const existen = new Set((await repartoVivo()).nombres);
     const salidas = [];
     const sockT = { sendMessage: async (j, c) => { salidas.push(c); return {}; } };
     const metaT = { id: G, participants: [{ id: U }] };
@@ -977,42 +977,34 @@ async function capaStores() {
   // Se comprueba sobre el DISPATCHER, que es donde estaba el fallo: importa
   // adonde ROUTA cada forma, no que el comando exista.
   {
-    const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
-    // SIN COMENTARIOS. La primera version leia el bloque tal cual, y el
-    // comentario que hay ahi dentro NOMBRA cmdTopRandom para explicar por que
-    // *!top 10* a secas no se desvia. O sea que al borrar el codigo la
-    // comprobacion seguia pasando: se daba por satisfecha leyendo la prosa que
-    // explica el arreglo en vez del arreglo. Ya me paso con el guardia de `msg`.
-    const sinComentarios = mh.replace(/\/\/[^\n]*/g, '');
-    const bloque = sinComentarios.match(/case 'ranking':\s*case 'top':([\s\S]*?)case 'hoy':/);
-    comprueba(!!bloque && /cmdTopRandom/.test(bloque[1]),
+    // SE EJECUTA, NO SE LEE. La primera version leia el bloque del switch, y
+    // un comentario que NOMBRA cmdTopRandom para explicar por que *!top 10* a
+    // secas no se desvia bastaba para pasar aunque se borrara el codigo.
+    const { EJECUTA } = require(path.join(R, 'src/handlers/messageHandler'))._reparto;
+    const adonde = async (nombre, args) => {
+      let a = null;
+      const de = (mod) => new Proxy({}, { get: (_, fn) => (...x) => { a = a || { fn, x }; } });
+      await EJECUTA.get(nombre)?.({ de, sock: {}, msg: { key: {} }, args, meta: null, command: nombre });
+      return a;
+    };
+    const conTema = await adonde('top', ['10', 'cojen', 'bien']);
+    comprueba(conTema?.fn === 'cmdTopRandom' && conTema.x[2] === 10 && conTema.x[3].join(' ') === 'cojen bien',
       'dispatcher: *!top 10 <tema>* vuelve a caer en el ranking de aura en vez del sorteo');
-    comprueba(/case 'auratop':/.test(sinComentarios),
+    const auratop = await adonde('auratop', []);
+    comprueba(auratop?.fn === 'cmdAura' && auratop.x[2][0] === 'top',
       'dispatcher: *!auratop* (una palabra) tiene que ser el ranking, no silencio');
     // Y solo CON tema: *!top 10* a secas es la forma natural de pedir el aura, y
     // cmdTopRandom se calla sin asunto, asi que desviarlo seria dejarlo mudo.
-    comprueba(!!bloque && /args\.length > 1/.test(bloque[1]),
+    const sinTema = await adonde('top', ['10']);
+    comprueba(sinTema?.fn === 'cmdAura' && sinTema.x[2].join(' ') === 'top 10',
       'dispatcher: *!top 10* sin tema tiene que seguir dando el ranking de aura, no silencio');
   }
 
-  // NINGUN ALIAS PUEDE ESTAR DOS VECES EN EL SWITCH, y esto lo aprendi por las
-  // malas: *!atraco* estaba en la rama de !robo y en la suya, y en JS gana el
-  // primer case. Resultado: el comando se anunciaba en el menu y en la guia, y
-  // contestaba "Dime a quien robas". Dos dias asi.
-  //
-  // Mi comprobacion de textos no lo caza y no puede: verifica que el comando
-  // EXISTA como case, y existia. Verificar existencia no es verificar destino.
-  {
-    const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
-    const vistos = new Map();
-    const dobles = [];
-    for (const m of mh.matchAll(/case '([^']+)':/g)) {
-      if (vistos.has(m[1])) dobles.push(m[1]);
-      else vistos.set(m[1], true);
-    }
-    comprueba(dobles.length === 0,
-      `dispatcher: alias duplicados en el switch (gana el primero y el segundo queda muerto): ${dobles.join(', ')}`);
-  }
+  // NINGUN ALIAS PUEDE ESTAR EN DOS SITIOS, y esto lo aprendi por las malas:
+  // *!atraco* estaba en la rama de !robo y en la suya, gano la primera, y el
+  // comando anunciado en el menu contestaba "Dime a quien robas" dos dias.
+  // Ahora el registro no arranca con un nombre en dos filas; la capa 4b
+  // comprueba que esa guarda siga puesta.
 
   // EL COOLDOWN DE !aura top. Las reglas que ya se rompieron una vez cada una
   // y que desde fuera no se ven: el bot contesta, solo contesta lo que no toca.
@@ -1345,29 +1337,17 @@ async function capaStores() {
   // agujero real no es que falte la marca, es que el `case` no capture lo que
   // devuelve el comando, que son dos sitios distintos. Ahora se mide el SALDO.
   {
-    // 1) TODOS los casos capturan. El que llama a un comando y tira el valor
-    // devuelto no reembolsa nunca, y no hay forma de notarlo leyendo su codigo.
-    const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
-    const zona = mh.slice(mh.indexOf('switch (command)'));
-    const sinCaptura = [];
-    let etiquetas = [], cuerpo = [];
-    const cerrar = () => {
-      if (etiquetas.length) {
-        const t = cuerpo.join('\n');
-        if (/await cmd[A-Za-z]/.test(t) && !t.includes('resultado = await')) sinCaptura.push(etiquetas[0]);
+    const antesSinServ = fallos;
+    // 1) TODOS los comandos devuelven lo que devuelve su funcion. El que la
+    // llama y tira el valor no reembolsa nunca, y no hay forma de notarlo
+    // leyendo su codigo: se ejecuta cada fila del registro y se mira.
+    {
+      const { nombres, destino } = await repartoVivo();
+      const sinCaptura = nombres.filter((n) => { const d = destino.get(n); return d.n && d.devuelve !== `devuelto:${d.mod}.${d.fn}`; });
+      if (sinCaptura.length) {
+        fallos++;
+        console.log(rojo(`   ✗ ${sinCaptura.length} comando(s) tiran lo que devuelve su handler, asi que no pueden reembolsar: ${sinCaptura.slice(0, 6).join(', ')}`));
       }
-      etiquetas = []; cuerpo = [];
-    };
-    for (const l of zona.split('\n')) {
-      const m = l.match(/^      case '([^']+)':/);
-      if (m) { if (cuerpo.length) cerrar(); etiquetas.push(m[1]); continue; }
-      if (etiquetas.length) cuerpo.push(l);
-      if (/^\s+break;/.test(l)) cerrar();
-    }
-    cerrar();
-    if (sinCaptura.length) {
-      fallos++;
-      console.log(rojo(`   ✗ ${sinCaptura.length} comando(s) tiran lo que devuelve su handler, asi que no pueden reembolsar: ${sinCaptura.slice(0, 6).join(', ')}`));
     }
 
     // 2) Y el reembolso OCURRE. Cuatro caminos que no prestan servicio, por el
@@ -1434,7 +1414,7 @@ const di=async(quien,texto,extra)=>{
     } finally {
       fs.rmSync(dirS, { recursive: true, force: true });
     }
-    if (!sinCaptura.length) console.log(verde('   ✓ el que no presta servicio no cobra, y el que lo presta sigue cobrando'));
+    if (fallos === antesSinServ) console.log(verde('   ✓ el que no presta servicio no cobra, y el que lo presta sigue cobrando'));
   }
 
   // ── 6. LOS COMANDOS DE PAGO NO SALEN GRATIS POR PRIVADO ───────────────────
@@ -1890,7 +1870,10 @@ const di=async(quien,texto,extra)=>{
     for (const [f, src] of [['src/commands/group.js', grpSrc],
                             ['src/handlers/messageHandler.js', mhSrc]]) {
       exige(!/\bcmdAdd\b/.test(src), `${f} vuelve a tener cmdAdd: !add se quito a proposito`);
-      exige(!/case 'agregar':/.test(src), `${f} vuelve a despachar !agregar`);
+    }
+    {
+      const { EJECUTA } = require(path.join(R, 'src/handlers/messageHandler'))._reparto;
+      for (const n of ['add', 'agregar', 'anadir']) exige(!EJECUTA.has(n), `el registro vuelve a despachar !${n}`);
     }
     // EL RE-ALTA SIGUE SIENDO SOLO DEL DUEÑO. Es la unica alta que queda en todo
     // el bot, y lo que la hace aceptable no es que sea automatica: es que mete
@@ -2131,7 +2114,7 @@ const di=async(quien,texto,extra)=>{
     exige(ocultos.includes('purge'), 'purge tiene que estar en COMANDOS_OCULTOS: si no, escribir !purga lo delata');
 
     // El sugeridor, de verdad: se reconstruye su lista igual que el fichero.
-    const conocidos = [...new Set([...mh.matchAll(/^\s*case '([a-zá-úñ0-9_]+)':/gmi)].map((m) => m[1]))]
+    const conocidos = [...require(path.join(R, 'src/handlers/messageHandler'))._reparto.EJECUTA.keys()]
       .filter((c) => c.length >= 2 && !ocultos.includes(c));
     const asoman = ocultos.filter((c) => conocidos.includes(c));
     exige(asoman.length === 0, `el sugeridor ofrece comandos ocultos: ${asoman.join(', ')}`);
@@ -2212,7 +2195,7 @@ const di=async(quien,texto,extra)=>{
           `un co-owner ha purgado a otro co-owner MENCIONANDOLO (${kicks.length} expulsion(es)): la ruta de la mencion no mira quien purga`);
       }
     }
-    exige(/cmdPurge/.test(mh) && /case 'purge':/.test(mh),
+    exige((await repartoVivo()).destino.get('purge')?.fn === 'cmdPurge',
       '!purge esta escrito pero no enganchado al dispatcher');
     exige(require(path.join(R, 'src/handlers/messageHandler'))._listas.NEEDS_META.has('purge'),
       '!purge tiene que pedir metadata: sin ella isMainOwner no resuelve el LID del owner');
@@ -2238,11 +2221,10 @@ const di=async(quien,texto,extra)=>{
     // mano, y acordarse no es un mecanismo.
     {
       const soc = fs.readFileSync(path.join(R, 'src/commands/social.js'), 'utf8');
-      const mhSrc = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
       const desde = soc.indexOf('async function cmdHelp');
       const menu = desde === -1 ? '' : soc.slice(desde);
       const nombrados = [...new Set([...menu.matchAll(/\$\{p\}([a-z0-9ñ-]+)/gi)].map(m => m[1].toLowerCase()))];
-      const despachados = new Set([...mhSrc.matchAll(/case .[\"']?([a-z0-9ñáéíóú-]+)[\"']?.:/gi)].map(m => m[1].toLowerCase()));
+      const despachados = new Set(require(path.join(R, 'src/handlers/messageHandler'))._reparto.EJECUTA.keys());
       const fantasmas = nombrados.filter(n => !despachados.has(n));
       exige(nombrados.length > 50, 'el menu dejo de nombrar comandos: ¿se rompio el trozo que se lee?');
       exige(fantasmas.length === 0,
@@ -3069,7 +3051,7 @@ const di=async(quien,texto,extra)=>{
       console.log(rojo('   ✗ no esta la puerta del privado en handleMessage'));
     } else {
       const iVisto = mh.indexOf('sock.readMessages?.');
-      const iSwitch = mh.indexOf('switch (command)');
+      const iSwitch = mh.indexOf('const hace = EJECUTA.get(command);');
       const iContador = mh.indexOf("incrementStat('messagesReceived')");
       for (const [i, que] of [[iVisto, 'del visto'], [iSwitch, 'del switch de comandos'], [iContador, 'de los contadores']]) {
         if (i >= 0 && iPuerta > i) {
@@ -3712,17 +3694,13 @@ const di=async(quien,texto,extra)=>{
     const part = fs.readFileSync(path.join(R, 'src/utils/participantes.js'), 'utf8');
     const bot = fs.readFileSync(path.join(R, 'src/bot.js'), 'utf8');
 
-    const m = mh.match(/const NEEDS_META = new Set\(\[([\s\S]*?)\]\);/);
     const dentro = require(path.join(R, 'src/handlers/messageHandler'))._listas.NEEDS_META;
-    const gruposMeta = [...mh.matchAll(/((?:\s*case '[^']+':[^\n]*\n)+)\s*await (cmdAura|cmdRobo|cmdDar|cmdHelp|cmdCasino|cmdCacheList)\(/g)];
-    const faltan = [];
-    for (const g of gruposMeta) {
-      const alias = [...g[1].matchAll(/case '([^']+)'/g)].map((x) => x[1]);
-      faltan.push(...alias.filter((a) => !dentro.has(a)));
-    }
+    const { nombres: todos22, destino: dest22 } = await repartoVivo();
+    const faltan = todos22.filter((n) => ['cmdAura', 'cmdRobo', 'cmdDar', 'cmdHelp', 'cmdCasino', 'cmdCacheList'].includes(dest22.get(n).fn))
+      .filter((a) => !dentro.has(a));
     exige(faltan.length === 0,
       `NEEDS_META: faltan alias de aura/robo/dar/ayuda/casino: ${faltan.join(', ')}`);
-    exige(/case 'auratop':/.test(mh) && dentro.has('auratop'),
+    exige(dest22.get('auratop')?.fn === 'cmdAura' && dentro.has('auratop'),
       '*!auratop* tiene que ser alias del ranking y pedir metadata: si no, o no existe o lista a quien ya se fue');
 
     // LAS DOS LISTAS DE "TIRA UNIFORME" TIENEN QUE DECIR LO MISMO.
@@ -4797,21 +4775,18 @@ const di=async(quien,texto,extra)=>{
     // fallo intacta: el proximo comando con tilde vuelve a nacer roto.
     //
     // Se comprueba lo que lo hace imposible: que el token se normalice antes
-    // del switch, y que no quede ningun `case` con tilde (con normalizacion, un
-    // case acentuado es codigo muerto que nadie alcanza nunca).
+    // del reparto, y que ningun nombre del registro lleve tilde (con
+    // normalizacion, un nombre acentuado es codigo muerto que nadie alcanza).
     {
       const mh = soloCodigo('src/handlers/messageHandler.js');
       exige(/const command = normalizarComando\(/.test(mh),
-        'el comando ya no se normaliza antes del switch: *!menú* y *!inútil* vuelven a no existir');
-      // Anclado a principio de linea: sin eso, el patron casa dentro de una
-      // expresion regular del propio fichero que lleva "case '([a-zá-úñ...])" y
-      // acusaba de acentuado a un `case` que no existe. Ya me habia pasado al
-      // inventariarlos; aqui casi se cuela a produccion.
-      const conTilde = [...mh.matchAll(/^[ \t]*case '([^']*[áéíóúüñÁÉÍÓÚÜÑ][^']*)':/gm)].map((m) => m[1]);
-      exige(conTilde.length === 0,
-        `hay case con tilde y con la normalizacion no se alcanzan nunca: ${conTilde.join(', ')}`);
+        'el comando ya no se normaliza antes del reparto: *!menú* y *!inútil* vuelven a no existir');
       // Y QUE DE VERDAD LLEGUE AL MISMO SITIO, no solo que la funcion exista.
-      const { normalizarComando } = require(path.join(R, 'src/handlers/messageHandler'));
+      const { normalizarComando, _reparto } = require(path.join(R, 'src/handlers/messageHandler'));
+      // Un nombre del registro que cambia al normalizarlo no se alcanza nunca.
+      const conTilde = [..._reparto.EJECUTA.keys()].filter((c) => normalizarComando(c) !== c);
+      exige(conTilde.length === 0,
+        `hay comandos en el registro con tilde o mayuscula y con la normalizacion no se alcanzan nunca: ${conTilde.join(', ')}`);
       for (const [escrito, esperado] of [['menú', 'menu'], ['inútil', 'inutil'], ['MÚSICA', 'musica'],
         ['canción', 'cancion'], ['añadir', 'anadir'], ['aura', 'aura']]) {
         const dio = normalizarComando ? normalizarComando(escrito) : null;
@@ -5478,9 +5453,7 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     // 1) NINGUN COMANDO FANTASMA. Un `!algo` que ya no existe manda a escribir
     //    frases para un pool muerto. '!comando' es el generico de los ejemplos.
     {
-      const mhSrc = fs.readFileSync(path.join(R, "src/handlers/messageHandler.js"), "utf8");
-      const zona = mhSrc.slice(mhSrc.indexOf("switch (command)"));
-      const casos = new Set([...zona.matchAll(/^\s*case '([^']+)':/gm)].map((m) => m[1]));
+      const casos = new Set(require(path.join(R, 'src/handlers/messageHandler'))._reparto.EJECUTA.keys());
       const fantasmas = [...new Set([...guia.matchAll(/!([a-zá-úñ0-9]+)/g)].map((m) => m[1]))]
         .filter((c) => c !== 'comando' && !casos.has(c));
       exige(fantasmas.length === 0,
@@ -5690,8 +5663,7 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     // quiera; lo que no puede es que un comando no aparezca en NINGUNA de las
     // dos, porque entonces existe y no lo sabe nadie.
     {
-      const zona = src.slice(src.indexOf('switch (command)'));
-      const cmds = [...new Set([...zona.matchAll(/^\s*case '([^']+)':/gm)].map((m) => m[1]))];
+      const cmds = [...require(path.join(R, 'src/handlers/messageHandler'))._reparto.EJECUTA.keys()];
       // SE NORMALIZA ANTES DE COMPARAR, y esto no es un detalle de regex.
       //
       // El menu enseña *!musica* con tilde y *!puñetazo* con eñe, porque es como
@@ -6340,37 +6312,13 @@ console.log(JSON.stringify({
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
     const { CMDS_AURA, SOLO_CONSULTA } = require(path.join(R, 'src/handlers/messageHandler'));
 
-    // Los `case` que llegan a un comando que toca el saldo. Se lee el fuente
-    // solo para SABER QUE COMANDOS EXISTEN, no para decidir su clasificacion:
-    // si el regex falla, la guarda se queda sin material y lo dice, en vez de
-    // dar por buena una lista vacia como hacia la derivacion.
-    const src = soloCodigo('src/handlers/messageHandler.js');
-    const zona = src.slice(src.indexOf('switch (command)'));
-    // Se acumulan las etiquetas `case` consecutivas y, en cuanto aparece la
-    // PRIMERA linea de cuerpo, se decide con ella y se vacia el acumulador.
-    // Escrito de otra forma —dejando el acumulador vivo cuando el cuerpo no era
-    // el que se buscaba— las etiquetas se arrastraban de un bloque al siguiente
-    // y la guarda pedia clasificar *!musica* como comando de economia.
-    const etiquetas = [];
-    let bloque = [];
-    for (const linea of zona.split('\n')) {
-      const t = linea.trim();
-      if (!t) continue;
-      const c = t.match(/^case '([^']+)':\s*(.*)$/);
-      if (c) {
-        bloque.push(c[1]);
-        if (!c[2]) continue;              // etiqueta sola: sigue el bloque
-        if (/\b(cmdDar|cmdRobo|cmdDuel)\s*\(/.test(c[2])) etiquetas.push(...bloque);
-        bloque = [];
-        continue;
-      }
-      if (!bloque.length) continue;       // cuerpo de un bloque que no nos toca
-      if (/\b(cmdDar|cmdRobo|cmdDuel)\s*\(/.test(t)) etiquetas.push(...bloque);
-      bloque = [];                        // primera linea de cuerpo: se decide y se cierra
-    }
-    const vistos = [...new Set(etiquetas)];
+    // Los comandos que llegan a uno que toca el saldo, del reparto vivo: se
+    // ejecuta cada fila y se mira adonde va. Leer el switch como texto se
+    // rompia con un comentario entre el `case` y el `await`.
+    const { nombres: todos32, destino: dest32 } = await repartoVivo();
+    const vistos = todos32.filter((n) => ['cmdDar', 'cmdRobo', 'cmdDuel'].includes(dest32.get(n).fn));
     exige(vistos.length >= 20,
-      `solo he encontrado ${vistos.length} comandos que toquen el saldo: la lectura del dispatcher ha dejado de funcionar y esta guarda no vale`);
+      `solo he encontrado ${vistos.length} comandos que toquen el saldo: la lectura del registro ha dejado de funcionar y esta guarda no vale`);
     for (const c of vistos) {
       exige(CMDS_AURA.has(c) || SOLO_CONSULTA.has(c),
         `*!${c}* llega a un comando que mueve saldo y no esta clasificado: metelo en CMDS_AURA o en SOLO_CONSULTA`);
@@ -6829,15 +6777,17 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     const nombres = Object.values(ACCIONES).flatMap((a) => a.cmds);
     exige(nombres.length > 0, 'no encuentro los nombres de las acciones');
 
-    const mh = soloCodigo('src/handlers/messageHandler.js');
-    const zona = mh.slice(mh.indexOf('switch (command)'));
-    const casos = [...zona.matchAll(/^\s*case '([^']+)':/gm)].map((m) => m[1]);
-    const otros = casos.filter((c) => !nombres.includes(c));
+    // Del reparto vivo: adonde llega cada nombre. Una accion llega a
+    // ejecutarAccion; si llega a otra cosa es que otro comando se la ha
+    // quedado. Las apagadas (sin frases) no estan en el registro: estan
+    // reservadas, y eso tambien cuenta como que existen.
+    const { nombres: casos, destino: dest37 } = await repartoVivo();
+    const { RESERVADOS } = require(path.join(R, 'src/handlers/messageHandler'))._reparto;
+    const otros = casos.filter((c) => dest37.get(c).fn !== 'ejecutarAccion');
 
-    // 1) cada nombre esta en el switch UNA vez
+    // 1) cada nombre existe: en el registro o reservado
     for (const n of nombres) {
-      const veces = casos.filter((c) => c === n).length;
-      exige(veces === 1, `*!${n}* aparece ${veces} veces en el switch: si es 0 el comando no existe, y si es 2 el segundo esta muerto`);
+      exige(casos.includes(n) || RESERVADOS.has(n), `*!${n}* no esta en el registro ni reservado: el comando no existe`);
     }
     // 2) ninguno pisa un comando de otra familia
     for (const n of nombres) {
@@ -9274,9 +9224,9 @@ const di=async(quien,t)=>{out.length=0;
         'se pueden pedir enlaces seguidos sin espera: uno solo ocupa los dos huecos de descarga del bot');
 
       // 6. Y LOS TRES ESTAN ENCHUFADOS AL DESPACHADOR Y AL COBRO.
-      const mh = soloCodigo('src/handlers/messageHandler.js');
+      const { EJECUTA: ej74 } = require(path.join(R, 'src/handlers/messageHandler'))._reparto;
       for (const c of ['tt', 'tiktok', 'ig', 'insta', 'instagram', 'pin', 'pinterest']) {
-        exige(new RegExp(`case '${c}':`).test(mh), `!${c} no está en el switch: el comando no existe`);
+        exige(ej74.has(c), `!${c} no está en el registro: el comando no existe`);
         exige(require(path.join(R, 'src/handlers/messageHandler'))._listas.COBRO_CENTRAL[c] === 'redes', `!${c} no cobra: sale gratis mientras sus hermanos cuestan`);
       }
       const { PRECIOS } = require(path.join(R, 'src/utils/economia'));
@@ -14077,8 +14027,9 @@ const ficheroDe = async (ext) => {
     // propio check ya tiene escrito: alias, precio, permiso y ayuda viven en
     // listas separadas y se desincronizan solas.
     const mh = soloCodigo('src/handlers/messageHandler.js');
+    const destX = (await repartoVivo()).destino;
     for (const alias of ['x', 'twitter', 'tuit', 'tweet']) {
-      exige(new RegExp(`case '${alias}':`).test(mh), `*!${alias}* no está en el switch: el comando no responde`);
+      exige(destX.get(alias)?.fn === 'cmdX', `*!${alias}* no llega a cmdX: el comando no responde`);
     }
     exige(['x', 'twitter', 'tuit', 'tweet'].every((a) => require(path.join(R, 'src/handlers/messageHandler'))._listas.COBRAN_SOLOS.has(a) && require(path.join(R, 'src/handlers/messageHandler'))._listas.LENTOS.has(a)),
       'los alias de *!x* no están en COBRAN_SOLOS y LENTOS: cobraría dos veces o no avisaría de que está trabajando');
@@ -17845,11 +17796,11 @@ const manda = async (quien, tipo, opciones) => {
       limp97._enCurso.clear();
 
       // ── El dispatcher y el historial de bot.js siguen enganchados ─────────
-      const mh97 = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
       const bot97 = fs.readFileSync(path.join(R, 'src/bot.js'), 'utf8');
       const histSrc97 = fs.readFileSync(path.join(R, 'src/utils/historialGrupo.js'), 'utf8');
-      exige(/case 'limpiar':/.test(mh97) && /case 'wipe':/.test(mh97),
-        '!limpiar / !wipe no están en el dispatcher');
+      const dest97 = (await repartoVivo()).destino;
+      exige(dest97.get('limpiar')?.fn === 'cmdLimpiar' && dest97.get('wipe')?.fn === 'cmdLimpiar',
+        '!limpiar / !wipe no llegan a cmdLimpiar');
       exige(/recordarHistorial\(msg\)/.test(bot97),
         'bot.js ya no apunta las claves: !limpiar no tendría nada que borrar');
       exige(/messaging-history\.set/.test(bot97),
@@ -19324,6 +19275,62 @@ const manda = async (quien, tipo, opciones) => {
       exige(!copias.length, `vuelve a haber copias propias de juntar @lid y telefono en ${copias.join(', ')}: usa utils/persona.js`);
     }
     if (fallos === antes111) console.log(verde('   ✓ saldo, caja, top, recompensa, objetos, racha, contadores, permisos, rafaga y esperas: la misma persona con sus dos formas'));
+  }
+
+  // ── 112. QUIEN SALE POR UN COMANDO SALE CON SU @ ─────────────────────────
+  //
+  // Lo pidio el dueño: todos los avisos de expulsion mencionan a quien echan.
+  // *!p* ya escribia «@34600…», pero mencionaba al participante, que en un
+  // grupo LID es su @lid, y WhatsApp solo pinta un @ como mencion si lo que va
+  // detras es el usuario de la cuenta mencionada: salia en texto plano, sin
+  // tocar a nadie. *!fkban* ni siquiera lo escribia, ponia el numero recortado.
+  //
+  // La regla que se comprueba es la de WhatsApp: cada @ del texto es el usuario
+  // de una cuenta de `mentions`, y todo el que sale lleva su @. En un grupo LID,
+  // que es donde fallaba.
+  {
+    console.log('\n112. QUIEN SALE POR UN COMANDO SALE CON SU @');
+    const antes112 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const LID = '111095000112@lid', TEL = '346000950112';
+    const casan = (payload, quien, etq) => {
+      const text = String(payload?.text || '');
+      const menc = (payload?.mentions || []).map((j) => String(j).split('@')[0].split(':')[0]);
+      const ats = [...text.matchAll(/@(\d{5,})/g)].map((m) => m[1]);
+      exige(ats.length > 0, `${etq}: el aviso no menciona a nadie con @ ("${text.slice(0, 80)}")`);
+      const sueltos = ats.filter((a) => !menc.includes(a));
+      exige(sueltos.length === 0,
+        `${etq}: @${sueltos[0]} esta en el texto y no en mentions: WhatsApp lo deja en texto plano y no toca a nadie`);
+      exige(menc.includes(String(quien).split('@')[0]) && ats.includes(String(quien).split('@')[0]),
+        `${etq}: quien sale (${quien}) no lleva su @ en el aviso`);
+    };
+    const PN = require(path.join(R, 'src/commands/purgaNumero'));
+    const hit = { digitos: TEL, hit: { p: { id: LID } } };
+    casan(PN.avisoDeVeto([hit]), LID, '*!p*, aviso en el grupo');
+    casan(PN.avisoDePurge([hit]), LID, '*!purge*, aviso en el grupo');
+    casan(require(path.join(R, 'src/commands/group')).avisoDeKick([LID], '120363000000000112@g.us'), LID, '*!kick*');
+
+    // *!fkban*, ejecutado: el dueño lo pide mencionando por @lid.
+    {
+      const { cmdFkBan } = require(path.join(R, 'src/commands/fk'));
+      const G = '120363000000000112@g.us', BOT = '34600000112@s.whatsapp.net';
+      const dicho = [];
+      const sock = {
+        user: { id: BOT },
+        sendMessage: async (j, c) => { dicho.push(c); return { key: { id: 'x' } }; },
+        groupParticipantsUpdate: async (g, ids) => ids.map((id) => ({ jid: id, status: '200' })),
+      };
+      const meta = { id: G, participants: [{ id: BOT, admin: 'admin' }, { id: LID, phoneNumber: `${TEL}@s.whatsapp.net` }] };
+      await cmdFkBan(sock, {
+        key: { remoteJid: G, fromMe: true, id: 'FK112', participant: BOT },
+        message: { extendedTextMessage: { text: `!fkban @${LID.split('@')[0]}`, contextInfo: { mentionedJid: [LID] } } },
+      }, [`@${LID.split('@')[0]}`], meta).catch((e) => exige(false, `*!fkban* revento: ${e.message}`));
+      const final = dicho.filter((c) => /lista negra/i.test(c.text || '')).pop();
+      exige(!!final, '*!fkban* no ha contestado');
+      if (final) casan(final, LID, '*!fkban*');
+      await require(path.join(R, 'src/utils/banlist')).unbanAccount([LID, `${TEL}@s.whatsapp.net`]).catch(() => {});
+    }
+    if (fallos === antes112) console.log(verde('   ✓ !p, !purge, !kick y !fkban mencionan con su @ a quien sale, tambien en grupos LID'));
   }
   }
 

@@ -1123,4 +1123,20 @@ function hazAccion(nombre) {
 const comandos = {};
 for (const nombre of ACTIVAS) comandos[nombre] = hazAccion(nombre);
 
-module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, calentarDespensa, _restaurarDespensa: restaurarDespensa, _guardarEnDespensa: guardarEnDespensa, _sacarDeDespensa: sacarDeDespensa, _DESPENSA_DIR: DESPENSA_DIR, _fondo: () => fondoEnCurso, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, _yaSalio: yaSalio, _apuntarGif: apuntarGif, _gifsRecientes: gifsRecientes, _fuenteDe: fuenteDe, _FUENTE_POR_CAT: FUENTE_POR_CAT, _RESPALDO_POR_CAT: RESPALDO_POR_CAT, _direccionDe: direccionDe, _direccionDelGif: direccionDelGif, ...comandos, _turnoRoast: turnoRoast };
+// Del nombre TECLEADO a su accion: *!follar* y *!joder* son *!fuck*. Los alias
+// no pueden colgar de una lista a mano que llame al canonico: se olvida uno y
+// ese alias sale gratis o revienta.
+//
+// Y SIN FRASES, NADA. Una accion apagada no tiene handler: se sale en
+// silencio, sin cobrar y sin contestar, igual que si el comando no se hubiera
+// escrito nunca. Su nombre sigue reservado (ver RESERVADOS en messageHandler)
+// para que ningun comando futuro se lo lleve por delante.
+const ACCION_DE = {};
+for (const n of ACTIVAS) for (const c of ACCIONES[n].cmds) ACCION_DE[c] = comandos[n];
+
+async function ejecutarAccion(tecleado, sock, msg, args, groupMeta) {
+  const hacer = ACCION_DE[tecleado];
+  return hacer ? hacer(sock, msg, args, groupMeta) : undefined;
+}
+
+module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, ejecutarAccion, calentarDespensa, _restaurarDespensa: restaurarDespensa, _guardarEnDespensa: guardarEnDespensa, _sacarDeDespensa: sacarDeDespensa, _DESPENSA_DIR: DESPENSA_DIR, _fondo: () => fondoEnCurso, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, _yaSalio: yaSalio, _apuntarGif: apuntarGif, _gifsRecientes: gifsRecientes, _fuenteDe: fuenteDe, _FUENTE_POR_CAT: FUENTE_POR_CAT, _RESPALDO_POR_CAT: RESPALDO_POR_CAT, _direccionDe: direccionDe, _direccionDelGif: direccionDelGif, ...comandos, _turnoRoast: turnoRoast };

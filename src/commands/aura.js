@@ -1,6 +1,6 @@
 const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameUser, soloMiembros } = require('../utils/wa');
 const { pickFresh, fmt, parseCantidad, resolverCantidad, etiquetaRiesgo } = require('../utils/helpers');
-const { getAura, addAura, getAuraRanking, flushAura } = require('../utils/auraStore');
+const { getAura, addAura, getAuraRanking, flushAura, resetAura } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
 const { getName, recordName, cargar: cargarNombres } = require('../utils/nombreStore');
 const logger = require('../utils/logger');
@@ -10,7 +10,7 @@ const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { fraseCooldown, AURA_TIRADA, AURA_APOSTAR, AURA_TOP_ANSIAS, AURA_TOP_POBRE } = require('../data/cooldownPhrases');
 const { bloqueCooldown, lineaAura, tiempoRestante } = require('../utils/formatoJuego');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
-const { BOTE, ATRACO, CONTRA, RACHA, RIESGO, OBJETOS, VENTAJA, RECOMPENSA, IMPUESTO, REGALO_MIN } = require('../utils/economia');
+const { BOTE, ATRACO, CONTRA, RACHA, RIESGO, OBJETOS, VENTAJA, RECOMPENSA, IMPUESTO, REGALO_MIN, SUELO_TODOS } = require('../utils/economia');
 const { aportarAlBote } = require('../utils/roboStore');
 const tiendaObj = require('../utils/roboStore');
 const momentum = require('../utils/momentum');
@@ -1494,4 +1494,27 @@ async function cmdAura(sock, msg, args, groupMeta) {
   await sock.sendMessage(jid, { text, mentions }, { quoted: msg });
 }
 
-module.exports = { cmdAura };
+// *!resetaura* — el marcador del grupo entero, al suelo. Solo el tier dueño y
+// solo en un grupo: el aura vive por grupo, en privado no hay nada que poner a
+// cero.
+//
+// "DESDE CERO" ERA MENTIRA. resetAura deja a todo el mundo en el suelo, no en
+// cero, y por una razon buena que esta escrita alli: con el grupo a cero nadie
+// puede gastar y el bot se queda muerto hasta que cada uno vuelva a tirar. Lo
+// que estaba mal era el aviso, no el comportamiento — y la cifra se saca de la
+// constante para que no se vuelva a separar de ella.
+async function cmdResetAura(sock, msg, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!isOwner(getSender(msg), msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
+  }
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
+  }
+  await resetAura(jid);
+  return sock.sendMessage(jid, {
+    text: `Aura de todos reseteada. El marcador vuelve a *${SUELO_TODOS}* para todo el mundo.`,
+  }, { quoted: msg });
+}
+
+module.exports = { cmdAura, cmdResetAura };

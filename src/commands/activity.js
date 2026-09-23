@@ -94,7 +94,7 @@ async function cmdVs(sock, msg, args, groupMeta) {
   if (isMainOwner(a, false, groupMeta) || isMainOwner(b, false, groupMeta)) return;
 
   // EL COBRO VA AQUI, NO EN EL DISPATCHER, y es el mismo motivo que en !count.
-  // El cobro central corre ANTES del switch, asi que se cobraba y despues este
+  // El cobro central corre ANTES del comando, asi que se cobraba y despues este
   // comando podia irse por tres puertas sin responder: sin menciones, contra uno
   // mismo, o —peor— contra el owner, donde el return es SILENCIOSO. Ahi el
   // usuario pagaba y no recibia ni un mensaje. El catch del handler solo
