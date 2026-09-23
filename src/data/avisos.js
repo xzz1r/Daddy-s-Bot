@@ -203,21 +203,25 @@ const A_TI_MISMO = [
 // y que en vez de eso se le ataque la inteligencia al que no sabe mencionar.
 // Van detras de su @. En baraja: salen las quince antes de repetir ninguna.
 const AL_BOT = [
-  '¿Seguro que esa mención no iba para ti? Ni para señalar a alguien te llega la cabeza.',
-  'Me has respondido a mí. Querías a otra persona y ni señalarla sabes. Así vas por la vida.',
-  'Eso iba para otra persona y me has apuntado a mí. Mencionar bien es lo mínimo, y ni eso.',
-  'Tenías que mencionar a alguien y has elegido al bot. Ni el dedo te obedece.',
-  'Responder al mensaje equivocado también es un talento. El tuyo, en concreto.',
-  'A mí no. Aprende a mencionar a quien quieres y luego hablamos de lo demás.',
-  '¿Me estás apuntando a mí? Mencionar a una persona son dos toques y has fallado los dos.',
-  'Esa mención no iba para mí, iba para alguien a quien no has sabido encontrar. Qué nivel.',
-  'Si no sabes a quién responder, lo de jugar contra otra persona te queda grande.',
-  'El bot no juega contra sí mismo. Quien no sabe mencionar a nadie parece que sí.',
-  'Querías a otra persona y me has mencionado a mí. Con esa puntería mejor no toques nada.',
-  'Esa respuesta iba mal dirigida y lo sabes. Mencionar no es tan difícil, salvo para ti.',
-  '¿Me has respondido a mí para eso? Ni la mención te sale a la primera.',
-  'Primero aprende a quién le respondes. Lo del juego viene después, si llega.',
-  'Has apuntado al bot. La próxima vez mira a quién mencionas antes de darle a enviar.',
+  // FILO, NO TEORIA. La primera tanda eran frases de manual («mencionar bien
+  // es lo mínimo») y el dueño lo dejo claro: el estandar de este bot es
+  // directo, ofensivo y vulgar. Cada una le dice que es imbecil por no saber
+  // mencionar, con esas palabras o peores.
+  '¿Ni mencionar sabes, gilipollas? Esa mierda iba para otra persona, no para mí.',
+  'Me has respondido a mí, subnormal. Aprende a mencionar antes de abrir la puta boca.',
+  'Joder, qué inútil. Dos toques para mencionar a alguien y la cagas en los dos.',
+  'Esa mención no iba para mí, imbécil. Ni apuntar sabes y quieres jugar.',
+  'Tienes el cerebro tan vacío que no aciertas ni a quién respondes. Patético.',
+  'Con esa puntería de mierda es normal que nadie te conteste. A mí no, anormal.',
+  'Me has apuntado a mí, cabeza hueca. Ni para mencionar te da la puta neurona.',
+  'Hostia, que no sabes ni responder al mensaje correcto. Y así vas por la vida.',
+  'Querías a otra persona y me has mencionado a mí. Tu IQ entero en una sola cagada.',
+  'No soy tu objetivo, gilipollas. Aprende a mencionar o suelta el móvil.',
+  'Ni el dedo te obedece, subnormal. Has mencionado al bot y encima esperas algo.',
+  'Responder al mensaje equivocado es lo único que se te da bien, inútil.',
+  '¿Esa puta mención era para mí? Mira a quién respondes, que das vergüenza.',
+  'Tu cerebro no llega ni a elegir a quién mencionar. Qué asco de persona.',
+  'Me has señalado a mí, imbécil. Si no sabes ni mencionar, no toques los comandos.',
 ];
 
 // El objetivo es un admin y quien lo intenta no llega. Se lee en el grupo, y
