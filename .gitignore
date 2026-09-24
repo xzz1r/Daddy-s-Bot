@@ -42,6 +42,7 @@ data/nombres.json
 # y el arreglo que imprime —git clean -fd— la borraba, o sea que habria que
 # volver a vincular al guardian en cada actualizacion.
 data/authGuardian/
+data/authGuardian.*/
 # El numero del bot, que el escribe al conectar para que el guardian sepa a
 # quien protege. Es un telefono real: fuera del repositorio publico.
 data/numeroBot.json
