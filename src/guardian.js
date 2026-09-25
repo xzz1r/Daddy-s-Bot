@@ -533,10 +533,16 @@ async function alDegradar(groupJid, participants, action, author) {
 // ascenso o una degradacion hechos por un admin cualquiera. El guardian si
 // puede: es admin y esta en linea.
 //
-// NO COMPITE CON EL BOT, LE DEJA SU TURNO. Ante un cambio de admin hecho por
-// alguien que no es de confianza, espera unos segundos (ESPERA_AL_BOT), vuelve
-// a mirar el grupo y solo hace lo que siga sin hacer. Con el bot en pie, el
-// bot ya lo ha revertido y aqui no pasa nada. Sin el, lo hace el guardian.
+// SABE SI EL BOT ESTA, SIN ADIVINAR. El bot deja escrito en data/botLatido.json
+// si esta en linea (lo refresca cada 30 s y lo apaga al caerse o apagarse). Con
+// eso, ante un cambio de admin hecho por alguien que no es de confianza:
+//   · bot en linea y admin en ese grupo: es su trabajo. El guardian no hace
+//     nada, ni espera ni vuelve a mirar el grupo;
+//   · bot caido, en soporte o sin admin en ese grupo: lo revierte el guardian
+//     AL INSTANTE, sin esperar turno;
+//   · sin latido (el guardian corriendo en otra maquina, sin la carpeta del
+//     bot): le deja su turno (ESPERA_AL_BOT), vuelve a mirar el grupo y solo
+//     hace lo que siga sin hacer.
 //
 // LAS MISMAS REGLAS QUE EL ANTI-ADMIN DEL BOT (bot.js), y ninguna mas:
 //   · un ascenso hecho por un admin cualquiera, con !antiadmin encendido en ese
@@ -555,6 +561,25 @@ async function alDegradar(groupJid, participants, action, author) {
 // revertiria los ascensos del propio dueño.
 let ESPERA_AL_BOT = 10000;
 let ESTADO_BOT = path.join(__dirname, '../data/state.json');
+let LATIDO_BOT = path.join(__dirname, '../data/botLatido.json');
+// Tres latidos perdidos: el bot refresca cada 30 s.
+const LATIDO_VIGENTE = 90 * 1000;
+
+// 'vivo', 'caido' o 'desconocido' (no hay fichero: no se sabe nada del bot).
+function estadoDelBot() {
+  let l;
+  // Sin fichero, no se sabe nada. Con el fichero roto (no deberia: se escribe
+  // de golpe con un rename) se da por caido: esperar por un bot que no se sabe
+  // si esta es lo que deja el grupo abierto.
+  try { l = JSON.parse(fs.readFileSync(LATIDO_BOT, 'utf8')); } catch (e) { return e.code === 'ENOENT' ? 'desconocido' : 'caido'; }
+  if (!l || l.conectado !== true || !(Date.now() - Number(l.ts || 0) < LATIDO_VIGENTE)) return 'caido';
+  // Muerto de golpe no llega a escribir «desconectado»: su pid lo delata. Un
+  // EPERM es que existe pero es de otro usuario: sigue vivo.
+  if (Number.isInteger(l.pid) && l.pid > 0) {
+    try { process.kill(l.pid, 0); } catch (e) { if (e.code === 'ESRCH') return 'caido'; }
+  }
+  return 'vivo';
+}
 
 // El interruptor es el del bot (!antiadmin), leido de su estado. Se lee en cada
 // evento: son pocos y asi un !antiadmin on/off vale al momento. Sin el fichero
@@ -646,9 +671,20 @@ async function alCambioDeAdmin(groupJid, participants, action, author, authorPn)
     quitar = [autor];
   }
 
-  // El turno del bot.
-  await new Promise((r) => setTimeout(r, ESPERA_AL_BOT));
-  meta = await fichaDelGrupo(groupJid);
+  const estado = estadoDelBot();
+  if (estado === 'desconocido') {
+    // Sin latido no se sabe si el bot esta: se le deja su turno y se vuelve a
+    // mirar el grupo, para hacer solo lo que siga sin hacer.
+    await new Promise((r) => setTimeout(r, ESPERA_AL_BOT));
+    meta = await fichaDelGrupo(groupJid);
+  } else {
+    if (!meta) meta = await fichaDelGrupo(groupJid);
+    const bot = (meta?.participants || []).find((q) => esElProtegido(q, meta));
+    // El bot esta y es admin aqui: es su trabajo, y lo hace el.
+    if (estado === 'vivo' && esAdminFicha(bot)) return null;
+    // Y si no, al instante: esperar a un bot que no esta es dejar el grupo
+    // abierto diez segundos para nada.
+  }
   if (!meta) return { quitados: [], repuestos: [] };
   const yo = (meta.participants || []).find((q) => soyYo(q, meta));
   if (!esAdminFicha(yo)) {
@@ -662,7 +698,7 @@ async function alCambioDeAdmin(groupJid, participants, action, author, authorPn)
 
   const repuestos = await cambiarRangos(groupJid, [...new Set(aReponer)], 'promote');
   const quitados = await cambiarRangos(groupJid, [...new Set(aQuitar)], 'demote');
-  logger.warn(`guardián: el bot no lo revirtió en ${groupJid} (${action} de ${author}); `
+  logger.warn(`guardián: el bot no estaba (${estado === 'vivo' ? 'en linea pero sin admin ahi' : estado}) y lo revierto yo en ${groupJid} (${action} de ${author}); `
     + `repuestos ${repuestos.length}/${aReponer.length}, degradados ${quitados.length}/${aQuitar.length}`);
   return { quitados, repuestos };
 }
@@ -952,4 +988,4 @@ if (require.main === module) {
   } else arrancar();
 }
 
-module.exports = { alDegradar, alCambioDeAdmin, _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };
+module.exports = { alDegradar, alCambioDeAdmin, _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, _latidoBot: (f) => { LATIDO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };

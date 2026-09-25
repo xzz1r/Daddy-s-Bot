@@ -19630,6 +19630,10 @@ const manda = async (quien, tipo, opciones) => {
     try {
       process.env.OWNER_NUMBER = DUENO; process.env.CO_OWNERS = ''; process.env.GUARDIAN_DE = BOT;
       G._sock(sock118); G._estadoBot(estado); G._esperaAlBot(5);
+      // Sin latido del bot (el caso del guardian en otra maquina): los casos
+      // 1 a 7 van por la espera. En la VPS el fichero de verdad existe.
+      const latido = path.join(dir118, 'botLatido.json');
+      G._latidoBot(latido);
       const p = (n) => ({ id: jid(n), phoneNumber: jid(n) });
 
       // 1. El bot no esta: un admin cualquiera asciende a otro. Caen los dos.
@@ -19679,12 +19683,88 @@ const manda = async (quien, tipo, opciones) => {
       await G.alCambioDeAdmin(GR, [p(OTRO)], 'promote', jid(ROGUE));
       exige(hechos.length === 0, 'sin OWNER_NUMBER el guardian revierte igual: con el dueño sin identificar, revertiria sus ascensos');
 
+      // 8. CON LATIDO: el guardian sabe si el bot esta y no espera nunca. Con
+      //    una espera de un minuto, cualquier caso que tarde es que ha esperado.
+      process.env.OWNER_NUMBER = DUENO;
+      G._esperaAlBot(60000);
+      const late = (l) => fs.writeFileSync(latido, JSON.stringify(l));
+      const conBotAdmin = () => { for (const q of meta.participants) if (q.id === jid(BOT)) q.admin = 'admin'; };
+      let lecturas = 0;
+      const leerAntes = sock118.groupMetadata;
+      sock118.groupMetadata = async (g) => { lecturas++; return leerAntes(g); };
+      const cronometra = async (que) => { const t0 = Date.now(); await que(); return Date.now() - t0; };
+      try {
+        // a) Bot en linea y admin: es su trabajo. Ni toca ni vuelve a mirar.
+        late({ conectado: true, ts: Date.now(), pid: process.pid });
+        monta({ admins: [ROGUE, OTRO] }); conBotAdmin(); lecturas = 0;
+        let ms = await cronometra(() => G.alCambioDeAdmin(GR, [p(OTRO)], 'promote', jid(ROGUE)));
+        exige(hechos.length === 0, `con el bot en linea y admin, el guardian hace su trabajo: ${hechos.join(' ')}`);
+        exige(ms < 2000 && lecturas === 1, `con el bot en linea el guardian espera o relee el grupo (${ms} ms, ${lecturas} lecturas)`);
+
+        // b) El bot dejo escrito que se cayo: al instante, sin esperar turno.
+        late({ conectado: false, ts: Date.now(), pid: process.pid, motivo: 'conexion cerrada (428)' });
+        monta({ admins: [ROGUE, OTRO] }); conBotAdmin();
+        ms = await cronometra(() => G.alCambioDeAdmin(GR, [p(OTRO)], 'promote', jid(ROGUE)));
+        exige(hechos.join(' ') === `demote:${[OTRO, ROGUE].sort().join(',')}` && ms < 2000,
+          `con el bot desconectado el guardian no revierte al momento (${ms} ms, hizo: ${hechos.join(' ') || 'nada'})`);
+
+        // c) Latido viejo: el proceso se colgo sin avisar.
+        late({ conectado: true, ts: Date.now() - 5 * 60 * 1000, pid: process.pid });
+        monta({ admins: [ROGUE] }); conBotAdmin();
+        ms = await cronometra(() => G.alCambioDeAdmin(GR, [p(OTRO)], 'demote', jid(ROGUE)));
+        exige(hechos.join(' ') === `promote:${OTRO} demote:${ROGUE}` && ms < 2000,
+          `con el latido caducado el guardian no revierte al momento (${ms} ms, hizo: ${hechos.join(' ') || 'nada'})`);
+
+        // d) Latido reciente de un proceso que ya no existe: murio de golpe.
+        const muerto = require('child_process').spawnSync(process.execPath, ['-e', '']).pid;
+        late({ conectado: true, ts: Date.now(), pid: muerto });
+        monta({ admins: [ROGUE, OTRO] }); conBotAdmin();
+        ms = await cronometra(() => G.alCambioDeAdmin(GR, [p(OTRO)], 'promote', jid(ROGUE)));
+        exige(hechos.join(' ') === `demote:${[OTRO, ROGUE].sort().join(',')}` && ms < 2000,
+          `con el proceso del bot muerto y el latido fresco, el guardian espera o no revierte (${ms} ms, hizo: ${hechos.join(' ') || 'nada'})`);
+
+        // e) En linea pero sin admin en ese grupo: no puede, lo hace el guardian.
+        late({ conectado: true, ts: Date.now(), pid: process.pid });
+        monta({ admins: [ROGUE, OTRO] });
+        ms = await cronometra(() => G.alCambioDeAdmin(GR, [p(OTRO)], 'promote', jid(ROGUE)));
+        exige(hechos.join(' ') === `demote:${[OTRO, ROGUE].sort().join(',')}` && ms < 2000,
+          `con el bot sin admin en el grupo el guardian espera o no revierte (${ms} ms, hizo: ${hechos.join(' ') || 'nada'})`);
+
+        // f) Fichero roto: cuenta como caido, ni revienta ni espera.
+        fs.writeFileSync(latido, '{roto');
+        monta({ admins: [ROGUE, OTRO] }); conBotAdmin();
+        ms = await cronometra(() => G.alCambioDeAdmin(GR, [p(OTRO)], 'promote', jid(ROGUE)));
+        exige(hechos.length === 1 && ms < 2000, `con el latido roto el guardian espera o no revierte (${ms} ms, hizo: ${hechos.join(' ') || 'nada'})`);
+      } finally {
+        sock118.groupMetadata = leerAntes;
+      }
+
+      // 9. Y lo escribe el bot: al conectar «en linea» con su pid, al caerse
+      //    «desconectado» con el motivo.
+      const B = require(path.join(R, 'src/bot'));
+      const latidoBot = path.join(dir118, 'escrito.json');
+      B._latidoGuardian.ruta(latidoBot);
+      try {
+        B._latidoGuardian.arrancar();
+        const l1 = JSON.parse(fs.readFileSync(latidoBot, 'utf8'));
+        exige(l1.conectado === true && l1.pid === process.pid && Math.abs(Date.now() - l1.ts) < 5000,
+          `el bot no deja escrito que esta en linea: ${JSON.stringify(l1)}`);
+        B._latidoGuardian.parar('apagado');
+        const l2 = JSON.parse(fs.readFileSync(latidoBot, 'utf8'));
+        exige(l2.conectado === false && l2.motivo === 'apagado', `el bot no deja escrito que se ha ido: ${JSON.stringify(l2)}`);
+        exige(!fs.existsSync(`${latidoBot}.tmp`), 'el latido deja el .tmp tirado');
+      } finally {
+        B._latidoGuardian.parar('prueba');
+        B._latidoGuardian.ruta(path.join(R, 'data/botLatido.json'));
+      }
+
       exige(mensajes118 === 0, `el guardian ha mandado ${mensajes118} mensaje(s) al grupo: no notifica, solo hace su trabajo`);
     } catch (e) {
       exige(false, `el anti-admin del guardian revento: ${e.message}`);
     } finally {
       for (const [k, v] of Object.entries(envAntes)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
       G._sock(null); G._estadoBot(path.join(R, 'data/state.json')); G._esperaAlBot(10000);
+      G._latidoBot(path.join(R, 'data/botLatido.json'));
       fs.rmSync(dir118, { recursive: true, force: true });
     }
     // Y EL BOT CUENTA AL GUARDIAN COMO SUYO: si no, le quitaria el admin por
@@ -19698,7 +19778,14 @@ const manda = async (quien, tipo, opciones) => {
     // Y en el fuente tampoco hay un solo envio: ni en lo nuevo ni en lo de antes.
     exige(!/sendMessage\s*\(/.test(gSrc.replace(/\/\/[^\n]*/g, '')),
       'el guardian tiene un sendMessage: no notifica nada, solo hace su trabajo');
-    if (fallos === antes118) console.log(verde('   ✓ con el bot fuera el guardian revierte en silencio, con el bot en pie no repite, y al dueño no lo toca'));
+    // Y el latido esta enganchado donde toca: al abrir, al cerrar y al apagar.
+    const trozo = (desde, n) => { const i = botSrc.indexOf(desde); return i < 0 ? '' : botSrc.slice(i, i + n); };
+    exige(/arrancarLatidoGuardian\(\)/.test(trozo("connection === 'open'", 6000)),
+      'el bot ya no late al conectar: el guardian lo daria por caido y trabajaria por duplicado');
+    exige(/pararLatidoGuardian\(/.test(trozo("connection === 'close'", 400)),
+      'el bot ya no avisa al caerse: el guardian esperaria 90 s para nada');
+    exige(/pararLatidoGuardian\('apagado'\)/.test(botSrc), 'el bot ya no avisa al apagarse');
+    if (fallos === antes118) console.log(verde('   ✓ con el bot fuera el guardian revierte en silencio y al momento, con el bot en pie ni espera ni repite, y al dueño no lo toca'));
   }
   }
 

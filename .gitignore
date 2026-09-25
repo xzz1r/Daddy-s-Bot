@@ -103,3 +103,7 @@ data/vincularGuardian
 
 # La sesion de Instagram para yt-dlp (ver conSesion en utils/redes.js).
 data/instagram_cookies.txt
+
+# El latido del bot para el guardian (ver arrancarLatidoGuardian en bot.js).
+data/botLatido.json
+data/botLatido.json.tmp

@@ -90,6 +90,46 @@ function pararLatidoPresencia() {
   if (refrescoPresencia) { clearInterval(refrescoPresencia); refrescoPresencia = null; }
 }
 
+// ─── EL LATIDO PARA EL GUARDIAN ─────────────────────────────────────────────
+//
+// El guardian hace de anti-admin cuando el bot no esta (ver src/guardian.js).
+// Para saberlo sin adivinar, el bot deja escrito aqui si esta en linea: al
+// conectar y cada 30 s mientras la conexion siga abierta, y «desconectado» en
+// cuanto se cae, lo cierran desde el telefono o se apaga. Si el proceso muere
+// de golpe (pm2 lo mata, se queda sin memoria), el pid que va en el fichero ya
+// no existe y el guardian lo da por caido al momento; y si el proceso sigue
+// pero colgado, el fichero deja de refrescarse y a los 90 s tambien.
+//
+// Con esto el guardian no espera ni vuelve a mirar el grupo cuando el bot esta
+// bien, y cuando no lo esta actua al instante en vez de esperar su turno.
+let RUTA_LATIDO = path.join(__dirname, '../data/botLatido.json');
+const CADA_LATIDO = 30 * 1000;
+let latidoGuardian = null;
+
+function escribirLatido(conectado, motivo = null) {
+  try {
+    const tmp = `${RUTA_LATIDO}.tmp`;
+    require('fs').writeFileSync(tmp, JSON.stringify({ conectado, ts: Date.now(), pid: process.pid, ...(motivo ? { motivo } : {}) }));
+    require('fs').renameSync(tmp, RUTA_LATIDO);
+  } catch { /* sin disco no hay latido: el guardian lo dara por caido, que es lo seguro */ }
+}
+
+function arrancarLatidoGuardian() {
+  if (latidoGuardian) clearInterval(latidoGuardian);
+  escribirLatido(true);
+  latidoGuardian = setInterval(() => {
+    // Solo late si la conexion sigue abierta de verdad: un socket colgado sin
+    // 'close' no puede pasar por vivo.
+    if (sock && sock.ws?.isOpen !== false) escribirLatido(true);
+  }, CADA_LATIDO);
+  latidoGuardian.unref?.();
+}
+
+function pararLatidoGuardian(motivo) {
+  if (latidoGuardian) { clearInterval(latidoGuardian); latidoGuardian = null; }
+  escribirLatido(false, motivo);
+}
+
 // Los avisos de sistema que significan "alguien ha pedido entrar". El 144 es el
 // caso normal (por enlace) y el 172 cuando un no-admin añade a alguien; los dos
 // abren una solicitud que hay que aprobar.
@@ -856,6 +896,8 @@ async function connectToWhatsApp() {
     }
 
     if (connection === 'close') {
+      // Lo primero, que el guardian lo sepa: desde ya, el anti-admin es suyo.
+      pararLatidoGuardian(`conexion cerrada (${lastDisconnect?.error?.output?.statusCode || '?'})`);
       // Se cayo: el reset pendiente ya no vale. Sin esto, una conexion que dura
       // 59 s seguiria reiniciando los contadores un segundo despues de haberse
       // caido, que es exactamente el bucle que se quiere cortar.
@@ -933,6 +975,8 @@ async function connectToWhatsApp() {
       scheduleReconnect(delay);
 
     } else if (connection === 'open') {
+      // Y el guardian sabe que vuelve a estar el bot (ver arrancarLatidoGuardian).
+      arrancarLatidoGuardian();
       // Los contadores NO se reinician aquí, y esto es lo importante.
       //
       // Antes sí, y con el tope de diez intentos daba igual. Al quitar el tope
@@ -2235,6 +2279,8 @@ async function gracefulShutdown(code = 0) {
     flushObjetivoDia(), flushDeuda(), flushHistorial(), flushRencor(),
   ]);
   await Promise.race([flushes, new Promise(r => setTimeout(r, 3000))]);
+  // Apagandose: el guardian se queda con el anti-admin desde este momento.
+  pararLatidoGuardian('apagado');
   if (sock) {
     try { sock.end(); } catch {}
   }
@@ -2370,4 +2416,4 @@ function _sockDePrueba(s) {
   gruposFallos = 0;
 }
 
-module.exports = { connectToWhatsApp, listaDeGrupos, sondearSolicitudes, avisarDegradacion, saldarDeudaDeAdmin, _sockDePrueba, _latidoPresencia: latidoPresencia, _pararLatido: pararLatidoPresencia };
+module.exports = { _latidoGuardian: { arrancar: arrancarLatidoGuardian, parar: pararLatidoGuardian, ruta: (f) => { RUTA_LATIDO = f; } }, connectToWhatsApp, listaDeGrupos, sondearSolicitudes, avisarDegradacion, saldarDeudaDeAdmin, _sockDePrueba, _latidoPresencia: latidoPresencia, _pararLatido: pararLatidoPresencia };
