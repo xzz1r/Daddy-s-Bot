@@ -12067,27 +12067,19 @@ const di=async(quien,t)=>{out.length=0;
 
     const bot = soloCodigo('src/bot.js');
 
-    // 1. El parseo, tal cual esta en el fichero, contra las tres formas de
-    //    escribirlo. La de los espacios es la que fallaba.
-    const m = bot.match(/const numeroPar = argCodigo !== -1 \? (.*?) : '';/);
-    exige(!!m, 'ya no encuentro cómo se lee el número de --codigo en bot.js');
-    if (m) {
-      const leer = new Function('process', 'argCodigo', `return ${m[1]};`);
-      const como = (argv) => {
-        const i = argv.indexOf('--codigo');
-        return leer({ argv }, i);
-      };
-      const partido = como(['--codigo', '+34', '600', '111222']);
-      const juntoConComillas = como(['--codigo', '+34 600 111222']);
-      const pelado = como(['--codigo', '34600111222']);
-      exige(juntoConComillas === '34600111222' && pelado === '34600111222',
-        'el número bien escrito ya no se lee entero: se pediría el código para otro número');
-      // Esto SIGUE partiendose —la shell manda, no el bot— y por eso hace falta
-      // la guarda de abajo: lo que no puede pasar es que se pida un codigo con
-      // ese resto.
-      exige(partido.length < 8,
-        'la prueba ya no reproduce el caso de los espacios: entonces no está midiendo el fallo que costó dos intentos');
-    }
+    // 1. El parseo, contra las formas de escribirlo. La de los espacios es la
+    //    que fallaba: ahora se juntan los trozos hasta el siguiente --algo.
+    exige(/const numeroPar = argCodigo !== -1 \? numeroDeVinculacion\(process\.argv\.slice\(argCodigo \+ 1\)\) : '';/.test(bot),
+      'ya no encuentro cómo se lee el número de --codigo en bot.js');
+    const leer = require(path.join(R, 'src/bot'))._numeroDeVinculacion;
+    const partido = leer(['+34', '600', '111222']);
+    const juntoConComillas = leer(['+34 600 111222']);
+    const pelado = leer(['34600111222']);
+    exige(partido === '34600111222' && juntoConComillas === '34600111222' && pelado === '34600111222',
+      'el número bien escrito ya no se lee entero: se pediría el código para otro número');
+    // Un resto corto sigue siendo posible (un número a medias): para eso esta
+    // la guarda de abajo.
+    exige(leer(['+34']).length < 8, 'un número a medias se completa solo: se pediría el código para otro número');
 
     // 2. Y LA GUARDA: con un resto corto NO se pide ningun codigo.
     //
@@ -19856,7 +19848,22 @@ const manda = async (quien, tipo, opciones) => {
     if (/banAccount|lista negra/.test(sinComentarios)) { fallos++; console.log(rojo('   ✗ al que mete un admin a dedo se le vuelve a meter en la lista negra (o se anuncia asi)')); }
     if (!/'remove'/.test(sinComentarios)) { fallos++; console.log(rojo('   ✗ al que mete un admin a dedo ya no se le saca del grupo')); }
     if (!/'demote'/.test(sinComentarios)) { fallos++; console.log(rojo('   ✗ el admin que mete gente a dedo ya no pierde el admin')); }
-    if (fallos === antes119) console.log(verde('   ✓ el admin pierde el admin y el metido sale, sin lista negra'));
+    // Y --codigo lleva el +57 puesto: el dueño teclea el numero del bot y ya.
+    const N = require(path.join(R, 'src/bot'))._numeroDeVinculacion;
+    const casos = [
+      [['3001234567'], '573001234567'],
+      [['+57', '300', '123', '4567'], '573001234567'],
+      [['573001234567'], '573001234567'],
+      [['300-123-4567', '--otro'], '573001234567'],
+      [['34600095119'], '34600095119'],
+      [['NUMERODELBOT'], ''],
+      [[], ''],
+    ];
+    for (const [entra, sale] of casos) {
+      const r = N(entra);
+      if (r !== sale) { fallos++; console.log(rojo(`   ✗ --codigo ${entra.join(' ')} da «${r}» y deberia dar «${sale}»`)); }
+    }
+    if (fallos === antes119) console.log(verde('   ✓ el admin pierde el admin y el metido sale, sin lista negra; y --codigo pone el +57 solo'));
   }
 
   }

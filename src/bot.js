@@ -487,6 +487,19 @@ let _baileysVersion = null;
 // mejor que no arrancar.
 const ESPERA_VERSION_MS = 10000;
 
+// EL NUMERO DE --codigo, COMO LO TECLEE EL DUEÑO. Lo pidio el: el +57 lo pone
+// el bot. Vale «3001234567», «+57 300 123 4567» o «57 300-123-4567»: se juntan
+// los trozos hasta el siguiente --algo (la shell parte el numero en los
+// espacios) y, si queda un movil colombiano sin prefijo (diez digitos
+// empezando por 3), se le pone el 57 delante. Cualquier otro numero va tal
+// cual, con su prefijo.
+const PREFIJO_PAIS = '57';
+function numeroDeVinculacion(trozos) {
+  const hasta = trozos.findIndex((t) => String(t).startsWith('--'));
+  const d = (hasta === -1 ? trozos : trozos.slice(0, hasta)).join('').replace(/\D/g, '');
+  return /^3\d{9}$/.test(d) ? PREFIJO_PAIS + d : d;
+}
+
 // Castigo por meter gente a dedo: el admin PIERDE EL MANDO, el metido se va.
 //
 // AL ADMIN NO SE LE BANEA NUNCA, y es una regla dura, no una preferencia.
@@ -785,7 +798,7 @@ async function connectToWhatsApp() {
   const MIN_DIGITOS_NUMERO = 8;
   const MAX_DIGITOS_NUMERO = 15;
   const argCodigo = process.argv.indexOf('--codigo');
-  const numeroPar = argCodigo !== -1 ? String(process.argv[argCodigo + 1] || '').replace(/\D/g, '') : '';
+  const numeroPar = argCodigo !== -1 ? numeroDeVinculacion(process.argv.slice(argCodigo + 1)) : '';
   if (argCodigo !== -1 && (numeroPar.length < MIN_DIGITOS_NUMERO || numeroPar.length > MAX_DIGITOS_NUMERO)) {
     // No se escribe el numero entero en el log: esto acaba pegado en un chat
     // mas veces de las que parece. Con el largo sobra para entenderlo.
@@ -794,7 +807,7 @@ async function connectToWhatsApp() {
       `${MIN_DIGITOS_NUMERO} y ${MAX_DIGITOS_NUMERO}. No pido ningun codigo.`);
     logger.error(
       'Casi siempre es que el numero llevaba espacios y la shell lo partio. ' +
-      'Va TODO junto y sin signos, o entre comillas:  node index.js --codigo 34600111222');
+      'Va el numero del bot; el +57 lo pongo yo:  node index.js --codigo 3001234567');
     detenido = true;
     try { sock.ev.removeAllListeners(); } catch {}
     try { sock.end(); } catch {}
@@ -2415,4 +2428,4 @@ function _sockDePrueba(s) {
   gruposFallos = 0;
 }
 
-module.exports = { _latidoGuardian: { arrancar: arrancarLatidoGuardian, parar: pararLatidoGuardian, ruta: (f) => { RUTA_LATIDO = f; } }, connectToWhatsApp, listaDeGrupos, sondearSolicitudes, avisarDegradacion, saldarDeudaDeAdmin, _sockDePrueba, _latidoPresencia: latidoPresencia, _pararLatido: pararLatidoPresencia };
+module.exports = { _numeroDeVinculacion: numeroDeVinculacion, _latidoGuardian: { arrancar: arrancarLatidoGuardian, parar: pararLatidoGuardian, ruta: (f) => { RUTA_LATIDO = f; } }, connectToWhatsApp, listaDeGrupos, sondearSolicitudes, avisarDegradacion, saldarDeudaDeAdmin, _sockDePrueba, _latidoPresencia: latidoPresencia, _pararLatido: pararLatidoPresencia };
