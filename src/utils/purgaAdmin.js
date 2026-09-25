@@ -1,13 +1,14 @@
 // ─── UN ADMIN VACIANDO EL GRUPO ─────────────────────────────────────────────
 //
 // Lo pidio el dueño: «si un admin da mas de 5 baneos en menos de 5 minutos, el
-// bot le quite admin como medida de seguridad».
+// bot le quite admin como medida de seguridad». Despues lo fijo en la QUINTA:
+// a la quinta expulsion en menos de cinco minutos, fuera el admin.
 //
 // Y es de las pocas guardas que protegen contra algo que NO es un miembro
 // molesto: un admin al que le han robado la cuenta, o uno que se enfada y
 // decide vaciar el grupo. En los dos casos el daño se hace en menos de un
 // minuto y no hay forma de deshacerlo a mano a esa velocidad. Quitarle el rango
-// no devuelve a nadie, pero corta la hemorragia en el sexto en vez de en el
+// no devuelve a nadie, pero corta la hemorragia en el quinto en vez de en el
 // cuarenta.
 //
 // POR GRUPO Y POR PERSONA, no global: dos admins echando a uno cada uno en
@@ -19,7 +20,7 @@
 // que contar eventos dejaria pasar exactamente el caso que esto para — al que
 // selecciona a veinte y le da a expulsar una vez.
 
-const TOPE = 5;                       // mas de cinco
+const TOPE = 5;                       // a la quinta
 const VENTANA_MS = 5 * 60 * 1000;     // en menos de cinco minutos
 const MAX_RECORDADOS = 500;           // techo del mapa en un proceso 24/7
 
@@ -29,7 +30,7 @@ function clave(groupJid, autor) {
   return `${groupJid}|${String(autor).split('@')[0].split(':')[0]}`;
 }
 
-// Devuelve { purga, total }. `purga` es true la vez que se pasa del tope, y
+// Devuelve { purga, total }. `purga` es true la vez que se llega al tope, y
 // solo esa vez: despues se olvida, porque lo que viene detras es el degradado y
 // no tiene sentido volver a anunciarlo con cada evento que llegue tarde.
 function apuntarExpulsiones(groupJid, autor, cuantas = 1) {
@@ -45,7 +46,7 @@ function apuntarExpulsiones(groupJid, autor, cuantas = 1) {
   for (let i = 0; i < cuantas; i++) previos.push(ahora);
   golpes.set(k, previos);
 
-  if (previos.length > TOPE) {
+  if (previos.length >= TOPE) {
     golpes.delete(k);
     return { purga: true, total: previos.length };
   }

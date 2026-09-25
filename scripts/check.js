@@ -16309,10 +16309,14 @@ pa._reset();
 ok(!pa.apuntarExpulsiones(G, A, 1).purga, '1 expulsión no es purga');
 ok(!pa.apuntarExpulsiones(G, A, 1).purga, '2 tampoco');
 ok(!pa.apuntarExpulsiones(G, A, 1).purga, '3 tampoco');
-ok(!pa.apuntarExpulsiones(G, A, 1).purga, '4 tampoco');
-ok(!pa.apuntarExpulsiones(G, A, 1).purga, '5 TAMPOCO: el dueño dijo MÁS de cinco');
-const sexta = pa.apuntarExpulsiones(G, A, 1);
-ok(sexta.purga && sexta.total === 6, 'la SEXTA si (total ' + sexta.total + ')');
+ok(!pa.apuntarExpulsiones(G, A, 1).purga, '4 TAMPOCO: salta a la quinta, no antes');
+const quinta = pa.apuntarExpulsiones(G, A, 1);
+ok(quinta.purga && quinta.total === 5, 'la QUINTA si: el dueño la fijo ahi (total ' + quinta.total + ')');
+
+// Cuatro de golpe no; cuatro de golpe y una mas, si.
+pa._reset();
+ok(!pa.apuntarExpulsiones(G, A, 4).purga, 'cuatro de golpe no son purga');
+ok(pa.apuntarExpulsiones(G, A, 1).purga, 'cuatro de golpe y una suelta si: son cinco');
 
 // ── De golpe: un solo evento con veinte, que es el caso que importa ─────────
 pa._reset();
@@ -16321,22 +16325,22 @@ ok(golpe.purga, 'echar a 20 de una vez salta a la primera: se cuentan personas, 
 
 // ── Por persona y por grupo, sin sumar ajenos ──────────────────────────────
 pa._reset();
-for (let i = 0; i < 5; i++) pa.apuntarExpulsiones(G, A, 1);
+for (let i = 0; i < 4; i++) pa.apuntarExpulsiones(G, A, 1);
 ok(!pa.apuntarExpulsiones(G, B, 1).purga, 'lo de OTRO admin no se le suma al primero');
 ok(!pa.apuntarExpulsiones('000000099@g.us', A, 1).purga, 'ni lo que hace el mismo en OTRO grupo');
 
 // ── La ventana se desliza ──────────────────────────────────────────────────
 pa._reset();
 const real = Date.now;
-for (let i = 0; i < 5; i++) pa.apuntarExpulsiones(G, A, 1);
+for (let i = 0; i < 4; i++) pa.apuntarExpulsiones(G, A, 1);
 Date.now = () => real() + 6 * 60 * 1000;   // seis minutos después
-ok(!pa.apuntarExpulsiones(G, A, 1).purga, 'cinco de hace seis minutos ya no cuentan');
+ok(!pa.apuntarExpulsiones(G, A, 1).purga, 'cuatro de hace seis minutos ya no cuentan: la de ahora no es la quinta');
 Date.now = real;
 
 // ── Y no se repite el aviso en cada evento que llegue detrás ───────────────
 pa._reset();
-for (let i = 0; i < 6; i++) pa.apuntarExpulsiones(G, A, 1);
-ok(!pa.apuntarExpulsiones(G, A, 1).purga, 'tras saltar, el séptimo no vuelve a anunciarlo');
+for (let i = 0; i < 5; i++) pa.apuntarExpulsiones(G, A, 1);
+ok(!pa.apuntarExpulsiones(G, A, 1).purga, 'tras saltar, la sexta no vuelve a anunciarlo');
 
 // ── El techo del mapa, que esto corre 24/7 ─────────────────────────────────
 pa._reset();
@@ -16368,8 +16372,22 @@ ok(!pa.decidirPurga({ groupJid: G, autor: A, cuantas: 0, esBot: false, esDelDuen
 // Y un admin normal SÍ salta, que es el caso que existe para esto.
 pa._reset();
 let saltó = false;
-for (let i = 0; i < 6; i++) saltó = D().actuar || saltó;
-ok(saltó, 'un admin normal con seis expulsiones SÍ pierde el rango');
+for (let i = 0; i < 4; i++) saltó = D().actuar || saltó;
+ok(!saltó, 'un admin normal con cuatro expulsiones NO pierde el rango');
+ok(D().actuar, 'un admin normal a la quinta SÍ pierde el rango');
+
+// Y el aviso no dice un numero que puede ser mentira: salta a la quinta, pero
+// quien echa a veinte de golpe cae con veinte.
+{
+  const { PURGA_ADMIN: PA } = require(path.join(R, 'src/data/avisos'));
+  // Un numero de EXPULSIONES («Seis seguidas», «cinco en cinco minutos»); «los
+  // dos casos» o «cinco minutos con el poder» no cuentan gente. Y el tope viejo
+  // (la sexta) no puede quedar en ninguna.
+  const cuenta = /\b(dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|veinte|\d+)\s+(seguid[oa]s|de golpe|expulsi\w*|personas|en (?:menos de )?cinco minutos)/i;
+  const viejo = /\bseis\b|\bsext[oa]\b/i;
+  const conCifra = PA.filter((f) => cuenta.test(f) || viejo.test(f));
+  ok(!conCifra.length, 'el aviso de la purga dice cuántas echó y puede ser mentira: ' + conCifra.join(' | '));
+}
 
 // ── Y que el aviso exista y no se repita ──────────────────────────────────
 const { PURGA_ADMIN } = require(path.join(R, 'src/data/avisos'));
@@ -16381,8 +16399,8 @@ console.log('CAPA87:' + JSON.stringify(quejas));
 
   // ── 87. UN ADMIN VACIANDO EL GRUPO SE QUEDA SIN RANGO ──────────────────
   //
-  // Lo pidio el dueño: mas de cinco expulsiones en menos de cinco minutos y el
-  // bot le quita el admin. Es la unica guarda que protege contra alguien de
+  // Lo pidio el dueño: a la quinta expulsion en menos de cinco minutos, el bot
+  // le quita el admin. Es la unica guarda que protege contra alguien de
   // DENTRO —un admin con la cuenta robada, o uno que se enfada— y en ese caso
   // el daño se hace en menos de un minuto: a mano no se llega.
   //
@@ -16438,7 +16456,7 @@ console.log('CAPA87:' + JSON.stringify(quejas));
     exige(/quitado[\s\S]{0,200}No he podido quitarle el rango/.test(botSrc87),
       'el aviso da por hecho el degradado: si el bot no es admin, anunciaría un castigo que no ha ocurrido');
 
-    if (fallos === antes) console.log(verde('   \u2713 seis expulsiones en cinco minutos cuestan el rango, y ni el bot ni el dueño caen en ella'));
+    if (fallos === antes) console.log(verde('   \u2713 a la quinta expulsion en cinco minutos se pierde el rango, y ni el bot ni el dueño caen en ella'));
   }
 
   // ── 88. EL AVISO DE RANGO DICE AL FINAL QUE NO TIENES ACCESO ──────────
@@ -19746,18 +19764,21 @@ const manda = async (quien, tipo, opciones) => {
           return antes(g, ids, que);
         })(sock118.groupParticipantsUpdate);
 
-        // a) Bot caido: cinco se aguantan, el sexto le cuesta el admin.
+        // a) Bot caido: cuatro se aguantan, la quinta le cuesta el admin.
         purga._reset(); late({ conectado: false, ts: Date.now(), pid: process.pid });
         montaEx();
-        for (const n of EXTRA.slice(0, 5)) await echa([n]);
-        exige(hechos.length === 0, `con cinco expulsiones el guardian ya degrada: ${hechos.join(' ')}`);
-        await echa([EXTRA[5]]);
-        exige(hechos.join(' ') === `demote:${ROGUE}`, `a la sexta expulsion en cinco minutos el autor sigue de admin (hizo: ${hechos.join(' ') || 'nada'})`);
+        for (const n of EXTRA.slice(0, 4)) await echa([n]);
+        exige(hechos.length === 0, `con cuatro expulsiones el guardian ya degrada: ${hechos.join(' ')}`);
+        await echa([EXTRA[4]]);
+        exige(hechos.join(' ') === `demote:${ROGUE}`, `a la quinta expulsion en cinco minutos el autor sigue de admin (hizo: ${hechos.join(' ') || 'nada'})`);
 
-        // b) Seis de golpe en un solo evento cuentan seis.
+        // b) Cinco de golpe en un solo evento cuentan cinco; cuatro, no.
         purga._reset(); montaEx();
-        await echa(EXTRA);
-        exige(hechos.join(' ') === `demote:${ROGUE}`, `seis de golpe no le quitan el admin (hizo: ${hechos.join(' ') || 'nada'})`);
+        await echa(EXTRA.slice(0, 4));
+        exige(hechos.length === 0, `cuatro de golpe ya le quitan el admin: ${hechos.join(' ')}`);
+        purga._reset(); montaEx();
+        await echa(EXTRA.slice(0, 5));
+        exige(hechos.join(' ') === `demote:${ROGUE}`, `cinco de golpe no le quitan el admin (hizo: ${hechos.join(' ') || 'nada'})`);
 
         // c) Con el bot en linea y admin, lo hace el bot: el guardian ni toca.
         purga._reset(); late({ conectado: true, ts: Date.now(), pid: process.pid });

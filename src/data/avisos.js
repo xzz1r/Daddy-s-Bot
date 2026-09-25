@@ -310,21 +310,23 @@ const DUELO_AJENO = [
 // ─── UN ADMIN ECHANDO GENTE EN MASA ─────────────────────────────────────────
 //
 // Se le acaba de quitar el rango por vaciar el grupo. El aviso sale DELANTE DE
-// TODOS a proposito: media docena de personas acaban de desaparecer y el resto
+// TODOS a proposito: cinco o mas personas acaban de desaparecer y el resto
 // merece saber quien fue y que ya no puede seguir.
 //
 // Y va a por la persona, no a por el hecho. Quien hace esto no se equivoca: se
 // viene arriba con el boton, y eso se cura enseñandoselo.
 const PURGA_ADMIN = [
   'Te has creído dios con el botón de expulsar. Ya no lo tienes, puto.',
-  'Seis en cinco minutos. Ni permiso ni cabeza para sacar gente en masa. Fuera el rango.',
+  // Ninguna dice CUANTOS: salta a la quinta, pero quien echa a veinte de golpe
+  // cae con veinte, y un numero fijo mentiria.
+  'Una expulsión detrás de otra sin pensar. Ni permiso ni cabeza para eso. Fuera el rango.',
   'Le has cogido gusto a echar gente. Se te ha quitado el juguete, inútil.',
   'Vaciar el grupo no te hace importante. Te hace exactamente lo que eres. Sin admin.',
   'Eso no es moderar, es una rabieta con permisos. Ya no tienes permisos.',
   'Has durado cinco minutos con el poder. Cinco. Rango retirado.',
   'Nadie te dio admin para que jugaras a echar gente. Se te retira.',
   'Te has emocionado sacando gente y el bot te ha sacado a ti del cargo.',
-  'Seis seguidas. O te robaron la cuenta o eres así. Sin admin en los dos casos.',
+  'O te robaron la cuenta o eres así de imbécil. Sin admin en los dos casos.',
   'El grupo no es tuyo y acabas de demostrar por qué no debe serlo. Rango fuera.',
   'Echar gente en masa no es autoridad, ignorante. Es no saber estar. Ya no eres admin.',
   'Se te ha ido de las manos en tiempo récord. Adiós al rango.',

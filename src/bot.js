@@ -1701,7 +1701,7 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
     // eso: se le quita el admin, no se le banea ni se le echa.
     // ─── UN ADMIN VACIANDO EL GRUPO SE QUEDA SIN RANGO ────────────────────
     //
-    // Lo pidio el dueño: mas de cinco expulsiones en menos de cinco minutos y se
+    // Lo pidio el dueño: a la quinta expulsion en menos de cinco minutos, se
     // le quita el admin. Es la unica guarda del bot que protege contra alguien
     // de DENTRO — un admin al que le han robado la cuenta, o uno que se enfada y
     // decide vaciar el grupo. En los dos casos el daño se hace en menos de un

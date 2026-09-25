@@ -19,7 +19,7 @@
 // tres casos: al bot le han quitado el admin, se lo devuelve al momento; un
 // admin cualquiera ha dado o quitado admin y el bot no esta para revertirlo
 // (en soporte, caido o sin admin), lo revierte el con las reglas del
-// anti-admin; y un admin echa a mas de cinco en cinco minutos o echa al dueño
+// anti-admin; y un admin echa a cinco en menos de cinco minutos o echa al dueño
 // con el bot fuera, le quita el admin (ver alExpulsar).
 //
 // NO lee mensajes. NO responde comandos. NO cuenta nada, no toca el aura, no
@@ -720,7 +720,7 @@ async function alCambioDeAdmin(groupJid, participants, action, author, authorPn)
 // ─── LAS EXPULSIONES, TAMBIEN SIN EL BOT ────────────────────────────────────
 //
 // Las dos guardas del bot sobre expulsiones (bot.js), con las mismas reglas:
-//   · un admin que echa a MAS DE CINCO en menos de cinco minutos pierde el
+//   · un admin que echa a CINCO en menos de cinco minutos pierde el
 //     admin (las cifras de utils/purgaAdmin.js, con su propia cuenta);
 //   · un admin que echa al tier dueño pierde el admin, y el guardian intenta
 //     meter al dueño de vuelta y devolverle el admin.
@@ -729,9 +729,9 @@ async function alCambioDeAdmin(groupJid, participants, action, author, authorPn)
 //
 // Las expulsiones se cuentan SIEMPRE, este o no el bot: si se cae a la mitad
 // de una purga, el guardian ya lleva la cuenta. Lo que depende del latido es
-// quien actua al pasarse del tope.
+// quien actua al llegar al tope.
 // La cuenta, aqui y no con utils/purgaAdmin.js: el guardian corre suelto, sin
-// cargar nada del bot. Mismas cifras: MAS de cinco, ventana deslizante de
+// cargar nada del bot. Mismas cifras: a la quinta, ventana deslizante de
 // cinco minutos, por grupo y por autor, y se cuentan expulsiones, no eventos.
 const PURGA_TOPE = 5;
 const PURGA_VENTANA = 5 * 60 * 1000;
@@ -742,7 +742,7 @@ function apuntarPurga(groupJid, autor, cuantas) {
   if (purgas.size >= 500 && !purgas.has(k)) purgas.delete(purgas.keys().next().value);
   const marcas = (purgas.get(k) || []).filter((t) => ahora - t < PURGA_VENTANA);
   for (let i = 0; i < cuantas; i++) marcas.push(ahora);
-  if (marcas.length > PURGA_TOPE) { purgas.delete(k); return true; }
+  if (marcas.length >= PURGA_TOPE) { purgas.delete(k); return true; }
   purgas.set(k, marcas);
   return false;
 }
