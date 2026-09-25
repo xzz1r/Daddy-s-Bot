@@ -500,7 +500,9 @@ const ESPERA_VERSION_MS = 10000;
 // segun lo que cuesta equivocarse: al admin lo reversible, al metido lo demas.
 //
 //   · admin  → solo demote. Ni ban ni kick, pase lo que pase.
-//   · metido → ban + kick, y solo el que venga con alta a dedo CONFIRMADA.
+//   · metido → kick, y solo el que venga con alta a dedo CONFIRMADA. A la
+//     lista negra NO: lo pidio el dueño. El que la lio es el admin; al metido
+//     se le saca y puede volver a entrar por solicitud como cualquiera.
 async function sancionarPorAñadir(sock, groupJid, autor, meta, aDedo) {
   if (!aDedo.length) return;
   if (isOwner(autor, false, meta)) return;
@@ -514,14 +516,11 @@ async function sancionarPorAñadir(sock, groupJid, autor, meta, aDedo) {
   //    participante y puede rechazar sin lanzar excepcion.
   const degradado = await aplicarAUno(sock, groupJid, autor, 'demote', meta);
 
-  // 2) Los que metió: fuera y a la lista negra, con todas sus formas (teléfono
-  //    y @lid). Si solo se guardara una, vuelve a entrar con la otra.
+  // 2) Los que metió: fuera del grupo, sin lista negra. Solo se anuncia como
+  //    fuera a quien salió de verdad.
   const vetados = [];
   for (const quien of aDedo) {
     if (isOwner(quien, false, meta)) continue;
-    await paso('ban', () => banAccount(allForms(quien, meta), `metido a dedo en ${groupJid}`, String(autor)));
-    // Se veta SIEMPRE (lo metieron a dedo, eso ya pasó) pero solo se anuncia
-    // como fuera a quien salió de verdad.
     if (await aplicarAUno(sock, groupJid, quien, 'remove', meta)) vetados.push(quien);
     else logger.warn(`anti-admin (añadir): no pude expulsar a ${quien} de ${groupJid}`);
   }
@@ -533,7 +532,7 @@ async function sancionarPorAñadir(sock, groupJid, autor, meta, aDedo) {
     text:
       `*Anti-admin:* ${tag(autor)} ha metido gente a dedo.\n\n` +
       `${degradado ? '· Se le ha quitado el admin.' : '· No he podido quitarle el admin.'}\n` +
-      `· ${vetados.map(tag).join(', ')} fuera y en la lista negra.\n\n` +
+      `· ${vetados.map(tag).join(', ')} fuera del grupo.\n\n` +
       `_Aquí no se mete a nadie a dedo. Aceptar solicitudes no cuenta._`,
     mentions: [autor, ...vetados],
   }));

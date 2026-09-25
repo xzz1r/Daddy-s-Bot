@@ -19840,6 +19840,25 @@ const manda = async (quien, tipo, opciones) => {
     exige(/pararLatidoGuardian\('apagado'\)/.test(botSrc), 'el bot ya no avisa al apagarse');
     if (fallos === antes118) console.log(verde('   ✓ con el bot fuera el guardian revierte en silencio y al momento, con el bot en pie ni espera ni repite, y al dueño no lo toca'));
   }
+  // ── 119. A QUIEN METE UN ADMIN A DEDO SE LE SACA, PERO NO SE LE VETA ─────
+  //
+  // Lo pidio el dueño: la gente que agregan los admins no va a la lista negra.
+  // El castigo es del admin (pierde el admin); al metido se le saca y puede
+  // volver a entrar por solicitud.
+  {
+    console.log('\n119. A QUIEN METE UN ADMIN SE LE SACA, SIN LISTA NEGRA');
+    const antes119 = fallos;
+    const src = fs.readFileSync(path.join(R, 'src/bot.js'), 'utf8');
+    const i = src.indexOf('async function sancionarPorAñadir');
+    const cuerpo = i < 0 ? '' : src.slice(i, src.indexOf('\n}\n', i));
+    const sinComentarios = cuerpo.replace(/\/\/[^\n]*/g, '');
+    if (!cuerpo) { fallos++; console.log(rojo('   ✗ no encuentro sancionarPorAñadir en bot.js')); }
+    if (/banAccount|lista negra/.test(sinComentarios)) { fallos++; console.log(rojo('   ✗ al que mete un admin a dedo se le vuelve a meter en la lista negra (o se anuncia asi)')); }
+    if (!/'remove'/.test(sinComentarios)) { fallos++; console.log(rojo('   ✗ al que mete un admin a dedo ya no se le saca del grupo')); }
+    if (!/'demote'/.test(sinComentarios)) { fallos++; console.log(rojo('   ✗ el admin que mete gente a dedo ya no pierde el admin')); }
+    if (fallos === antes119) console.log(verde('   ✓ el admin pierde el admin y el metido sale, sin lista negra'));
+  }
+
   }
 
   if (BREVE) {
