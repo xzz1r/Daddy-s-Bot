@@ -1,5 +1,6 @@
-// EL GUARDIÁN. Una segunda cuenta cuyo único trabajo es devolverle el admin al
-// bot cuando alguien se lo quita.
+// EL GUARDIÁN. Una segunda cuenta que le devuelve el admin al bot cuando alguien
+// se lo quita, y que hace de anti-admin cuando el bot no está para hacerlo (ver
+// alCambioDeAdmin).
 //
 // ─── POR QUÉ HACE FALTA UNA SEGUNDA CUENTA ──────────────────────────────────
 //
@@ -14,8 +15,10 @@
 //
 // ─── QUÉ HACE, Y QUÉ NO ─────────────────────────────────────────────────────
 //
-// Escucha un solo evento —quién sube y quién baja de admin— y reacciona a un
-// solo caso: al bot le han quitado el admin, se lo devuelve. Nada más.
+// Escucha un solo evento —quién sube y quién baja de admin— y reacciona a dos
+// casos: al bot le han quitado el admin, se lo devuelve al momento; y un admin
+// cualquiera ha dado o quitado admin y el bot no lo ha revertido (esta en
+// soporte, caido o sin admin), lo revierte el con las reglas del anti-admin.
 //
 // NO lee mensajes. NO responde comandos. NO cuenta nada, no toca el aura, no
 // escribe en `data/`. No manda un solo mensaje al grupo: la reposición ya
@@ -114,6 +117,18 @@ const logger = {
   info: (m) => console.log(`[${hora()}] [INFO] ${m}`),
   warn: (m) => console.log(`[${hora()}] [WARN] ${m}`),
   error: (m) => console.error(`[${hora()}] [ERROR] ${m}`),
+  // UNA VEZ POR MOTIVO. Se llamaba en dos sitios y NO EXISTIA: si la ficha del
+  // grupo no llegaba justo cuando degradaban al bot, el guardian reventaba con
+  // un TypeError en vez de reponerlo; y si fallaba la consulta de version de
+  // WhatsApp al arrancar, se moria entero.
+  unaVez: (() => {
+    const dichos = new Set();
+    return (que, e) => {
+      if (dichos.has(que)) return;
+      dichos.add(que);
+      console.log(`[${hora()}] [WARN] ${que}: ${(e && e.message) || e}`);
+    };
+  })(),
 };
 
 // CALLAR A libsignal. Imprime con console.info directamente —el logger
@@ -511,6 +526,147 @@ async function alDegradar(groupJid, participants, action, author) {
   return reponer(groupJid, caidos.map(idDe).filter(Boolean));
 }
 
+// ─── EL ANTI-ADMIN, CUANDO EL BOT NO ESTA ───────────────────────────────────
+//
+// Lo pidio el dueño: «muchas veces el bot se va a soporte y el grupo queda
+// vulnerable». Con el bot restringido, caido o sin admin, nadie deshace un
+// ascenso o una degradacion hechos por un admin cualquiera. El guardian si
+// puede: es admin y esta en linea.
+//
+// NO COMPITE CON EL BOT, LE DEJA SU TURNO. Ante un cambio de admin hecho por
+// alguien que no es de confianza, espera unos segundos (ESPERA_AL_BOT), vuelve
+// a mirar el grupo y solo hace lo que siga sin hacer. Con el bot en pie, el
+// bot ya lo ha revertido y aqui no pasa nada. Sin el, lo hace el guardian.
+//
+// LAS MISMAS REGLAS QUE EL ANTI-ADMIN DEL BOT (bot.js), y ninguna mas:
+//   · un ascenso hecho por un admin cualquiera, con !antiadmin encendido en ese
+//     grupo: pierden el admin el autor y los ascendidos (menos el tier dueño);
+//   · una degradacion, con !antiadmin encendido: se repone a los degradados y
+//     el autor pierde el admin;
+//   · degradar al tier dueño se revierte SIEMPRE, este encendido o no.
+// De confianza son el bot, el guardian y el tier dueño (OWNER_NUMBER y
+// CO_OWNERS del .env): lo que hacen ellos no se toca nunca.
+//
+// Y SIGUE CALLADO. No manda nada al grupo: el aviso de sistema de WhatsApp ya
+// dice quien ha quitado el admin a quien, y una cuenta que escribe es una
+// cuenta que WhatsApp mira mas de cerca (ver arriba). El detalle va al log.
+//
+// Sin el tier dueño en el .env no hace nada de esto: sin saber quien manda,
+// revertiria los ascensos del propio dueño.
+let ESPERA_AL_BOT = 10000;
+let ESTADO_BOT = path.join(__dirname, '../data/state.json');
+
+// El interruptor es el del bot (!antiadmin), leido de su estado. Se lee en cada
+// evento: son pocos y asi un !antiadmin on/off vale al momento. Sin el fichero
+// (el guardian corriendo en otra maquina) cuenta como apagado.
+function antiadminEncendido(groupJid) {
+  try {
+    const s = JSON.parse(fs.readFileSync(ESTADO_BOT, 'utf8'));
+    return Array.isArray(s.antiAdminEnabled) && s.antiAdminEnabled.includes(groupJid);
+  } catch { return false; }
+}
+
+const numerosDueno = () => [String(process.env.OWNER_NUMBER || ''), String(process.env.CO_OWNERS || '')]
+  .join(',').split(',').map(digitos).filter((d) => d.length >= 8);
+
+// Los TELEFONOS de una persona, con los que trae el evento y los de su ficha en
+// el grupo. Solo telefonos: los digitos de un @lid no se comparan contra un
+// numero (un @lid que acabara igual que el del dueño lo convertiria en dueño).
+function telefonosDe(p, meta) {
+  const o = typeof p === 'string' ? { id: p } : (p || {});
+  const esTel = (j) => String(j || '').endsWith('@s.whatsapp.net');
+  const propias = [o.id, o.lid, o.phoneNumber].filter(Boolean);
+  const tels = new Set(propias.filter((j) => esTel(j) || j === o.phoneNumber).map(digitos));
+  const cortas = propias.map(digitos);
+  for (const q of (meta?.participants || [])) {
+    const suyas = [q?.id, q?.lid, q?.phoneNumber].filter(Boolean);
+    if (suyas.map(digitos).some((x) => cortas.includes(x))) {
+      for (const j of suyas) if (esTel(j) || j === q.phoneNumber) tels.add(digitos(j));
+    }
+  }
+  return [...tels].filter(Boolean);
+}
+
+// Su ficha en el grupo, buscada por cualquiera de sus formas.
+function fichaEn(p, meta) {
+  const cortas = formasDe(typeof p === 'string' ? { id: p } : p).map(digitos);
+  return (meta?.participants || []).find((q) =>
+    [q?.id, q?.lid, q?.phoneNumber].filter(Boolean).map(digitos).some((x) => cortas.includes(x))) || null;
+}
+
+const esAdminFicha = (q) => q?.admin === 'admin' || q?.admin === 'superadmin';
+const esDueno = (p, meta) => telefonosDe(p, meta).some((t) => numerosDueno().some((n) => mismoNumero(t, n)));
+function soyYo(p, meta) {
+  const mios = [sock?.user?.id, sock?.user?.lid].filter(Boolean).map(digitos);
+  const suyas = [...formasDe(typeof p === 'string' ? { id: p } : p).map(digitos), ...telefonosDe(p, meta)];
+  return mios.some((m) => suyas.includes(m));
+}
+const deConfianza = (p, meta) => soyYo(p, meta) || esElProtegido(p, meta) || esDueno(p, meta);
+
+async function fichaDelGrupo(groupJid) {
+  try { return await withTimeout(sock.groupMetadata(groupJid), TOPE_RED); }
+  catch (e) { logger.unaVez('guardian: ficha del grupo', e); return null; }
+}
+
+async function cambiarRangos(groupJid, ids, que) {
+  if (!ids.length) return [];
+  try {
+    const r = await withTimeout(sock.groupParticipantsUpdate(groupJid, ids, que), TOPE_RED);
+    return (Array.isArray(r) ? r : []).filter((x) => String(x?.status) === '200').map((x) => x.jid);
+  } catch (e) {
+    logger.error(`guardián: no pude hacer ${que} en ${groupJid}: ${e.message}`);
+    return [];
+  }
+}
+
+// Devuelve lo que hizo ({ quitados, repuestos }), o null si no le tocaba.
+async function alCambioDeAdmin(groupJid, participants, action, author, authorPn) {
+  if (action !== 'promote' && action !== 'demote') return null;
+  if (!author) return null;
+  if (!numerosDueno().length) {
+    logger.unaVez('guardian: anti-admin apagado', 'no hay OWNER_NUMBER en el .env y sin saber quien manda revertiria al propio dueño');
+    return null;
+  }
+  let meta = await fichaDelGrupo(groupJid);
+  const autor = { id: author, phoneNumber: authorPn };
+  if (deConfianza(autor, meta)) return null;
+
+  const encendido = antiadminEncendido(groupJid);
+  // El bot y el guardian no entran nunca: al bot lo repone alDegradar al
+  // momento, y el guardian no se toca a si mismo.
+  const tocados = (participants || []).filter((p) => !esElProtegido(p, meta) && !soyYo(p, meta));
+  let quitar = [];
+  let reponer = [];
+  if (action === 'promote') {
+    if (!encendido) return null;
+    quitar = [autor, ...tocados.filter((p) => !esDueno(p, meta))];
+  } else {
+    reponer = encendido ? tocados : tocados.filter((p) => esDueno(p, meta));
+    if (!reponer.length) return null;
+    quitar = [autor];
+  }
+
+  // El turno del bot.
+  await new Promise((r) => setTimeout(r, ESPERA_AL_BOT));
+  meta = await fichaDelGrupo(groupJid);
+  if (!meta) return { quitados: [], repuestos: [] };
+  const yo = (meta.participants || []).find((q) => soyYo(q, meta));
+  if (!esAdminFicha(yo)) {
+    logger.error(`guardián: habría que revertir un cambio de admin en ${groupJid} y no soy admin ahí`);
+    return { quitados: [], repuestos: [] };
+  }
+
+  const aQuitar = quitar.map((p) => fichaEn(p, meta)).filter((q) => q && esAdminFicha(q) && !deConfianza(q, meta)).map((q) => q.id);
+  const aReponer = reponer.map((p) => fichaEn(p, meta)).filter((q) => q && !esAdminFicha(q)).map((q) => q.id);
+  if (!aQuitar.length && !aReponer.length) return { quitados: [], repuestos: [] };   // ya lo hizo el bot
+
+  const repuestos = await cambiarRangos(groupJid, [...new Set(aReponer)], 'promote');
+  const quitados = await cambiarRangos(groupJid, [...new Set(aQuitar)], 'demote');
+  logger.warn(`guardián: el bot no lo revirtió en ${groupJid} (${action} de ${author}); `
+    + `repuestos ${repuestos.length}/${aReponer.length}, degradados ${quitados.length}/${aQuitar.length}`);
+  return { quitados, repuestos };
+}
+
 // Aparte y exportada: es un borrado de credenciales, o sea lo que mas cuesta si
 // se equivoca de condicion, y solo ocurre en un arranque tras una vinculacion a
 // medias. Sin poder probarla, la unica forma de saber si acierta seria dejar una
@@ -772,15 +928,18 @@ async function conectar() {
   // SE APUNTA TODO LO QUE LLEGA, no solo lo que se actua. Sin esta linea, un
   // guardian que no reacciona y un guardian al que no le llega nada se leen
   // exactamente igual en el log —vacio— y son dos problemas en sitios opuestos.
-  sock.ev.on('group-participants.update', ({ id, participants, action, author }) => {
+  sock.ev.on('group-participants.update', ({ id, participants, action, author, authorPn }) => {
     logger.info(`guardián: evento ${action} en ${id} por ${author || '?'} sobre ${JSON.stringify((participants || []).map(formasDe))}`);
     alDegradar(id, participants, action, author)
       .catch((e) => logger.error(`guardián: ${e.message}`));
+    // Y el anti-admin, por si el bot no esta para hacerlo (ver alCambioDeAdmin).
+    alCambioDeAdmin(id, participants, action, author, authorPn)
+      .catch((e) => logger.error(`guardián: anti-admin: ${e.message}`));
   });
 }
 
 if (require.main === module) {
-  console.log(`\n  Guardián de Daddy's Bot — solo repone el admin, nada más\n`);
+  console.log(`\n  Guardián de Daddy's Bot — repone el admin del bot y hace de anti-admin cuando el bot no está\n`);
   const arrancar = () => conectar().catch((err) => {
     apuntarVida('no pudo ni conectar', (err && err.message) || String(err));
     console.error('guardián: error fatal:', err);
@@ -793,4 +952,4 @@ if (require.main === module) {
   } else arrancar();
 }
 
-module.exports = { alDegradar, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };
+module.exports = { alDegradar, alCambioDeAdmin, _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };

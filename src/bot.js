@@ -1809,7 +1809,19 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
 
     if (action !== 'promote' && action !== 'demote') return;
 
-    const fromBot = isBotJid(author);
+    // EL GUARDIAN CUENTA COMO EL BOT. Repone el admin del bot y, cuando el bot
+    // no esta, revierte lo que haria el anti-admin (ver src/guardian.js). Si el
+    // bot leyera eso como el movimiento de un admin cualquiera, con !antiadmin
+    // encendido le quitaria el admin al guardian por habersela devuelto, o
+    // desharia su reversion: los dos defensores peleandose entre ellos.
+    const digitosG = (x) => String(x || '').split('@')[0].split(':')[0].replace(/\D/g, '');
+    const autorEsGuardian = Boolean(config.guardian) && [author, authorPn].filter(Boolean)
+      .some((a) => phoneMatch(digitosG(a), config.guardian)
+        || (meta?.participants || []).some((p) => {
+          const formas = [p?.id, p?.lid, p?.phoneNumber].filter(Boolean);
+          return formas.map(digitosG).includes(digitosG(a)) && formas.some((f) => phoneMatch(digitosG(f), config.guardian));
+        }));
+    const fromBot = isBotJid(author) || autorEsGuardian;
 
     // Promueve o degrada y devuelve A QUIÉN se le hizo DE VERDAD.
     //

@@ -19580,6 +19580,126 @@ const manda = async (quien, tipo, opciones) => {
     if (hallados.length) { fallos++; console.log(rojo(`   ✗ vuelve a salir «pollas», y el dueño lo quiere con y: ${hallados.slice(0, 4).join(', ')}`)); }
     if (fallos === antes117) console.log(verde('   ✓ todo lo que acaba en «pollas» se escribe «poyas»'));
   }
+
+  // ── 118. EL GUARDIAN HACE DE ANTI-ADMIN CUANDO EL BOT NO ESTA ───────────
+  //
+  // Lo pidio el dueño: el bot se va a soporte a menudo y el grupo queda sin
+  // anti-admin. El guardian espera su turno al bot y, si el cambio sigue sin
+  // revertir, lo revierte el con las mismas reglas. Aqui se ejecuta contra un
+  // grupo de mentira: con el bot caido, con el bot que ya lo hizo, con el
+  // dueño, sin el dueño en el .env y sin admin.
+  {
+    console.log('\n118. EL GUARDIAN HACE DE ANTI-ADMIN CUANDO EL BOT NO ESTA');
+    const antes118 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const G = require(path.join(R, 'src/guardian'));
+    const envAntes = { OWNER_NUMBER: process.env.OWNER_NUMBER, CO_OWNERS: process.env.CO_OWNERS, GUARDIAN_DE: process.env.GUARDIAN_DE };
+    const dir118 = fs.mkdtempSync(path.join(os.tmpdir(), 'guard118-'));
+    const estado = path.join(dir118, 'state.json');
+    const GR = '120363000000000118@g.us';
+    const DUENO = '34600095118', BOT = '34600095119', GUARD = '34600095120', ROGUE = '34600095121', OTRO = '34600095122';
+    const jid = (n) => `${n}@s.whatsapp.net`;
+    let meta, hechos;
+    // EL GUARDIAN NO NOTIFICA. Lo dijo el dueño: esta ahi haciendo su trabajo y
+    // punto. Cualquier mensaje que intente mandar se cuenta aqui.
+    let mensajes118 = 0;
+    // Lo que hace el bot DURANTE la espera del guardian: se ejecuta despues de
+    // la primera lectura del grupo, que es cuando el guardian ya ha decidido y
+    // esta esperando su turno.
+    let enLaEspera = null;
+    const monta = ({ guardAdmin = true, antiadmin = true, admins = [] } = {}) => {
+      fs.writeFileSync(estado, JSON.stringify({ antiAdminEnabled: antiadmin ? [GR] : [] }));
+      const todos = [DUENO, BOT, GUARD, ROGUE, OTRO];
+      meta = { id: GR, participants: todos.map((n) => ({ id: jid(n), admin: (n === GUARD ? guardAdmin : admins.includes(n)) ? 'admin' : null })) };
+      hechos = [];
+    };
+    const sock118 = {
+      user: { id: `${GUARD}:3@s.whatsapp.net` },
+      sendMessage: async () => { mensajes118++; return {}; },
+      groupMetadata: async () => {
+        const foto = JSON.parse(JSON.stringify(meta));
+        if (enLaEspera) { const f = enLaEspera; enLaEspera = null; f(); }
+        return foto;
+      },
+      groupParticipantsUpdate: async (g, ids, que) => {
+        hechos.push(`${que}:${ids.map((i) => i.split('@')[0]).sort().join(',')}`);
+        for (const q of meta.participants) if (ids.includes(q.id)) q.admin = que === 'promote' ? 'admin' : null;
+        return ids.map((i) => ({ jid: i, status: '200' }));
+      },
+    };
+    try {
+      process.env.OWNER_NUMBER = DUENO; process.env.CO_OWNERS = ''; process.env.GUARDIAN_DE = BOT;
+      G._sock(sock118); G._estadoBot(estado); G._esperaAlBot(5);
+      const p = (n) => ({ id: jid(n), phoneNumber: jid(n) });
+
+      // 1. El bot no esta: un admin cualquiera asciende a otro. Caen los dos.
+      monta({ admins: [ROGUE, OTRO] });
+      await G.alCambioDeAdmin(GR, [p(OTRO)], 'promote', jid(ROGUE));
+      exige(hechos.join(' ') === `demote:${[OTRO, ROGUE].sort().join(',')}`,
+        `con el bot fuera, un ascenso a dedo no se revierte (hizo: ${hechos.join(' ') || 'nada'})`);
+
+      // 2. El bot lo revierte en su turno, MIENTRAS el guardian espera: el
+      //    guardian vuelve a mirar y no toca nada. Si actuara con lo que vio
+      //    al principio, repetiria el trabajo del bot.
+      monta({ admins: [ROGUE, OTRO] });
+      enLaEspera = () => { for (const q of meta.participants) if ([jid(ROGUE), jid(OTRO)].includes(q.id)) q.admin = null; };
+      await G.alCambioDeAdmin(GR, [p(OTRO)], 'promote', jid(ROGUE));
+      enLaEspera = null;
+      exige(hechos.length === 0, `con el bot en pie, el guardian repite lo que ya hizo el bot: ${hechos.join(' ')}`);
+
+      // 3. Degradan a otro admin: se le repone y el autor cae.
+      monta({ admins: [ROGUE] });
+      await G.alCambioDeAdmin(GR, [p(OTRO)], 'demote', jid(ROGUE));
+      exige(hechos.join(' ') === `promote:${OTRO} demote:${ROGUE}`,
+        `una degradacion con el bot fuera no se revierte (hizo: ${hechos.join(' ') || 'nada'})`);
+
+      // 4. Con !antiadmin apagado, una degradacion normal no se toca...
+      monta({ antiadmin: false, admins: [ROGUE] });
+      await G.alCambioDeAdmin(GR, [p(OTRO)], 'demote', jid(ROGUE));
+      exige(hechos.length === 0, `con !antiadmin apagado, el guardian revierte igual: ${hechos.join(' ')}`);
+      // ...pero degradar al dueño se revierte siempre.
+      monta({ antiadmin: false, admins: [ROGUE] });
+      await G.alCambioDeAdmin(GR, [p(DUENO)], 'demote', jid(ROGUE));
+      exige(hechos.join(' ') === `promote:${DUENO} demote:${ROGUE}`,
+        `degradar al dueño con el bot fuera no se revierte (hizo: ${hechos.join(' ') || 'nada'})`);
+
+      // 5. Lo que hace el dueño no se toca.
+      monta({ admins: [OTRO, DUENO] });
+      await G.alCambioDeAdmin(GR, [p(OTRO)], 'promote', jid(DUENO));
+      exige(hechos.length === 0, `el guardian revierte un ascenso del dueño: ${hechos.join(' ')}`);
+
+      // 6. Sin admin, no puede; y no revienta.
+      monta({ guardAdmin: false, admins: [ROGUE, OTRO] });
+      await G.alCambioDeAdmin(GR, [p(OTRO)], 'promote', jid(ROGUE));
+      exige(hechos.length === 0, 'el guardian intenta revertir sin ser admin');
+
+      // 7. Sin el dueño en el .env no hace nada: revertiria al propio dueño.
+      process.env.OWNER_NUMBER = '';
+      monta({ admins: [ROGUE, OTRO] });
+      await G.alCambioDeAdmin(GR, [p(OTRO)], 'promote', jid(ROGUE));
+      exige(hechos.length === 0, 'sin OWNER_NUMBER el guardian revierte igual: con el dueño sin identificar, revertiria sus ascensos');
+
+      exige(mensajes118 === 0, `el guardian ha mandado ${mensajes118} mensaje(s) al grupo: no notifica, solo hace su trabajo`);
+    } catch (e) {
+      exige(false, `el anti-admin del guardian revento: ${e.message}`);
+    } finally {
+      for (const [k, v] of Object.entries(envAntes)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+      G._sock(null); G._estadoBot(path.join(R, 'data/state.json')); G._esperaAlBot(10000);
+      fs.rmSync(dir118, { recursive: true, force: true });
+    }
+    // Y EL BOT CUENTA AL GUARDIAN COMO SUYO: si no, le quitaria el admin por
+    // habersela devuelto, o desharia su reversion.
+    const botSrc = fs.readFileSync(path.join(R, 'src/bot.js'), 'utf8');
+    exige(/const fromBot = isBotJid\(author\) \|\| autorEsGuardian;/.test(botSrc),
+      'el bot ya no trata al guardian como suyo: con !antiadmin encendido se pelearian entre ellos');
+    // Y el log del guardian tiene unaVez: sin el, un fallo de red lo tumbaba.
+    const gSrc = fs.readFileSync(path.join(R, 'src/guardian.js'), 'utf8');
+    exige(/unaVez:/.test(gSrc), 'el log del guardian ya no tiene unaVez y se llama en dos sitios: revienta al primer fallo de red');
+    // Y en el fuente tampoco hay un solo envio: ni en lo nuevo ni en lo de antes.
+    exige(!/sendMessage\s*\(/.test(gSrc.replace(/\/\/[^\n]*/g, '')),
+      'el guardian tiene un sendMessage: no notifica nada, solo hace su trabajo');
+    if (fallos === antes118) console.log(verde('   ✓ con el bot fuera el guardian revierte en silencio, con el bot en pie no repite, y al dueño no lo toca'));
+  }
   }
 
   if (BREVE) {
