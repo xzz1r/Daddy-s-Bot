@@ -19829,7 +19829,10 @@ const manda = async (quien, tipo, opciones) => {
       'el bot ya no late al conectar: el guardian lo daria por caido y trabajaria por duplicado');
     exige(/pararLatidoGuardian\(/.test(trozo("connection === 'close'", 400)),
       'el bot ya no avisa al caerse: el guardian esperaria 90 s para nada');
-    exige(/pararLatidoGuardian\('apagado'\)/.test(botSrc), 'el bot ya no avisa al apagarse');
+    const apagado = trozo('async function gracefulShutdown', 1500);
+    const iAviso = apagado.indexOf("pararLatidoGuardian('apagado')");
+    exige(iAviso > 0 && iAviso < apagado.indexOf('Promise.allSettled'),
+      'el bot avisa al guardian de que se apaga despues de guardar los datos (o no avisa): hasta 3 s con el grupo sin nadie');
     if (fallos === antes118) console.log(verde('   ✓ con el bot fuera el guardian revierte en silencio y al momento, con el bot en pie ni espera ni repite, y al dueño no lo toca'));
   }
   // ── 119. A QUIEN METE UN ADMIN A DEDO SE LE SACA, PERO NO SE LE VETA ─────

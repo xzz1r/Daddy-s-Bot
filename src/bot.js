@@ -2274,6 +2274,9 @@ async function gracefulShutdown(code = 0) {
   // start two concurrent shutdowns / double process.exit.
   if (_shuttingDown) return;
   _shuttingDown = true;
+  // Lo primero: el guardian se queda con el anti-admin desde este instante, no
+  // cuando acaben de guardarse los datos (hasta 3 s con el grupo sin nadie).
+  pararLatidoGuardian('apagado');
   // Flush all debounced writes BEFORE closing the socket — otherwise the last
   // few seconds of stats, message counts, and music index updates are lost.
   // Race against a hard 3s cap so a single hung flush can't block exit forever
@@ -2291,8 +2294,6 @@ async function gracefulShutdown(code = 0) {
     flushObjetivoDia(), flushDeuda(), flushHistorial(), flushRencor(),
   ]);
   await Promise.race([flushes, new Promise(r => setTimeout(r, 3000))]);
-  // Apagandose: el guardian se queda con el anti-admin desde este momento.
-  pararLatidoGuardian('apagado');
   if (sock) {
     try { sock.end(); } catch {}
   }
