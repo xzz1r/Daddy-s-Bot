@@ -15,10 +15,12 @@
 //
 // ─── QUÉ HACE, Y QUÉ NO ─────────────────────────────────────────────────────
 //
-// Escucha un solo evento —quién sube y quién baja de admin— y reacciona a dos
-// casos: al bot le han quitado el admin, se lo devuelve al momento; y un admin
-// cualquiera ha dado o quitado admin y el bot no lo ha revertido (esta en
-// soporte, caido o sin admin), lo revierte el con las reglas del anti-admin.
+// Escucha un solo evento —quién sube, baja o sale del grupo— y reacciona a
+// tres casos: al bot le han quitado el admin, se lo devuelve al momento; un
+// admin cualquiera ha dado o quitado admin y el bot no esta para revertirlo
+// (en soporte, caido o sin admin), lo revierte el con las reglas del
+// anti-admin; y un admin echa a mas de cinco en cinco minutos o echa al dueño
+// con el bot fuera, le quita el admin (ver alExpulsar).
 //
 // NO lee mensajes. NO responde comandos. NO cuenta nada, no toca el aura, no
 // escribe en `data/`. No manda un solo mensaje al grupo: la reposición ya
@@ -644,6 +646,33 @@ async function cambiarRangos(groupJid, ids, que) {
   }
 }
 
+// ¿Le toca al guardian? Con el bot en linea y admin en el grupo, no: devuelve
+// null y ni espera ni relee. Si no, devuelve la ficha del grupo con la que
+// actuar (null si no se pudo leer), el estado del bot y si el guardian es
+// admin ahi.
+async function leToca(groupJid, meta, que) {
+  const estado = estadoDelBot();
+  if (estado === 'desconocido') {
+    // Sin latido no se sabe si el bot esta: se le deja su turno y se vuelve a
+    // mirar el grupo, para hacer solo lo que siga sin hacer.
+    await new Promise((r) => setTimeout(r, ESPERA_AL_BOT));
+    meta = await fichaDelGrupo(groupJid);
+  } else {
+    if (!meta) meta = await fichaDelGrupo(groupJid);
+    const bot = (meta?.participants || []).find((q) => esElProtegido(q, meta));
+    // El bot esta y es admin aqui: es su trabajo, y lo hace el.
+    if (estado === 'vivo' && esAdminFicha(bot)) return null;
+    // Y si no, al instante: esperar a un bot que no esta es dejar el grupo
+    // abierto diez segundos para nada.
+  }
+  const yo = (meta?.participants || []).find((q) => soyYo(q, meta));
+  const soyAdmin = esAdminFicha(yo);
+  if (meta && !soyAdmin) logger.error(`guardián: habría que ${que} en ${groupJid} y no soy admin ahí`);
+  return { meta, estado, soyAdmin };
+}
+
+const comoVaElBot = (estado) => (estado === 'vivo' ? 'en linea pero sin admin ahi' : estado);
+
 // Devuelve lo que hizo ({ quitados, repuestos }), o null si no le tocaba.
 async function alCambioDeAdmin(groupJid, participants, action, author, authorPn) {
   if (action !== 'promote' && action !== 'demote') return null;
@@ -671,26 +700,11 @@ async function alCambioDeAdmin(groupJid, participants, action, author, authorPn)
     quitar = [autor];
   }
 
-  const estado = estadoDelBot();
-  if (estado === 'desconocido') {
-    // Sin latido no se sabe si el bot esta: se le deja su turno y se vuelve a
-    // mirar el grupo, para hacer solo lo que siga sin hacer.
-    await new Promise((r) => setTimeout(r, ESPERA_AL_BOT));
-    meta = await fichaDelGrupo(groupJid);
-  } else {
-    if (!meta) meta = await fichaDelGrupo(groupJid);
-    const bot = (meta?.participants || []).find((q) => esElProtegido(q, meta));
-    // El bot esta y es admin aqui: es su trabajo, y lo hace el.
-    if (estado === 'vivo' && esAdminFicha(bot)) return null;
-    // Y si no, al instante: esperar a un bot que no esta es dejar el grupo
-    // abierto diez segundos para nada.
-  }
-  if (!meta) return { quitados: [], repuestos: [] };
-  const yo = (meta.participants || []).find((q) => soyYo(q, meta));
-  if (!esAdminFicha(yo)) {
-    logger.error(`guardián: habría que revertir un cambio de admin en ${groupJid} y no soy admin ahí`);
-    return { quitados: [], repuestos: [] };
-  }
+  const turno = await leToca(groupJid, meta, 'revertir un cambio de admin');
+  if (!turno) return null;
+  ({ meta } = turno);
+  const { estado } = turno;
+  if (!meta || !turno.soyAdmin) return { quitados: [], repuestos: [] };
 
   const aQuitar = quitar.map((p) => fichaEn(p, meta)).filter((q) => q && esAdminFicha(q) && !deConfianza(q, meta)).map((q) => q.id);
   const aReponer = reponer.map((p) => fichaEn(p, meta)).filter((q) => q && !esAdminFicha(q)).map((q) => q.id);
@@ -698,8 +712,75 @@ async function alCambioDeAdmin(groupJid, participants, action, author, authorPn)
 
   const repuestos = await cambiarRangos(groupJid, [...new Set(aReponer)], 'promote');
   const quitados = await cambiarRangos(groupJid, [...new Set(aQuitar)], 'demote');
-  logger.warn(`guardián: el bot no estaba (${estado === 'vivo' ? 'en linea pero sin admin ahi' : estado}) y lo revierto yo en ${groupJid} (${action} de ${author}); `
+  logger.warn(`guardián: el bot no estaba (${comoVaElBot(estado)}) y lo revierto yo en ${groupJid} (${action} de ${author}); `
     + `repuestos ${repuestos.length}/${aReponer.length}, degradados ${quitados.length}/${aQuitar.length}`);
+  return { quitados, repuestos };
+}
+
+// ─── LAS EXPULSIONES, TAMBIEN SIN EL BOT ────────────────────────────────────
+//
+// Las dos guardas del bot sobre expulsiones (bot.js), con las mismas reglas:
+//   · un admin que echa a MAS DE CINCO en menos de cinco minutos pierde el
+//     admin (las cifras de utils/purgaAdmin.js, con su propia cuenta);
+//   · un admin que echa al tier dueño pierde el admin, y el guardian intenta
+//     meter al dueño de vuelta y devolverle el admin.
+// El bot y el tier dueño echan a quien quieran. Callado, como todo lo demas:
+// el bot avisa; el guardian no.
+//
+// Las expulsiones se cuentan SIEMPRE, este o no el bot: si se cae a la mitad
+// de una purga, el guardian ya lleva la cuenta. Lo que depende del latido es
+// quien actua al pasarse del tope.
+// La cuenta, aqui y no con utils/purgaAdmin.js: el guardian corre suelto, sin
+// cargar nada del bot. Mismas cifras: MAS de cinco, ventana deslizante de
+// cinco minutos, por grupo y por autor, y se cuentan expulsiones, no eventos.
+const PURGA_TOPE = 5;
+const PURGA_VENTANA = 5 * 60 * 1000;
+const purgas = new Map();   // 'grupo|autor' -> [marcas de tiempo]
+function apuntarPurga(groupJid, autor, cuantas) {
+  const k = `${groupJid}|${digitos(autor)}`;
+  const ahora = Date.now();
+  if (purgas.size >= 500 && !purgas.has(k)) purgas.delete(purgas.keys().next().value);
+  const marcas = (purgas.get(k) || []).filter((t) => ahora - t < PURGA_VENTANA);
+  for (let i = 0; i < cuantas; i++) marcas.push(ahora);
+  if (marcas.length > PURGA_TOPE) { purgas.delete(k); return true; }
+  purgas.set(k, marcas);
+  return false;
+}
+
+async function alExpulsar(groupJid, participants, action, author, authorPn) {
+  if (action !== 'remove' || !author) return null;
+  if (!numerosDueno().length) return null;   // ya avisado en alCambioDeAdmin
+  const autor = { id: author, phoneNumber: authorPn };
+  const echados = (participants || []).map((p) => (typeof p === 'string' ? { id: p } : p)).filter((o) => o?.id);
+  // Quien se va por su pie tambien llega como 'remove', con el mismo de autor.
+  const fuera = echados.filter((o) => !formasDe(o).map(digitos).some((x) => formasDe(autor).map(digitos).includes(x)));
+  if (!fuera.length) return null;
+
+  let meta = await fichaDelGrupo(groupJid);
+  if (deConfianza(autor, meta)) return null;
+  const purga = apuntarPurga(groupJid, authorPn || author, fuera.length);
+  const duenos = fuera.filter((o) => esDueno(o, meta));
+  if (!purga && !duenos.length) return null;
+
+  const turno = await leToca(groupJid, meta, 'quitar el admin a quien echa gente');
+  if (!turno) return null;
+  ({ meta } = turno);
+  if (!meta || !turno.soyAdmin) return { quitados: [], repuestos: [] };
+
+  const ficha = fichaEn(autor, meta);
+  const quitados = ficha && esAdminFicha(ficha) && !deConfianza(ficha, meta)
+    ? await cambiarRangos(groupJid, [ficha.id], 'demote') : [];
+  // El dueño vuelve con su telefono: un @lid no sirve para meterle.
+  const repuestos = [];
+  for (const o of duenos) {
+    if (fichaEn(o, meta)) continue;   // ya ha vuelto (lo metio el bot)
+    const tel = [o.phoneNumber, o.id].find((j) => String(j || '').endsWith('@s.whatsapp.net'));
+    if (!tel) continue;
+    const [dentro] = await cambiarRangos(groupJid, [tel], 'add');
+    if (dentro && (await cambiarRangos(groupJid, [dentro], 'promote')).length) repuestos.push(dentro);
+  }
+  logger.warn(`guardián: el bot no estaba (${comoVaElBot(turno.estado)}) y ${author} ${purga ? 'vaciaba el grupo' : 'echo al dueño'} en ${groupJid}; `
+    + `degradado: ${quitados.length ? 'si' : 'NO'}, dueño de vuelta ${repuestos.length}/${duenos.length}`);
   return { quitados, repuestos };
 }
 
@@ -971,6 +1052,8 @@ async function conectar() {
     // Y el anti-admin, por si el bot no esta para hacerlo (ver alCambioDeAdmin).
     alCambioDeAdmin(id, participants, action, author, authorPn)
       .catch((e) => logger.error(`guardián: anti-admin: ${e.message}`));
+    alExpulsar(id, participants, action, author, authorPn)
+      .catch((e) => logger.error(`guardián: expulsiones: ${e.message}`));
   });
 }
 
@@ -988,4 +1071,4 @@ if (require.main === module) {
   } else arrancar();
 }
 
-module.exports = { alDegradar, alCambioDeAdmin, _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, _latidoBot: (f) => { LATIDO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };
+module.exports = { alDegradar, alCambioDeAdmin, alExpulsar, _olvidarPurgas: () => purgas.clear(), _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, _latidoBot: (f) => { LATIDO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };

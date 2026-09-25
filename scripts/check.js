@@ -19739,6 +19739,59 @@ const manda = async (quien, tipo, opciones) => {
         sock118.groupMetadata = leerAntes;
       }
 
+      // 10. LAS EXPULSIONES CON EL BOT FUERA: mas de cinco en cinco minutos y
+      //     el autor pierde el admin; echar al dueño, igual, y el dueño vuelve.
+      {
+        const purga = { _reset: G._olvidarPurgas };
+        const EXTRA = ['34600095130', '34600095131', '34600095132', '34600095133', '34600095134', '34600095135'];
+        const montaEx = () => { monta({ admins: [ROGUE] }); for (const n of EXTRA) meta.participants.push({ id: jid(n), admin: null }); };
+        const echa = async (quien, por = ROGUE) => {
+          meta.participants = meta.participants.filter((q) => !quien.map(jid).includes(q.id));
+          return G.alExpulsar(GR, quien.map(p), 'remove', jid(por));
+        };
+        sock118.groupParticipantsUpdate = ((antes) => async (g, ids, que) => {
+          if (que === 'add') { hechos.push(`add:${ids.map((i) => i.split('@')[0]).join(',')}`); for (const i of ids) meta.participants.push({ id: i, admin: null }); return ids.map((i) => ({ jid: i, status: '200' })); }
+          return antes(g, ids, que);
+        })(sock118.groupParticipantsUpdate);
+
+        // a) Bot caido: cinco se aguantan, el sexto le cuesta el admin.
+        purga._reset(); late({ conectado: false, ts: Date.now(), pid: process.pid });
+        montaEx();
+        for (const n of EXTRA.slice(0, 5)) await echa([n]);
+        exige(hechos.length === 0, `con cinco expulsiones el guardian ya degrada: ${hechos.join(' ')}`);
+        await echa([EXTRA[5]]);
+        exige(hechos.join(' ') === `demote:${ROGUE}`, `a la sexta expulsion en cinco minutos el autor sigue de admin (hizo: ${hechos.join(' ') || 'nada'})`);
+
+        // b) Seis de golpe en un solo evento cuentan seis.
+        purga._reset(); montaEx();
+        await echa(EXTRA);
+        exige(hechos.join(' ') === `demote:${ROGUE}`, `seis de golpe no le quitan el admin (hizo: ${hechos.join(' ') || 'nada'})`);
+
+        // c) Con el bot en linea y admin, lo hace el bot: el guardian ni toca.
+        purga._reset(); late({ conectado: true, ts: Date.now(), pid: process.pid });
+        montaEx(); conBotAdmin();
+        await echa(EXTRA);
+        exige(hechos.length === 0, `con el bot en linea el guardian degrada por duplicado: ${hechos.join(' ')}`);
+
+        // d) El dueño vacia su grupo cuando quiere.
+        purga._reset(); late({ conectado: false, ts: Date.now(), pid: process.pid });
+        montaEx(); for (const q of meta.participants) if (q.id === jid(DUENO)) q.admin = 'admin';
+        await echa(EXTRA, DUENO);
+        exige(hechos.length === 0, `el guardian degrada al dueño por vaciar su grupo: ${hechos.join(' ')}`);
+
+        // e) Echar al dueño: el autor cae a la primera y el dueño vuelve con admin.
+        purga._reset(); montaEx();
+        await echa([DUENO]);
+        exige(hechos.join(' ') === `demote:${ROGUE} add:${DUENO} promote:${DUENO}`,
+          `echar al dueño con el bot fuera no se revierte (hizo: ${hechos.join(' ') || 'nada'})`);
+
+        // f) Quien se va solo no cuenta como expulsion.
+        purga._reset(); montaEx();
+        for (const n of EXTRA) await echa([n], n);
+        exige(hechos.length === 0, `seis que se van solos cuentan como una purga: ${hechos.join(' ')}`);
+        purga._reset();
+      }
+
       // 9. Y lo escribe el bot: al conectar «en linea» con su pid, al caerse
       //    «desconectado» con el motivo.
       const B = require(path.join(R, 'src/bot'));
