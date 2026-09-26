@@ -1,8 +1,10 @@
 # Daddy's Bot — instrucciones para Grok (terminal)
 
-Bot de WhatsApp. El contenido vive en `src/data/` (y los pools de `!aura`
-en `src/commands/aura.js`). El motor en `src/commands/` y `src/utils/`.
-Cómo se escribe una frase: `GUIA.md`. Cómo se valida: `npm run check`.
+Bot de WhatsApp. El contenido vive en `src/data/`, más los pools que aún
+guardan dentro algunos comandos (la lista está en `GUIA.md`, sección 2). El
+motor en `src/commands/` y `src/utils/`. Cómo se escribe una frase: `GUIA.md`.
+Cómo se valida: `npm run check`. Lo del motor que no cambia cómo se escribe
+(despliegue, guardián, redes): `MOTOR.md`.
 
 ## La puerta también corre en GitHub
 

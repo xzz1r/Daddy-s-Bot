@@ -13,9 +13,9 @@
 // que no explicaba lo que el veia leyendo el chat. Buscando a fondo salieron
 // seis defectos mas, y esos si suman. Este script los mide todos.
 //
-// `npm run analogias` es otra cosa y sigue haciendo falta: cuenta las lineas
-// marcadas a mano con `// ANALOGIA`, que es el encargo abierto de PENDIENTE.md.
-// Este de aqui no cuenta marcas: mide el texto.
+// `npm run analogias` es otra cosa: cuenta las lineas marcadas a mano con
+// `// ANALOGIA`. Ese encargo esta cerrado y da cero; sigue de puerta por si
+// alguna vuelve. Este de aqui no cuenta marcas: mide el texto.
 //
 // LO QUE BUSCA CADA FAMILIA
 //
@@ -23,8 +23,8 @@
 //              segunda persona, ni el nombre, ni una coletilla que llame a
 //              alguien. Es la version medible de lo que dijo el dueño: «se le
 //              puede mandar a cualquiera del grupo sin cambiar una letra».
-//              Esta es la familia que explica !aura: 74 de las 120 frases de
-//              ganar no mencionan a quien acaba de ganar.
+//              Fue la familia que explico !aura: 74 de las 120 frases del
+//              antiguo `gain` no mencionaban a quien acababa de ganar.
 //              Y es la que NINGUNA expresion regular de comparacion veia,
 //              porque estas frases no comparan con «como» ni con «mas que»:
 //              sueltan una imagen y se van. «Cafe de maquina: dos sorbos y a
@@ -80,6 +80,7 @@ const soloFam = args.find((a) => FAMILIAS.includes(a)) || null;
 const iPool = args.indexOf('--pool');
 const soloPool = iPool >= 0 ? args[iPool + 1] : null;
 const TECHO_MODO = args.includes('--techo');
+const POOLS_MODO = args.includes('--pools');
 
 // El techo es la foto del dia que se midio esto. No es un objetivo: es un
 // tope. Reescribir un pool tiene que BAJAR estos numeros; si alguno sube,
@@ -89,28 +90,78 @@ const TECHO_MODO = args.includes('--techo');
 // Bajado con el recorte de los tramos de porcentaje y de !rizz a 25/10/10, que
 // se quedo con las mejores frases y dejo fuera la mayoria de los defectos.
 // Enlatado estaba en 517 con el techo en 410, o sea en rojo: ahora 257.
-const TECHO = { nadie: 617, analogia: 9, coletilla: 169, eco: 12, molde: 424, enlatado: 257, roto: 0 };
+//
+// Y SUBIDO DESPUES, SIN QUE HAYA ENTRADO NI UNA FRASE MALA. El informe miraba
+// 6.208 frases y el bot tiene 8.084: se dejaba fuera los pools que viven en
+// src/commands/ (veredictos de !ship, tramos de !iq, contadores, !mog, !duel,
+// gainPobre y gainRico) y los avisos de !kick. Y la coletilla se buscaba en el
+// texto con tildes contra una lista sin ellas, asi que «, cabrón.» o
+// «, inútil.» no casaban nunca: contaba 169 y son 601. La foto de abajo es la
+// primera que mira el bot entero.
+const TECHO = { nadie: 1046, analogia: 68, coletilla: 601, eco: 12, molde: 725, enlatado: 415, roto: 2 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();
 const pools = [];
 
-// AURA.gain / loss / blessed / spiral / cursed viven dentro de src/commands/
-// aura.js, no en src/data/. Hacer `require` de ese fichero arrastraria medio
-// bot, asi que se leen del texto igual que hace `npm run analogias`. Sin ellas
-// el informe se dejaba fuera justo el sitio que el dueño señaló.
-{
-  const f = path.join(__dirname, '../src/commands/aura.js');
-  const lineas = fs.readFileSync(f, 'utf8').split('\n');
-  const cadena = /^\s*('(?:\\.|[^'\\])*')\s*,/;
+// LOS POOLS QUE VIVEN EN src/commands/ Y src/utils/, leídos del texto.
+//
+// Hacer `require` de esos ficheros arrastraría medio bot, así que se leen como
+// los lee `npm run progreso`: una lista empieza en `NOMBRE = [`, `clave: [` o
+// `return [`, cada frase va en su línea y la lista acaba en `]`. Antes solo se
+// miraban cinco pools de `aura.js`, y por nombre: `gainPobre` y `gainRico` se
+// quedaron fuera el día que `gain` se partió en dos, y con ellos los veredictos
+// de `!ship`, los tramos de `!iq`, `!mog`, `!duel`, los contadores y el resto
+// de pools que siguen dentro de un comando. Casi dos mil frases que el grupo
+// lee y que este informe no veía.
+const CADENA = /^\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1\s*,?\s*(?:\/\/.*)?$/;
+function poolsDeTexto(rel) {
+  const lineas = fs.readFileSync(path.join(__dirname, '..', rel), 'utf8').split('\n');
+  const base = path.basename(rel, '.js');
+  const pila = [];
+  let funcion = null;
   let actual = null;
+  let anonimas = 0;
+  let padre = null;
+  const cerrar = () => {
+    if (actual && actual.frases.length >= 2) {
+      const media = actual.frases.reduce((a, t) => a + t.length, 0) / actual.frases.length;
+      if (media >= 22 && actual.frases.some((t) => / \S+ /.test(t))) pools.push(actual);
+    }
+    actual = null;
+  };
   for (const l of lineas) {
-    const cab = /^  (blessed|gain|loss|spiral|cursed):\s*\[/.exec(l);
-    if (cab) { actual = { pool: `aura:AURA.${cab[1]}`, frases: [] }; pools.push(actual); continue; }
-    if (!actual) continue;
-    if (/^  \]/.test(l)) { actual = null; continue; }
-    const m = cadena.exec(l);
-    if (m) actual.frases.push(m[1].slice(1, -1).replace(/\\'/g, "'").replace(/\\\\/g, '\\'));
+    const fn = /^(?:async\s+)?function\s+([A-Za-z_]\w*)/.exec(l);
+    if (fn) { funcion = fn[1]; anonimas = 0; }
+    const obj = /^\s*(?:(?:const|let|var)\s+([A-Za-z_]\w*)\s*=|([A-Za-z_]\w*)\s*:)\s*\{\s*$/.exec(l);
+    if (obj && !actual) { pila.push(obj[1] || obj[2]); continue; }
+    const lista = /^\s*(?:(?:const|let|var)\s+([A-Za-z_]\w*)\s*=|([A-Za-z_]\w*)\s*:|(return))\s*\[\s*$/.exec(l);
+    if (lista) {
+      cerrar();
+      const nombre = lista[3] ? `${funcion || 'anonima'}()#${++anonimas}` : [...pila, lista[1] || lista[2]].join('.');
+      actual = { pool: `${base}:${nombre}`, frases: [] };
+      padre = { nombre, hijas: 0 };
+      continue;
+    }
+    // Una lista de listas (los contadores guardan una por puesto del ranking):
+    // cada `[` suelto abre una hija de la última lista con nombre.
+    if (/^\s*\[\s*$/.test(l) && padre && (!actual || !actual.frases.length)) {
+      actual = { pool: `${base}:${padre.nombre}[${padre.hijas++}]`, frases: [] };
+      continue;
+    }
+    if (actual) {
+      if (/^\s*\][,;)]?\s*$/.test(l)) { cerrar(); continue; }
+      const m = CADENA.exec(l);
+      if (m) actual.frases.push(m[2].replace(/\\(['"`\\])/g, '$1').replace(/\\n/g, '\n'));
+      continue;
+    }
+    if (/^\s*\}[,;]?\s*$/.test(l) && pila.length) pila.pop();
+  }
+  cerrar();
+}
+for (const dir of ['src/commands', 'src/utils']) {
+  for (const f of fs.readdirSync(path.join(__dirname, '..', dir)).filter((x) => x.endsWith('.js')).sort()) {
+    poolsDeTexto(`${dir}/${f}`);
   }
 }
 for (const f of fs.readdirSync(D).filter((x) => x.endsWith('.js'))) {
@@ -124,6 +175,15 @@ for (const f of fs.readdirSync(D).filter((x) => x.endsWith('.js'))) {
       if (vistos.has(o)) return;
       vistos.add(o);
       pools.push({ pool: `${f.replace('.js', '')}:${ruta}`, frases: o });
+      return;
+    }
+    // Listas de objetos con texto dentro, como los avisos de !kick: cada uno
+    // trae su versión para una persona y para varias. Cada clave es un pool.
+    if (Array.isArray(o) && o.length && o.every((x) => x && typeof x === 'object' && !Array.isArray(x)
+      && Object.values(x).every((v) => typeof v === 'string'))) {
+      for (const k of Object.keys(o[0])) {
+        pools.push({ pool: `${f.replace('.js', '')}:${ruta}.${k}`, frases: o.map((x) => x[k]).filter((v) => typeof v === 'string') });
+      }
       return;
     }
     if (o && typeof o === 'object') for (const k of Object.keys(o)) rec(o[k], ruta ? `${ruta}.${k}` : k, d + 1);
@@ -165,9 +225,13 @@ const ATAQUE = /\b(?:mierd|puta|puto|puti|joder|jodid|asco|asquer|patet|pring|in
 // en JavaScript `ú` no es caracter de palabra, asi que `\bt[úu]\b` no casa con
 // «Tú machacas» —el limite final no existe— y la familia entera se llenaba de
 // falsos positivos. Sin tildes, `\btu\b` casa y ya no miente.
+// Los huecos de persona son los del contrato (scripts/placeholders.js): %A,
+// %V, %N, %W y %L, %M en !mog y en los avisos de !kick, y [nombre]. Y quien
+// habla a dos (!ship, !duel) lo hace en plural: «sois», «os», «vuestro».
 const PERSONA = new RegExp(
-  '%[avnd]|\\[nombre\\]'
-  + '|\\b(?:tu|tus|te|ti|contigo|usted|vosotros)\\b'
+  '%[avndwlm]\\b|\\[nombre\\]|\\$\\{'
+  + '|\\b(?:tu|tus|te|ti|contigo|usted|ustedes|vosotros|vosotras|os|sois|vuestr[oa]s?)\\b'
+  + '|\\b\\w{3,}(?:ais|eis)\\b'
   + '|\\b(?:eres|estas|tienes|vas|has|habias|puedes|sabes|quieres|sigues|acabas|vienes'
   + '|haces|dices|llevas|pareces|mereces|necesitas|crees|vives|sales|pides|miras|buscas'
   + '|juegas|apuestas|aprende|relaja|mira|cuenta|deja|para|vete|calla)\\b'
@@ -189,6 +253,14 @@ const aperturaDe = (w) => {
   if (k.every((x) => VACIAS.has(x))) return null;
   return k.join(' ');
 };
+
+// `npm run frases -- --pools`: la lista de lo que se revisa, para ver que no
+// falta nada.
+if (POOLS_MODO) {
+  for (const p of pools) console.log(`${String(p.frases.length).padStart(5)}  ${p.pool}`);
+  console.log(`${pools.length} pools, ${pools.reduce((a, p) => a + p.frases.length, 0)} frases`);
+  process.exit(0);
+}
 
 // ─── indices que necesitan ver todo el corpus ──────────────────────────────
 const aperturas = new Map();     // pool → Map(2 palabras → veces)
@@ -227,8 +299,12 @@ for (const p of pools) {
 
     if (ANALOGIA.some((rx) => rx.test(t))) add('analogia', '');
 
-    if (rxColetilla.test(t)) {
-      const cuerpo = t.replace(rxColetilla, '');
+    // Sin tildes, como `nadie`: la lista de epítetos va sin ellas, y contra el
+    // texto tal cual «, cabrón.», «, inútil.» o «, patético.» no casaban nunca.
+    // El informe contaba 169 coletillas y se dejaba fuera las más repetidas.
+    const col = pelado(t).match(rxColetilla);
+    if (col) {
+      const cuerpo = pelado(t).slice(0, col.index);
       add('coletilla', ATAQUE.test(cuerpo) ? '' : '[cuerpo limpio]');
     }
 
