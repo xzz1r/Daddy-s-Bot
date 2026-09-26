@@ -15,8 +15,8 @@ const { allow, disallow, listAllowed, MAX_AVISOS, DURACION_MS } = require('../ut
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 const { AVISOS_KICK } = require('../data/kickPhrases');
 const UNOS_KICK = AVISOS_KICK.map((a) => a.uno);
-const { A_TI_MISMO, CONTRA_UN_ADMIN, SIN_PERMISO, SOLO_ADMINS, SOLO_GRUPOS } = require('../data/avisos');
-const { aviso } = require('../utils/helpers');
+const { A_TI_MISMO, CONTRA_UN_ADMIN, SOLO_ADMINS, SOLO_GRUPOS } = require('../data/avisos');
+const { aviso, avisoPermiso } = require('../utils/helpers');
 const { HUMOR_NEGRO } = require('../data/humorNegroPhrases');
 
 // In-memory mute store: `groupJid|bareJid` -> expireTimestamp
@@ -739,7 +739,7 @@ async function cmdDemote(sock, msg, args, groupMeta) {
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
+    return sock.sendMessage(jid, { text: avisoPermiso(jid, sender, groupMeta) }, { quoted: msg });
   }
 
   const target = getTarget(msg);
@@ -803,7 +803,7 @@ async function cmdAntiAdmin(sock, msg, args, groupMeta) {
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
+    return sock.sendMessage(jid, { text: avisoPermiso(jid, sender, groupMeta) }, { quoted: msg });
   }
 
   const arg = (args[0] || '').toLowerCase();
@@ -839,7 +839,7 @@ async function cmdAntiBusiness(sock, msg, args, groupMeta) {
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
+    return sock.sendMessage(jid, { text: avisoPermiso(jid, sender, groupMeta) }, { quoted: msg });
   }
 
   const arg = (args[0] || '').toLowerCase();
@@ -1181,7 +1181,7 @@ async function cmdAntiLink(sock, msg, args, groupMeta) {
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
+    return sock.sendMessage(jid, { text: avisoPermiso(jid, sender, groupMeta) }, { quoted: msg });
   }
 
   const arg = (args[0] || '').toLowerCase();
@@ -1325,7 +1325,7 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
+    return sock.sendMessage(jid, { text: avisoPermiso(jid, sender, groupMeta) }, { quoted: msg });
   }
 
   const arg = (args[0] || '').toLowerCase();

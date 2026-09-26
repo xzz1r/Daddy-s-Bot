@@ -63,6 +63,29 @@ const SOLO_GRUPOS = [
 // como lo llama el menu: nombrar a un dueño en un aviso que lee todo el grupo
 // es señalar a una persona, y eso no lo hace el bot en ningun sitio.
 const SIN_PERMISO = [
+  'Eso lo mueven los administradores de arriba. Tú obedeces, basura.',
+  'Eso no lo tocas ni con permiso ni con ganas, cretino.',
+  'Has intentado pasarte de listo delante de todos. Ridículo, como siempre.',
+  'No, puto. Eso está muy por encima tuyo y no vas a subir ni un escalón.',
+  'Ese permiso es para gente de fiar. Tú eres un traidor y se sabe.',
+  'Aprovechado de mierda. Te dieron un dedo y ya vas a por el brazo.',
+  'Ni borracho te dejarían tocar eso, sinvergüenza de mierda.',
+  'Ese comando separa a los admins de verdad de las ratas como tú.',
+  'Te crees arriba porque hay gente abajo. Sigues siendo un don nadie.',
+  'Eso es de otro nivel, cobarde. Tú ni preguntando llegas.',
+  'No tienes ese permiso porque nadie se fía de un hipócrita como tú.',
+  'Eso es del que paga la fiesta. Tú solo la limpias, comemierda.',
+  'Ese permiso lo tiene quien decide. Tú ni decides qué desayunas.',
+  'Hay rangos por encima del tuyo y todos saben por qué, mentiroso.',
+  'Te falta rango y te sobra hocico. Mala combinación, indeseable.',
+  'Eso se lo dejan a admins serios. Tú eres el chiste del grupo.',
+];
+
+// El mismo aviso cuando quien lo toca SÍ es admin. Estas le echan en cara el
+// rango que tiene y que no le alcanza; a un miembro sin rango le estarían
+// llamando admin delante de todos, que es mentira. Quien llama elige el pool
+// mirando al que escribe (avisoPermiso en helpers).
+const SIN_PERMISO_ADMIN = [
   'Eres admin de adorno, cabrón. Esto lo tocan los de verdad.',
   'Eres admin y sigues siendo un comemierda. Ese comando no es tuyo.',
   'Ser admin no te hace importante, imbécil. Te hace útil, y ni eso cumples.',
@@ -74,34 +97,18 @@ const SIN_PERMISO = [
   'Eres el último admin de la fila y aún te sobra gente delante.',
   'Un lameculos con rango sigue siendo un lameculos. Ese botón no se te da.',
   'El cargo te quedó grande el primer día, incompetente de mierda.',
-  'Eso lo mueven los administradores de arriba. Tú obedeces, basura.',
   'Te hicieron admin porque hacía falta relleno. No te confundas, mediocre.',
-  'Eso no lo tocas ni con permiso ni con ganas, cretino.',
-  'Has intentado pasarte de listo delante de todos. Ridículo, como siempre.',
   'Miserable. Te hacen admin y ya te crees con derecho a todo.',
-  'No, puto. Eso está muy por encima tuyo y no vas a subir ni un escalón.',
   'Tienes rango y aun así no eres nadie. Eso tiene mérito, idiota.',
-  'Ese permiso es para gente de fiar. Tú eres un traidor y se sabe.',
   'Ser admin no te quita lo escoria. Y ese comando sigue sin ser tuyo.',
-  'Aprovechado de mierda. Te dieron un dedo y ya vas a por el brazo.',
   'Eres admin de milagro, malnacido. No estires más la suerte.',
   'Tu cargo sirve para silenciar gente, no para creerte el amo, estúpido.',
   'Farsante con placa de admin. Se te ha visto intentarlo y se te ha calado.',
-  'Ni borracho te dejarían tocar eso, sinvergüenza de mierda.',
   'Eres admin de niñera, no de jefe. Asúmelo, impresentable.',
-  'Ese comando separa a los admins de verdad de las ratas como tú.',
-  'Te crees arriba porque hay gente abajo. Sigues siendo un don nadie.',
-  'Eso es de otro nivel, cobarde. Tú ni preguntando llegas.',
   'Un admin de mierda intentando decidir cosas de mayores. Siéntate.',
-  'No tienes ese permiso porque nadie se fía de un hipócrita como tú.',
   'Tu rango no te convierte en alguien. Solo en un inútil con botones.',
-  'Eso es del que paga la fiesta. Tú solo la limpias, comemierda.',
   'Despreciable. Te hacen admin y lo primero que haces es abusar.',
-  'Ese permiso lo tiene quien decide. Tú ni decides qué desayunas.',
-  'Hay rangos por encima del tuyo y todos saben por qué, mentiroso.',
-  'Eres admin, no eres el amo. Aprende la diferencia, cabrona.',
-  'Te falta rango y te sobra hocico. Mala combinación, indeseable.',
-  'Eso se lo dejan a admins serios. Tú eres el chiste del grupo.',
+  'Eres admin, no eres el amo. Aprende la diferencia, cabrón.',
   'Ni con el cargo puesto dejas de ser un parásito. Eso no es para ti.',
 ];
 
@@ -479,6 +486,7 @@ const SIN_ACCESO = [
 const CABECERAS = new Map([
   [SOLO_ADMINS, '*Solo admins.*'],
   [SIN_PERMISO, '*Solo admins superiores.*'],
+  [SIN_PERMISO_ADMIN, '*Solo admins superiores.*'],
 ]);
 function cabeceraDe(pool) { return CABECERAS.get(pool) || null; }
 
@@ -524,4 +532,4 @@ const OBJETIVO_DIA_CARTEL = [
 module.exports = {
   OBJETIVO_DIA_CARTEL,
   cabeceraDe,
-  MAL_ESCRITO, SOLO_GRUPOS, SIN_PERMISO, SOLO_ADMINS, PURGA_ADMIN, SIN_ACCESO, A_TI_MISMO, AL_BOT, CONTRA_UN_ADMIN, DUELO_AJENO };
+  MAL_ESCRITO, SOLO_GRUPOS, SIN_PERMISO, SIN_PERMISO_ADMIN, SOLO_ADMINS, PURGA_ADMIN, SIN_ACCESO, A_TI_MISMO, AL_BOT, CONTRA_UN_ADMIN, DUELO_AJENO };

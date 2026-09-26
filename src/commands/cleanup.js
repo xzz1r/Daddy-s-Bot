@@ -23,8 +23,8 @@ const { isOwner, getSender, fetchPfpUrl, esFotoRestringida } = require('../utils
 const { getMemberFacts } = require('../utils/nickStore');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 const { withTimeout } = require('../utils/helpers');
-const { SIN_PERMISO, SOLO_GRUPOS } = require('../data/avisos');
-const { aviso } = require('../utils/helpers');
+const { SOLO_GRUPOS } = require('../data/avisos');
+const { aviso, avisoPermiso } = require('../utils/helpers');
 
 const lastPfpScan = new Map(); // groupJid -> { ts, detected: [{ kickId, reason }] }
 
@@ -176,7 +176,7 @@ async function cmdAntiFoto(sock, msg, args, groupMeta) {
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
+    return sock.sendMessage(jid, { text: avisoPermiso(jid, sender, groupMeta) }, { quoted: msg });
   }
 
   // Sin subcomando válido el bot no responde. No da menús de uso: ejecuta

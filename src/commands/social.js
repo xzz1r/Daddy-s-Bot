@@ -9,8 +9,8 @@ const { ACCIONES, ACTIVAS } = require('./acciones');
 const { RAFAGA } = require('../utils/auraCobro');
 const config = require('../config');
 const logger = require('../utils/logger');
-const { SIN_PERMISO, SOLO_GRUPOS } = require('../data/avisos');
-const { aviso } = require('../utils/helpers');
+const { SOLO_GRUPOS } = require('../data/avisos');
+const { aviso, avisoPermiso } = require('../utils/helpers');
 
 // Captured once at startup (module load ≈ process start). Used for a real
 // "uptime" — state.stats.startTime persists across restarts so it measured the
@@ -28,14 +28,14 @@ async function cmdOn(sock, msg, groupMeta) {
     // cualquier admin podia apagar el bot entero; ahora encender y apagar es
     // del duenyo, como el resto de interruptores del bot.
     if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-      return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
+      return sock.sendMessage(jid, { text: avisoPermiso(jid, sender, groupMeta) }, { quoted: msg });
     }
     await toggleGroup(jid, true);
     return sock.sendMessage(jid, { text: 'Bot *activado* en este grupo.' }, { quoted: msg });
   }
 
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
+    return sock.sendMessage(jid, { text: avisoPermiso(jid, sender, groupMeta) }, { quoted: msg });
   }
 
   await setState({ botEnabled: true });
@@ -54,14 +54,14 @@ async function cmdOff(sock, msg, groupMeta) {
     // cualquier admin podia apagar el bot entero; ahora encender y apagar es
     // del duenyo, como el resto de interruptores del bot.
     if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-      return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
+      return sock.sendMessage(jid, { text: avisoPermiso(jid, sender, groupMeta) }, { quoted: msg });
     }
     await toggleGroup(jid, false);
     return sock.sendMessage(jid, { text: 'Bot *desactivado* en este grupo.' }, { quoted: msg });
   }
 
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
+    return sock.sendMessage(jid, { text: avisoPermiso(jid, sender, groupMeta) }, { quoted: msg });
   }
 
   await setState({ botEnabled: false });

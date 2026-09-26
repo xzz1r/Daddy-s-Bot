@@ -2,8 +2,8 @@ const { getActiveUsers, resetCounts, resetAllCounts, getLastReset } = require('.
 const { isOwner, isMainOwner, isAdmin, isGroupAdmin, getSender, getTarget, sameUser, soloMiembros } = require('../utils/wa');
 const { pickFresh } = require('../utils/helpers');
 const { cobrar, textoSinSaldo } = require('../utils/auraCobro');
-const { SIN_PERMISO, SOLO_ADMINS, SOLO_GRUPOS } = require('../data/avisos');
-const { aviso } = require('../utils/helpers');
+const { SOLO_ADMINS, SOLO_GRUPOS } = require('../data/avisos');
+const { aviso, avisoPermiso } = require('../utils/helpers');
 
 let MEMBER_PHRASES = [
   [
@@ -369,7 +369,7 @@ async function cmdResetCount(sock, msg, groupMeta) {
   const sender = getSender(msg);
 
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
+    return sock.sendMessage(jid, { text: avisoPermiso(jid, sender, groupMeta) }, { quoted: msg });
   }
 
   // En privado no hay grupo que resetear, así que se borra todo. Antes se

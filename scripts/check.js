@@ -4094,7 +4094,7 @@ const di=async(quien,texto,extra)=>{
 
     // Los del grupo si tienen que picar. Sin esto, alguien los "suaviza" en un
     // ajuste y vuelven a sonar a formulario sin que salte nada.
-    for (const nombre of ['SIN_PERMISO', 'SOLO_ADMINS', 'A_TI_MISMO', 'CONTRA_UN_ADMIN', 'DUELO_AJENO']) {
+    for (const nombre of ['SIN_PERMISO', 'SIN_PERMISO_ADMIN', 'SOLO_ADMINS', 'A_TI_MISMO', 'CONTRA_UN_ADMIN', 'DUELO_AJENO']) {
       const conFilo = AV[nombre].filter((f) => f.length > 28).length;
       exige(conFilo >= AV[nombre].length * 0.7,
         `${nombre} se ha quedado en avisos secos: estos se leen en el grupo y tienen que picar`);
@@ -4108,6 +4108,13 @@ const di=async(quien,texto,extra)=>{
       const conVos = pool.filter((f) => peninsular.test(f));
       exige(conVos.length === 0, `${nombre} conjuga en vosotros: ${conVos[0] || ''}`);
     }
+
+    // SIN_PERMISO lo lee tambien un miembro sin rango: ninguna frase puede
+    // llamarle admin ni hablarle de su cargo. Las que le echan en cara el rango
+    // viven en SIN_PERMISO_ADMIN y solo salen si quien escribe es admin.
+    const llamaAdmin = /\b(eres admin|ser admin|siendo admin|te hicieron admin|te hacen admin|tu cargo|tu rango|tienes rango|el cargo|placa de admin|admin de)\b/i;
+    const mienten = AV.SIN_PERMISO.filter((f) => llamaAdmin.test(f));
+    exige(mienten.length === 0, `SIN_PERMISO llama admin a quien quizá no lo es: ${mienten[0] || ''}`);
 
     // Y QUE NO VUELVAN LAS FRASES A MANO. Se busca el string plano en src/.
     // LOS DOS AVISOS DE RANGO: NI PLANTILLA NI LENGUAJE DE SISTEMA.
@@ -4129,7 +4136,7 @@ const di=async(quien,texto,extra)=>{
     // que esto se pudra — alguien "arregla" un aviso y lo deja en
     // "La operacion ha sido rechazada" — y se mide por las palabras que ningun
     // aviso de este bot deberia decir nunca.
-    for (const nombre of ['SOLO_ADMINS', 'SIN_PERMISO']) {
+    for (const nombre of ['SOLO_ADMINS', 'SIN_PERMISO', 'SIN_PERMISO_ADMIN']) {
       const pool = AV[nombre];
       const molde = pool.filter((f) => /^(De admins|Solo admins|No tienes permiso)\b/i.test(f)).length;
       exige(molde <= 3,
@@ -16488,7 +16495,7 @@ console.log('CAPA87:' + JSON.stringify(quejas));
       'algun cierre ya no nombra el comando: entonces no aclara de que va el insulto');
 
     // 1) LOS DOS AVISOS DE RANGO LO LLEVAN, Y LO LLEVAN AL FINAL.
-    for (const nombre of ['SOLO_ADMINS', 'SIN_PERMISO']) {
+    for (const nombre of ['SOLO_ADMINS', 'SIN_PERMISO', 'SIN_PERMISO_ADMIN']) {
       const vistos = new Set();
       for (let i = 0; i < 400; i++) {
         const t = aviso88(AV88[nombre], `g88-${i}`, `e88-${i}`);
@@ -16532,7 +16539,7 @@ console.log('CAPA87:' + JSON.stringify(quejas));
     const CIERRE_MAX = Math.max(...CIERRES.map((c) => c.length));
     exige(TOPE88 < 90 + 1 + CIERRE_MAX,
       `el tope del compuesto (${TOPE88}) es inalcanzable con frases de 90 y cierres de ${CIERRE_MAX}: no vigila nada`);
-    for (const nombre of ['SOLO_ADMINS', 'SIN_PERMISO']) {
+    for (const nombre of ['SOLO_ADMINS', 'SIN_PERMISO', 'SIN_PERMISO_ADMIN']) {
       let peor = '';
       for (const f of AV88[nombre]) {
         for (const c of CIERRES) {
@@ -16545,7 +16552,7 @@ console.log('CAPA87:' + JSON.stringify(quejas));
     }
 
     // 4) NI DOS FRASES SEGUIDAS ABRIENDO IGUAL.
-    for (const nombre of ['SOLO_ADMINS', 'SIN_PERMISO']) {
+    for (const nombre of ['SOLO_ADMINS', 'SIN_PERMISO', 'SIN_PERMISO_ADMIN']) {
       let doble = null;
       for (let i = 0; i < 400 && !doble; i++) {
         const linea = (aviso88(AV88[nombre], `z88-${i}`, `w88-${i}`).split('\n')[1] || '');

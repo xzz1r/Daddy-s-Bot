@@ -16,8 +16,8 @@ const tiendaObj = require('../utils/roboStore');
 const momentum = require('../utils/momentum');
 const { objetivoDelDia, esObjetivoDelDia, diaClave } = require('../utils/objetivoDia');
 const { ownerGana } = require('../utils/rigOwner');
-const { SIN_PERMISO, SOLO_GRUPOS } = require('../data/avisos');
-const { aviso } = require('../utils/helpers');
+const { SOLO_GRUPOS } = require('../data/avisos');
+const { aviso, avisoPermiso } = require('../utils/helpers');
 const { clavesMapa, juntarEnMapa } = require('../utils/persona');
 
 // SUBIDO desde minuto y medio por decision del owner. La cifra esta abajo, en
@@ -1155,7 +1155,7 @@ async function interruptor(sock, msg, sub, groupMeta) {
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
+    return sock.sendMessage(jid, { text: avisoPermiso(jid, sender, groupMeta) }, { quoted: msg });
   }
 
   const encender = sub === 'on' || sub === 'encender';
@@ -1513,7 +1513,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
 async function cmdResetAura(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!isOwner(getSender(msg), msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
+    return sock.sendMessage(jid, { text: avisoPermiso(jid, getSender(msg), groupMeta) }, { quoted: msg });
   }
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });

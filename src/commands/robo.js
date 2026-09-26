@@ -1386,7 +1386,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // La victima tiene una ventana para devolver el golpe.
     anotarParaContra(jid, target, sender, monto);
     const aNew = await addAura(jid, sender, +monto - enSuCabeza + cobrada + forzado);
-    const phrase = pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag);
+    const phrase = pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag).replace(/%C/g, `*${fmt(monto)}*`);
     // Si ya hubo robo entre estos dos otro dia, el bot se acuerda
     // (utils/rencor.js). Una linea, y solo cuando hay historia: el robo que
     // sale bien se queda corto, que es lo que pidio el dueño.

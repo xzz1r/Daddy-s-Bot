@@ -60,13 +60,12 @@
 // nueva, entra sola.
 
 const { isOwner } = require('../utils/wa');
-const { aviso } = require('../utils/helpers');
-const { SIN_PERMISO } = require('../data/avisos');
+const { avisoPermiso } = require('../utils/helpers');
 
 // Solo el tier dueño; al resto, el aviso de siempre.
 async function soloDueno(c, hacer) {
   if (isOwner(c.sender, c.msg.key.fromMe, c.meta)) return hacer();
-  await c.sock.sendMessage(c.jid, { text: aviso(SIN_PERMISO, c.jid, 'permiso') }, { quoted: c.msg });
+  await c.sock.sendMessage(c.jid, { text: avisoPermiso(c.jid, c.sender, c.meta) }, { quoted: c.msg });
   return undefined;
 }
 

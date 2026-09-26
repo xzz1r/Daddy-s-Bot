@@ -191,9 +191,7 @@ async function cmdRoast(sock, msg, groupMeta) {
   if (isMainOwner(target, false, groupMeta)) {
     const num = target.split('@')[0].split(':')[0];
     const text =
-      `${pickFresh(HEADERS, `${jid}|roast|hdr`)}\n` +
-      `\n` +
-      `Víctima: @${num}\n\n` +
+      `${pickFresh(HEADERS, `${jid}|roast|hdr`)}\n\n` +
       `${pickFresh(OWNER_ROAST, `${jid}|roast|owner`).replace(/%N/g, `@${num}`)}\n\n` +
       `${pickFresh(CLOSERS, `${jid}|roast|end`)}`;
     return sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
@@ -224,13 +222,22 @@ async function cmdRoast(sock, msg, groupMeta) {
   const { tpls, cats } = getHist(jid);
   const usedTpls = new Set(tpls);
 
-  // Reparto sesgado hacia el contenido MÁS brutal e independiente de stats.
-  // El nombre y las combinadas pegan igual de fuerte sin depender de números,
-  // así que son el grueso: 58% combinada (los roasts más completos y salvajes)
-  // y, en el single, el nombre pesa ~3x sobre la bio. La actividad queda como
-  // toque puntual solo para inactivos.
+  // Reparto sesgado hacia el contenido MÁS brutal e independiente de stats:
+  // 65% combinada (los roasts más completos y salvajes) y, en el single, la
+  // actividad manda sobre el nombre y la bio.
+  //
+  // Las combinadas describen la bio de la víctima («esa bio de perdedor»), así
+  // que solo salen si hay una bio que leer. fetchAbout devuelve null cuando no
+  // pudo mirarla (privacidad, tiempo, error): eso no es una bio vacía. Sin
+  // bio leída, el roast va por el nombre o la actividad.
   let roastText, cat, tpl;
-  const useCombined = Math.random() < 0.65;
+  let about;
+  const leerBio = async () => {
+    if (about === undefined) about = await fetchAbout(sock, target);
+    return about;
+  };
+  let useCombined = Math.random() < 0.65;
+  if (useCombined && !(await leerBio())?.status?.trim()) useCombined = false;
 
   if (useCombined) {
     cat = 'combined';
@@ -239,15 +246,19 @@ async function cmdRoast(sock, msg, groupMeta) {
     roastText = tpl.replace(/%N/g, displayName);
   } else {
     // La repetición pondera el pick (pick es uniforme sobre el array). La
-    // ACTIVIDAD manda: es lo que de verdad define a alguien en un grupo, y
-    // antes casi no salía (solo para inactivos y con poco peso), así que sus
-    // frases quedaban muertas. La bio baja a toque ocasional.
+    // ACTIVIDAD manda: es lo que de verdad define a alguien en un grupo. La bio
+    // queda como toque ocasional.
     const singleVars = [
       'activity', 'activity', 'activity', 'activity',
       'name', 'name', 'name',
       'bio',
     ];
     cat = freshCat(singleVars, cats);
+    // BIO_EMPTY dice «lo dejaste en blanco»: solo vale con una bio leída que
+    // venga vacía. Si no llegó texto, no se sabe si está oculta o vacía.
+    if (cat === 'bio' && typeof (await leerBio())?.status !== 'string') {
+      cat = freshCat(singleVars.filter((v) => v !== 'bio'), cats);
+    }
 
     switch (cat) {
       case 'name':
@@ -255,10 +266,6 @@ async function cmdRoast(sock, msg, groupMeta) {
         roastText = tpl.replace(/%N/g, displayName);
         break;
       case 'bio': {
-        // La bio se pide AQUÍ, no arriba. Solo hace falta en esta rama (una de
-        // cada ocho veces que no sale combinada), así que consultarla siempre
-        // era una petición de red a WhatsApp tirada en ~96% de los !roast.
-        const about = await fetchAbout(sock, target);
         const bio = about?.status?.trim() || '';
         const pool = bio ? BIO_FULL : BIO_EMPTY;
         tpl = freshPick(pool, usedTpls);

@@ -853,6 +853,17 @@ function aviso(pool, chat, etiqueta) {
   return `${cab}\n${frase} ${cierre}`;
 }
 
+// El aviso de «eso es de admins superiores». Si quien lo toca es admin, sale el
+// pool que le echa en cara el rango; si no lo es, el que no le llama admin.
+// wa.js se pide aqui dentro porque wa.js ya requiere este fichero.
+function avisoPermiso(chat, sender, groupMeta) {
+  const AV = require('../data/avisos');
+  const { isAdmin } = require('./wa');
+  return isAdmin(groupMeta?.participants, sender)
+    ? aviso(AV.SIN_PERMISO_ADMIN, chat, 'permiso-admin')
+    : aviso(AV.SIN_PERMISO, chat, 'permiso');
+}
+
 // Escritor con debounce + candado. El patrón viejo (`saveTimer = null` ANTES
 // del await) dejaba dos atomicWriteJson del mismo fichero en vuelo: el rename
 // más lento podía pisar el snapshot nuevo con uno viejo, y en un grupo activo
@@ -937,7 +948,7 @@ function createDebouncedSaver(getData, file, delayMs, onError) {
 }
 
 module.exports = {
-  aviso,
+  aviso, avisoPermiso,
   claveDia, msHastaCorte,
   flushPickHistory,
   // ARSENAL (el regex) ya NO se exporta: lleva la bandera /g, o sea que arrastra

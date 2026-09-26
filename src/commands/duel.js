@@ -178,6 +178,14 @@ async function cmdDuel(sock, msg, args, groupMeta) {
     const d = getPending(jid);
     if (!d) return sock.sendMessage(jid, { text: 'No hay ningún duelo pendiente.' }, { quoted: msg });
     const resolvedSender = resolveJid(sender, groupMeta?.participants);
+    // El que retó no es un intruso: DUELO_AJENO le diría «a ti no te han
+    // llamado» a quien abrió el duelo.
+    if (sameUser(resolvedSender, d.challenger)) {
+      return sock.sendMessage(jid, {
+        text: `El reto es tuyo. Aceptar le toca a @${d.target.split('@')[0]}, y si le da miedo, que lo diga.`,
+        mentions: [d.target],
+      }, { quoted: msg });
+    }
     if (!sameUser(resolvedSender, d.target)) {
       return sock.sendMessage(jid, { text: aviso(DUELO_AJENO, jid, 'duelo') }, { quoted: msg });
     }
