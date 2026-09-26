@@ -23,13 +23,14 @@ quitó y **el bot deja de cargar**. Ya pasó: una llamada a `ordenarPorDureza`
 —función eliminada— volvió con un merge y tumbó `percent.js`, `wingman.js` y
 `messageHandler.js` de golpe.
 
-**Cuatro cosas del motor cambiaron y afectan a cómo escribes:**
+**Cinco cosas del motor cambiaron y afectan a cómo escribes:**
 
 | Qué | Antes | Ahora |
 |---|---|---|
 | Elección de frase | sesgada a la cabeza del pool (8:1) | **plana**: todas igual de probables |
 | Orden por dureza | ordenaba al arrancar | **eliminado**, no existe |
-| Tamaño de pool | por nombre de tramo | **por tráfico** (sección 9) |
+| Tamaño de pool | por nombre de tramo | **por tráfico**; en los % y `!rizz`, **25 · 10 · 10** (sección 9) |
+| Tramos de % y `!rizz` | ventana de 50 (`pickFresh`) | **baraja**: salen todas antes de repetir (sección 5.2) |
 | Reparto de los positivos | high 17 % · mid 31 % · low 52 % | **high 6 % · mid 18 % · low 76 %** |
 
 La consecuencia práctica está en la sección 5.1 y es la más importante: **la peor
@@ -227,10 +228,12 @@ Las dos mitades son deliberadas y hay que escribir para ellas:
   `high` y `mid` se leen a partes iguales — justo al revés que en los demás
   positivos, donde el que manda es `low` con el 76 %.
 
-Al escribir: los pools `high` y `mid` de este comando son los que se leen, y
-necesitan tamaño de tramo principal los dos. `npm run progreso` ya lo mide
-tirando la función de verdad, así que sale con sus porcentajes reales y no con
-los de la tabla general.
+Al escribir: los pools `high` y `mid` de este comando son los que se leen. Las
+25 frases de tramo principal van al `high` (lo declara `tramoPrincipal: 'high'`
+junto a sus frases) y el `mid` se queda en 10, como el resto de tramos
+secundarios: son los tamaños que fijó el dueño (sección 9). `npm run progreso`
+mide su tráfico tirando la función de verdad, así que sale con sus porcentajes
+reales y no con los de la tabla general.
 
 ### 3.5 — El pool `extreme`
 
@@ -326,6 +329,13 @@ del pool. Por eso los topes de la sección 9.
 
 Y el historial **sobrevive a los reinicios**: se guarda en disco, así que un
 reinicio de pm2 ya no borra la ventana.
+
+**Los tramos de porcentaje y los de `!rizz` no usan esta ventana: van en
+baraja** (`pickBaraja`). Desde que el dueño los dejó en 25 y 10 frases, la
+ventana del 60 % se quedaba corta: en un tramo de diez, una frase podía volver
+con solo seis de por medio. La baraja las saca todas en orden aleatorio antes de repetir
+ninguna, y la última de una vuelta nunca abre la siguiente. El historial es el
+mismo fichero, así que también sobrevive a los reinicios.
 
 ---
 
@@ -630,31 +640,36 @@ nada. Mézclalo — que todas las frases empiecen con el nombre canta.
 
 ## 9. Cuántas frases escribir
 
-**Por tráfico, no por nombre de tramo.** Es la corrección más importante de esta
-guía y ya se aplicó a todo `percentLabels.js`.
+**En los comandos de porcentaje y en `!rizz`, lo fijó el dueño: 25 frases en el
+tramo de la paliza y 10 en cada uno de los otros dos.** Y ninguna más: se
+recortaron de cien, cincuenta y veinticinco quedándose con las mejores. Con la
+elección plana (sección 5.1) la peor frase de un pool sale tanto como la mejor,
+así que el relleno no es neutro —hace daño—. Mejor tramo corto y filoso que
+inflado.
 
-En comandos **negativos** (`fea`, `guarra`, `cerdo`, `rata`…) el tramo que más
-sale es `high`, con el 87 % de las tiradas. En los **positivos** (`linda`,
-`ganador`, `sexy`, `crack`, `feminidad`, `masculinidad`) el que más sale es
-**`low`**, con el 76 %, y `high` solo el 6 %.
-
-La regla, aplicada al tráfico de cada pool:
-
-```
-  se lee ≥ 50 % de las veces   →  100 frases
-  se lee ≥ 25 %                →   50
-  el resto                     →   25
-```
-
-**El dueño bajó los topes a la mitad**: con la elección plana (sección 5.1) la
-peor frase de un pool sale tanto como la mejor, así que el relleno no es neutro
-—hace daño—. Mejor pool corto y filoso que inflado.
+**La paliza es el tramo que el grupo lee casi siempre**, y por eso el que lleva
+las 25. En comandos **negativos** (`fea`, `guarra`, `cerdo`, `rata`…) es `high`,
+con el 87 % de las tiradas. En los **positivos** (`linda`, `ganador`, `sexy`,
+`crack`, `masculinidad`, y también `!rizz`) es **`low`**, con el 76 %, y `high`
+solo sale el 6 %.
 
 | | high | mid | low |
 |---|---|---|---|
-| **Negativos** | **100** (87 %) | 25 (9 %) | 25 (4 %) |
-| **Positivos** | 25 (6 %) | 25 (18 %) | **100** (76 %) |
-| **`fiel` / `infiel`** | 50 (31 %) | 50 (39 %) | 50 (31 %) |
+| **Negativos** | **25** (87 %) | 10 (9 %) | 10 (4 %) |
+| **Positivos** y `!rizz` | 10 (6 %) | 10 (18 %) | **25** (76 %) |
+| **`feminidad`** (tirada propia) | **25** (45 %) | 10 (45 %) | 10 (10 %) |
+| **`infiel`** (uniforme) | **25** (31 %) | 10 (39 %) | 10 (31 %) |
+| **`fiel`** (uniforme) | 10 (31 %) | 10 (39 %) | **25** (31 %) |
+
+`!feminidad` es la excepción: al grupo le sale alta o media, así que sus 25 van
+al `high` (sección 3.4 bis). `!fiel` e `!infiel` tiran uniforme y sus tramos
+salen casi igual, así que las 25 van a su paliza: `low` en fiel, `high` en
+infiel. Los `extreme` no entran en la cuenta.
+
+La regla no está copiada en ningún sitio: vive en `percent.js`
+(`TAMANO_TRAMO` y `tramoPrincipal`), la leen `npm run progreso` y `npm run
+pools`, y **la capa 120 de `npm run check` no deja pasar un tramo con otro
+tamaño**. Si hace falta una frase nueva, entra sacando otra.
 
 **Aplicar la regla por el nombre del tramo en vez de por el tráfico es el error
 que ya se cometió una vez**: dejó a `!linda`, `!sexy`, `!crack` y `!ganador` con
@@ -667,7 +682,9 @@ su copia de la tabla de tráfico y se quedó en el reparto viejo de los positivo
 para un tramo que se lee el 18 % y daba por bueno el que se lee el 76 %. Hoy lee
 la tabla del motor; no hay segunda copia.
 
-Fuera de `percentLabels.js` la regla es la misma pero mirando el pool concreto:
+Fuera de los tramos de porcentaje y de `!rizz` sigue la regla por tráfico —se
+lee el 50 % o más, 100 frases; el 25 % o más, 50; el resto, 25— mirando el pool
+concreto:
 
 | Cuándo sale ese pool | Frases |
 |---|---|
@@ -677,9 +694,9 @@ Fuera de `percentLabels.js` la regla es la misma pero mirando el pool concreto:
 | Apuesta de aura (cooldown 3 h) | ~60 |
 | Hitos de racha | ~50 |
 
-**`!fiel` e `!infiel` son la excepción**: tiran uniforme, así que sus tres
-tramos salen casi igual (31/39/31 %) y les toca reparto equilibrado. Es la fila
-de abajo de la tabla.
+**`!fiel` e `!infiel` tiran uniforme**, así que sus tres tramos salen casi
+igual (31/39/31 %). Antes les tocaba reparto equilibrado; desde el recorte
+siguen la regla de los demás: 25 en la paliza y 10 en los otros dos.
 
 ---
 
@@ -696,31 +713,34 @@ npm run conteos
 npm run progreso
 npm run acciones       ← solo si tocas las acciones (sale a internet)
 npm run analogias      ← cuenta las líneas marcadas `// ANALOGÍA` que faltan
-npm run frases         ← mide siete defectos de escritura en las 8.449 frases
+npm run frases         ← mide siete defectos de escritura en las 6.208 frases
 ```
 
 Los dos últimos miran las frases, y **no miran lo mismo**.
 
-`npm run analogias` cuenta marcas. Son las 225 líneas con `// ANALOGÍA` que
-quedan por reescribir en `AURA.gain`, `AURA.loss`, el cooldown de `!aura`,
-`MAL_ESCRITO` y tres líneas del roast de acciones. El encargo entero está en
-`PENDIENTE.md`. Devuelve 1 mientras quede alguna y 0 al cerrar, así que sirve de
-puerta: mientras no dé cero, el trabajo no está hecho.
+`npm run analogias` cuenta marcas: las líneas con `// ANALOGÍA`. Eran 225, en
+`AURA.gain`, `AURA.loss`, el cooldown de `!aura`, `MAL_ESCRITO` y tres líneas
+del roast de acciones, y hoy da cero: el encargo está cerrado y `PENDIENTE.md`
+queda de registro. Devuelve 1 si reaparece alguna y 0 si no, así que sigue
+sirviendo de puerta.
 
-`npm run frases` no cuenta marcas: **mide el texto**, las 8.449 frases, sin que
+`npm run frases` no cuenta marcas: **mide el texto**, las 6.208 frases, sin que
 nadie haya tenido que etiquetar nada. Busca siete defectos:
 
 | familia | qué es | hoy |
 |---|---|---|
-| `nadie` | la frase no menciona a la persona: vale para cualquiera | 1099 |
-| `analogia` | el chiste es el objeto («tu lealtad es como el wifi del vecino») | 230 |
-| `coletilla` | frase neutra y el insulto pegado detrás con una coma | 595 |
-| `eco` | abre repitiendo la etiqueta del comando («Rata que…» en `!rata`) | 426 |
-| `molde` | cuatro o más del mismo pool empiezan igual | 1790 |
-| `enlatado` | el mismo bloque de cinco palabras en cuatro frases o más | 410 |
+| `nadie` | la frase no menciona a la persona: vale para cualquiera | 617 |
+| `analogia` | el chiste es el objeto («tu lealtad es como el wifi del vecino») | 9 |
+| `coletilla` | frase neutra y el insulto pegado detrás con una coma | 169 |
+| `eco` | abre repitiendo la etiqueta del comando («Rata que…» en `!rata`) | 12 |
+| `molde` | cuatro o más del mismo pool empiezan igual | 424 |
+| `enlatado` | el mismo bloque de cinco palabras en cuatro frases o más | 257 |
 | `roto` | daño mecánico de una edición masiva anterior | 0 |
 
-Son 3.456 frases distintas con al menos un defecto: el **41 %** del bot.
+Son 1.363 frases distintas con al menos un defecto: el **22 %** del bot. Era el
+38 % antes del recorte de los tramos de porcentaje y de `!rizz` a 25 y 10
+frases, que se quedó con las mejores y dejó fuera casi todas las analogías y
+los ecos.
 
 `nadie` es la que más explica y la que ninguna expresión regular veía antes,
 porque estas frases no comparan con «como» ni con «más que»: sueltan una imagen

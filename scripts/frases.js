@@ -85,7 +85,11 @@ const TECHO_MODO = args.includes('--techo');
 // tope. Reescribir un pool tiene que BAJAR estos numeros; si alguno sube,
 // alguien acaba de meter frases con el mismo defecto que veniamos a quitar.
 // Cuando bajen de verdad, se bajan aqui tambien y el techo se queda apretado.
-const TECHO = { nadie: 1099, analogia: 230, coletilla: 595, eco: 426, molde: 1790, enlatado: 410, roto: 0 };
+//
+// Bajado con el recorte de los tramos de porcentaje y de !rizz a 25/10/10, que
+// se quedo con las mejores frases y dejo fuera la mayoria de los defectos.
+// Enlatado estaba en 517 con el techo en 410, o sea en rojo: ahora 257.
+const TECHO = { nadie: 617, analogia: 9, coletilla: 169, eco: 12, molde: 424, enlatado: 257, roto: 0 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();

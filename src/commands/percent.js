@@ -1,5 +1,5 @@
 const { isOwner, isMainOwner, isAdmin, getTargetOrSelf } = require('../utils/wa');
-const { pickFresh } = require('../utils/helpers');
+const { pickFresh, pickBaraja } = require('../utils/helpers');
 const { SIN_SERVICIO } = require('../utils/auraCobro');
 const { anotarYRematar } = require('../utils/percentDia');
 // Rig del owner principal: cuando el TARGET es el owner, el % se fuerza al
@@ -211,9 +211,15 @@ async function runPercent(sock, msg, key, groupMeta) {
 
   const tier = tramoDe(percent);
   const nm = `@${target.split('@')[0]}`;
+  // EN BARAJA, NO CON pickFresh. Los tramos son de 25 y 10 frases (lo fijó el
+  // dueño, ver percentLabels.js), y pickFresh bloquea solo el 60 % reciente: en
+  // un tramo de diez, una frase podía volver con solo seis de por medio. La
+  // baraja las saca todas antes de repetir ninguna, y nunca la misma dos veces
+  // seguidas.
+  //
   // Algunos rasgos (perdedor/ganador) traen [nombre] embebido en la frase; el
   // resto no lo usa, así que el replace es un no-op para ellos.
-  const verdict = String(pickFresh(cfg[tier], `${jid}|${key}|${tier}`) || '').replace(/\[nombre\]/g, nm);
+  const verdict = String(pickBaraja(cfg[tier], `${jid}|${key}|${tier}`) || '').replace(/\[nombre\]/g, nm);
   if (!verdict) return SIN_SERVICIO;
   const showExtreme = cfg.goodIsHigh && percent >= TRAMO_ALTO && cfg.extreme?.length;
 
@@ -245,6 +251,20 @@ async function runPercent(sock, msg, key, groupMeta) {
 
 const makeCmd = (key) => (sock, msg, groupMeta) => runPercent(sock, msg, key, groupMeta);
 
+// ─── CUÁNTAS FRASES LLEVA CADA TRAMO ─────────────────────────────────────────
+//
+// Lo fijo el dueño: 25 en el tramo que el grupo lee casi siempre y 10 en cada
+// uno de los otros dos. Ese tramo es la paliza —`high` en los peyorativos, `low`
+// en los positivos— salvo que el comando declare otro (`tramoPrincipal`, hoy
+// solo !feminidad). Vive aqui y se exporta para que `npm run check` y `npm run
+// progreso` midan contra la misma regla y no contra una copia.
+const TAMANO_TRAMO = { principal: 25, resto: 10 };
+function tramoPrincipal(key) {
+  const cfg = LABELS[key];
+  if (!cfg) return null;
+  return cfg.tramoPrincipal || (cfg.goodIsHigh ? 'low' : 'high');
+}
+
 module.exports = {
   // Se exporta para que !rizz use EXACTAMENTE la misma distribucion que el resto
   // del bot. Tenia la suya propia, plana de 0 a 100, y por eso a los miembros les
@@ -255,6 +275,7 @@ module.exports = {
   // las lee `npm run progreso` para repartir el trabajo de contenido y las lee
   // `npm run check` para comprobar que la guia no promete otra cosa.
   DISTRIBUCION, TRAMO_ALTO, TRAMO_BAJO, OWNER_SOSO, OWNER_BUENO, UNIFORMES,
+  TAMANO_TRAMO, tramoPrincipal,
   cmdIncel:         makeCmd('incel'),
   cmdLinda:         makeCmd('linda'),
   cmdFea:           makeCmd('fea'),

@@ -39,6 +39,13 @@ suma, una caducidad se queda con la más lejana). La capa 111 pasa cada almacén
 por «apunta con el @lid, aprende el teléfono, lee» y falla si alguien se hace
 su propia copia.
 
+## Frases de porcentaje y de !rizz: 25 · 10 · 10
+
+Lo fijó el dueño: 25 frases en el tramo de la paliza y 10 en cada uno de los
+otros dos, quedándose con las mejores. No se añaden frases: una nueva entra
+sacando otra. La regla vive en `src/commands/percent.js` (`TAMANO_TRAMO`,
+`tramoPrincipal`) y la capa 120 no deja pasar otro tamaño. Salen en baraja.
+
 ## Analogías: CERRADO
 
 El encargo de las analogías baratas está terminado: `npm run analogias` da

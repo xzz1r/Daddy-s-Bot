@@ -3733,7 +3733,7 @@ const di=async(quien,texto,extra)=>{
     // *!perdedor* salia con la cabecera "es 87% L" porque su `name` era la
     // letra suelta. *!L* siempre fue un alias del comando, no su nombre, y
     // ademas contradecia a sus propias frases: dos lineas mas abajo el texto
-    // decia "eres un perdedor de mierda". Ninguna de sus 148 frases usa la L.
+    // decia "eres un perdedor de mierda". Ninguna de sus frases usa la L.
     //
     // Se mide lo unico que aqui es objetivo: un rotulo de una o dos letras no
     // es una palabra. Lo demas —si "inutil" deberia llevar tilde— es estilo y
@@ -19888,6 +19888,90 @@ const manda = async (quien, tipo, opciones) => {
       if (r !== sale) { fallos++; console.log(rojo(`   ✗ --codigo ${entra.join(' ')} da «${r}» y deberia dar «${sale}»`)); }
     }
     if (fallos === antes119) console.log(verde('   ✓ el admin pierde el admin y el metido sale, sin lista negra; y --codigo pone el +57 solo'));
+  }
+
+  // ── 120. LOS TRAMOS DE % TIENEN EL TAMAÑO QUE FIJÓ EL DUEÑO, Y SALEN EN BARAJA
+  //
+  // Lo pidió el dueño: 25 frases en el tramo de la paliza y 10 en cada uno de
+  // los otros dos, quedándose con las mejores. La regla vive en percent.js
+  // (TAMANO_TRAMO y tramoPrincipal) y aquí se mide contra ella, no contra una
+  // copia. Y con tramos tan cortos la ventana de pickFresh repetía una frase a
+  // los seis usos, así que salen en baraja. Eso se EJECUTA: se fija el tramo con
+  // Math.random y se tira el comando hasta agotar el tramo.
+  {
+    console.log('\n120. LOS TRAMOS DE % TIENEN EL TAMAÑO DEL DUEÑO Y SALEN EN BARAJA');
+    const antes120 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const pct = require(path.join(R, 'src/commands/percent'));
+    const LAB = require(path.join(R, 'src/data/percentLabels'));
+    const { RIZZ } = require(path.join(R, 'src/data/wingmanPhrases'));
+    const { TAMANO_TRAMO, tramoPrincipal } = pct;
+    exige(TAMANO_TRAMO && TAMANO_TRAMO.principal === 25 && TAMANO_TRAMO.resto === 10,
+      `el tamaño de los tramos ya no es el del dueño (25/10): ${JSON.stringify(TAMANO_TRAMO)}`);
+
+    // 1) Los tamaños, comando por comando, y sin frases repetidas.
+    const fuera = [];
+    for (const [k, cfg] of Object.entries(LAB)) {
+      if (!cfg || typeof cfg.goodIsHigh !== 'boolean') continue;
+      const pr = tramoPrincipal(k);
+      for (const tr of ['high', 'mid', 'low']) {
+        const quiere = tr === pr ? TAMANO_TRAMO.principal : TAMANO_TRAMO.resto;
+        const n = Array.isArray(cfg[tr]) ? cfg[tr].length : -1;
+        if (n !== quiere) fuera.push(`${k}.${tr}=${n} (tocan ${quiere})`);
+      }
+      const todas = ['high', 'mid', 'low'].flatMap((tr) => cfg[tr] || []);
+      if (new Set(todas).size !== todas.length) fuera.push(`${k}: frases repetidas`);
+    }
+    for (const tr of ['high', 'mid', 'low']) {
+      const quiere = tr === 'low' ? TAMANO_TRAMO.principal : TAMANO_TRAMO.resto;
+      if (RIZZ[tr].length !== quiere) fuera.push(`rizz.${tr}=${RIZZ[tr].length} (tocan ${quiere})`);
+    }
+    exige(fuera.length === 0, `tramos fuera del tamaño que fijó el dueño: ${fuera.slice(0, 6).join(' · ')}`);
+    // Las 25 van a la paliza: high en los peyorativos, low en los positivos, y
+    // feminidad al high por su tirada propia.
+    exige(tramoPrincipal('puta') === 'high' && tramoPrincipal('linda') === 'low'
+      && tramoPrincipal('infiel') === 'high' && tramoPrincipal('fiel') === 'low'
+      && tramoPrincipal('feminidad') === 'high',
+      'el tramo de 25 ya no es la paliza, o feminidad dejó de llevarlas en el high');
+
+    // 2) En baraja, ejecutado. Con Math.random fijo, la tirada cae siempre en el
+    //    mismo tramo y la carta sale siempre de lo que queda en la vuelta.
+    const JID120 = `120363${String(process.pid).padStart(7, '0')}120@g.us`;
+    const OBJ = '34600095555@s.whatsapp.net';
+    const TAG = '@34600095555';
+    const msg120 = { key: { remoteJid: JID120, participant: '34600095556@s.whatsapp.net', fromMe: false, id: 'P120' },
+      message: { extendedTextMessage: { text: '!x @y', contextInfo: { mentionedJid: [OBJ] } } } };
+    const meta120 = { id: JID120, participants: [] };
+    const tirar = async (cmd, r, veces) => {
+      const salen = [];
+      const sock = { sendMessage: async (j, c) => { salen.push(String(c.text || '').split('\n\n')[1] || ''); return {}; } };
+      const rnd = Math.random;
+      Math.random = () => r;
+      try { for (let i = 0; i < veces; i++) await cmd(sock, msg120, meta120); } finally { Math.random = rnd; }
+      return salen;
+    };
+    const vuelta = (salen, pool, nombre, tramo) => {
+      const n = pool.length;
+      const una = salen.slice(0, n);
+      exige(new Set(una).size === n && una.every((f) => pool.includes(f)),
+        `${nombre} repite frase antes de sacar las ${n} de su tramo ${tramo} (${new Set(una).size} distintas)`);
+      exige(salen[n] !== undefined && salen[n] !== salen[n - 1],
+        `${nombre} saca la misma frase dos veces seguidas al empezar otra vuelta`);
+    };
+    try {
+      // !puta: r = 0.3 cae en su paliza (high, 87 %).
+      const nomb = (f) => f.replace(/\[nombre\]/g, TAG);
+      vuelta(await tirar(pct.cmdPuta, 0.3, 26), LAB.puta.high.map(nomb), '!puta', 'alto');
+      // !linda: r = 0.1 cae en su tramo medio (6-24 %).
+      vuelta(await tirar(pct.cmdLinda, 0.1, 11), LAB.linda.mid.map(nomb), '!linda', 'medio');
+      // !rizz: r = 0.5 cae en su paliza (low).
+      const { cmdRizz } = require(path.join(R, 'src/commands/wingman'));
+      vuelta(await tirar(cmdRizz, 0.5, 26), RIZZ.low.map((f) => f.replace(/%N/g, TAG)), '!rizz', 'bajo');
+    } catch (e) {
+      exige(false, `la baraja de los tramos reventó: ${e.message}`);
+    }
+
+    if (fallos === antes120) console.log(verde('   ✓ 25 en la paliza y 10 en los otros, en los 21 de % y en !rizz; y cada tramo sale entero antes de repetir'));
   }
 
   }

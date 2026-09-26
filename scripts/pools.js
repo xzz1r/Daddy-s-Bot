@@ -21,14 +21,28 @@ const path = require('path');
 const R = path.resolve(__dirname, '..');
 
 // Probabilidad de caer en cada tramo, para un MIEMBRO normal (el caso
-// mayoritario del grupo). Sale de rollPercent() en src/commands/percent.js:
-// esa función es la fuente de verdad; si allí cambian los cortes, hay que
-// tocarlos aquí. Admins y owner tienen sus propias curvas, pero dimensionar
-// los pools por el miembro corriente es lo correcto: es quien más los lee.
+// mayoritario del grupo). Se lee del motor (DISTRIBUCION, en percent.js), no se
+// copia: aquí había una copia a mano y es la clase de número que se queda viejo.
+// Admins y owner tienen sus propias curvas, pero dimensionar los pools por el
+// miembro corriente es lo correcto: es quien más los lee.
+process.env.OWNER_NUMBER = process.env.OWNER_NUMBER || '33600000000';
+const { DISTRIBUCION, TRAMO_ALTO, TRAMO_BAJO, TAMANO_TRAMO, tramoPrincipal } = require('../src/commands/percent');
+const LABELS_VIVOS = require('../src/data/percentLabels');
 const TRAFICO = {
-  false: { high: 0.87, mid: 0.09, low: 0.04 },  // goodIsHigh:false — peyorativos
-  true:  { high: 0.06, mid: 0.18, low: 0.76 },  // goodIsHigh:true  — positivos
+  false: DISTRIBUCION.negativo.miembro,  // goodIsHigh:false — peyorativos
+  true: DISTRIBUCION.positivo.miembro,   // goodIsHigh:true  — positivos
 };
+// Una tirada propia (hoy solo !feminidad) pisa la curva del motor: se mide
+// tirándola, igual que en `npm run progreso`.
+function curvaMedida(roll) {
+  let h = 0, m = 0, l = 0;
+  const N = 60000;
+  for (let i = 0; i < N; i++) {
+    const v = roll(false, false);
+    if (v >= TRAMO_ALTO) h++; else if (v <= TRAMO_BAJO) l++; else m++;
+  }
+  return { high: h / N, mid: m / N, low: l / N };
+}
 
 // !fiel e !infiel son la excepción: declaran `roll: rollUniform` y tiran plano
 // de 0 a 100, sin las curvas por rol. Con los cortes en 70 y 30 eso reparte
@@ -49,6 +63,9 @@ const TRAFICO_UNIFORME = { high: 31 / 101, mid: 39 / 101, low: 31 / 101 };
 //   const block = hist.slice(-Math.min(window, Math.floor(pool.length * 0.6)));
 const VENTANA = 50;
 const libres = (n) => n - Math.min(VENTANA, Math.floor(n * 0.6), Math.max(0, n - 1));
+// Los tramos de porcentaje y de !rizz ya no van con pickFresh: salen en baraja
+// (pickBaraja), todas las frases del tramo antes de repetir ninguna. Ahí lo que
+// se puede elegir en cada vuelta es el tramo entero.
 
 // Misma definición de "frase" que scripts/placeholders.js: un literal largo en
 // su propia línea y terminado en coma.
@@ -108,14 +125,20 @@ const labels = leerLabels();
 const filas = [];
 
 for (const [nombre, cfg] of Object.entries(labels)) {
-  const traf = cfg.uniforme ? TRAFICO_UNIFORME : TRAFICO[String(cfg.goodIsHigh)];
+  const vivo = LABELS_VIVOS[nombre];
+  const propia = vivo && typeof vivo.roll === 'function' && !cfg.uniforme;
+  const traf = cfg.uniforme ? TRAFICO_UNIFORME
+    : propia ? curvaMedida(vivo.roll) : TRAFICO[String(cfg.goodIsHigh)];
   if (!traf) continue;
   // `extreme` entra con probabilidad 0: no se dimensiona por tráfico (es un
-  // remate opcional), pero si se queda vacío hay que enterarse igual.
+  // remate opcional), pero si se queda vacío hay que enterarse igual. Sigue
+  // saliendo con pickFresh.
   for (const tramo of ['high', 'mid', 'low', 'extreme']) {
     const n = cfg.pools[tramo];
     if (typeof n !== 'number') continue;
-    filas.push({ cmd: nombre, tramo, prob: traf[tramo] ?? 0, n, libres: libres(n) });
+    const baraja = tramo !== 'extreme';
+    const meta = baraja ? (tramo === tramoPrincipal(nombre) ? TAMANO_TRAMO.principal : TAMANO_TRAMO.resto) : null;
+    filas.push({ cmd: nombre, tramo, prob: traf[tramo] ?? 0, n, libres: baraja ? n : libres(n), meta });
   }
 }
 
@@ -140,8 +163,9 @@ function contarAnidado(rel, nombreConst) {
 const rizz = contarAnidado('src/data/wingmanPhrases.js', 'RIZZ');
 for (const tramo of ['high', 'mid', 'low']) {
   if (typeof rizz[tramo] !== 'number') continue;
-  const traf = TRAFICO.true; // rollPercent(true) en cmdRizz
-  filas.push({ cmd: 'rizz', tramo, prob: traf[tramo], n: rizz[tramo], libres: libres(rizz[tramo]) });
+  const traf = TRAFICO.true; // rollPercent(true) en cmdRizz, y en baraja
+  const meta = tramo === 'low' ? TAMANO_TRAMO.principal : TAMANO_TRAMO.resto;
+  filas.push({ cmd: 'rizz', tramo, prob: traf[tramo], n: rizz[tramo], libres: rizz[tramo], meta });
 }
 
 const EXTRA_ARRAYS = [
@@ -171,8 +195,11 @@ for (const e of EXTRA_ARRAYS) {
 // cadena vacía y runPercent se calla). Antes reventaba con .replace sobre
 // undefined; ahora no pega un error, pero el grupo no ve frase.
 const CRITICO = (f) => f.tramo !== 'extreme' && f.n < 10;
-const ROTO  = (f) => !CRITICO(f) && f.prob >= 0.30 && f.libres <= 5;
-const FLOJO = (f) => !CRITICO(f) && f.prob >= 0.30 && f.libres <= 20 && !ROTO(f);
+// Un tramo con el tamaño que fijó el dueño no es un fallo de tamaño, aunque sea
+// corto: es la decisión, y la baraja ya saca todas antes de repetir.
+const enSuTamano = (f) => f.meta != null && f.n >= f.meta;
+const ROTO  = (f) => !CRITICO(f) && !enSuTamano(f) && f.prob >= 0.30 && f.libres <= 5;
+const FLOJO = (f) => !CRITICO(f) && !enSuTamano(f) && f.prob >= 0.30 && f.libres <= 20 && !ROTO(f);
 
 // Los topes que fijo el dueño, A LA MITAD del estandar anterior: menos frases
 // y solo las duras, porque con la eleccion plana la peor sale tanto como la
@@ -185,7 +212,10 @@ const FLOJO = (f) => !CRITICO(f) && f.prob >= 0.30 && f.libres <= 20 && !ROTO(f)
 // no se ve. !fiel e !infiel tiran uniforme; !linda y !fea ya van por la curva.
 //
 //   el que mas sale 100 · el intermedio 50 · el raro 25
-const objetivo = (f) => (f.prob >= 0.50 ? 100 : f.prob >= 0.25 ? 50 : 25);
+//
+// Salvo en los tramos de porcentaje y de !rizz, donde el dueño los fijó en 25
+// para la paliza y 10 para los otros dos (TAMANO_TRAMO, en percent.js).
+const objetivo = (f) => (f.meta != null ? f.meta : f.prob >= 0.50 ? 100 : f.prob >= 0.25 ? 50 : 25);
 
 const criticos = filas.filter(CRITICO).sort((a, b) => a.n - b.n);
 const rotos  = filas.filter(ROTO).sort((a, b) => b.prob - a.prob);

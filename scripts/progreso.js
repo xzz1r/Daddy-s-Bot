@@ -11,8 +11,11 @@
 //
 // Dos criterios, los dos objetivos:
 //
-//   TAMANYO  frases suficientes para su trafico, con los topes acordados:
-//            el tramo que mas sale 100, el intermedio 50, el raro 25.
+//   TAMANYO  frases suficientes para su trafico. En los de porcentaje y en
+//            !rizz lo fijo el dueño: 25 en el tramo de la paliza y 10 en los
+//            otros dos (la regla vive en percent.js: TAMANO_TRAMO). En el resto
+//            del bot, por trafico: el que mas sale 100, el intermedio 50, el
+//            raro 25.
 //   FILO     al menos la mitad de las frases con vocabulario del arsenal, y
 //            SOLO en los pools cuyo trabajo es hacer danyo. En los de halago
 //            no se exige: ahi la crudeza no pinta nada.
@@ -33,7 +36,7 @@ const ES=/^\s*(['"`])(.{20,})\1,?\s*$/;
 // lee el 18 % de las veces y daba por bueno el que se lee el 76 %. Un numero
 // inventado con pinta de medido es peor que no medir.
 process.env.OWNER_NUMBER = process.env.OWNER_NUMBER || '33600000000';
-const { DISTRIBUCION, TRAMO_ALTO, TRAMO_BAJO } = require('../src/commands/percent');
+const { DISTRIBUCION, TRAMO_ALTO, TRAMO_BAJO, TAMANO_TRAMO, tramoPrincipal } = require('../src/commands/percent');
 const TRAF = { false: DISTRIBUCION.negativo.miembro, true: DISTRIBUCION.positivo.miembro };
 // !fiel e !infiel tiran uniforme 0-100, asi que su trafico es el ancho de cada
 // tramo. Se calcula de las mismas fronteras para que no se quede viejo si se
@@ -100,8 +103,17 @@ for(const [n,c] of Object.entries(labels)){
     if(!P||!P.length)continue;
     // el tramo brutal: high en negativos, low en positivos
     const brutal = c.gh ? tr==='low' : tr==='high';
-    filas.push({cmd:'!'+n,tr,P,traf:traf[tr],brutal});
+    const objetivo = tr===tramoPrincipal(n) ? TAMANO_TRAMO.principal : TAMANO_TRAMO.resto;
+    filas.push({cmd:'!'+n,tr,P,traf:traf[tr],brutal,objetivo});
   }
+}
+// !rizz tira con la curva de los positivos (rollPercent) y sus tramos siguen la
+// misma regla que los de porcentaje. Por eso no va con el resto del bot.
+{
+  const { RIZZ } = require('../src/data/wingmanPhrases');
+  for(const tr of ['high','mid','low'])
+    filas.push({cmd:'!rizz',tr,P:RIZZ[tr],traf:TRAF.true[tr],brutal:tr==='low',
+      objetivo: tr==='low' ? TAMANO_TRAMO.principal : TAMANO_TRAMO.resto});
 }
 // ── resto del bot ────────────────────────────────────────────────────────────
 // Sin curvas de trafico: se les da un peso equivalente a un tramo medio.
@@ -128,6 +140,8 @@ for(const rel of OTROS){
   const cerrar=()=>{ if(nom&&cur.length)filas.push({cmd:path.basename(rel).replace('.js',''),tr:nom,P:cur,traf:0.31,brutal:!GANA.test(nom)}); nom=null;cur=[]; };
   for(const l of src){
     let m=l.match(/^const ([A-Z_][A-Z0-9_]*) = \[$/)||l.match(/^\s{2}([A-Za-z_][A-Za-z0-9_]*): \[$/);
+    // Los tramos de RIZZ ya van arriba, con su curva y su regla.
+    if(m&&rel==='src/data/wingmanPhrases.js'&&/^(high|mid|low)$/.test(m[1])){cerrar();nom=null;continue;}
     if(m){cerrar();nom=m[1];continue;}
     if(/^\s*\][,;]?\s*$/.test(l)){cerrar();continue;}
     const f=l.match(ES); if(nom&&f)cur.push(f[2]);
@@ -160,7 +174,7 @@ for(const f of medidas){
   // `low` con el 76 %; ir por el nombre le daria las frases al `high`, que solo
   // sale el 6 %.
   //   el que mas sale 100 · el intermedio 50 · el raro 25
-  const objetivo = f.traf>=0.50 ? 100 : f.traf>=0.25 ? 50 : 25;
+  const objetivo = f.objetivo || (f.traf>=0.50 ? 100 : f.traf>=0.25 ? 50 : 25);
   const con=f.P.filter(tieneArsenal).length;
   const ars=con/n;
   // El objetivo es una DIANA, no un acantilado. Sin margen, un pool de 199
