@@ -32,7 +32,8 @@
 // por encima incluso de las originales. Lo que NO vuelve es la muletilla: antes
 // diez de sesenta empezaban por "Me cago" y otras tantas por "Hostia puta", que
 // es la repetición que se nota antes de agotar el pool. Ahora el taco va dentro
-// de la frase y ningún arranque se repite más de cinco veces.
+// de la frase. El tope de cinco arranques iguales ya no se cumple: «Pierde»
+// abre nueve, y «Ha ganado» y «Nada» seis cada uno.
 
 const APUESTA_GANA = [
   'Ha salido, el cabrón. Suerte de gilipoyas y ni una gota de mérito. %S.',

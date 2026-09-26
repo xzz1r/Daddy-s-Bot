@@ -752,7 +752,7 @@ async function verLaCaja(sock, msg, jid) {
   const estado = seguridad < 0.02 ? 'tranquila, como si nadie la hubiera tocado nunca'
                : seguridad < 0.10 ? 'algo escamada'
                : seguridad < 0.20 ? 'con el tendero mirando la puerta'
-               : 'en alerta, y con razon';
+               : 'en alerta, y con razón';
   return sock.sendMessage(jid, {
     text: `*LA CAJA DE LA TIENDA*\n\n` +
       `Dentro hay *${fmt(caja)}*.\n` +

@@ -253,20 +253,10 @@ async function cmdFantasmas(sock, msg, groupMeta) {
 // y los que no aparecen en el contador (cero mensajes, el contador ni los
 // conoce, así que hay que sacarlos de la lista de participantes).
 
-// Cabecera de !inactivos. El encargo era claro: humor, ataque a lo inútiles que
-// son en el grupo, y amenaza de expulsión. Las anteriores sonaban a carta del
-// banco — correctas, serias y sin una sola gracia. Estas se ríen de la persona
-// ANTES de amenazarla, que es el orden que funciona.
-// Cabecera de !inactivos.
-//
-// El encargo, textual: humor, ataque a lo inútiles que son en el grupo, y
-// amenaza de expulsión. Las anteriores eran correctas y no hacían gracia — una
-// línea seca y a otra cosa. Estas tienen que doler y hacer reír a los demás a la
-// vez, que es lo que hace que un grupo se ría de una purga en vez de ofenderse.
-//
-// Tres cosas que cumplen todas: son largas (una línea sola no construye nada),
-// atacan el VALOR SOCIAL de la persona en el grupo (no su físico ni su vida), y
-// terminan en un remate. Sin remate no es un chiste, es una queja.
+// Remate de !inactivos: va en cursiva al final, debajo de la lista de nombres.
+// Dos cosas que cumplen todas: atacan el VALOR SOCIAL de la persona en el
+// grupo (no su físico ni su vida) y terminan en un remate. Sin remate no es un
+// chiste, es una queja.
 let AVISO_PURGA = [
   'El bot ha repasado vuestro historial buscando algo que salvar. Un chiste malo, un audio, una opinión de mierda, lo que fuera. No hay nada. Sois una foto de perfil con conexión a internet.',
   'Diez mensajes. Hay gente en este grupo que ha escrito más que eso discutiendo dónde pedir la cena. Vosotros lleváis meses sin aportar ni el nombre del restaurante.',
@@ -317,9 +307,9 @@ let AVISO_PURGA = [
 
 const UMBRAL_INACTIVO = 10;
 
-// Remate del mensaje. La cabecera rota entre las frases de AVISO_PURGA, pero la
-// amenaza tiene que aparecer SIEMPRE y en el mismo sitio: si dependiera del
-// azar, la mitad de las veces la lista se leeria como un ranking cualquiera.
+// Cabecera de !inactivos: va en negrita y es lo primero que se lee. La amenaza
+// tiene que aparecer SIEMPRE y en el mismo sitio: si dependiera del azar, la
+// mitad de las veces la lista se leería como un ranking cualquiera.
 let AMENAZAS = [
   'Escribid algo o el bot os expulsa. Y lo peor no va a ser irse: va a ser que nadie pregunte dónde estáis.',
   'La próxima vez que el bot pase por aquí, esta lista estará vacía. O porque escribisteis, o porque os expulsó a todos. Las dos vacían igual.',

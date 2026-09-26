@@ -170,7 +170,7 @@ const AURA = {
     'Has cerrado el chiste fácil. Cuando no sale, es que el número impone, cabrón.',
     'Alguien iba a decir "de chiripa" y se lo ha guardado. Porque no lo era, y lo sabe.',
     'Te han hecho sitio en la conversación a la fuerza.',
-    'El que te subestimaba está recálculando.',
+    'El que te subestimaba está recalculando.',
     'Has dejado tres "jajaja" a medias. Se ven los puntos suspensivos y ninguna risa.',
     'El puto grupo te ha concedido el respeto de los que no tienen salida.',
     'Alguien ha puesto el teléfono boca abajo un segundo. Para no tener que verte arriba.',
@@ -198,7 +198,7 @@ const AURA = {
     'El que iba a mandar el "otra vez tú" se ha encontrado con que esta vez no.',
     'Te han hecho el respeto de los funerales invertido: no estás muerto.',
     'Has callado las burlas de golpe. Nadie tenía esto preparado.',
-    'El puto grupo te ha recálculado el precio. Has subido. Les ha salido caro admitirlo.',
+    'El puto grupo te ha recalculado el precio. Has subido. Les ha salido caro admitirlo.',
     'Alguien ha escrito tu puto nombre y lo ha borrado.',
     'Has hecho que el "seguro que pierde" se atragante.',
     'Te han mirado como al que paga la ronda: sin decir gracias.',
@@ -934,7 +934,7 @@ La moneda del grupo. Empiezas con *${fmt(ARRANQUE)}* y casi todo cuesta.
 
 *!aura* — te da o te quita, a suerte
 *!robo* @alguien [cuánto] — se lo quitas
-*!vault* — lo guardas donde no te lo roban
+*!vault* — lo guardas donde solo llega un golpe maestro
 *!duel* @alguien — 1v1
 *!aura apostar* [cuánto] — te lo juegas
 *!tienda* — te compras algo

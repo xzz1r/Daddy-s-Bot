@@ -66,7 +66,7 @@ const SIN_PERMISO = [
   'Eso lo mueven los administradores de arriba. Tú obedeces, basura.',
   'Eso no lo tocas ni con permiso ni con ganas, cretino.',
   'Has intentado pasarte de listo delante de todos. Ridículo, como siempre.',
-  'No, puto. Eso está muy por encima tuyo y no vas a subir ni un escalón.',
+  'No, puto. Eso está muy por encima de ti y no vas a subir ni un escalón.',
   'Ese permiso es para gente de fiar. Tú eres un traidor y se sabe.',
   'Aprovechado de mierda. Te dieron un dedo y ya vas a por el brazo.',
   'Ni borracho te dejarían tocar eso, sinvergüenza de mierda.',

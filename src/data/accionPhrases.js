@@ -7,15 +7,6 @@
 // sale crudo en el grupo. Lo salta el propio comando para el dueño: ver
 // hazAccion en src/commands/acciones.js.
 //
-// ─── FALTA UNA EN ROAST_USUARIO. GROK ────────────────────────────────────────
-//
-// Quedan 59 en vez de 60. Se borró una que decía «estás usando un BOT de pago».
-// El bot puede nombrarse a sí mismo —la guía lo permite y es parte de la voz—
-// pero era la única de las 390 que lo hacía, y esto es ROAST_USUARIO: el pool
-// cuyo trabajo es precisamente que no parezca escrito por una máquina. Esa
-// palabra suelta era justo la que lo recordaba. Escribe otra sin nombrarlo; el
-// chiste no la necesitaba.
-
 // ─── EL TONO ─────────────────────────────────────────────────────────────────
 //
 // Manda GUIA.md 5 bis, y el corte es este:
@@ -367,8 +358,9 @@ const BONK = [
 // treinta cierres que todos dicen «pide más» es peor que no tener el tercer
 // tiempo. Medido antes de subir esto: entre 22 y 29 formas distintas de
 // arrancar el complemento por pool de 30, y el «pedir/suplicar» como mucho en
-// 6 de cada 30. Si alguien añade frases aquí, ese es el listón, y sale con
-// scripts/progreso.js (casi-clones).
+// 6 de cada 30. Ese listón ya no se cumple: hoy son 10 en FUCK, 7 en ANAL, 9
+// en CUM y 11 en SPANK. Si alguien toca frases aquí, es lo primero que hay que
+// bajar, y los casi-clones salen con scripts/progreso.js.
 //
 // Los cierres van de: escalada, decisión de %A, consecuencia al rato o al día
 // siguiente, quién se entera, el detalle que delata, la cuenta que se pierde.
@@ -539,7 +531,7 @@ const ROAST_USUARIO = [
   '%A tiene más historial de comandos que de noches. Las noches están vacías. Los comandos, no. Las cuentas cuadran. La cama, no. La cama lo sabe.',
   '%A, esto es lo que haces cuando no te folla nadie. Lo haces en público. Lo has hecho. El público no iba a salvarte. El público te acaba de ver.',
   'La mención de %A cruza el grupo en medio segundo. Los dos metros hasta la persona llevan años sin cruzarse.',
-  '%A se ha hecho un cuerpo de notificaciones y llama a eso que le toquen. No le tocan. Le pitan. El pita le basta porque no hay más, y no va a haber más.',
+  '%A se ha hecho un cuerpo de notificaciones y llama a eso que le toquen. No le tocan. Le pitan. El pitido le basta porque no hay más, y no va a haber más.',
   '%A, pagas para no tener que pedirlo con tu voz. Porque si lo pidieras tú, te dirían que no.',
   'Si %A sale de esta y habla, se le acaba el truco. Por eso no habla. Por eso paga. Por eso el grupo ya no se sorprende.',
   '%A llama valentía a un gif con nombre. Valentía era cruzar. No ha cruzado. No va a cruzar. El gif es lo máximo que da, y da asco verlo.',

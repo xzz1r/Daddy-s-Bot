@@ -784,7 +784,7 @@ async function cmdDiag(sock, msg, groupMeta) {
   const meta = groupMeta || await getGroupMeta(sock, jid).catch(() => null);
   const si = (b) => (b ? 'SI' : 'NO');
 
-  let text = '*DIAGNOSTICO DE GUARDAS*\n\n';
+  let text = '*DIAGNÓSTICO DE GUARDAS*\n\n';
   // NO BASTA CON DECIR SI ES ADMIN. Lo que decide si el bot se puede desarmar es
   // COMO lo es: al creador del grupo no le puede quitar el admin nadie —lo
   // impide WhatsApp, no el codigo— y a un admin corriente se lo quita cualquier
@@ -864,9 +864,9 @@ async function cmdDiag(sock, msg, groupMeta) {
     let donde = 'sin poner — *!fuck* tira de la web normal';
     if (fuente) {
       try { donde = `*${new URL(fuente.replace('{cat}', 'x')).host}*`; }
-      catch { donde = '*puesta, pero no es una direccion valida*'; }
+      catch { donde = '*puesta, pero no es una dirección válida*'; }
     }
-    text += `Fuente del gif explicito: ${donde}\n`;
+    text += `Fuente del gif explícito: ${donde}\n`;
   }
 
   const lista = sobresDesconocidos();

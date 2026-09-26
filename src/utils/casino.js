@@ -112,7 +112,7 @@ const PHRASES = {
   redemption: [
     'REMONTADA DE AURA — Estaba en el sótano y la actividad hizo lo que ninguna excusa consiguió. Bono de comeback. Esto no lo calcula nadie.',
     'COMEBACK EN DIRECTO — Aura negativa, mensajes positivos. Aquí se premia la constancia antes que el cope, y el marcador acaba de cambiar de cara.',
-    'REDENCIÓN INESPERADA — El grupo daba ese aura por perdida. La actividad tiene su propia economía y acaba de hablar. Bote confirmado.',
+    'REDENCIÓN INESPERADA — El grupo daba esa aura por perdida. La actividad tiene su propia economía y acaba de hablar. Bote confirmado.',
     'EL MARCADOR REESCRITO — Aura negativa, actividad real. Aquí no se juzga el historial, se juzga quién aparece. Resultado: bono de redención.',
     'BONO DE REDENCIÓN — Lo que meses de excusas no arreglaron, la actividad lo resolvió sola. El aura cambia de signo y el grupo lo vio.',
     'COMEBACK CONFIRMADO — Aura en negativo y un bono que reescribe la historia. La actividad paga lo que la suerte no quiso.',
@@ -204,11 +204,11 @@ async function avisarRacha(sock, jid, sender) {
   const texto = r.evento === 'rompe'
     ? pickFresh(RACHA_ROTA, `${jid}|racha|rota`)
         .replace(/%N/g, userTag).replace(/%P/g, fmt(r.perdidos))
-    : `*RACHA DE ${r.dias} DIAS*\n\n` +
+    : `*RACHA DE ${r.dias} DÍAS*\n\n` +
       pickFresh(RACHA_HITO, `${jid}|racha|hito`)
         .replace(/%N/g, userTag).replace(/%D/g, fmt(r.dias)) +
       (premio ? `\n\n*+${fmt(premio)} de aura* por llegar a los ${r.dias} días.` : '') +
-      `\n\n_+${fmt(r.pago)} de aura al dia mientras no falles. Tope en ${RACHA.tope} dias._`;
+      `\n\n_+${fmt(r.pago)} de aura al día mientras no falles. Tope en ${RACHA.tope} días._`;
 
   await sock.sendMessage(jid, { text: texto, mentions: [sender] });
 }

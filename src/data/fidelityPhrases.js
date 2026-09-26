@@ -91,7 +91,7 @@ const INFIEL_HIGH = [
   '[nombre] tiene el móvil más protegido que Fort Knox. Tres contraseñas, huella dactilar y un sistema de borrado automático, el muy cabrón.',
   'Eres de esa gente que va al funeral de una relación con el traje puesto para la siguiente boda. Reciclaje emocional de cabrón.',
   'Coño, engañas a tu pareja con tanta frecuencia que ya deberías estar en nómina de otra persona. Profesional de la mierda.',
-  '[nombre] no tiene exs, tiene un puto archivo histórico. Y todas las carpetas tienen la misma etiqueta: traición.',
+  '[nombre] no tiene ex, tiene un puto archivo histórico. Y todas las carpetas tienen la misma etiqueta: traición.',
   'Hostia, tienes la fidelidad de un perro callejero pero sin la excusa de no tener dueño. Tú tienes y aun así meas en otros jardines.',
   'Eres el puto Netflix de las relaciones: tienes varios perfiles activos, no pagas lo que deberías y compartes la cuenta con desconocidos.',
   'Tu fidelidad se mide en minutos, no en años. Y ni en minutos quedas bien, cabrón.',

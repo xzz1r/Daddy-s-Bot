@@ -438,7 +438,7 @@ const LABELS = {
     ],
     extreme: [
       'Tienes la feminidad real, la que no se menciona pero que todo el mundo nota cuando entras.',
-      'Tu forma de ser tiene una elegancia que no se fábrica. La que queda cuando todo lo demás se va.',
+      'Tu forma de ser tiene una elegancia que no se fabrica. La que queda cuando todo lo demás se va.',
       'La presencia que tienes se queda en la memoria de quien te conoce aunque sea brevemente.',
       'Hay personas que llevan años intentando tener lo que tú llevas de serie.',
       'Tu feminidad tiene la solidez de algo construido, no de algo puesto.',

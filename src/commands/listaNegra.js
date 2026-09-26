@@ -135,8 +135,8 @@ async function cmdListaNegra(sock, msg, args, groupMeta) {
     const total = await banCount();
     return sock.sendMessage(jid, {
       text: `*LISTA NEGRA* — ${total} cuenta${total === 1 ? '' : 's'} dentro.\n\n`
-        + 'Para meter números:\n`!listanegra 573001112233 573004445566`\n\n'
-        + 'Para sacarlos:\n`!listanegra quitar 573001112233`\n\n'
+        + 'Para meter números:\n`!listanegra 34600095001 34600095002`\n\n'
+        + 'Para sacarlos:\n`!listanegra quitar 34600095001`\n\n'
         + '_También vale citando un mensaje o mencionando._\n'
         + '_`!listanegra ver` la enseña entera, pero es larga y la llena el bot solo._',
     }, { quoted: msg });
@@ -151,8 +151,8 @@ async function cmdListaNegra(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, {
       text: 'Uso:\n'
         + '`!listanegra` — ver la lista\n'
-        + '`!listanegra 34600000000 34611111111` — meter números\n'
-        + '`!listanegra quitar 34600000000` — sacar\n\n'
+        + '`!listanegra 34600095001 34600095002` — meter números\n'
+        + '`!listanegra quitar 34600095001` — sacar\n\n'
         + 'También vale citando un mensaje o mencionando.',
     }, { quoted: msg });
   }

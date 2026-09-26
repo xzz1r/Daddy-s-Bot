@@ -2004,7 +2004,7 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
       const fallidos = toDemote.filter(j => !degradados.includes(j));
       const text =
         `*Anti-admin: acción revertida.*\n` +
-        `${authorTag} intento dar admin a ${targets}.\n` +
+        `${authorTag} intentó dar admin a ${targets}.\n` +
         (degradados.length === 1
           ? `${tags(degradados)} ha sido degradado.`
           : `Degradados: ${tags(degradados)}.`) +

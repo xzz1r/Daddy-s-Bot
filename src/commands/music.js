@@ -207,7 +207,7 @@ async function cmdClearCache(sock, msg) {
   const jid = msg.key.remoteJid;
   try {
     await clearCache();
-    await sock.sendMessage(jid, { text: 'Cache de musica borrado.' }, { quoted: msg });
+    await sock.sendMessage(jid, { text: 'Caché de música borrada.' }, { quoted: msg });
   } catch (err) {
     logger.error(`clearcache: ${err.message}`);
     await sock.sendMessage(jid, { text: 'No pude borrar la caché.' }, { quoted: msg });

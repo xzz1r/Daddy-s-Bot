@@ -337,7 +337,7 @@ const RELEVANTE = [
   '%N con %MSG mensajes. No es un enganche. Es el curro. Y lo haces tú.',
   'Con %MSG mensajes, %N, has dejado el listón donde el resto no llega ni de lejos.',
   '%N, %MSG mensajes. El que sostiene no pide aplauso. Sale en el marcador. Estás ahí.',
-  '%MSG mensajes, %N. Sin ti el grupo baja de revoluciones. Con ti, corre. Ese es el parte.',
+  '%MSG mensajes, %N. Sin ti el grupo baja de revoluciones. Contigo, corre. Ese es el parte.',
   '%N con %MSG mensajes. Has escrito el grupo a pulso. El pulso se te ve, joder.',
   'Con %MSG mensajes, %N, el silencio del chat te espera. Y lo rompes tú, que es lo que toca.',
   '%N, %MSG mensajes. El resto tiene el visto. Tú tienes el hilo. El hilo manda, cabrón.',

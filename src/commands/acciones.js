@@ -4,11 +4,11 @@
 // reproduce bytes de GIF, hace falta un vídeo con gifPlayback, lo mismo que ya
 // aprendió !toimg— y lo mandan con una frase y las dos menciones.
 //
-// POR QUÉ CUESTAN 60. No es por lo que gastan: bajar un gif y convertirlo es de
+// POR QUÉ CUESTAN AURA (PRECIOS.accion en economia.js). No es por lo que gastan: bajar un gif y convertirlo es de
 // lo más barato que hace el bot, muy por debajo de un sticker. Es por lo que
 // invitan a hacer: son sociales, van dirigidos a alguien y piden repetirse
 // contra medio grupo. El precio es el único freno que no depende de que nadie
-// vigile, y con 150 de arranque son dos usos.
+// vigile, y con 150 de arranque son tres usos.
 //
 // SI LA WEB FALLA, SE DEVUELVE EL AURA. Es un recurso de fuera y se cae — al
 // escribir esto, la otra fuente conocida llevaba horas dando 502. Cobrar por un
@@ -46,7 +46,7 @@ const logger = require('../utils/logger');
 //     suena a echar a nadie.
 //   · BITE no puede llamarse *!bite*: esta a UNA letra de *!bote*, que es la
 //     caja comun y se usa a diario. Quien escriba mal el bote se comeria un
-//     mordisco de 60 de aura. Se llama *!chomp*.
+//     mordisco de aura. Se llama *!chomp*.
 //
 // LOS NOMBRES EN CASTELLANO SALEN EN EL MENU, entre parentesis detras del
 // ingles. Antes solo estaban en *!help todo* y eso obligaba a pedir la lista

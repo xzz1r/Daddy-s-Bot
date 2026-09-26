@@ -48,7 +48,7 @@ const CIERRES = [
   'Puta lista, joder. Y os ha tocado a los {N}.',
   'Los {N} ya pueden ir cavando su propia tumba social.',
   'Ni votos ni jueces: el bot os ha señalado, hostia.',
-  'Sois {N} y ninguno tiene ya donde esconderse.',
+  'Sois {N} y ninguno tiene ya dónde esconderse.',
   'Ahí quedáis marcados los {N}, como el ganado.',
   'El bot no perdona: {N} nombres y a joderse todos.',
   'Menuda cuadrilla de mierda, los {N} que han salido.',
