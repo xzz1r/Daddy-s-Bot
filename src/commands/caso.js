@@ -46,30 +46,30 @@ const POBRE = 100;
 const VEREDICTOS = {
   nunca: [
     'No ha escrito nunca. Ni un hola. Está aquí de adorno.',
-    'Cero mensajes desde que entró. Una foto de perfil y poco más.',
+    'Cero mensajes desde que entró. El grupo conoce su número y poco más.',
     'Ocupa plaza y no ha dicho ni mu. Ni para despedirse va a abrir la boca.',
   ],
   fantasmaLargo: [
     'Más de un mes sin escribir. Ocupa plaza y no paga ni con presencia.',
     'Un mes sin decir nada. A estas alturas es decoración.',
-    'Un mes sin escribir y nadie lo ha notado. Eso es lo que más duele.',
+    'Un mes largo sin escribir, y el grupo ha seguido igual sin sus mensajes.',
     'Existe en la lista de miembros y en ningún otro sitio.',
   ],
   fantasma: [
-    'Una semana larga sin abrir la boca. Lee todo y no aporta nada.',
-    'Mira el grupo desde la puerta. Hace días que no entra.',
-    'Se le ve en línea y no escribe. Cotilla de manual.',
-    'Una semana sin dar señales. Si no fuera por la foto de perfil, nadie sabría que sigue aquí.',
+    'Días y días sin abrir la boca. Lo que pasa en el grupo le da igual, o eso parece.',
+    'Hace días que no escribe ni una letra. El grupo ha dejado de contar con su opinión.',
+    'Lleva días sin escribir. Su último mensaje ya queda tan arriba que no se encuentra.',
+    'Más de una semana sin dar señales. Cuando vuelva, habrá que presentarle al grupo otra vez.',
   ],
   insolvente: [
     'En números rojos. Le debe aura a un bot de WhatsApp.',
     'Insolvente. Ni el bot le fía ya.',
-    'Su cuenta está en negativo y sigue tirando. Vicio puro.',
+    'Su cuenta está en negativo. Debe aura en un sitio donde el aura no vale nada.',
   ],
   reincidente: [
     'Reincidente. Si hay algo que robar, ya ha pasado por ahí.',
     'Robar ya es su oficio. El grupo debería dormir con la cartera debajo de la almohada.',
-    'Vive de lo ajeno. Tiene más golpes que conversaciones.',
+    'Vive de lo ajeno. Esta semana ya lleva unos cuantos golpes, y los que vengan.',
   ],
   buscado: [
     'Tiene precio en la cabeza. Cualquiera puede ir a cobrarlo.',
@@ -78,13 +78,13 @@ const VEREDICTOS = {
   ],
   ausente: [
     'Unos días sin escribir. Se le está olvidando cómo se hace.',
-    'Viene, mira y se va. Unos días así y ya es costumbre.',
+    'Lleva unos días callándose. Un par más y ya es costumbre.',
     'Se está enfriando. Un par de días más y pasa a mueble.',
   ],
   pilar: [
     'Sostiene el grupo a base de mensajes. Nada que alegar.',
-    'Si deja de escribir, el grupo se muere. Así de claro.',
-    'Habla más que nadie. Por lo menos alguien lo hace.',
+    'Si deja de escribir, el grupo se muere.',
+    'Está entre los que más escriben. Por lo menos alguien lo hace.',
   ],
   rico: [
     'Tanta aura en un bot de WhatsApp no es un logro, es un diagnóstico.',
@@ -92,12 +92,12 @@ const VEREDICTOS = {
     'Una fortuna de chat. Fuera de aquí no le llega ni para el pan.',
   ],
   pobre: [
-    'Un muerto de hambre de manual. Su cuenta da pena hasta al bot.',
+    'Su cuenta da pena hasta al bot, y el resto del grupo lo sabe.',
     'Pobre de solemnidad. Pide comandos con la mirada.',
-    'No tiene ni para un sticker. Así va por la vida.',
+    'No le llega para casi nada de la tienda. Así va por la vida.',
   ],
   normal: [
-    'Nada que destacar. Ni para bien ni para mal.',
+    'Un expediente sin una sola línea que merezca leerse dos veces.',
     'Del montón. Ni molesta ni aporta demasiado.',
     'Nada grave en el expediente. Nada bueno tampoco.',
   ],
