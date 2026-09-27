@@ -5673,7 +5673,7 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     // ese es un falso positivo barato comparado con no ver nada.
     const menu = fs.readFileSync(path.join(R, 'src/commands/social.js'), 'utf8');
 
-    for (const oculto of ['p', 'purge', 'visto', 'limpiar', 'wipe']) {
+    for (const oculto of ['p', 'purge', 'visto', 'limpiar', 'wipe', 'z']) {
       // 1) fuera del menu
       exige(!new RegExp(`\\$\\{p\\}${oculto}\\b`).test(menu),
         `*!${oculto}* ha aparecido en el menu: es un comando que no puede saber nadie que existe`);
@@ -5689,8 +5689,22 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
       const ocultos = bloque ? [...bloque[1].matchAll(/'([^']+)'/g)].map((m) => m[1]) : [];
       ocultosDecl = ocultos;
       exige(ocultos.includes('p') && ocultos.includes('purge') && ocultos.includes('visto')
-        && ocultos.includes('limpiar') && ocultos.includes('wipe'),
+        && ocultos.includes('limpiar') && ocultos.includes('wipe') && ocultos.includes('z'),
         `COMANDOS_OCULTOS es [${ocultos.join(', ')}]: falta alguno que no puede asomar`);
+    }
+    // *!z* (de qué dispositivo salió un mensaje) es del tier dueño y calla con
+    // los demás: contestar «no puedes» ya dice que el comando existe. Y la
+    // respuesta va al privado, nunca al grupo: señalar en público a alguien
+    // por su móvil es acusarle sin pruebas.
+    {
+      const z = soloCodigo('src/commands/z.js');
+      const i = z.indexOf('async function cmdZ');
+      const cuerpo = i > 0 ? z.slice(i) : '';
+      const guarda = cuerpo.slice(0, cuerpo.indexOf('privadoDelOwner'));
+      exige(/if \(!isOwner\(sender, msg\.key\.fromMe, groupMeta\)\) \{[\s\S]*?return;\s*\}/.test(guarda),
+        '*!z* ya no calla con quien no es del tier dueño');
+      exige(!/sendMessage\(jid, \{\s*text/.test(cuerpo),
+        '*!z* escribe texto en el grupo: la respuesta tiene que ir al privado del owner');
     }
     // Y que *!visto* siga siendo solo del dueño PRINCIPAL, no del tier entero:
     // un co-owner apagando el visto de la cuenta sin que el dueño se entere es

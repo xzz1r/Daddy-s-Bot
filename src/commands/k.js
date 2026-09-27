@@ -287,4 +287,4 @@ async function cmdK(sock, msg, groupMeta, borrar = true) {
   }
 }
 
-module.exports = { cmdK, hallarMedio, privadoDelOwner, _bajarMedio: bajarMedio };
+module.exports = { cmdK, hallarMedio, privadoDelOwner, autorDelCitado, _bajarMedio: bajarMedio };

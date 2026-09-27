@@ -987,7 +987,7 @@ const MAX_AVISOS_GRUPO = 500;
 // "p" tiene un caracter y el regex pide dos: se oculta por coincidencia.
 // "purge" tiene cinco: sin esta lista, escribir "!pure" o "!purga" lo delataria.
 // La exclusion se escribe aparte y `npm run check` la vigila.
-const COMANDOS_OCULTOS = new Set(['p', 'purge', 'purgeall', 'visto', 'limpiar', 'wipe']);
+const COMANDOS_OCULTOS = new Set(['p', 'purge', 'purgeall', 'visto', 'limpiar', 'wipe', 'z']);
 
 // LOS COMANDOS QUE CONOCE EL CORRECTOR SALEN DEL REGISTRO, no de leer este
 // fichero. Aqui se leia el propio fuente —100 KB en el arranque— y se sacaban
