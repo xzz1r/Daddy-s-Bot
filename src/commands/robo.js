@@ -1319,7 +1319,15 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // Robar al mas buscado paga mas, pero nunca por encima de lo que tiene.
     if (esDiana) monto = Math.min(auraV, Math.round(monto * (1 + DIANA.bonoBotin)));
     if (esObjDia) monto = Math.min(auraV, Math.round(monto * (1 + OBJETIVO_DIA.bonoBotin)));
-    if (conCebo && monto < stake) motivos.push('picaste el cebo: no tenía tanto');
+    // EL CEBO PICA cuando el golpe iba a por mas de lo que la victima tiene de
+    // verdad: el ladron calculo sobre el saldo inflado y se lleva el real.
+    // Antes esto era un `motivos.push` que no salia en ningun sitio, porque el
+    // robo que sale bien no enseña los motivos (ver `notaDinamicas` abajo), y
+    // ademas saltaba en cada golpe a medias con cebo, pasara lo que pasara con
+    // el cebo. Ahora la frase de CEBO_PICA ocupa el sitio de la del desenlace:
+    // es lo que ha pasado, y una frase de «se llevo una fortuna» encima de un
+    // botin de calderilla se contradice.
+    const picoCebo = conCebo && bruto > auraV;
     // LA RECOMPENSA POR SU CABEZA. De lo que se lleva, una parte no la cobra:
     // se le queda encima como precio. Cuanto mas roba, mas vale cazarlo.
     //
@@ -1386,7 +1394,14 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // La victima tiene una ventana para devolver el golpe.
     anotarParaContra(jid, target, sender, monto);
     const aNew = await addAura(jid, sender, +monto - enSuCabeza + cobrada + forzado);
-    const phrase = pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag).replace(/%C/g, `*${fmt(monto)}*`);
+    // La diana va detras del cebo por lo mismo: tumbar al mas buscado es lo que
+    // ha pasado, y DIANA_GOLPE estaba escrito y sin llamar desde ningun sitio.
+    // Si las dos coinciden, manda el cebo, que es el que cambia la cifra.
+    const phrase = picoCebo
+      ? fraseCon(RX.CEBO_PICA, `${jid}|cebo`, { '%A': aTag, '%V': vTag, '%C': `*${fmt(monto)}*` })
+      : esDiana
+      ? fraseCon(RX.DIANA_GOLPE, `${jid}|diana`, { '%A': aTag, '%V': vTag, '%C': `*${fmt(monto)}*` })
+      : pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag).replace(/%C/g, `*${fmt(monto)}*`);
     // Si ya hubo robo entre estos dos otro dia, el bot se acuerda
     // (utils/rencor.js). Una linea, y solo cuando hay historia: el robo que
     // sale bien se queda corto, que es lo que pidio el dueño.
