@@ -21,21 +21,21 @@ const HUMOR_NEGRO = [
   //
   // Los temas se repiten a proposito, las PALABRAS no: «gente fea», «low IQ» y
   // «abstenerse» en las quince se leian como la misma frase con otro orden.
-  'Bienvenida la gente con gracia, cabeza y cara decente. Que se abstengan los caretos imposibles, los cerebros en huelga y quien se ofende por deporte.',
-  'Aquí entra quien se ríe de su propia desgracia. Se quedan en la puerta la piel fina, la cabeza hueca y las caras que no se arreglan ni con filtro.',
-  'Se busca mala leche, ingenio y un físico que se pueda mirar. Se evita a la peña sosa, a la que va justa de neuronas y a la que llora con cualquier broma.',
-  'Si tienes chispa y una cara que no asusta, pasa. Si te lo tomas todo a pecho, piensas despacio o das grima en foto, busca otro sitio.',
-  'Lo que queremos: humor negro y algo dentro del cráneo. Lo que sobra: gente amargada, susceptibles de manual y caretos de castigo.',
-  'Aquí se viene a reírse de la muerte sin pedir perdón. No encaja quien se ofende a la primera, quien no pilla ni un chiste de parvulario ni quien no gana ni con buena luz.',
-  'Aquí caben las personas con aguante y salero. Las de mecha corta, las de cabeza vacía y las de físico dudoso, que busquen otro grupo.',
   'Requisitos: aguantar una broma pesada, pensar rápido y no dar asco a la vista. Si fallas en alguno, disimula, porque aquí se nota todo.',
-  'Gracia sí, dramas no. Cerebro sí, luces apagadas no. Cara decente sí, adefesios no. Así de simple, gilipoyas.',
-  'No es sitio para quien no tiene dos dedos de frente, para quien no se ríe ni en su cumpleaños ni para quien espanta con la cara. Para el resto, adelante.',
-  'Se valora la mala hostia, la rapidez mental y una cara que se pueda enseñar. Sobra quien va lento de reflejos, quien se amarga con un chiste y quien da pena mirar.',
-  'Aquí se hacen chistes de todo y de todos. Si eres de lágrima fácil, de pocas luces o tu cara no aguanta una foto, ahórrate la vergüenza.',
-  'Esto no es para la peña poco agraciada, ni para la que no coge una ironía, ni para la que se pica por todo. Si no eres de esas, trae tu mejor chiste.',
   'Buscamos gente con humor, cerebro y buena planta. Si te faltan dos de las tres, date la vuelta, que aquí nadie regala compasión.',
-  'Gente con humor negro, adelante. Gente fea, lenta o sin sentido del humor, abstenerse, que aquí nadie les va a tener pena.',
+  'Aquí se viene a reírse de la muerte. Quien se ofende a la primera, que no gaste la entrada.',
+  'Si un chiste sobre tu abuela muerta te arruina la tarde, este grupo te la va a arruinar a diario.',
+  'Aquí nadie pide perdón por un chiste. Quien necesite disculpas, que se las pida a su psicólogo.',
+  'Aquí la gente se ríe de todo, empezando por quien acaba de entrar. Con piel fina, esto escuece desde el primer mensaje.',
+  'Hace falta cabeza para pillar la mitad de los chistes. Si no te llega, ríete igual y disimula.',
+  'Aquí la foto de perfil también cuenta. Si la tuya asusta, que al menos la gracia compense.',
+  'Humor del que duele. Quien venga a pedir que se borre un chiste ha entrado en el grupo equivocado.',
+  'Se busca gente que se ría rápido y piense rápido. Quien tarda tres mensajes en pillar una ironía, sobra.',
+  'Aquí se bromea con la muerte, la enfermedad y la cara de cada uno. La tuya incluida, así que ven con aguante.',
+  'Gente seria, de la que contesta a un chiste con un audio explicando por qué no tiene gracia: aquí no.',
+  'Entra quien aguanta un chiste pesado y devuelve otro peor. Quien solo sepa llorar, que llore en otro chat.',
+  'Aquí no hay temas sagrados ni caras protegidas. Si esperabas un grupo amable, te han mandado mal el enlace.',
+  'Si necesitas que te expliquen un chiste, aquí nadie te lo va a explicar. Y se va a notar.',
 ];
 
 module.exports = { HUMOR_NEGRO };
