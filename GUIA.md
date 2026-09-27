@@ -760,7 +760,7 @@ recortaron los 55 pools donde el eco pasaba de la mitad y se repusieron hasta
 | En cada uso de un comando frecuente (tramos de `iq`, veredictos de `ship`) | 30, cada una con su idea | `iq` 30 por tramo (genio 20), `ship` 30 (el cien exacto 15) |
 | Desenlace común de un comando frecuente (`ROB_WIN`, `ROB_FAIL`) | 30, cada una con su idea | 30 |
 | Ruta rara (tienda de `robo`, escudo, contraataque) | ~100, por decisión del dueño | 30 por pool |
-| Apuesta de aura (cooldown 3 h) | ~60 | 62 y 60 |
+| Apuesta de aura (cooldown 3 h) | 30 | 30 y 30 |
 | Hitos de racha | ~30 | 30 |
 
 Son topes, no metas (sección 5 bis). Un pool que no llega con frases de oro se
