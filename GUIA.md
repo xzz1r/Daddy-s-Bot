@@ -455,7 +455,7 @@ para un tío les llega con su nombre delante. Falla de tres formas:
 Un «cabrón» suelto al final no cuenta como género: es el registro del bot y se
 usa igual con cualquiera. Quedan fuera de la regla los comandos que van de
 género a propósito (`!masculinidad`, `!feminidad`, `!gay`, `!maricon`,
-`!femboy`, `!puta`, `!guarra`, `!linda`), los pools de `!fuck`, `!anal`,
+`!femboy`, `!puta`, `!guarra`, `!linda`, `!fea`, `!incel` y `!mog`), los pools de `!fuck`, `!anal`,
 `!cum` y `!spank`, y los piropos de `!piropo`, que el dueño quiere así. La capa
 44 del check se queda corta: en las acciones mira
 «%V se queda quieto» y el «lo» que va por %V, pero no el «la», y en el resto
