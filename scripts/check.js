@@ -6087,6 +6087,12 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
       // el 6 % de las veces —una de cada dieciseis— sin que nada estuviera mal.
       exige(/habl|escrib|particip|boca|aporta/i.test(normal),
         `el "no te llega" ya no dice que el aura se gana hablando, que es lo único que tenía que decir: "${normal}"`);
+      // Y TODAS, NO LA QUE TOQUE. Mirar solo la que sale en esta tirada dejaba
+      // pasar un cierre sin la palabra una de cada dieciséis veces: se colaron
+      // dos así y el check salió rojo en una pasada y verde en la siguiente.
+      const { HABLA_MAS: HM6 } = require(path.join(R, 'src/utils/auraCobro'));
+      const mudas = HM6.filter((f) => !/habl|escrib|particip|boca|aporta/i.test(f));
+      exige(mudas.length === 0, `un cierre de "no te llega" no manda a hablar: "${mudas[0] || ''}"`);
       exige(normal.includes(`*${basePlay}*`) && normal.includes('*12*'),
         `el "no te llega" ha dejado de decir el precio o el saldo: "${normal}"`);
       exige(/doble/i.test(caro) && !/doble/i.test(normal),

@@ -252,10 +252,10 @@ const HABLA_MAS = [
   'El que habla, cobra. Tú no cobras.',
   'Menos pedir y más escribir.',
   'Habla, aporta, y vuelve con saldo.',
-  'Cada mensaje en el grupo suma. Suma.',
+  'Cada mensaje que escribes en el grupo suma.',
   'La cuenta se llena escribiendo en el grupo.',
   'Escribe en el grupo y la cuenta se mueve sola.',
-  'Más mensajes, más aura. Así funciona.',
+  'Escribe más, cobra más. Así funciona.',
 ];
 
 // Texto del rechazo: la burla, cuanto cuesta, cuanto tienes y habla mas.
@@ -276,4 +276,4 @@ function textoSinSaldo(concepto, { precio, saldo }, jid) {
     `_Cuesta *${fmt(precio)}*${doble} y tienes *${fmt(saldo)}*. ${cierre}_`;
 }
 
-module.exports = { cobrar, devolver, textoSinSaldo, MISERIA, SIN_SERVICIO, esSinServicio, RAFAGA, usosDe, _usos: usos };
+module.exports = { cobrar, devolver, textoSinSaldo, MISERIA, HABLA_MAS, SIN_SERVICIO, esSinServicio, RAFAGA, usosDe, _usos: usos };
