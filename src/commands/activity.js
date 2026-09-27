@@ -1,9 +1,10 @@
 const { getActiveUsers } = require('../utils/messageCounter');
-const { isOwner, isMainOwner, isGroupAdmin, getSender, sameUser, soloMiembros, bareJid, canonicalJid, isBotJid } = require('../utils/wa');
+const { isOwner, isMainOwner, isGroupAdmin, isAdmin, isBotAdmin, getSender, sameUser, soloMiembros, bareJid, canonicalJid, isBotJid } = require('../utils/wa');
 const { cobrar, textoSinSaldo } = require('../utils/auraCobro');
 const { shuffle, pickFresh } = require('../utils/helpers');
 const { A_TI_MISMO, SOLO_GRUPOS, SOLO_ADMINS } = require('../data/avisos');
-const { aviso } = require('../utils/helpers');
+const { aviso, avisoPermiso } = require('../utils/helpers');
+const { aplicarParticipantes } = require('../utils/participantes');
 const logger = require('../utils/logger');
 
 // ---- !vs : real-activity head-to-head -------------------------------------
@@ -349,28 +350,7 @@ let AMENAZAS = [
 ]
 
 
-async function cmdInactivos(sock, msg, groupMeta) {
-  const jid = msg.key.remoteJid;
-  if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
-  }
-  const sender = getSender(msg);
-  // Mass-mention + amenaza de expulsión: es de admins, como !tagall. El cobro
-  // va DESPUES del permiso, igual que !count: si no, un miembro pagaba 35 por
-  // un "solo admins".
-  if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
-  }
-  if (!groupMeta?.participants?.length) {
-    return sock.sendMessage(jid, {
-      text: 'No pude leer la lista de miembros del grupo ahora mismo. Prueba otra vez en un rato.',
-    }, { quoted: msg });
-  }
-  const pago = await cobrar(jid, sender, 'inactivos', { fromMe: msg.key.fromMe, groupMeta });
-  if (!pago.ok) {
-    return sock.sendMessage(jid, { text: textoSinSaldo('inactivos', pago, jid) }, { quoted: msg });
-  }
-
+async function calcularInactivos(sock, jid, groupMeta) {
   // Dos fuentes que hay que cruzar:
   //  · el contador sabe cuantos mensajes tiene cada uno QUE HAYA ESCRITO;
   //  · a los de cero mensajes el contador ni los conoce, asi que salen de la
@@ -452,6 +432,36 @@ async function cmdInactivos(sock, msg, groupMeta) {
     if (n <= UMBRAL_INACTIVO) flojos.push({ jid: p.id, count: n });
   }
 
+  return { flojos, sinCruzar };
+}
+
+async function cmdInactivos(sock, msg, groupMeta, args = []) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
+  }
+  const sender = getSender(msg);
+  if (PURGA.has(String(args?.[0] || '').toLowerCase())) {
+    return purgaInactivos(sock, msg, groupMeta, args);
+  }
+  // Mass-mention + amenaza de expulsión: es de admins, como !tagall. El cobro
+  // va DESPUES del permiso, igual que !count: si no, un miembro pagaba 35 por
+  // un "solo admins".
+  if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
+  }
+  if (!groupMeta?.participants?.length) {
+    return sock.sendMessage(jid, {
+      text: 'No pude leer la lista de miembros del grupo ahora mismo. Prueba otra vez en un rato.',
+    }, { quoted: msg });
+  }
+  const { flojos, sinCruzar } = await calcularInactivos(sock, jid, groupMeta);
+
+  const pago = await cobrar(jid, sender, 'inactivos', { fromMe: msg.key.fromMe, groupMeta });
+  if (!pago.ok) {
+    return sock.sendMessage(jid, { text: textoSinSaldo('inactivos', pago, jid) }, { quoted: msg });
+  }
+
   if (sinCruzar.length) {
     logger.warn(
       `!inactivos en ${jid}: ${sinCruzar.length} miembro(s) sin cruzar por identidades @lid sin resolver; ` +
@@ -510,6 +520,87 @@ async function cmdInactivos(sock, msg, groupMeta) {
     amenaza;
 
   await sock.sendMessage(jid, { text, mentions: flojos.map(u => u.jid) }, { quoted: msg });
+}
+
+
+// !inactivos purge — el dueño echa de golpe a los de la lista.
+//
+// Lo pidio el dueño: la lista amenazaba con una expulsion que nunca pasaba.
+// Ahora pasa, pero solo si la lanza el tier dueño, y en dos tiempos: el primer
+// !inactivos purge dice a cuantos va a echar, y hace falta un
+// !inactivos purge confirmar en los dos minutos siguientes. Una expulsion en
+// masa por una tecla mal pulsada no se deshace.
+//
+// No se echa a los admins (un admin que no escribe es cosa de quitarle el
+// admin primero), ni al tier dueño, ni al bot, ni a quien no se pudo cruzar
+// (calcularInactivos ya los deja fuera: no se echa a nadie por un cero que no
+// es seguro). Sin cobro: es del dueño.
+const PURGA = new Set(['purge', 'purga', 'echar']);
+const CONFIRMA = new Set(['confirmar', 'confirmo', 'si', 'sí', 'ya']);
+const PURGA_VENTANA_MS = 2 * 60 * 1000;
+const PURGA_TANDA = 20;
+const purgasPendientes = new Map();   // grupo -> caducidad
+
+async function purgaInactivos(sock, msg, groupMeta, args) {
+  const jid = msg.key.remoteJid;
+  const sender = getSender(msg);
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: avisoPermiso(jid, sender, groupMeta) }, { quoted: msg });
+  }
+  if (!groupMeta?.participants?.length) {
+    return sock.sendMessage(jid, {
+      text: 'No pude leer la lista de miembros del grupo ahora mismo. Prueba otra vez en un rato.',
+    }, { quoted: msg });
+  }
+  if (!isBotAdmin(sock, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'No soy admin aquí. Hacedme admin o dejad de pedirme cosas.' }, { quoted: msg });
+  }
+
+  const { flojos } = await calcularInactivos(sock, jid, groupMeta);
+  const echables = flojos.filter((u) => !isAdmin(groupMeta.participants, u.jid));
+  const admins = flojos.length - echables.length;
+  if (!echables.length) {
+    purgasPendientes.delete(jid);
+    return sock.sendMessage(jid, {
+      text: admins
+        ? `Los únicos que no pasan de ${UMBRAL_INACTIVO} mensajes son admins. Quítales el admin primero.`
+        : `Todo el mundo pasa de ${UMBRAL_INACTIVO} mensajes. Hoy no hay a quien echar.`,
+    }, { quoted: msg });
+  }
+
+  const confirma = CONFIRMA.has(String(args?.[1] || '').toLowerCase());
+  const caduca = purgasPendientes.get(jid) || 0;
+  if (!confirma || caduca < Date.now()) {
+    purgasPendientes.set(jid, Date.now() + PURGA_VENTANA_MS);
+    const n = echables.length === 1 ? '1 miembro' : `${echables.length} miembros`;
+    return sock.sendMessage(jid, {
+      text: `*${n}* con ${UMBRAL_INACTIVO} mensajes o menos van a la calle.` +
+        (admins ? ` Hay ${admins} admin${admins === 1 ? '' : 's'} en la lista que no se tocan.` : '') +
+        `
+
+Para hacerlo: *!inactivos purge confirmar* en los próximos dos minutos.`,
+    }, { quoted: msg });
+  }
+  purgasPendientes.delete(jid);
+
+  const ids = echables.map((u) => u.jid);
+  const { avisoDeKick } = require('./group');
+  await sock.sendMessage(jid, avisoDeKick(ids, jid));
+
+  const hechos = [], fallidos = [];
+  for (let i = 0; i < ids.length; i += PURGA_TANDA) {
+    const tanda = ids.slice(i, i + PURGA_TANDA);
+    const r = await aplicarParticipantes(sock, jid, tanda, 'remove', groupMeta);
+    hechos.push(...r.ok);
+    fallidos.push(...r.fallidos.map((f) => f.jid));
+    if (i + PURGA_TANDA < ids.length) await new Promise((res) => setTimeout(res, 1500));
+  }
+  logger.info(`!inactivos purge en ${jid}: ${hechos.length} fuera, ${fallidos.length} fallidos`);
+  if (!fallidos.length) return;
+  return sock.sendMessage(jid, {
+    text: `Fuera ${hechos.length}. No pude echar a ${fallidos.map((j) => `@${String(j).split('@')[0]}`).join(' ')}.`,
+    mentions: fallidos,
+  }, { quoted: msg });
 }
 
 module.exports = { cmdVs, cmdFantasmas, cmdInactivos };

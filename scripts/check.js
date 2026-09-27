@@ -19982,6 +19982,56 @@ const manda = async (quien, tipo, opciones) => {
     if (fallos === antes120) console.log(verde('   ✓ 25 en la paliza y 10 en los otros, en los 21 de % y en !rizz; y cada tramo sale entero antes de repetir'));
   }
 
+  // ── 121. !INACTIVOS PURGE: SOLO EL DUEÑO, CON CONFIRMACION, SIN ADMINS ────
+  //
+  // Lo pidio el dueño: la lista de !inactivos amenazaba con una expulsion que
+  // no pasaba nunca. Ahora pasa, y por eso se vigila lo que no puede fallar:
+  // que un admin no la lance, que la primera vez solo pregunte, que no se lleve
+  // por delante a admins, al dueño ni al bot, y que eche en tandas.
+  {
+    console.log('\n121. !INACTIVOS PURGE: SOLO EL DUEÑO, CON CONFIRMACION, SIN ADMINS');
+    const antes121 = fallos;
+    const exige = (c, q) => { if (!c) { fallos++; console.log(rojo(`   ✗ ${q}`)); } };
+    try {
+      const act = require(path.join(R, 'src/commands/activity'));
+      const G = '120363000000121121@g.us';
+      const BOT = '34600095999@s.whatsapp.net';
+      const DUENO = `${process.env.OWNER_NUMBER}@s.whatsapp.net`;
+      const ADMIN = '34600095100@s.whatsapp.net';
+      const mudos = Array.from({ length: 25 }, (_, i) => `346000952${String(i).padStart(2, '0')}@s.whatsapp.net`);
+      const meta = { id: G, subject: 'x', participants: [
+        { id: BOT, admin: 'admin' }, { id: DUENO, admin: 'superadmin' }, { id: ADMIN, admin: 'admin' },
+        ...mudos.map((id) => ({ id })),
+      ] };
+      const enviados = [], echados = [];
+      const sock = {
+        user: { id: BOT },
+        sendMessage: async (j, m) => { enviados.push(m.text || ''); return {}; },
+        groupParticipantsUpdate: async (j, ids, acc) => { if (acc === 'remove') echados.push(ids.slice()); return ids.map((jid) => ({ jid, status: '200' })); },
+      };
+      const msg = (quien, texto) => ({ key: { remoteJid: G, fromMe: false, participant: quien, id: 'P' + Math.random() },
+        message: { conversation: texto } });
+
+      await act.cmdInactivos(sock, msg(ADMIN, '!inactivos purge'), meta, ['purge']);
+      exige(!echados.length, 'un admin ha lanzado !inactivos purge: es solo del dueño');
+      exige(/admins superiores/i.test(enviados.at(-1) || ''), 'al admin que lo intenta no le sale el aviso de «solo admins superiores»');
+
+      await act.cmdInactivos(sock, msg(DUENO, '!inactivos purge confirmar'), meta, ['purge', 'confirmar']);
+      exige(!echados.length, 'la purga echa sin haber preguntado antes: un «confirmar» a secas no vale sin el primer paso');
+      exige(/confirmar/.test(enviados.at(-1) || ''), 'la primera purga no pide confirmar');
+
+      await act.cmdInactivos(sock, msg(DUENO, '!inactivos purge confirmar'), meta, ['purge', 'confirmar']);
+      const todos = echados.flat();
+      exige(todos.length === mudos.length && mudos.every((m) => todos.includes(m)),
+        `la purga confirmada no echa a los ${mudos.length} callados (echa a ${todos.length})`);
+      exige(![ADMIN, DUENO, BOT].some((x) => todos.includes(x)), 'la purga se ha llevado a un admin, al dueño o al bot');
+      exige(echados.every((t) => t.length <= 20), 'la purga no va en tandas de 20 como mucho');
+    } catch (e) {
+      exige(false, `!inactivos purge reventó: ${e.message}`);
+    }
+    if (fallos === antes121) console.log(verde('   ✓ solo el dueño, pregunta antes, deja a admins, dueño y bot, y echa en tandas'));
+  }
+
   }
 
   if (BREVE) {

@@ -466,7 +466,7 @@ ${p}notifadmin  ·  ${p}autoaccept · ${p}autoaceptar · ${p}autoapprove · ${p}
 ` : ''}${esOwner ? `
 *ADMINS SUPERIORES*
 ${p}on · ${p}off  ·  ${p}demote · ${p}degradar
-${p}listanegra
+${p}listanegra  ·  ${p}inactivos purge
 ${p}antilink · ${p}antifoto · ${p}antiempresa · ${p}antibusiness · ${p}antiadmin
 ${p}adminmode · ${p}soloadmins · ${p}soloadmin  ·  ${p}aura on/off
 ${p}resetcount · ${p}resetconteo  ·  ${p}resetaura
@@ -592,6 +592,7 @@ _Y todo te cuesta un *${Math.round(ADMIN.descuento * 100)} %* menos que al resto
 *ADMINS SUPERIORES*
 *${p}demote* · *${p}resetaura* · *${p}resetcount* · *${p}on*/*${p}off* · *${p}clearcache* · *${p}diag*
 *${p}listanegra* — la lista negra global: ver, meter números y sacarlos
+*${p}inactivos purge* — echa a los de la lista de *${p}inactivos* (pide confirmar)
 _on/off:_ *${p}antiadmin* *${p}antilink* *${p}antiempresa* *${p}antifoto* *${p}adminmode* *${p}aura*
 ` : ''}
 _${p}ping · ${p}info · ${p}whoami · *${p}help todo* para la lista entera_${config.contacto ? `

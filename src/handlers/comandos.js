@@ -357,7 +357,7 @@ const FAMILIAS = [
   { nombres: ['fantasmas', 'fantasma', 'muertos'], meta: true, lento: true, cobro: 'fantasmas',
     hace: (c) => c.de('activity').cmdFantasmas(c.sock, c.msg, c.meta) },
   { nombres: ['inactivos', 'inactivo'], meta: true, lento: true,
-    hace: (c) => c.de('activity').cmdInactivos(c.sock, c.msg, c.meta) },
+    hace: (c) => c.de('activity').cmdInactivos(c.sock, c.msg, c.meta, c.args) },
   { nombres: ['on'], meta: true,
     hace: (c) => c.de('social').cmdOn(c.sock, c.msg, c.meta) },
   { nombres: ['off'], meta: true,
