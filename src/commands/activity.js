@@ -10,47 +10,54 @@ const logger = require('../utils/logger');
 // ---- !vs : real-activity head-to-head -------------------------------------
 
 // %W = winner tag, %L = loser tag. Filled in per call.
+// Dos pools, porque !vs sale igual si %L pierde por uno que por mil. Antes
+// todas le llamaban fantasma, y eso a quien escribe cientos es castigar al que
+// aporta (GUIA, «A quién pega el bot»). La paliza es para quien no llega ni a
+// la mitad de los mensajes de %W; el resto es un duelo ajustado.
 let VS_ROASTS = [
-  '%W habla, %L observa en silencio como el mueble con datos móviles que es. Hasta el sofá del grupo aporta más, perdedor.',
-  '%W le saca tantos mensajes a %L que da vergüenza ajena. %L entra, mira como el puto parásito que es y se larga sin soltar ni una mierda. Cero aporte, cero valor.',
-  '%L aporta al grupo lo mismo que un pedo en una tormenta: nada, cero, una puta mierda que nadie nota. %W habla; %L es relleno inútil que solo ocupa hueco.',
-  'Para %L participar es deporte de riesgo. %W ni se despeina aplastando a alguien que teclea una vez por estación del año.',
-  '%L existe en este grupo en modo solo lectura, su hábitat natural. %W lo barre sin enterarse siquiera de que competía.',
-  '%W juega en otra liga. %L ni se clasificó, porque para clasificarte hay que presentarse, y eso a %L le da una pereza mortal.',
-  '%L aporta al chat lo mismo que un mensaje borrado: ves que estuvo, pero no sabes para qué. %W manda, fantasma.',
-  'Si %L hablara la mitad que %W esto estaría reñido. Pero %L se guarda sus mensajes como si valieran algo. Spoiler: no valen una puta mierda, igual que él.',
-  '%L, fantasma confirmado. %W, con pulso. Esto no es un duelo: es %W reventando a un muerto de mierda que ni sabe que existe este grupo.',
-  'Esto no fue un duelo, fue una autopsia: %L lleva muerto meses y %W lo remató por gusto. Cadáver mudo e inútil contra alguien vivo, sin color.',
-  '%L trajo a un duelo de mensajes el mismo silencio que trae a todas partes. %W ni necesitó calentar para ganar.',
-  'Mientras %W llenaba el chat, %L hacía lo único que sabe: nada de nada. El puto rey de no servir para una mierda, campeón indiscutible del vacío.',
-  '%L perdió por goleada y encima sin presentarse al campo. El walkover andante, rey de perder partidos que ni juega.',
-  '%W escribe; %L solo calienta el asiento. El mueble más caro del grupo: ocupa sitio y no presta ningún servicio, perdedor.',
-  'A %L le falta voz y le sobra ser un puto lastre. %W aporta; %L es peso muerto que solo ocupa hueco en la lista. Ni hubo que pensarlo, basura.',
-  'Comparar a %W con %L es comparar a alguien con una mancha en la pared: uno aporta, el otro solo está ahí pudriéndose, mudo e inútil de mierda.',
-  '%L se mide con %W y sale corriendo de vuelta a su modo lectura, su zona de confort y su único hábitat natural conocido.',
-  '%W habla por los dos porque %L lleva años sin soltar ni una puta palabra útil. Se lo guarda todo para nada, como el inútil de mierda que es.',
-  '%L compite en silencio absoluto porque no tiene una puta cosa que decir. %W ya había ganado antes de empezar: reventar a un cero a la izquierda no tiene mérito.',
-  'Si %L escribiera tanto como respira seguiría perdiendo contra %W. Pero ni respira fuerte, no vaya a gastarse de más.',
-  '%W tiene presencia; %L lleva años en modo avión porque no vale una mierda ni encendido. Uno aporta, el otro es un ladrillo mudo que ocupa sitio.',
-  '%L es relleno de mierda, el hueco vacío que nadie echa de menos. %W aporta; %L sobra tanto que el grupo ni notaría si lo echan de una patada, fantasma.',
-  'Que %L ni lo intente. %W lo barre sin despeinarse, y eso que barrer implica mover algo, cosa que a %L le resulta exótica.',
-  '%W aporta vida al chat; %L aporta el vacío educado del que entra, lee y se va sin decir ni hola. Diferencia abismal.',
-  '%L quedó tan atrás que %W ya ni lo ve por el retrovisor. Polvo en el camino, y del que no se levanta ni con ventilador.',
-  'Hasta el bot escribe más que %L, y el bot solo responde a comandos. %W lo sabía; %L sigue sin enterarse de nada, mudo.',
-  '%W demostró quién manda. %L que se calle y siga de adorno inútil, que es lo único que ha hecho este muerto de mierda desde que entró.',
-  '%L tiene el récord de leer doscientos mensajes y no soltar ni uno. %W habla y aporta; %L mira, calla y se guarda todo.',
-  'El marcador entre %W y %L parece una errata. No lo es: es lo que pasa cuando uno vive aquí y el otro viene de turista.',
-  '%W lleva el peso de la conversación; %L es el peso muerto que nadie quiere cargar. Un puto lastre que no ha aportado una mierda en su vida, perdedor.',
-  '%L escribe una vez cada muerte de obispo y encima suelta una mierda que nadie pidió. %W aporta a diario; %L solo estorba las pocas veces que aparece.',
-  '%W manda y %L asiente en silencio, su forma favorita de participar sin mojarse. Cobardía conversacional de manual.',
-  'En este duelo %W puso los mensajes y %L puso su habitual nada de mierda. Cada uno aportó lo que tenía; lo de %L, como siempre, un cero absoluto, inútil.',
   '%W gana y %L ni protesta, porque protestar también es hablar, y eso a %L lo supera. Derrota muda, la más patética de todas.',
-  '%W escribe, aporta y se le nota vivo. %L lleva tanto en silencio que el grupo ya no sabe si es un miembro o un error de la lista que nadie se molesta en corregir. Adivina cuál pierde, fantasma.',
-  'Esto no es un duelo, es una limosna: %W le regala a %L la única aparición que va a tener en meses. Aprovéchala, campeón del silencio, que la próxima vez ni te nombran para perder.',
-  '%L trajo su arma secreta al duelo: no hacer absolutamente nada, como siempre. %W lo barrió sin despeinarse mientras %L seguía decidiendo si valía la pena teclear. No valía. Nunca vale, perdedor.',
-  '%W tiene voz en el grupo; %L tiene un asiento que igual da si está ocupado o vacío. El marcador solo puso números a algo que todos sabían: uno cuenta, el otro sobra. Y sobra %L, obviamente.',
-  'Entre %W y %L la diferencia no es de mensajes, es de existencia. %W está; %L figura. Uno participa, el otro rellena la foto de grupo con cara de no haber dicho nada memorable jamás. Muerto en vida, %L.',
-  '%L compite contra %W como una mierda seca compite contra alguien vivo. Ni aporta, ni sirve, ni hay razón para mirarlo. %W ni sabía que había duelo hasta que vio el nombre de este puto inútil pidiendo un protagonismo que no se ha ganado en su vida.',
+  '%W habla y %L mira. El marcador solo ha puesto números a lo que ya se veía.',
+  '%L ha perdido de calle. Para competir con %W hay que abrir la boca de vez en cuando.',
+  'Paliza. %W lleva el grupo a cuestas y %L lleva la mochila vacía.',
+  '%L, contra %W no hay comparación. Hay humillación, y la tienes delante.',
+  '%W escribe por los dos, y %L encima se deja representar.',
+  'Ni de lejos. A este ritmo, %L no alcanza a %W ni en otra vida.',
+  '%W gana por goleada. %L ha venido al partido a mirar.',
+  'Lo de %L contra %W ha sido un trámite. Y el trámite lo ha firmado %W.',
+  '%L, te han comparado con %W y ya sabes por qué nadie lo hace nunca.',
+  'El grupo tiene voces y tiene público. %W es voz. %L, público.',
+  '%W aporta y %L cotillea. Los números lo dicen sin maquillaje.',
+  'Paliza histórica. %L ha perdido sin enterarse de que había partido.',
+  '%L, para ganarle a %W primero hay que aparecer, y eso no va contigo.',
+  '%W por delante y a mucha distancia. %L, en el retrovisor, haciéndose pequeño.',
+  'La diferencia entre %W y %L es la que hay entre estar en el grupo y estar en la lista.',
+  '%W da la cara. %L da el número de teléfono.',
+  'Duelo sin rival. %W contra la sombra de %L.',
+  '%L ha perdido por tanto que el bot ha tenido que contar dos veces.',
+  'Si esto fuera boxeo, a %L le habrían tirado la toalla en el primer asalto. %W ni sudó.',
+];
+
+let VS_AJUSTADO = [
+  'Por poco, pero %W manda. %L tiene la revancha a un par de mensajes.',
+  'Duelo apretado. %W gana y %L puede quejarse de todo menos de no haber estado.',
+  '%W se lleva el cara a cara por la mínima. %L, un mal día y ahí se quedó.',
+  'Perder por tan poco jode, %L. Y a %W ganar por tan poco tampoco le deja presumir.',
+  '%W por delante, %L pegado a la espalda. Dos que sostienen el grupo, y uno un poco más.',
+  'Ajustado. %W gana, pero %L le ha hecho sudar cada mensaje.',
+  '%L pierde de un pelo contra %W. Hay derrotas que se miran con orgullo, y esta casi.',
+  'Foto finish. %W saca la nariz y %L se queda mordiéndose los labios.',
+  '%W manda hoy. Con %L tan cerca, mañana ya se verá.',
+  'Por la mínima. %W gana y %L no tiene excusa: le ha faltado nada.',
+  '%L, tan cerca de %W que se le oye la respiración. Pero delante va %W.',
+  'Empate técnico con ganador. %W gana, %L se queda con la rabia.',
+  'Dos que escriben de verdad y una cuenta que dice %W. %L, a por la siguiente.',
+  '%W gana sin margen para presumir. %L pierde sin margen para excusas.',
+  '%L ha dado guerra y ha perdido igual. %W lo sabe y no presume mucho.',
+  'Cara a cara igualado. %W gana, y a %L le va a escocer toda la tarde.',
+  '%W por delante, por poco. Con un par de mensajes más de %L, esto era otra historia.',
+  'Ajustado. %W gana y a %L le toca tragárselo, con lo poco que ha faltado.',
+  'Duelo de los buenos. %W gana y %L no queda mal, que es más de lo que se puede decir del resto del grupo.',
+  '%W se lo lleva por un suspiro. %L pierde con la cabeza alta, que aquí es rarísimo.',
 ];
 
 function lookupCount(users, jid) {
@@ -117,12 +124,14 @@ async function cmdVs(sock, msg, args, groupMeta) {
   if (ca === 0 && cb === 0) {
     verdict = 'Ninguno de los dos habla. Empate técnico entre dos fantasmas.';
   } else if (ca === cb) {
-    verdict = 'Empate exacto. Igual de irrelevantes los dos, felicidades.';
+    verdict = 'Empate exacto. Ni uno se deja ganar ni el otro afloja.';
   } else {
     const winNum = ca > cb ? numA : numB;
     const loseNum = ca > cb ? numB : numA;
     const diff = Math.abs(ca - cb);
-    const line = pickFresh(VS_ROASTS, `${jid}|vs`).replace(/%W/g, `@${winNum}`).replace(/%L/g, `@${loseNum}`);
+    const paliza = Math.min(ca, cb) * 2 < Math.max(ca, cb);
+    const line = pickFresh(paliza ? VS_ROASTS : VS_AJUSTADO, `${jid}|vs|${paliza ? 'paliza' : 'ajustado'}`)
+      .replace(/%W/g, `@${winNum}`).replace(/%L/g, `@${loseNum}`);
     verdict = `@${winNum} domina por *${diff}* ${diff === 1 ? 'mensaje' : 'mensajes'}.\n${line}`;
   }
 
