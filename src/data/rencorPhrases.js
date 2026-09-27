@@ -241,14 +241,14 @@ const ROBO_NI_VENGARSE = [
 
 // Hoy sale bastante mas alto que la vez anterior.
 const SHIP_SUBE = [
-  '%D a %A y %V les salió %C. Hoy sube, y eso solo pasa a base de pedirlo hasta que cuadre.',
-  '%D eran %C. %A y %V han insistido hasta que el número les ha hecho caso.',
-  'De %C %D a esto. %A y %V se están emparejando a fuerza de tirar.',
-  '%A y %V venían de un %C %D. Hoy suben, y alguien de los dos está pidiendo el ship a escondidas.',
   '%D les salió %C a %A y %V. Hoy salen bastante mejor, y el grupo ya empieza a hacer preguntas.',
-  '%A y %V mejoran desde %D. Nadie repite un ship tantas veces si no quiere que salga alto.',
-  'Subida desde el %C de %D. A %A y %V el amor les entra por insistencia.',
-  'A %A y %V no les valió el %C de %D. Han vuelto hasta sacar un número presentable.',
+  '%A y %V venían de un %C %D. Hoy el número sube y a alguien se le va a escapar una sonrisa.',
+  'De %C %D a esto. Entre %A y %V algo se está moviendo, y no es el bot.',
+  '%D, %C para %A y %V. Hoy bastante más. El bot solo apunta. El cotilleo corre de cuenta del grupo.',
+  '%A y %V suben desde el %C de %D. A este paso, la próxima vez hay que buscar padrinos.',
+  'El ship de %A y %V se quedó %D en %C. Hoy mejora, que ya es más de lo que mejora casi nadie aquí.',
+  '%D fue un %C para %A y %V. Hoy el número se anima, aunque ninguno de los dos lo admita.',
+  '%A y %V dejan atrás el %C de %D. Si esto sigue así, alguien va a tener que dar explicaciones.',
 ];
 
 // Hoy sale bastante mas bajo.
