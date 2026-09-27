@@ -7,7 +7,7 @@ const { cobrar: cobrarAura, devolver: devolverAura, textoSinSaldo, esSinServicio
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { aprenderDeMensaje } = require('../utils/usuarios');
 const { recordName } = require('../utils/nombreStore');
-const { recordFacts, getMemberFacts } = require('../utils/nickStore');
+const { recordFacts, recordDevice, getMemberFacts } = require('../utils/nickStore');
 const { noteOffence, forget, yaAvisado, marcarAvisado, olvidarAviso } = require('../utils/mediaSpam');
 const { isAllowed, noteWarning, resetWarnings, MAX_AVISOS } = require('../utils/linkPerms');
 const { tienePase, gastarIndulto } = require('../utils/roboStore');
@@ -1951,6 +1951,9 @@ async function handleMessage(sock, msg, opciones = {}) {
     // `senderPn` es la otra forma de quien escribe, sacada del propio mensaje.
     // Va aqui para que el conteo quede cruzable con la lista de miembros.
     incrementMsgCount(jid, sender, senderPn).catch((e) => logger.unaVez('contar mensaje', e));
+    // Desde qué aplicación escribe (iPhone, Android, Web, escritorio), para
+    // *!z*. Bajo el teléfono si el mensaje lo trae: es la forma que se consulta.
+    recordDevice(senderPn || sender, msg.key.id).catch((e) => logger.unaVez('apuntar dispositivo', e));
 
     // ─── EL CARTEL DEL DIA, CON EL PRIMER MENSAJE ──────────────────────────
     //

@@ -19106,6 +19106,24 @@ const manda = async (quien, tipo, opciones) => {
         `juntarPersona deja ${JSON.stringify(o)}: tenia que quedar el telefono con 5, sin el @lid y sin tocar a nadie mas`);
     }
 
+    // ── 0b. Los dispositivos de *!z*: se suman entre formas ──────────────
+    {
+      const N = require(path.join(R, 'src/utils/nickStore'));
+      const { L, T } = persona();
+      await N.recordDevice(L, `3A${'1'.repeat(18)}`);   // iPhone, con el @lid
+      await N.recordDevice(L, 'A'.repeat(32));          // Android, con el @lid
+      await N.recordDevice(T, 'A'.repeat(32));          // Android, con el telefono
+      WA.rememberMapping(L, T);
+      const d = (await N.getMemberFacts(P.formasDe(T)))?.disp || {};
+      exige(d.ios === 1 && d.android === 2 && d.ult === 'android',
+        `*!z* por el telefono da ${JSON.stringify(d)}: tenia que juntar 1 de iPhone y 2 de Android entre el @lid y el telefono`);
+      const z = require(path.join(R, 'src/commands/z'));
+      const txt = z._textoHistorial('+34600095000', d, Date.now());
+      exige(/iPhone: 1 mensaje\b/.test(txt) && /Android: 2 mensajes/.test(txt),
+        `*!z* no cuenta bien lo que ha visto: ${JSON.stringify(txt)}`);
+      exige(!/iPhone \d|Galaxy|modelo:/i.test(txt), '*!z* nombra un modelo de movil: WhatsApp no lo manda, seria inventado');
+    }
+
     // ── 1. El saldo y el top ──────────────────────────────────────────────
     {
       const { L, T } = persona();
