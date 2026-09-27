@@ -1,7 +1,8 @@
 'use strict';
 
 // Frases de cooldown. El pecado es pedir el comando otra vez.
-// Español NEUTRO (tú, no vosotros). Sin marcas de España ni de un país.
+// Se le habla a una persona: tú. Cuando el bot le habla al grupo, vosotros
+// (nunca ustedes), que es el plural que eligió el dueño.
 // El tiempo restante NO va aquí: el caller lo pone en el footer `_Vuelve en *…*._`.
 // Sin placeholders. pickFresh vive en helpers; fraseCooldown lo envuelve.
 

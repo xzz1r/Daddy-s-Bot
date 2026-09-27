@@ -216,7 +216,7 @@ async function cmdFantasmas(sock, msg, groupMeta) {
   users = soloMiembros(users, groupMeta);
 
   if (users.length < 3) {
-    return sock.sendMessage(jid, { text: 'No hay suficientes datos de actividad todavía. Hablen más.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No hay suficientes datos de actividad todavía. Hablad más.' }, { quoted: msg });
   }
 
   // Least active first.
@@ -233,7 +233,7 @@ async function cmdFantasmas(sock, msg, groupMeta) {
     text += `*${i + 1}.* @${phone} — ${msgs}\n${roasts[i]}\n\n`;
     mentions.push(u.jid);
   });
-  text += '_Hablen más o sigan en la lista de la vergüenza._';
+  text += '_Hablad más o seguid en la lista de la vergüenza._';
 
   await sock.sendMessage(jid, { text: text.trimEnd(), mentions }, { quoted: msg });
 }

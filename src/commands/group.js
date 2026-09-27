@@ -514,7 +514,7 @@ async function cmdKick(sock, msg, args, groupMeta) {
   // Sin admin del bot no hay kick: no se suelta el aviso en público para
   // quedarse a medias.
   if (!isBotAdmin(sock, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No soy admin aquí. Háganme admin o dejen de pedirme cosas.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No soy admin aquí. Hacedme admin o dejad de pedirme cosas.' }, { quoted: msg });
   }
 
   try {

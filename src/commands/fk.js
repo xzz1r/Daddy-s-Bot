@@ -766,7 +766,7 @@ async function guardOnJoin(sock, groupJid, joiners, groupMeta) {
         ? 'su foto está *marcada como FAKE*'
         : `su foto es la misma que la de ${dupes.join(', ')}${matches.some(m => presentSet.has(m.account)) ? ' (presente en el grupo)' : ''}`;
       await sock.sendMessage(groupJid, {
-        text: `*Anti-fake:* ${numTag} acaba de entrar y ${motivo}. Revisen con *!fk ${numTag}*.`,
+        text: `*Anti-fake:* ${numTag} acaba de entrar y ${motivo}. Revisadlo con *!fk ${numTag}*.`,
         mentions: [obj.id],
       });
     })().catch(e => logger.warn(`anti-fake: chequeo de foto falló: ${e.message}`));

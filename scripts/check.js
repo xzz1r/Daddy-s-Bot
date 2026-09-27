@@ -2212,8 +2212,8 @@ const di=async(quien,texto,extra)=>{
     // comprueba mas abajo, ejecutandolo.
     const avisoSrc = pn.slice(pn.indexOf('function avisoDePurge'), pn.indexOf('function extractNumbers'));
     exige(avisoSrc.includes('function avisoDePurge'), 'no encuentro avisoDePurge para comprobar el tono');
-    exige(!/valéis|estáis|sois |vosotros|tenéis/.test(avisoSrc),
-      'el aviso de !purge no puede usar conjugacion de España');
+    exige(!/\b(ustedes|lárguense|váyanse|háganme|déjennos|mírense|cumplen los requisitos)\b/i.test(avisoSrc),
+      'el aviso de !purge habla de ustedes: el plural del bot es vosotros');
 
     // Y AL REVES: que el menu no anuncie comandos que ya no existen. La guarda
     // de arriba vigila que lo oculto no asome; esta vigila que lo anunciado se
@@ -2356,8 +2356,8 @@ const di=async(quien,texto,extra)=>{
       'el aviso de uno y el de varios dicen la misma frase: uno de los dos concuerda mal en numero');
     exige(aviso1.text.length < 200 && avisoN.text.length < 240,
       'el aviso de !purge se esta alargando: es un aviso, no un comunicado');
-    exige(!/valéis|estáis|sois |vosotros/.test(aviso1.text + avisoN.text),
-      'avisoDePurge conjugó en vosotros');
+    exige(!/\b(ustedes|lárguense|váyanse|háganme|déjennos|mírense|cumplen los requisitos)\b/i.test(aviso1.text + avisoN.text),
+      'avisoDePurge conjugó en ustedes: el plural del bot es vosotros');
 
     // Barrido simulado. fromMe salta isMainOwner sin depender del .env.
     // Se restaura banlist: cmdPurge escribe ahí de verdad.
@@ -2493,8 +2493,8 @@ const di=async(quien,texto,extra)=>{
     for (const f of AVISOS_KICK) {
       exige(typeof f?.uno === 'string' && typeof f?.varios === 'string', 'aviso de kick incompleto');
       exige(f.uno.includes('%M') && f.varios.includes('%M'), 'aviso de kick no menciona');
-      exige(!/valéis|estáis|sois |vosotros|tenéis/.test(`${f.uno} ${f.varios}`),
-        'aviso de kick conjugó en vosotros');
+      exige(!/\b(ustedes|lárguense|váyanse|háganme|déjennos|mírense|cumplen los requisitos)\b/i.test(`${f.uno} ${f.varios}`),
+        'aviso de kick conjugó en ustedes: el plural del bot es vosotros');
       // AQUI VIVIA UNA LISTA DE SIETE EXPRESIONES LITERALES.
       //
       // Pedia que cada aviso contuviera "no eres suficiente", "te queda
@@ -2518,7 +2518,7 @@ const di=async(quien,texto,extra)=>{
       const BUROCRACIA_KICK = /\b(ha sido (expulsad|eliminad|removid)|por incumplir|el administrador ha|abandona el grupo|ha salido del grupo|se ha procedido|conforme a las normas)\b/i;
       exige(!BUROCRACIA_KICK.test(`${f.uno} ${f.varios}`),
         'un aviso de !kick suena a comunicado de moderacion y no a este bot');
-      const PLURAL_KICK = /\b(sois|son|fueron|estuvieron|se creyeron|los echan|los echa|ocuparon|todos|cada uno|ninguno de|los dos|se van|se largan|nadie de)\b|\w+(aron|ieron|eron)\b/i;
+      const PLURAL_KICK = /\b(os|vosotros|vuestr[oa]s?|sois|son|fueron|estuvieron|se creyeron|los echan|los echa|ocuparon|todos|cada uno|ninguno de|los dos|se van|se largan|nadie de)\b|\w+(aron|ieron|eron)\b/i;
       exige(PLURAL_KICK.test(f.varios),
         'la forma plural de un aviso de !kick no tiene ni una marca de plural: en un kick multiple sonara raro');
     }
@@ -2529,8 +2529,8 @@ const di=async(quien,texto,extra)=>{
     const avisoN = avisoDeKick(['57300111222@s.whatsapp.net', '57300333444@s.whatsapp.net']);
     exige(/@57300111222/.test(avisoN.text) && /@57300333444/.test(avisoN.text),
       'aviso de kick con varios no menciona a todos');
-    exige(!/valéis|estáis|sois |vosotros|tenéis/.test(aviso1.text + avisoN.text),
-      'avisoDeKick conjugó en vosotros');
+    exige(!/\b(ustedes|lárguense|váyanse|háganme|déjennos|mírense|cumplen los requisitos)\b/i.test(aviso1.text + avisoN.text),
+      'avisoDeKick conjugó en ustedes: el plural del bot es vosotros');
 
     const grKick = fs.readFileSync(path.join(R, 'src/commands/group.js'), 'utf8');
     const iAvisoKick = grKick.indexOf('avisoDeKick(targets');
@@ -4100,13 +4100,13 @@ const di=async(quien,texto,extra)=>{
         `${nombre} se ha quedado en avisos secos: estos se leen en el grupo y tienen que picar`);
     }
 
-    // Español neutro en todos. Ya se colo un "dadme galones o dejad de pedirme
-    // cosas" al endurecer el aviso de !kick: el bot habla igual para todos y una
-    // conjugacion de España en un aviso canta mas que en una frase larga.
-    const peninsular = /\b(vosotros|valéis|estáis|sois|tenéis|dadme|dejad|mirad|escribid|poneos|hacedlo|idos)\b/i;
+    // El plural del bot es vosotros (lo decidio el dueño en septiembre de
+    // 2026). Antes esta guarda pedia lo contrario; ahora vigila que no vuelva
+    // el «ustedes», que en un aviso canta mas que en una frase larga.
+    const ustedes = /\b(ustedes|háganme|déjennos|lárguense|váyanse|mírense|escriban|hablen|revisen)\b/i;
     for (const [nombre, pool] of POOLS) {
-      const conVos = pool.filter((f) => peninsular.test(f));
-      exige(conVos.length === 0, `${nombre} conjuga en vosotros: ${conVos[0] || ''}`);
+      const conUd = pool.filter((f) => ustedes.test(f));
+      exige(conUd.length === 0, `${nombre} conjuga en ustedes: ${conUd[0] || ''}`);
     }
 
     // SIN_PERMISO lo lee tambien un miembro sin rango: ninguna frase puede
@@ -19576,13 +19576,14 @@ const manda = async (quien, tipo, opciones) => {
   // ── 117. «GILIPOYAS», CON Y ─────────────────────────────────────────────
   //
   // Regla del dueño: toda palabra que acabe en «pollas» se escribe «poyas»
-  // («gilipoyas»). Se mira cada fichero de src/ y la guia.
+  // («gilipoyas»), y la familia entera va con y: «gilipollez» es «gilipoyez».
+  // Se mira cada fichero de src/ y la guia.
   {
     console.log('\n117. «GILIPOYAS», CON Y');
     const antes117 = fallos;
     const hallados = [];
     const mira = (f) => {
-      const m = fs.readFileSync(f, 'utf8').match(/[a-záéíóúñ]*pollas(?![a-záéíóúñ])/i);
+      const m = fs.readFileSync(f, 'utf8').match(/[a-záéíóúñ]*poll(?:as|ez|eces)(?![a-záéíóúñ])/i);
       if (m) hallados.push(`${path.relative(R, f)} («${m[0]}»)`);
     };
     const recorre = (d) => {
@@ -19595,7 +19596,7 @@ const manda = async (quien, tipo, opciones) => {
     recorre(path.join(R, 'src'));
     try { mira(path.join(R, 'GUIA.md')); } catch {}
     if (hallados.length) { fallos++; console.log(rojo(`   ✗ vuelve a salir «pollas», y el dueño lo quiere con y: ${hallados.slice(0, 4).join(', ')}`)); }
-    if (fallos === antes117) console.log(verde('   ✓ todo lo que acaba en «pollas» se escribe «poyas»'));
+    if (fallos === antes117) console.log(verde('   ✓ todo lo que acaba en «pollas» o «pollez» va con y'));
   }
 
   // ── 118. EL GUARDIAN HACE DE ANTI-ADMIN CUANDO EL BOT NO ESTA ───────────

@@ -230,7 +230,7 @@ const ALTO = [
   'Hostia, %IQ. Piensas más rápido que el resto pero corres igual de poco. La cabeza te da, las piernas no, cabrón.',
   '%IQ. Eres como un cuchillo japonés cortando pan Bimbo: sobras por todas partes y lo que cortas no vale una mierda.',
   'Con %IQ podrías estar resolviendo ecuaciones y estás resolviendo si contestar o no a un mensaje con un puto emoji.',
-  '%IQ de IQ. Coño, listo de verdad. Lástima que la inteligencia no cure la gilipollez social, que esa la tienes intacta.',
+  '%IQ de IQ. Coño, listo de verdad. Lástima que la inteligencia no cure la gilipoyez social, que esa la tienes intacta.',
   'Mierda, %IQ. Tu cabeza va tres jugadas por delante y tu vida va tres jugadas por detrás. Menudo equilibrio de mierda.',
   '%IQ. Eres el cabrón más listo de un grupo lleno de imbéciles, que es como ser el más alto de una fila de enanos.',
   'Con %IQ entiendes cosas que el resto ni huele, pero te da pereza explicarlas, así que todos seguís igual de jodidos.',

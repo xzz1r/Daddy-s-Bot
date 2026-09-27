@@ -455,11 +455,15 @@ para un tío les llega con su nombre delante. Falla de tres formas:
 Un «cabrón» suelto al final no cuenta como género: es el registro del bot y se
 usa igual con cualquiera. Quedan fuera de la regla los comandos que van de
 género a propósito (`!masculinidad`, `!feminidad`, `!gay`, `!maricon`,
-`!femboy`, `!puta`, `!guarra`, `!linda`) y el pool de `!fuck`, que el dueño
-quiere así. La capa 44 del check se queda corta: en las acciones mira
+`!femboy`, `!puta`, `!guarra`, `!linda`), los pools de `!fuck`, `!anal`,
+`!cum` y `!spank`, y los piropos de `!piropo`, que el dueño quiere así. La capa 44 del check se queda corta: en las acciones mira
 «%V se queda quieto» y el «lo» que va por %V, pero no el «la», y en el resto
 solo caza «eres el que» y «eres el tío que», y solo en `src/data/`. Lo demás lo
 tiene que ver quien escribe.
+
+**El plural es vosotros.** Cuando el bot le habla a varios (un !kick de dos,
+el bote, !inactivos) es «os echan», «lleváis», «largaos», nunca «ustedes». Lo
+decidió el dueño y el check lo vigila en los avisos, en !kick y en !purge.
 
 **10. La amenaza de echar.** El bot no amenaza con echar a nadie. Echar es cosa
 de `!kick` y de la purga, que es cuando pasa de verdad, y una amenaza que no se

@@ -378,10 +378,13 @@ const BONK = [
 //
 // ─── ESTE POOL ESTÁ EXENTO DE LA REGLA DE GÉNERO, Y ES DECISIÓN DEL DUEÑO ───
 //
+// Lo mismo vale para ANAL, CUM y SPANK: el dueño las dejó exentas igual que
+// esta (septiembre de 2026). Y fuera de este fichero, para PIROPOS.
+//
 // La regla general del fichero es que ni %A ni %V tienen género: cualquiera del
 // grupo cae en cualquiera de las dos menciones, así que una frase que dice «él»
 // o cierra en -o falla el día que le toca a ellas, con su nombre delante. Eso
-// vale para las otras veinte acciones y `npm run check` lo vigila.
+// vale para las demás acciones y `npm run check` lo vigila.
 //
 // Aquí NO. Dieciséis de estas treinta dan por hecho que quien recibe es mujer
 // —coño, clítoris, moja, chorrea, el charco— y así es como se quieren. Se
@@ -390,7 +393,7 @@ const BONK = [
 //
 // Queda escrito aquí para que no se vuelva a «arreglar» solo. Quien pase por
 // este fichero buscando concordancias rotas: estas no lo son, son una decisión.
-// Las otras veinte acciones sí, y ahí sí hay que mirar.
+// Las demás acciones sí, y ahí sí hay que mirar.
 const FUCK = [
   '%A se folla a la guarra de %V contra la pared y no la deja bajar las piernas. La zorra se agarra al cuello y pide otra más fuerte.',
   '%A pone a %V a cuatro y se la mete hasta el fondo. La zorra empuja hacia atrás para más. %A le sujeta la cadera y no la deja escapar ni un dedo.',
@@ -959,7 +962,7 @@ const POUT = [
   '%V sabe que es teatro. Cede igual, y eso es lo humillante.',
   '%A frunce el morro y %V cambia de opinión sobre algo que defendía hace diez segundos.',
   '%V aguanta cuatro segundos. Cuatro segundos es su récord personal.',
-  '%A pone morros por una gilipollez. %V lo arregla como si se hubiera muerto alguien.',
+  '%A pone morros por una gilipoyez. %V lo arregla como si se hubiera muerto alguien.',
   '%V le llama manipulador. %A asiente sin quitar el morro.',
   '%A pone carita y %V suspira. El suspiro es la bandera blanca.',
   '%A hace pucheros mirando de reojo a ver si cuela. Cuela siempre.',

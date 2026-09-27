@@ -56,6 +56,8 @@ const RIZZ = {
   ],
 };
 
+// PIROPOS va de hombre a mujer y así se queda: el dueño lo dejó exento de la
+// regla de género, como !fuck (GUIA.md, sección 5 bis, punto 9).
 const PIROPOS = [
   'Joder, %N, te comería el chocho hasta dejarte las piernas temblando y yo con la cara hecha un desastre. Y pediría repetir.',
   '%N, me la pones tan dura que me duele. Te la metería ahora mismo, aquí, y que nos echen. Que nos echen, coño.',

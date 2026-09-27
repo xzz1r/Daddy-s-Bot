@@ -92,13 +92,13 @@ function avisoDeVeto(hits) {
 }
 
 // Aviso de !purge: frío, sin drama. No cumplen las reglas; uno más que se va.
-// Español neutral (tú en singular, ustedes en plural; sin vosotros).
+// Tú en singular y vosotros en plural, como el resto del bot.
 function avisoDePurge(hits) {
   const tags = etiquetasDe(hits);
   const menciones = tags.map((t) => `@${t.label}`).join(' ');
   const texto = tags.length === 1
     ? `${menciones} no cumples los requisitos de las reglas.\nUno más. Fuera.`
-    : `${menciones} no cumplen los requisitos de las reglas.\nUnos más. Fuera.`;
+    : `${menciones} no cumplís los requisitos de las reglas.\nUnos más. Fuera.`;
   return {
     text: texto,
     mentions: tags.map((t) => t.mention),
