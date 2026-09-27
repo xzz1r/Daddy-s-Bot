@@ -20032,6 +20032,53 @@ const manda = async (quien, tipo, opciones) => {
     if (fallos === antes121) console.log(verde('   ✓ solo el dueño, pregunta antes, deja a admins, dueño y bot, y echa en tandas'));
   }
 
+  // ── 122. EL ROAST CITA LA BIO, Y SOLO CUANDO LA HA LEÍDO ────────────────
+  //
+  // %B es la bio de la víctima entre comillas. Solo puede salir en BIO_FULL y
+  // en los COMBINED_*, que el motor elige únicamente con una bio leída. En
+  // cualquier otro pool saldría «%B» tal cual, o una cita vacía «».
+  {
+    console.log('\n122. EL ROAST CITA LA BIO, Y SOLO CUANDO LA HA LEÍDO');
+    const antes122 = fallos;
+    const exige = (c, q) => { if (!c) { fallos++; console.log(rojo(`   ✗ ${q}`)); } };
+    const RP = require(path.join(R, 'src/data/roastPhrases'));
+    for (const [k, v] of Object.entries(RP)) {
+      if (!Array.isArray(v) || ['BIO_FULL', 'COMBINED_ACTIVE', 'COMBINED_INACTIVE'].includes(k)) continue;
+      const con = v.filter((f) => f.includes('%B'));
+      exige(!con.length, `${k} usa %B y ese pool sale sin bio leída: «${(con[0] || '').slice(0, 50)}»`);
+    }
+    try {
+      const { cmdRoast, citaBio } = require(path.join(R, 'src/commands/roast'));
+      exige(citaBio('x'.repeat(10) + ' ' + 'y'.repeat(80)).length <= 61, 'citaBio no recorta una bio larga');
+      const G = '120363000000122122@g.us';
+      const V = '34600095122@s.whatsapp.net';
+      const BIO = 'Vivo la vida a mi manera';
+      const salen = [];
+      const sock = {
+        user: { id: '34600095999@s.whatsapp.net' },
+        fetchStatus: async () => [{ id: V, status: { status: BIO, setAt: new Date() } }],
+        sendMessage: async (j, m) => { salen.push(m.text || ''); return {}; },
+      };
+      const msg = { key: { remoteJid: G, fromMe: false, participant: '34600095123@s.whatsapp.net', id: 'R122' },
+        message: { extendedTextMessage: { text: '!roast', contextInfo: { mentionedJid: [V] } } } };
+      const meta = { id: G, participants: [{ id: V }, { id: '34600095123@s.whatsapp.net' }] };
+      const rnd = Math.random;
+      try {
+        Math.random = () => 0.01;               // rama combinada
+        await cmdRoast(sock, msg, [], meta);
+      } finally { Math.random = rnd; }
+      const t = salen.at(-1) || '';
+      exige(t.includes(BIO), `el roast combinado no cita la bio leída: «${t.slice(0, 90)}»`);
+      exige(!/%[A-Z]/.test(t) && !t.includes('«»'), `el roast deja un hueco sin rellenar: «${t.slice(0, 90)}»`);
+      for (let i = 0; i < 40; i++) await cmdRoast(sock, msg, [], meta);
+      const malo = salen.find((x) => /%[A-Z]/.test(x) || x.includes('«»'));
+      exige(!malo, `algún roast sale con un hueco sin rellenar: «${(malo || '').slice(0, 90)}»`);
+    } catch (e) {
+      exige(false, `el roast con bio reventó: ${e.message}`);
+    }
+    if (fallos === antes122) console.log(verde('   ✓ %B solo donde hay bio leída, y la cita sale entera'));
+  }
+
   }
 
   if (BREVE) {

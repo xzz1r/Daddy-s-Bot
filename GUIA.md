@@ -456,7 +456,8 @@ Un «cabrón» suelto al final no cuenta como género: es el registro del bot y 
 usa igual con cualquiera. Quedan fuera de la regla los comandos que van de
 género a propósito (`!masculinidad`, `!feminidad`, `!gay`, `!maricon`,
 `!femboy`, `!puta`, `!guarra`, `!linda`), los pools de `!fuck`, `!anal`,
-`!cum` y `!spank`, y los piropos de `!piropo`, que el dueño quiere así. La capa 44 del check se queda corta: en las acciones mira
+`!cum` y `!spank`, y los piropos de `!piropo`, que el dueño quiere así. La capa
+44 del check se queda corta: en las acciones mira
 «%V se queda quieto» y el «lo» que va por %V, pero no el «la», y en el resto
 solo caza «eres el que» y «eres el tío que», y solo en `src/data/`. Lo demás lo
 tiene que ver quien escribe.
@@ -679,7 +680,7 @@ copia legible. Si las dos discrepan, la del código tiene razón.
 | Dónde escribes | Placeholders permitidos |
 |---|---|
 | `percent.js`, `percentLabels.js`, `fidelityPhrases.js` | `[nombre]` |
-| `roast.js`, `roastPhrases.js` | `%N` nombre, `%MSG` mensaje citado |
+| `roast.js`, `roastPhrases.js` | `%N` nombre, `%MSG` mensaje citado, `%B` la bio de la víctima citada (solo en `BIO_FULL` y en los `COMBINED_*`, que salen únicamente cuando hay bio leída) |
 | `relevance.js` | `%N` nombre, `%MSG` mensaje citado |
 | `wingman.js`, `wingmanPhrases.js` | `%N` nombre |
 | `robo.js`, `roboPhrases.js`, `roboExtraPhrases.js` | `%A` autor, `%V` víctima, `%C` cantidad, `%N` nombre, `%H` hora |

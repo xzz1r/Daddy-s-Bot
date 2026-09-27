@@ -35,8 +35,8 @@ const CONTRATO = {
   // queda una sola frase que lo use, pero el contrato lo seguia permitiendo:
   // un permiso para un hueco que ya no rellena nadie es una invitacion a
   // escribir 300 frases que saldrian con el %PAIS crudo en el grupo.
-  'src/commands/roast.js':         { permite: ['%N', '%MSG'],                   sustituye: 'src/commands/roast.js' },
-  'src/data/roastPhrases.js':      { permite: ['%N', '%MSG'],                   sustituye: 'src/commands/roast.js' },
+  'src/commands/roast.js':         { permite: ['%N', '%MSG', '%B'],                   sustituye: 'src/commands/roast.js' },
+  'src/data/roastPhrases.js':      { permite: ['%N', '%MSG', '%B'],                   sustituye: 'src/commands/roast.js' },
   'src/commands/robo.js':          { permite: ['%A', '%C', '%N', '%V', '%H'],  sustituye: 'src/commands/robo.js' },
   'src/data/roboPhrases.js':       { permite: ['%A', '%C', '%N', '%V', '%H'],  sustituye: 'src/commands/robo.js' },
   'src/commands/wingman.js':       { permite: ['%N'],                          sustituye: 'src/commands/wingman.js' },
