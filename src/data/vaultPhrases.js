@@ -94,7 +94,7 @@ const LLENO = [
 // No llega al mínimo o no tiene saldo suficiente.
 const POCO = [
   'Por esa miseria no merece la pena ni abrir la caja.',
-  'Menos de lo que cuesta el candado. Vuelve con algo serio.',
+  'Por debajo del mínimo. Vuelve con algo serio.',
   'Trae una cifra de verdad o deja la caja en paz.',
   'Muy poco. La caja tiene dignidad, tú no.',
   'Ni para cubrir el fondo. Sube la cifra.',

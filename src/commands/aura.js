@@ -146,7 +146,7 @@ const AURA = {
     'Tu tirada hizo que dos personas borrasen lo que estaban escribiendo.',
     'Dejaste al grupo con la cara de cuando les deben dinero.',
     'Ganaste tan limpio que nadie pudo decir ni una puta cosa. Y eso aquí no pasa nunca.',
-    'Coño, le debían una y se la has cobrado en público.',
+    'Coño, te debían una y te la has cobrado en público.',
     'Coño, te han mirado como se mira al que acierta la lotería: con rabia educada.',
     'Había un puto hilo de burla a medio construir. Lo has tirado abajo con un ladrillo.',
     'El que te subestimaba está recalculando.',
@@ -280,7 +280,7 @@ const AURA = {
     'El grupo ya te tenía en cero. Hoy han confirmado el mute.',
   ],
   spiral: [
-    'Apuesta por cuánto tardas en tocar un nuevo mínimo.',
+    'Ya nadie pregunta si vas a tocar otro mínimo. Preguntan cuándo.',
     'Llevas tanto abajo que el fondo te ha adoptado. Residencia permanente, gilipoyas.',
     'Joder, llevas tantas seguidas que ganar te daría un susto de muerte.',
     'Sigues abajo y lo peor es que ahí encajas. Ese es tu puto sitio.',
@@ -317,7 +317,7 @@ const AURA = {
     'El aura te usó de ejemplo público. El puto grupo miró, asintió y tomó nota mental.',
     'Bajaste tan fuerte que hasta tus habituales defensores se hicieron los locos, cabrón.',
     'Fue el chat recordándote, sin filtro, que sigues siendo un puto desastre.',
-    'Solo quedó esa mezcla de pena y alivio de no ser tú. Qué asco de suerte la suya.',
+    'Solo quedó esa mezcla de pena y alivio de no ser tú. Qué asco de suerte la tuya.',
     // ── Reescritas y nuevas ──
     'Joder, perdiste tanto que la cifra ya no da risa.',
     'Perdiste con la elegancia de quien no sabe perder: ninguna.',

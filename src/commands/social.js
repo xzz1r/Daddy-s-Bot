@@ -240,7 +240,7 @@ const AURA_LINES = [
   'Con aura se compra en la tienda: escudo, ganzúa, cebo. Sin aura te compras un disgusto.',
   'El aura se nota en el saldo y en la cara. La tuya lleva un rato diciendo que te falta.',
   'Nadie te regala nada en este marcador. Lo que tienes lo has escrito, lo has robado o te ha tocado en los dados.',
-  'Los fantasmas tienen el saldo congelado. No pierden nada, pero tampoco existen.',
+  'Los fantasmas no cobran ni un punto. Lo que tienen se queda a la vista del primero que pase.',
   'Robar sale bien a veces. Escribir sale bien siempre. Haz las cuentas.',
   'Los duelos mueven aura de un bolsillo a otro. El tuyo suele ser el que se vacía.',
   'El marcador no tiene memoria para excusas. Solo para números.',

@@ -103,7 +103,7 @@ let INTERMEDIO = [
 
 const RELEVANTE = [
   '%N, %MSG mensajes. Puta mula de carga: el grupo anda porque tú andas, y ni te quejas.',
-  '%MSG mensajes, %N. Tu nombre sale en más conversaciones que el de cualquier otro. No por casualidad.',
+  '%MSG mensajes, %N. El día que falta tu nombre en el chat, el chat se nota vacío. No por casualidad.',
   '%N con %MSG mensajes. Cuando alguien pregunte quién sostiene esto, se enseña este número y punto.',
   'Con %MSG mensajes, %N, eres el puto pilar de este grupo. Sin adorno. El dato.',
   'Con %MSG mensajes, %N, cada vez que hay drama apareces con opinión y quince mensajes seguidos. Imprescindible. El resto, a reaccionar.',
@@ -113,7 +113,7 @@ const RELEVANTE = [
   '%N con %MSG mensajes. El grupo te necesita más de lo que tú necesitas al grupo, y se nota cada vez que abres la boca.',
   '%N con %MSG mensajes. El resto del grupo se limita a reaccionar a lo que tú sueltas. Liderazgo del chat, cabrón.',
   'Con %MSG mensajes, %N, cada vez que te callas unos días alguien pregunta si te ha pasado algo. Esa pregunta es la prueba.',
-  '%MSG mensajes, %N. Has aportado más que la mitad del grupo junto y encima sin que nadie te lo pidiera, cabrón.',
+  '%MSG mensajes, %N. Has escrito más de lo que escribe un fantasma en toda su vida, y sin que nadie te lo pidiera, cabrón.',
   '%N con %MSG mensajes. Cuando entras al chat cambia el ritmo de todo el mundo. Eso es poder real.',
   'Con %MSG mensajes, %N, el grupo funciona mejor cuando tú estás activo y se nota muchísimo cuando no. Esa dependencia, cabrón, te la has currado tú.',
   '%MSG mensajes, %N. Has hecho de la cantidad una puta virtud. El grupo sin ese ruido tuyo sería un puto páramo.',

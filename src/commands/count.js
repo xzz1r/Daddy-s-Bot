@@ -112,7 +112,7 @@ let ADMIN_PHRASES = [
     'Número uno con cargo. El grupo te tiene miedo y te tiene leído. Combinación imbatible.',
     'Primero del ranking con placa. Si algún día te vas, este grupo se queda mudo y sin ley a la vez.',
     'Admin número uno. No hace falta que recuerdes que mandas: el contador ya lo grita por ti.',
-    'La placa y el trono. Si esto fuera un país, seríais tú, tú y otra vez tú.',
+    'La placa y el trono. Si esto fuera un país, el gobierno serías tú, tú y otra vez tú.',
     'Número uno con autoridad. El grupo no se te desmadra porque no le das ni tiempo a intentarlo.',
     'Admin y número uno. El cargo y el trabajo en la misma persona. Casi nunca pasa.',
     'Primer puesto con placa. Mandas y además das ejemplo, que es lo que más jode a los de abajo.',
