@@ -746,17 +746,22 @@ su copia de la tabla de tráfico y se quedó en el reparto viejo de los positivo
 para un tramo que se lee el 18 % y daba por bueno el que se lee el 76 %. Hoy lee
 la tabla del motor, y no hay segunda copia.
 
-Fuera de los tramos de porcentaje y de `!rizz` sigue la regla por tráfico, que
-pide 100 frases al pool que se lee la mitad de las veces o más, 50 al que se lee
-una de cada cuatro y 25 al resto, mirando el pool concreto:
+Fuera de los tramos de porcentaje y de `!rizz`, la regla la fijó el dueño en
+septiembre de 2026: **30 frases por pool en los comandos más usados**, cada una
+con una idea propia. Antes se pedían 100 al pool más leído, y el resultado fue
+el que describe la sección 5 bis: cien versiones de la misma tesis. Se
+recortaron los 55 pools donde el eco pasaba de la mitad y se repusieron hasta
+30 con ideas nuevas. Hay dos excepciones con suelo propio en el check:
+`MAL_ESCRITO` (50, porque sale a cada comando mal escrito) y los avisos de
+`!kick` (50).
 
 | Cuándo sale ese pool | Tope | Hoy |
 |---|---|---|
-| En cada uso de un comando frecuente (tramos de `iq`, veredictos de `ship`) | 100-200 | `iq` entre 30 y 50 por tramo, `ship` 60 |
-| Desenlace común de un comando frecuente (`ROB_WIN`, `ROB_FAIL`) | no hace falta más | 183 y 268 |
+| En cada uso de un comando frecuente (tramos de `iq`, veredictos de `ship`) | 30, cada una con su idea | `iq` 30 por tramo (genio 20), `ship` 30 (el cien exacto 15) |
+| Desenlace común de un comando frecuente (`ROB_WIN`, `ROB_FAIL`) | 30, cada una con su idea | 30 |
 | Ruta rara (tienda de `robo`, escudo, contraataque) | ~100, por decisión del dueño | 30 por pool |
 | Apuesta de aura (cooldown 3 h) | ~60 | 62 y 60 |
-| Hitos de racha | ~50 | 50 |
+| Hitos de racha | ~30 | 30 |
 
 Son topes, no metas (sección 5 bis). Un pool que no llega con frases de oro se
 queda corto, y eso es mejor que llenarlo.

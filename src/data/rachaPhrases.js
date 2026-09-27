@@ -7,9 +7,10 @@
 //
 // Marcadores: %N nombre · %D días de racha · %P días perdidos
 //
-// El registro es el de siempre: negro, sucio y sin consuelo. La racha se presta
-// especialmente a la crueldad porque lo que se celebra es, mirado de frente,
-// que alguien lleva un mes sin faltar un solo día a un grupo de WhatsApp.
+// Los dos pools van en direcciones contrarias, como pide la guía: el HITO
+// proclama al que no falla (la actividad se proclama, no se ridiculiza) y la
+// racha ROTA remata al que desapareció un día, que es la única falta que el
+// bot persigue de verdad.
 
 // ─── Hitos: llegar a 7, 15, 30, 50, 100, 200 o 365 días ──────────────────────
 const HITO = [
