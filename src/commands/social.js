@@ -553,7 +553,7 @@ _Todo lleva ${PREFIJOS} delante. El número es lo que cuesta; sin número no cob
 *HERRAMIENTAS*
 *${p}play* ${c('play')} <canción> — el audio de la canción
 *${p}tt* ${c('redes')} <enlace> — el vídeo de TikTok, sin marca de agua
-*${p}ig* ${c('redes')} <enlace> — el vídeo o las fotos del post
+*${p}ig* ${c('redes')} <enlace> — el vídeo o las fotos del enlace de Instagram
 *${p}x* ${c('redes')} <enlace> — la foto, el gif o el vídeo del tuit
 *${p}pin* ${c('redes')} <qué buscar> — fotos de Pinterest (*${p}next* saca otra)
 _Enlaces de publicaciones, no de perfiles._
