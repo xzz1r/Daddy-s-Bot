@@ -551,12 +551,13 @@ async function cmdHelp(sock, msg, groupMeta, args = []) {
 _Todo lleva ${PREFIJOS} delante. El número es lo que cuesta; sin número no cobra._
 
 *HERRAMIENTAS*
-*${p}play* ${c('play')} <nombre> · *${p}tt* ${c('redes')} <enlace> · *${p}ig* ${c('redes')} <enlace>
-*${p}pin* ${c('redes')} <qué buscar> — o un enlace de Pinterest
-*${p}x* ${c('redes')} <enlace> — la foto, el gif o el vídeo del tuit
-_Responde a la foto con *${p}next* y saca otra de la misma búsqueda_
-*${p}s* ${c('sticker')} — hacer sticker · *${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')}
-*${p}ttp* ${c('ttp')} <texto> · *${p}pfp* ${c('pfp')} · *${p}fk* ${c('fk')} @user
+*${p}play* ${c('play')} <canción> — el audio · *${p}x* ${c('redes')} <enlace> — lo que traiga el tuit
+*${p}tt* ${c('redes')} <enlace> — TikTok sin marca de agua · *${p}ig* ${c('redes')} <enlace> — vídeo o foto
+_Enlaces de publicaciones, no de perfiles: no es para pasar cuentas._
+*${p}pin* ${c('redes')} <qué buscar> — fotos de Pinterest · _responde con *${p}next* y saca otra_
+*${p}s* ${c('sticker')} — sticker de foto o vídeo · *${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')} — al revés
+*${p}ttp* ${c('ttp')} <texto> — texto a sticker · *${p}pfp* ${c('pfp')} @user — su foto
+*${p}fk* ${c('fk')} @user — cuánto huele a cuenta falsa
 
 *DINÁMICAS*
 _Sin @ va sobre ti, con @ sobre esa persona_
