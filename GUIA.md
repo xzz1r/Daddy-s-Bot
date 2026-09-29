@@ -380,6 +380,11 @@ tiene que decirle a esa persona algo concreto que le duela.
 La primera es una sentencia que vale para cualquiera. La segunda es algo que
 alguien hace, y quien lo hace se reconoce.
 
+No se baja el filo porque el tema sea de una comunidad. El simp, la rata, el
+friki, el que se cree alpha y el que se cree víctima llevan el mismo cuchillo.
+Pedir trato distinto ya es el chiste. Lo que no se toca es el nacimiento: eso
+no es filo, es el parte de otra persona, y el bot no lo firma.
+
 ### Lo que tiene que tener
 
 **1. La frase termina en una imagen concreta, no en un insulto.** El insulto es
@@ -428,6 +433,10 @@ halago.
 > «Estructura buena, piel buena, proporciones buenas. Aburrido de leer y
 > molesto de aceptar.»
 
+No basta con cerrar seco. El cierre tiene que hacer que el piropo le pese.
+«Estás bien» sin cobro es un defecto, no un halago corto. Si el cumplido se
+puede reenviar sin que al otro le dé vergüenza aceptarlo, no ha cobrado.
+
 ### Lo que la tira
 
 **7. La analogía barata.** Si el chiste es el objeto («Café de máquina: dos
@@ -469,6 +478,27 @@ decidió el dueño y el check lo vigila en los avisos, en !kick y en !purge.
 **10. La amenaza de echar.** El bot no amenaza con echar a nadie. Echar es cosa
 de `!kick` y de la purga, que es cuando pasa de verdad, y una amenaza que no se
 cumple le quita peso a las que sí.
+
+**11. El aterrizaje suave.** La última cláusula no perdona, no contextualiza y
+no dice «pero». «Pero al menos», «dentro de lo que cabe», «no está tan mal» y
+«hay que reconocerle» son indulto. Un veredicto no indulta.
+
+**12. El eufemismo.** «Se pasa», «va fuerte», «es intenso», «tiene carácter» y
+«sin ofender» son frases de quien no se atreve a nombrar la mierda. Si el pool
+es de paliza, se nombra. El taco que se puede cambiar por «cosa» y la frase
+aguanta igual no es filo: es adorno, y el adorno se tira.
+
+**13. La pregunta que los suelta.** «¿En serio?», «¿así se queda?», «¿tú te
+oyes?» dejan la puerta abierta para que el otro se explique. El bot no
+pregunta. Sentencia y cierra.
+
+**14. El mid no es tregua.** En el tramo medio se pega menos fuerte, no más
+amable. Una frase de mid que podría ir en un bot educado está en el tramo
+equivocado: o sube y duele, o baja y halaga de verdad, o se tira.
+
+**15. El guiño.** «Con respeto», «es broma», «no te lo tomes a mal», un emoji
+que pide perdón o una frase que se ríe de sí misma le avisan al grupo de que el
+bot se ha rajado. Si hay que avisar de que es un chiste, no lo es.
 
 ### Que no parezca escrito por una máquina
 
@@ -523,6 +553,16 @@ escribe con y, y hay otra que mandó quitar de todo el bot. Las vigilan las capa
 
 El bot no reparte crueldad a partes iguales. Tiene un criterio, y decide en qué
 tramo va cada frase antes que ninguna otra cosa.
+
+**Sin prisioneros.** Ninguna comunidad del grupo se escribe con guante.
+Política, fandom, estética, dinero, el sexo como conducta, el personaje que se
+han montado, la historia de víctima y la de alpha: si el comando existe, el
+filo es el mismo. No hay tema delicado ni pool que «vaya más suave porque la
+gente se lo toma a pecho». Quien se rompe, se rompe. La excepción no es una
+comunidad: es el nacimiento. La crueldad va sobre lo que hace y sobre la
+fantasía que se cuenta, nunca sobre de dónde salió ni sobre el cuerpo con el
+que nació. Rockstar se ríe del que se cree alguien, no del que nació donde
+nació, y el bot no se mueve de ahí.
 
 **La actividad se proclama.** Quien escribe sostiene el grupo. Cuando el bot lo
 nombra, lo dice como quien lee un parte de méritos: corto, seco, sin sarcasmo.
@@ -600,8 +640,10 @@ asalto. Cuatro cosas que se copian y tres que no.
   promesas. Se venden como se vende una garantía extendida: prometiendo mucho y
   cubriendo poco.
 - **La crueldad es siempre sobre la conducta y la fantasía propia**, nunca sobre
-  lo que alguien es de nacimiento. Rockstar se ríe del que se cree alguien, no
-  del que nació donde nació. El bot ya funciona así y no se mueve de ahí.
+  lo que alguien es de nacimiento. Misma regla que «sin prisioneros», arriba:
+  no hay comunidad a la que se le baje el cuchillo, y tampoco se cambia el
+  blanco. Rockstar se ríe del que se cree alguien, no del que nació donde
+  nació. El bot ya funciona así y no se mueve de ahí.
 
 **No se copia:**
 
@@ -872,6 +914,8 @@ Checklist:
 
 - [ ] ¿Está a la altura de las mejores del pool? Si dudas, no entra.
 - [ ] ¿Dice algo concreto de esa persona, o vale para cualquiera?
+- [ ] En un pool de paliza, ¿la última cláusula indulta, suaviza o pregunta?
+- [ ] ¿El taco es el corte, o se puede quitar y la frase sigue en pie?
 - [ ] ¿Le llega igual a una tía que a un tío?
 - [ ] ¿La polaridad es la correcta? (`goodIsHigh`, sección 3.2)
 - [ ] ¿El tramo coincide con el tono?
