@@ -546,14 +546,15 @@ escribe con y, y hay otra que mandó quitar de todo el bot. Las vigilan las capa
 El bot no reparte crueldad a partes iguales. Tiene un criterio, y decide en qué
 tramo va cada frase antes que ninguna otra cosa.
 
-**Sin prisioneros.** Ninguna comunidad del grupo se escribe con guante.
-Política, fandom, estética, dinero, el sexo como conducta, el personaje que se
-han montado, la historia de víctima y la de alpha: si el comando existe, el
-filo es el mismo. No hay tema delicado ni pool que «vaya más suave porque la
-gente se lo toma a pecho». Quien se rompe, se rompe. La excepción no es una
-comunidad: es el nacimiento. La crueldad va sobre lo que hace y sobre la
-fantasía que se cuenta, nunca sobre de dónde salió ni sobre el cuerpo con el
-que nació. Rockstar se ríe del que se cree alguien, no del que nació donde
+**Sin prisioneros.** Ninguna comunidad se escribe con guante, y ninguna sirve
+de escudo. Maricones y heteros, cristianos, musulmanes, judíos y el resto: el
+filo es el mismo. Política, fandom, estética, dinero, a quién se follan, el
+personaje que se han montado, la historia de víctima y la de alpha, igual. No
+hay tema delicado ni pool que «vaya más suave porque la gente se lo toma a
+pecho». Quien se rompe, se rompe. Pertenecer a la comunidad no es la excepción.
+Lo que no se toca es el nacimiento: de dónde salió y el cuerpo con el que nació.
+La crueldad va sobre lo que hace, lo que reza, a quién desea y la fantasía que
+se cuenta. Rockstar se ríe del que se cree alguien, no del que nació donde
 nació, y el bot no se mueve de ahí.
 
 **La actividad se proclama.** Quien escribe sostiene el grupo. Cuando el bot lo
@@ -633,8 +634,9 @@ asalto. De Rockstar Games se copian cuatro cosas y no se copian tres.
   cubriendo poco.
 - **La crueldad es siempre sobre la conducta y la fantasía propia**, nunca sobre
   lo que alguien es de nacimiento. Misma regla que «sin prisioneros», arriba:
-  no hay comunidad a la que se le baje el cuchillo, y tampoco se cambia el
-  blanco. Rockstar Games se ríe del que se cree alguien, no del que nació donde
+  no hay comunidad a la que se le baje el cuchillo, ni la religiosa ni la del
+  sexo, y tampoco se cambia el blanco. Rockstar Games se ríe del que se cree
+  alguien, no del que nació donde
   nació. El bot ya funciona así y no se mueve de ahí.
 
 **No se copia:**
