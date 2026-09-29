@@ -551,12 +551,17 @@ async function cmdHelp(sock, msg, groupMeta, args = []) {
 _Todo lleva ${PREFIJOS} delante. El número es lo que cuesta; sin número no cobra._
 
 *HERRAMIENTAS*
-*${p}play* ${c('play')} <canción> — el audio · *${p}x* ${c('redes')} <enlace> — lo que traiga el tuit
-*${p}tt* ${c('redes')} <enlace> — TikTok sin marca de agua · *${p}ig* ${c('redes')} <enlace> — vídeo o foto
-_Enlaces de publicaciones, no de perfiles: no es para pasar cuentas._
-*${p}pin* ${c('redes')} <qué buscar> — fotos de Pinterest · _responde con *${p}next* y saca otra_
-*${p}s* ${c('sticker')} — sticker de foto o vídeo · *${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')} — al revés
-*${p}ttp* ${c('ttp')} <texto> — texto a sticker · *${p}pfp* ${c('pfp')} @user — su foto
+*${p}play* ${c('play')} <canción> — el audio de la canción
+*${p}tt* ${c('redes')} <enlace> — el vídeo de TikTok, sin marca de agua
+*${p}ig* ${c('redes')} <enlace> — el vídeo o las fotos del post
+*${p}x* ${c('redes')} <enlace> — la foto, el gif o el vídeo del tuit
+*${p}pin* ${c('redes')} <qué buscar> — fotos de Pinterest (*${p}next* saca otra)
+_Enlaces de publicaciones, no de perfiles._
+*${p}s* ${c('sticker')} — foto o vídeo a sticker
+*${p}toimg* ${c('toimg')} — sticker a foto
+*${p}tovid* ${c('tovid')} — sticker animado a vídeo
+*${p}ttp* ${c('ttp')} <texto> — texto a sticker
+*${p}pfp* ${c('pfp')} @user — su foto de perfil
 *${p}fk* ${c('fk')} @user — cuánto huele a cuenta falsa
 
 *DINÁMICAS*
