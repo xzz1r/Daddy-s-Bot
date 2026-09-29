@@ -433,10 +433,6 @@ halago.
 > «Estructura buena, piel buena, proporciones buenas. Aburrido de leer y
 > molesto de aceptar.»
 
-No basta con cerrar seco. El cierre tiene que hacer que el piropo le pese.
-«Estás bien» sin cobro es un defecto, no un halago corto. Si el cumplido se
-puede reenviar sin que al otro le dé vergüenza aceptarlo, no ha cobrado.
-
 ### Lo que la tira
 
 **7. La analogía barata.** Si el chiste es el objeto («Café de máquina: dos
@@ -488,17 +484,13 @@ no dice «pero». «Pero al menos», «dentro de lo que cabe», «no está tan m
 es de paliza, se nombra. El taco que se puede cambiar por «cosa» y la frase
 aguanta igual no es filo: es adorno, y el adorno se tira.
 
-**13. La pregunta que los suelta.** «¿En serio?», «¿así se queda?», «¿tú te
-oyes?» dejan la puerta abierta para que el otro se explique. El bot no
-pregunta. Sentencia y cierra.
+**13. El mid no es tregua.** En el tramo medio se pega menos fuerte, no más
+amable. Sigue siendo un veredicto: no consuela, no explica y no pide perdón.
+Cambia el golpe, no el registro. El mid se queda en mid.
 
-**14. El mid no es tregua.** En el tramo medio se pega menos fuerte, no más
-amable. Una frase de mid que podría ir en un bot educado está en el tramo
-equivocado: o sube y duele, o baja y halaga de verdad, o se tira.
-
-**15. El guiño.** «Con respeto», «es broma», «no te lo tomes a mal», un emoji
-que pide perdón o una frase que se ríe de sí misma le avisan al grupo de que el
-bot se ha rajado. Si hay que avisar de que es un chiste, no lo es.
+**14. El guiño.** «Con respeto», «es broma» y «no te lo tomes a mal» son una
+disculpa, y el bot no se disculpa. Un emoji que pide perdón, igual. Si la
+frase tiene que avisar de que es un chiste, no lo es.
 
 ### Que no parezca escrito por una máquina
 
@@ -561,7 +553,7 @@ filo es el mismo. No hay tema delicado ni pool que «vaya más suave porque la
 gente se lo toma a pecho». Quien se rompe, se rompe. La excepción no es una
 comunidad: es el nacimiento. La crueldad va sobre lo que hace y sobre la
 fantasía que se cuenta, nunca sobre de dónde salió ni sobre el cuerpo con el
-que nació. Rockstar se ríe del que se cree alguien, no del que nació donde
+que nació. Rockstar Games se ríe del que se cree alguien, no del que nació donde
 nació, y el bot no se mueve de ahí.
 
 **La actividad se proclama.** Quien escribe sostiene el grupo. Cuando el bot lo
@@ -621,16 +613,16 @@ palo por ganar, solo su economía.
 rematan. Un pool de victoria con el arsenal por las nubes es el bot insultando
 al ganador, y eso es un defecto, no un pool sin trabajar.
 
-### El refuerzo: cómo escribe Rockstar
+### El refuerzo: cómo escribe Rockstar Games
 
 Sirve para lo que al bot le falta hoy, que es el registro de sus
 **instituciones**: la tienda, el bote, la caja, el cartel de buscados, el
-asalto. Cuatro cosas que se copian y tres que no.
+asalto. De Rockstar Games se copian cuatro cosas y no se copian tres.
 
 **Se copia:**
 
 - **El detalle mundano como remate.** No «te robaron»: te robaron y el ladrón
-  se paró a contar el dinero delante de ti. Rockstar no describe el atraco,
+  se paró a contar el dinero delante de ti. Rockstar Games no describe el atraco,
   describe al tipo que se queja del tráfico mientras huye.
 - **La voz burocrática aplicada a la violencia.** Comisiones, plazos, letra
   pequeña, condiciones. La caja cobra por abrirse y lo dice como un banco lo
@@ -640,17 +632,16 @@ asalto. Cuatro cosas que se copian y tres que no.
   promesas. Se venden como se vende una garantía extendida: prometiendo mucho y
   cubriendo poco.
 - **La crueldad es siempre sobre la conducta y la fantasía propia**, nunca sobre
-  lo que alguien es de nacimiento. Misma regla que «sin prisioneros», arriba:
-  no hay comunidad a la que se le baje el cuchillo, y tampoco se cambia el
-  blanco. Rockstar se ríe del que se cree alguien, no del que nació donde
-  nació. El bot ya funciona así y no se mueve de ahí.
+  lo que alguien es de nacimiento. Rockstar Games se ríe del que se cree
+  alguien, no del que nació donde nació. El bot ya funciona así y no se mueve
+  de ahí.
 
 **No se copia:**
 
 - **Nada americano.** Ni marcas, ni radio, ni acento. Aquí es un grupo de
   WhatsApp.
-- **Guiñar al público.** Rockstar nunca dice «qué gracioso es esto», y el bot
-  tampoco puede.
+- **Guiñar al público.** Rockstar Games nunca dice «qué gracioso es esto», y el
+  bot tampoco puede.
 - **El chiste largo.** Una frase, una línea.
 
 ---
@@ -914,7 +905,7 @@ Checklist:
 
 - [ ] ¿Está a la altura de las mejores del pool? Si dudas, no entra.
 - [ ] ¿Dice algo concreto de esa persona, o vale para cualquiera?
-- [ ] En un pool de paliza, ¿la última cláusula indulta, suaviza o pregunta?
+- [ ] En un pool de paliza, ¿la última cláusula indulta o suaviza?
 - [ ] ¿El taco es el corte, o se puede quitar y la frase sigue en pie?
 - [ ] ¿Le llega igual a una tía que a un tío?
 - [ ] ¿La polaridad es la correcta? (`goodIsHigh`, sección 3.2)
