@@ -553,7 +553,7 @@ filo es el mismo. No hay tema delicado ni pool que «vaya más suave porque la
 gente se lo toma a pecho». Quien se rompe, se rompe. La excepción no es una
 comunidad: es el nacimiento. La crueldad va sobre lo que hace y sobre la
 fantasía que se cuenta, nunca sobre de dónde salió ni sobre el cuerpo con el
-que nació. Rockstar Games se ríe del que se cree alguien, no del que nació donde
+que nació. Rockstar se ríe del que se cree alguien, no del que nació donde
 nació, y el bot no se mueve de ahí.
 
 **La actividad se proclama.** Quien escribe sostiene el grupo. Cuando el bot lo
@@ -632,9 +632,10 @@ asalto. De Rockstar Games se copian cuatro cosas y no se copian tres.
   promesas. Se venden como se vende una garantía extendida: prometiendo mucho y
   cubriendo poco.
 - **La crueldad es siempre sobre la conducta y la fantasía propia**, nunca sobre
-  lo que alguien es de nacimiento. Rockstar Games se ríe del que se cree
-  alguien, no del que nació donde nació. El bot ya funciona así y no se mueve
-  de ahí.
+  lo que alguien es de nacimiento. Misma regla que «sin prisioneros», arriba:
+  no hay comunidad a la que se le baje el cuchillo, y tampoco se cambia el
+  blanco. Rockstar Games se ríe del que se cree alguien, no del que nació donde
+  nació. El bot ya funciona así y no se mueve de ahí.
 
 **No se copia:**
 
