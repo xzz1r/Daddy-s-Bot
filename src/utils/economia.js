@@ -562,11 +562,11 @@ const RACHA = {
 // linea de fortuna y los precios, y eso devalua el aura que la gente ya tiene:
 // es una decision del dueño, no un ajuste.
 // SUBIDOS POR DECISION DEL DUEÑO (30 sep 2026): «lo actual es bastante
-// miseria». Tramo 1 x2 y tramos 2 y 3 x1,5. La redencion sube al mismo ritmo
+// miseria». Tramo 1 x1,75 y tramos 2 y 3 x1,4. La redencion sube al mismo ritmo
 // para seguir por encima del mega de cada tramo.
 const BONOS = {
-  1: { win: [16, 12], bigwin: [28, 16], jackpot: [44, 24], mega: [68, 36] },
-  2: { win: [52, 30], bigwin: [82, 38], jackpot: [120, 52], mega: [180, 75] },
+  1: { win: [14, 10], bigwin: [24, 14], jackpot: [38, 21], mega: [60, 32] },
+  2: { win: [49, 28], bigwin: [77, 35], jackpot: [112, 49], mega: [168, 70] },
   // TRAMO 3 SUBIDO UN 30 % AL PASAR LOS HITOS A UMBRALES.
   //
   // No es un regalo: es devolver lo que el arreglo se llevo. Con el modulo, el
@@ -581,7 +581,7 @@ const BONOS = {
   // Y se queda en 462 al dia, por debajo de los 486 que ingresaba antes: sigue
   // sin entrar aura nueva al sistema, y la distancia con el que escribe poco
   // vuelve a pasar del 2,5x que exige el validador.
-  3: { win: [172, 75], bigwin: [255, 120], jackpot: [368, 158], mega: [510, 232] },
+  3: { win: [161, 70], bigwin: [238, 112], jackpot: [343, 147], mega: [476, 217] },
 };
 
 // Premio de redención para quien está en negativo. Su función es sacar a
@@ -604,7 +604,7 @@ const BONOS = {
 // Y se paga con dinero que ya existia: a cambio bajan las tiradas de pago de
 // !aura (ver TIRADAS_PAGADAS). Lo que el bot deja de repartir por darle a un
 // boton lo reparte por escribir, que es lo que dice ser en todas partes.
-const PRIMERA_DEL_DIA = 90;
+const PRIMERA_DEL_DIA = 80;
 
 // LOS TRES HITOS DEL DIA. Viven aqui y no en casino.js porque este fichero es
 // la escala entera del bot y porque el validador (scripts/economia.js) modela
@@ -696,9 +696,9 @@ const HITOS = [
 ];
 
 const REDENCION = {
-  1: [110, 90],   // por encima del mega de tier 1 (68-104)
-  2: [270, 180],  // por encima del mega de tier 2 (180-255)
-  3: [750, 390],  // por encima del mega de tier 3 (510-742)
+  1: [95, 80],    // por encima del mega de tier 1 (60-92)
+  2: [245, 165],  // por encima del mega de tier 2 (168-238)
+  3: [700, 360],  // por encima del mega de tier 3 (476-693)
 };
 // ─── !robo ───────────────────────────────────────────────────────────────────
 //
