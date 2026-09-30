@@ -1,3 +1,9 @@
+# Siguiente: frases marcadas
+
+El informe está en `INFORME-FRASES.md` (30 sep 2026). Solo está marcado. Reescribir, cuando se haga, empieza por lo que miente al comando.
+
+---
+
 # PENDIENTE — analogías baratas (Grok terminal)
 
 Encargo del dueño, 9 sep 2026. **HECHO (22 sep 2026): `npm run analogias` da cero.** Se deja como registro. 225 frases marcadas
