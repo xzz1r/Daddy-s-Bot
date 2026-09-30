@@ -1,6 +1,6 @@
 # Siguiente: frases marcadas
 
-El informe está en `INFORME-FRASES.md` (30 sep 2026). Solo está marcado. Reescribir, cuando se haga, empieza por lo que miente al comando.
+El informe está en `INFORME-FRASES.md` (30 sep 2026). Solo está marcado. Los puntos 1 a 5 son mentiras del comando. El punto 6 son las 1.203 débiles: sin humor, sin coherencia o sin carisma. Reescribir, cuando se haga, empieza por lo que miente al comando.
 
 ---
 
