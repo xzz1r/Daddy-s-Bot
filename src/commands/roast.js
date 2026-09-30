@@ -99,7 +99,7 @@ function getActivityPhrases(count) {
       `%N, ${c}. Tú escribes y los demás leen. Así va la cadena alimenticia de este grupo.`,
       `${c} mensajes, %N. Para roastearte habría que buscar lo que no has dicho, y no queda mucho.`,
       `%N, ${c} mensajes. Mientras otros se esconden, tú das la cara. Es lo mínimo, y aquí casi nadie cumple el mínimo.`,
-      '${c} mensajes, %N. El marcador no miente: estás. El que se ría de ti, que enseñe primero su número.',
+      `${c} mensajes, %N. El marcador no miente: estás. El que se ría de ti, que enseñe primero su número.`,
       `%N, ${c} mensajes. Te has ganado el derecho a ser insoportable. Lo estás usando.`,
       `${c} mensajes, %N. El grupo tiene motor, y el motor eres tú. El resto va de pasajero.`,
       `%N, ${c}. Con ese número ya no se te roastea: se les piden explicaciones a los demás.`,

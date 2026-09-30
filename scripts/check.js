@@ -5706,6 +5706,23 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
       exige(!/sendMessage\(jid, \{\s*text/.test(cuerpo),
         '*!z* escribe texto en el grupo: la respuesta tiene que ir al privado del owner');
     }
+    // UN ${...} ENTRE COMILLAS SIMPLES SALE LITERAL EN EL GRUPO. Paso con una
+    // frase de !roast: el grupo leia «${c} mensajes» en vez de la cifra.
+    {
+      const sueltos = [];
+      const recorre = (dir) => {
+        for (const e of fs.readdirSync(path.join(R, dir), { withFileTypes: true })) {
+          const rel = path.join(dir, e.name);
+          if (e.isDirectory()) { recorre(rel); continue; }
+          if (!e.name.endsWith('.js')) continue;
+          soloCodigo(rel).split('\n').forEach((l, i) => {
+            if (/'[^'`\n]*\$\{[A-Za-z_]\w*\}[^'\n]*'/.test(l) && !/`/.test(l)) sueltos.push(`${rel}:${i + 1}`);
+          });
+        }
+      };
+      recorre('src');
+      exige(sueltos.length === 0, `\${...} entre comillas simples, sale literal: ${sueltos.slice(0, 5).join(', ')}`);
+    }
     // Y que *!visto* siga siendo solo del dueño PRINCIPAL, no del tier entero:
     // un co-owner apagando el visto de la cuenta sin que el dueño se entere es
     // justo lo que este comando no puede permitir.
