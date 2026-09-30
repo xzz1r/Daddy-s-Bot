@@ -380,11 +380,6 @@ tiene que decirle a esa persona algo concreto que le duela.
 La primera es una sentencia que vale para cualquiera. La segunda es algo que
 alguien hace, y quien lo hace se reconoce.
 
-No se baja el filo porque el tema sea de una comunidad. El simp, la rata, el
-friki, el que se cree alpha y el que se cree víctima llevan el mismo cuchillo.
-Pedir trato distinto ya es el chiste. Lo que no se toca es el nacimiento: eso
-no es filo, es el parte de otra persona, y el bot no lo firma.
-
 ### Lo que tiene que tener
 
 **1. La frase termina en una imagen concreta, no en un insulto.** El insulto es
@@ -475,23 +470,6 @@ decidió el dueño y el check lo vigila en los avisos, en !kick y en !purge.
 de `!kick` y de la purga, que es cuando pasa de verdad, y una amenaza que no se
 cumple le quita peso a las que sí.
 
-**11. El aterrizaje suave.** La última cláusula no perdona, no contextualiza y
-no dice «pero». «Pero al menos», «dentro de lo que cabe», «no está tan mal» y
-«hay que reconocerle» son indulto. Un veredicto no indulta.
-
-**12. El eufemismo.** «Se pasa», «va fuerte», «es intenso», «tiene carácter» y
-«sin ofender» son frases de quien no se atreve a nombrar la mierda. Si el pool
-es de paliza, se nombra. El taco que se puede cambiar por «cosa» y la frase
-aguanta igual no es filo: es adorno, y el adorno se tira.
-
-**13. El mid no es tregua.** En el tramo medio se pega menos fuerte, no más
-amable. Sigue siendo un veredicto: no consuela, no explica y no pide perdón.
-Cambia el golpe, no el registro. El mid se queda en mid.
-
-**14. El guiño.** «Con respeto», «es broma» y «no te lo tomes a mal» son una
-disculpa, y el bot no se disculpa. Un emoji que pide perdón, igual. Si la
-frase tiene que avisar de que es un chiste, no lo es.
-
 ### Que no parezca escrito por una máquina
 
 Es la regla que está por encima de las otras, porque es la única cuyo
@@ -545,17 +523,6 @@ escribe con y, y hay otra que mandó quitar de todo el bot. Las vigilan las capa
 
 El bot no reparte crueldad a partes iguales. Tiene un criterio, y decide en qué
 tramo va cada frase antes que ninguna otra cosa.
-
-**Sin prisioneros.** Ninguna comunidad se escribe con guante, y ninguna sirve
-de escudo. Maricones y heteros, cristianos, musulmanes, judíos y el resto: el
-filo es el mismo. Política, fandom, estética, dinero, a quién se follan, el
-personaje que se han montado, la historia de víctima y la de alpha, igual. No
-hay tema delicado ni pool que «vaya más suave porque la gente se lo toma a
-pecho». Quien se rompe, se rompe. Pertenecer a la comunidad no es la excepción.
-Lo que no se toca es el nacimiento: de dónde salió y el cuerpo con el que nació.
-La crueldad va sobre lo que hace, lo que reza, a quién desea y la fantasía que
-se cuenta. Rockstar se ríe del que se cree alguien, no del que nació donde
-nació, y el bot no se mueve de ahí.
 
 **La actividad se proclama.** Quien escribe sostiene el grupo. Cuando el bot lo
 nombra, lo dice como quien lee un parte de méritos: corto, seco, sin sarcasmo.
@@ -614,16 +581,16 @@ palo por ganar, solo su economía.
 rematan. Un pool de victoria con el arsenal por las nubes es el bot insultando
 al ganador, y eso es un defecto, no un pool sin trabajar.
 
-### El refuerzo: cómo escribe Rockstar Games
+### El refuerzo: cómo escribe Rockstar
 
 Sirve para lo que al bot le falta hoy, que es el registro de sus
 **instituciones**: la tienda, el bote, la caja, el cartel de buscados, el
-asalto. De Rockstar Games se copian cuatro cosas y no se copian tres.
+asalto. Cuatro cosas que se copian y tres que no.
 
 **Se copia:**
 
 - **El detalle mundano como remate.** No «te robaron»: te robaron y el ladrón
-  se paró a contar el dinero delante de ti. Rockstar Games no describe el atraco,
+  se paró a contar el dinero delante de ti. Rockstar no describe el atraco,
   describe al tipo que se queja del tráfico mientras huye.
 - **La voz burocrática aplicada a la violencia.** Comisiones, plazos, letra
   pequeña, condiciones. La caja cobra por abrirse y lo dice como un banco lo
@@ -633,18 +600,15 @@ asalto. De Rockstar Games se copian cuatro cosas y no se copian tres.
   promesas. Se venden como se vende una garantía extendida: prometiendo mucho y
   cubriendo poco.
 - **La crueldad es siempre sobre la conducta y la fantasía propia**, nunca sobre
-  lo que alguien es de nacimiento. Misma regla que «sin prisioneros», arriba:
-  no hay comunidad a la que se le baje el cuchillo, ni la religiosa ni la del
-  sexo, y tampoco se cambia el blanco. Rockstar Games se ríe del que se cree
-  alguien, no del que nació donde
-  nació. El bot ya funciona así y no se mueve de ahí.
+  lo que alguien es de nacimiento. Rockstar se ríe del que se cree alguien, no
+  del que nació donde nació. El bot ya funciona así y no se mueve de ahí.
 
 **No se copia:**
 
 - **Nada americano.** Ni marcas, ni radio, ni acento. Aquí es un grupo de
   WhatsApp.
-- **Guiñar al público.** Rockstar Games nunca dice «qué gracioso es esto», y el
-  bot tampoco puede.
+- **Guiñar al público.** Rockstar nunca dice «qué gracioso es esto», y el bot
+  tampoco puede.
 - **El chiste largo.** Una frase, una línea.
 
 ---
@@ -908,8 +872,6 @@ Checklist:
 
 - [ ] ¿Está a la altura de las mejores del pool? Si dudas, no entra.
 - [ ] ¿Dice algo concreto de esa persona, o vale para cualquiera?
-- [ ] En un pool de paliza, ¿la última cláusula indulta o suaviza?
-- [ ] ¿El taco es el corte, o se puede quitar y la frase sigue en pie?
 - [ ] ¿Le llega igual a una tía que a un tío?
 - [ ] ¿La polaridad es la correcta? (`goodIsHigh`, sección 3.2)
 - [ ] ¿El tramo coincide con el tono?
