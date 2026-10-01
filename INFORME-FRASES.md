@@ -12,7 +12,7 @@ Por orden, sin tocar:
 - `PIROPOS` y `WINGMAN_ANECDOTAS`. `RIZZ.low` [4] y [20] sí, porque no son esos pools.
 - Los pools sexuales. `FUCK` [20] sigue como estaba. `HANDHOLD` [26] sí: era un beso y el acto es dar la mano.
 - `AVISOS_KICK`: lo marcado es biografía, no cómo funciona el kick.
-- En `AVISO_PURGA` y `AMENAZAS` solo la mentira de funcionamiento. Sin tocar, porque no mienten el procedimiento: `AVISO_PURGA` [15][19][23][33][37]. En [1] queda el «meses» y en [34] el día de la foto; el número ya dice «diez o menos».
+- En `AVISO_PURGA` y `AMENAZAS` solo la mentira de funcionamiento. Sin tocar, porque no mienten el procedimiento: `AVISO_PURGA` [15][19][23][33][37].
 
 Lo tachado de aquí abajo es esta tanda.
 
@@ -41,7 +41,7 @@ La lista va al final, por pool, con los índices en rangos.
 
 - ~~`ATRACO_VETADO` [2][8][14][16][24][28] — el mismo pool sale al comprar vetado y al repetir `!atraco`. Ya no dicen que está comprando.~~
 - ~~`ROBO_GUARDIA` [8][18][25][26] — el escudo son 7 minutos tras un robo cobrado. Ya no vacía el bolsillo ni dura hasta mañana.~~
-- ~~`AMENAZAS` [4][5][12][13][30] — ya no hay segundo aviso, ni mañana, ni cuenta atrás, ni «cero es cero».~~ `AVISO_PURGA`: hecho el número y el procedimiento en [1][2][9][16][18][26][27][31][34][41]. Siguen [15][19][23][33][37], y en [1] el «meses» y en [34] el día de la foto.
+- ~~`AMENAZAS` [4][5][12][13][30] — ya no hay segundo aviso, ni mañana, ni cuenta atrás, ni «cero es cero».~~ `AVISO_PURGA`: hecho el número y el procedimiento en [1][2][9][16][18][26][27][31][34][41]. Siguen [15][19][23][33][37].
 - ~~`MISERIA` [0][2][5][11][12][14][25] y `HABLA_MAS` [12] — ya no dicen cero ni aura por mensaje. Lo mismo en `social.js:AURA_LINES[0]`.~~
 - ~~Casino: `tier1.win[5][9]`, `tier2.win[3]`, `redemption[0][3][4][6]`. Ya no hay «primer», «segundo» ni salida del rojo.~~
 - ~~`roast.js` `getActivityPhrases()#4[6]` — comillas graves: el grupo lee la cifra.~~ También [2] del tramo de menos de 20, [12] del de 150 o más y [4] del de 60 a 149.

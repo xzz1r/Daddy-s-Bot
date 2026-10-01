@@ -61,7 +61,7 @@ const APUESTA_GANA = [
   'Gana %A. Se acabó la parte alegre, volved a lo vuestro, gilipoyas.',
   'Sale bien. %S en la cuenta y una sonrisa que da asco verla.',
   'La mesa paga y se queda mirando a %A con odio. %S.',
-  'Cobra. Hoy se lleva el premio quien menos lo merecía, y lo sabe todo el grupo.',
+  'Cobra. El saldo le queda en %S y ya está contando la siguiente.',
   'Acierto de pura potra. %S y ni una explicación que valga.',
   'Gana %A y se queda con %S. El resto, a contar lo que no tiene.',
 ];

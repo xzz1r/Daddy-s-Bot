@@ -743,7 +743,7 @@ const LABELS = {
       'Tus logros están todos dentro de una pantalla y ninguno se puede contar en una cena. Trofeos de plástico y cero que enseñar, pringado.',
       'Estás al día de cosas que no afectan a una sola parte de tu vida. Toda esa información y ni una puta aplicación práctica.',
       'Llevas años con la rutina cerrada y la defiendes como si la hubieras elegido. No la elegiste, gilipoyas. Te dejaste caer en ella.',
-      'Tus intereses son legítimos y tu dedicación admirable. Lástima que tu vida social sea una puta hoja en blanco.',
+      'Te sabes el parche de memoria y en la mesa nadie ha abierto ese juego. El plan para salir te lo cuentan cuando ya han vuelto.',
       'Tu waifu no existe, [nombre], tu rank no paga facturas y tus figuras te miran con la misma decepción que tu familia. Decorado de un cuarto de mierda.',
       '[nombre], tienes el cuarto lleno de cajas sin abrir. Compras para tapar un hueco y el hueco sigue igual: consumo de pringado, hueco intacto.',
       'Eres quien confunde tener comunidad con tener gente que le importe, [nombre]. Nadie de ahí iría a tu entierro, cabrón. Ni sabrían la fecha.',

@@ -32,7 +32,7 @@ const ROBO_FALLO_REMATE = [
   'y volvió a su sitio, que está bastante abajo',
   'y pagó por aprender algo que no va a aprender',
   'y se quedó a medio camino entre el ridículo y la ruina. Llegó a los dos',
-  'y el aura no se queda en quien lo intentó. El parte de abajo dice dónde ha ido',
+  'y el aura se le ha ido de la mano. El intento se ha quedado en el gesto',
 ];
 
 const ROB_WIN = [

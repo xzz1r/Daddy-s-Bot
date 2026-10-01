@@ -260,7 +260,7 @@ const ROBO_ASALTO = [
 const ROBO_GUARDIA = [
   'Tu objetivo todavía tiene el susto puesto. No es el momento, cabrón.',
   'Esa puta cartera se acaba de cerrar de un golpe. No va a abrirse para ti.',
-  'El escudo son siete minutos y tú ya estás encima. Elige esperar o quedarte fuera, pesado.',
+  'El escudo son siete minutos. Tú ya estás en la puerta, contando lo que acaban de sacarle.',
   'Estás oliendo sangre reciente. El puto grupo también te está oliendo a ti.',
   'El objetivo está en modo alarma. Tu puta hambre no apaga alarmas.',
   'Esa persona no está disponible para tu puto vicio. Está ocupada sobreviviendo al anterior.',

@@ -218,7 +218,7 @@ Prefijo:   ${config.prefijos.join('  ')}`;
 // Frases sobre el aura que acompañan al progreso diario. Rotan para que el
 // comando no cante siempre lo mismo.
 const AURA_LINES = [
-  'Hablar suelto no cobra. El día, si escribes de verdad, sí. Callarte es dinero que te dejas en la mesa, cabrón.',
+  'Un mensaje suelto deja el aura del día en la mesa, todavía sin cobrar.',
   'El marcador no tiene amiguitos ni se le olvida una puta coma. Lleva la cuenta exacta de lo que haces y lo que no.',
   'Los bonos premian escribir, no respirar. Si crees que por estar en la lista ya te llevas algo, vete a la mierda.',
   'Aquí el aura se gana escribiendo. Leer no cuenta, cotillear no cuenta y poner caritas tampoco.',

@@ -80,7 +80,7 @@ let DUEL_WIN = [
   '%L sale del duelo más pobre y con menos ganas de hablar. Lo segundo es lo único bueno.',
   '%W le ha ganado a %L sin esfuerzo y sin piedad. %L ha puesto lo demás: el aura y la cara.',
   'Si %L quería protagonismo, ya lo tiene: es el nombre que sale restando.',
-  '%L se ha jugado una parte contra %W, no el bolsillo entero. Ahora tiene menos, y %W tiene esa parte.',
+  '%W se lleva lo que %L ha puesto en la mesa. %L mira el saldo como si se hubiera jugado la vida.',
   '%W se va con el premio. %L, con el recuerdo de haber dicho «acepto».',
   '%L ha perdido tan rápido que el duelo ha durado menos que el reto.',
   '%W gana. %L se queda buscando culpables y no los encuentra porque no se mira al espejo.',
