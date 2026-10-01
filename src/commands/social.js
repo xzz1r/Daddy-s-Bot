@@ -218,7 +218,7 @@ Prefijo:   ${config.prefijos.join('  ')}`;
 // Frases sobre el aura que acompañan al progreso diario. Rotan para que el
 // comando no cante siempre lo mismo.
 const AURA_LINES = [
-  'Cada mensaje que sueltas suma aura. Cada día que te callas es dinero que te dejas en la puta mesa, cabrón.',
+  'Hablar suelto no cobra. El día, si escribes de verdad, sí. Callarte es dinero que te dejas en la mesa, cabrón.',
   'El marcador no tiene amiguitos ni se le olvida una puta coma. Lleva la cuenta exacta de lo que haces y lo que no.',
   'Los bonos premian escribir, no respirar. Si crees que por estar en la lista ya te llevas algo, vete a la mierda.',
   'Aquí el aura se gana escribiendo. Leer no cuenta, cotillear no cuenta y poner caritas tampoco.',
@@ -242,7 +242,7 @@ const AURA_LINES = [
   'Nadie te regala nada en este marcador. Lo que tienes lo has escrito, lo has robado o te ha tocado en los dados.',
   'Los fantasmas no cobran ni un punto. Lo que tienen se queda a la vista del primero que pase.',
   'Robar sale bien a veces. Escribir sale bien siempre. Haz las cuentas.',
-  'Los duelos mueven aura de un bolsillo a otro. El tuyo suele ser el que se vacía.',
+  'Las cifras de hoy ya están puestas. Interpretarlas a tu favor es lo único que se te da bien.',
   'El marcador no tiene memoria para excusas. Solo para números.',
   'Escribe hoy, cobra hoy. Mañana es otra racha, si la aguantas.',
   'El aura es lo único de este grupo que no se puede fingir. Se ve en el número.',

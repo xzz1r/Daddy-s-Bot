@@ -1402,14 +1402,14 @@ const REMATES = [
   //
   // Ninguno puede venir con género (lo lee el grupo entero) ni amenazar con
   // echar a nadie: el bot no lo hace. Las dos cosas las vigila check.js.
-  '«no tengo foto» con seiscientas en la galería. Elige una y deja de hacer el ridículo.',
+  '«no tengo foto» con la galería llena de candidatas. Elige una y deja de hacer el ridículo.',
   '«luego la mando» y nunca llega. Son diez segundos, hazlo ya.',
   '«es que salgo mal en las fotos» y en persona también. Manda una y acabamos antes.',
   '«yo vengo a mirar». Aquí no se mira gratis: foto y edad.',
-  '«paso de estas chorradas» lo dice quien lleva media hora dándole vueltas. Manda la foto.',
+  '«paso de estas chorradas» lo dice quien le está dando vueltas. Manda la foto.',
   'Mandas la foto y te «olvidas» de la edad. No cuela. Pon el número.',
   '«no me gusta exponerme», dice quien entró en un grupo por su cuenta. Da la cara.',
-  'Cuarenta fotos hechas buscando la buena. No la hay. Manda la última y ya.',
+  'Llevas un rato buscando la buena. No la hay. Manda la última y ya.',
   'Esperando a ver quién se presenta primero para copiar el tono. No hay tono. Sal tú.',
   'Un «hola» no es una presentación. Foto y edad, o vuelve a tu agujero.',
 ];

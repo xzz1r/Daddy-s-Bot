@@ -1,6 +1,6 @@
 # Siguiente: frases marcadas
 
-El informe está en `INFORME-FRASES.md` (30 sep 2026). Solo está marcado. Los puntos 1 a 5 son mentiras del comando. El punto 6 son las 1.203 débiles: sin humor, sin coherencia o sin carisma. Reescribir, cuando se haga, empieza por lo que miente al comando.
+El informe está en `INFORME-FRASES.md` (30 sep 2026). La tanda 1 ya está reescrita: los puntos 1 a 4 y lo que miente al comando (258 frases, mismos tamaños). Quedan el punto 5, el punto 6, y lo que la orden dejó fuera (piropos, anécdotas, acciones sexuales, y en la purga y el kick solo se tocó la mentira de funcionamiento).
 
 ---
 

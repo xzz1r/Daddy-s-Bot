@@ -577,7 +577,7 @@ const HANDHOLD = [
   '%A agarra la mano de %V en la montaña rusa y %V le deja las uñas marcadas.',
   '%A le roza los dedos a %V al pasarle el mechero y %V se queda mirándose la mano.',
   '%V finge que necesita ayuda para bajar un escalón para que %A le dé la mano.',
-  '%A le besa la mano a %V como en las películas malas, y a %V le encanta la película mala.',
+  '%A le coge la mano a %V y no la suelta. A %V le da igual la película: le gusta el apretón.',
   '%A le da la mano a %V con el grupo delante. Alguien ya ha sacado el móvil.',
   '%V aprieta la mano de %A cada vez que pasa alguien que le cae mal. Hoy van nueve.',
   'Van de la mano hasta la puerta del bar. Ahí %V suelta, que dentro hay gente conocida.',

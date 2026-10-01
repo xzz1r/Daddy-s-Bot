@@ -45,7 +45,7 @@ let MOG_PHRASES = [
   'El face card de %M no declina jamás. El de %L fue rechazado en la puerta y le rompieron el documento.',
   'No hay filtro, ángulo ni luz que meta a %L en el universo de %M. La física se rinde antes que %L.',
   '%L es la razón por la que existe la palabra subhuman. %M es la razón por la que existe la palabra Chad.',
-  'Moggeo total, inapelable, humillante. %M ni miró. %L no se va a recuperar de este antes del lunes.',
+  'Moggeo total, inapelable, humillante. %M ni miró. %L no se recupera de esta con un cambio de tema.',
   'Este mog entra directo al hall de la fama del grupo. %M leyenda, %L ejemplo de qué no querer ser.',
   '%L va al gym, lee libros, trabaja la actitud. Sigue siendo %L. El óseo no se levanta a press.',
   '%L cree que está fuera de su liga. %L ni siquiera está en la misma clasificación de ligas. Divisiones distintas.',

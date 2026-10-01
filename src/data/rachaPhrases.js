@@ -43,7 +43,7 @@ const HITO = [
   '%N llega a *%D días*. Quien quiera quitarle el sitio, que empiece mañana y aguante.',
   '*%D días* seguidos, %N. Aquí hay gente que cambia de idea más veces que tú faltas.',
   '%N, *%D días*. Lo fácil era fallar un domingo. No lo has hecho.',
-  '*%D días* para %N. Mientras otros hablan de volver, tú no te has ido.',
+  '*%D días* para %N. Mientras otros hablan de volver, %N no se ha ido.',
 ];
 
 // ─── Volver después de romper una racha larga ────────────────────────────────
@@ -71,11 +71,11 @@ const ROTA = [
   '%N, esa racha de *%P días* ya es historia. Mala historia.',
   'La racha de %N se ha ido con *%P días* dentro. No aguantó ni uno más.',
   '*%P días* tirados, %N. Una racha así no se abandona, y tú la has abandonado.',
-  '%N ha roto *%P días*. Desde abajo otra vez, que ese camino ya te lo conoces.',
+  '%N ha roto *%P días*. Desde abajo otra vez, que ese camino ya se lo conoce.',
   '*%P días* se han ido por el desagüe, %N. Y los has tirado tú.',
   '%N, *%P días* de racha y un día de silencio. Ha ganado el silencio.',
   'Racha rota. %N llevaba *%P días* y ahora no tiene ganas ni de mirar el marcador.',
-  '%N ha perdido *%P días* de golpe. Ni robándote te habrían quitado tanto.',
+  '%N ha perdido *%P días* de golpe. Ni un robo le habría quitado la racha entera así.',
   '*%P días* rotos, %N. El grupo sabía que no ibas a aguantar. Lo que no sabía era cuándo.',
   '%N, *%P días* a cero. La racha era lo único tuyo que crecía.',
 ];

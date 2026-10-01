@@ -88,7 +88,7 @@ const VEREDICTOS = {
   ],
   rico: [
     'Tanta aura en un bot de WhatsApp no es un logro, es un diagnóstico.',
-    'Más aura que casi nadie y la misma vida de siempre.',
+    'Le sobra el aura en este bot. El expediente no dice que fuera de aquí le vaya igual.',
     'Una fortuna de chat. Fuera de aquí no le llega ni para el pan.',
   ],
   pobre: [

@@ -43,7 +43,7 @@ let MEMBER_PHRASES = [
     'Plata. El puesto de los que casi lo consiguen y se conforman con contarlo después.',
     'Casi. Y casi no vale una mierda en ningún ranking del mundo, tampoco en este.',
     'Número dos. Escribes mucho, sí. Pero hay alguien que escribe más y no piensa cansarse.',
-    'Número dos. A un mal día del primero de subir, y a dos buenos días del tercero de bajar. Tensa la cosa.',
+    'Número dos. Ni el primero ni el tercero. El sitio incómodo, y hoy es el tuyo.',
     'Casi lo tocas. Casi. Y ese casi lleva persiguiéndote más tiempo del que reconoces en público.',
     'Número dos. Nadie recuerda al segundo, pero al menos sales en la foto. Es algo.',
     'Segundo. Si el primero se fuera del grupo, serías el rey. Reza, que trabajar no te ha funcionado.',

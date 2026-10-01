@@ -53,7 +53,7 @@ function getActivityPhrases(count) {
     return [
       `${c} mensajes, %N. Todo lo que has dicho en este grupo cabe en un solo vistazo y sobra pantalla.`,
       `%N, ${c} mensajes. De vez en cuando asomas la cabeza, compruebas que el grupo sigue y te vuelves al agujero.`,
-      `${c} mensajes, %N. Menos de lo que escribe cualquiera en una mañana de lunes.`,
+      `${c} mensajes, %N. Poco. Menos de lo que hace falta para que este grupo te tenga fichado.`,
       `%N, ${c} mensajes. Das señales de vida con la frecuencia justa para que nadie llame a la policía.`,
       `${c} mensajes, %N. Cada vez que escribes, el grupo tiene que mirar quién eres.`,
       `%N, ${c} mensajes. Sabes escribir, eso está demostrado. Lo que no se ha demostrado es que tengas algo que decir.`,
@@ -105,7 +105,7 @@ function getActivityPhrases(count) {
       `%N, ${c}. Con ese número ya no se te roastea: se les piden explicaciones a los demás.`,
       `${c} mensajes, %N. Si hablaras menos, el grupo lo notaría. Si hablaran menos los demás, nadie.`,
       `%N, ${c} mensajes. Puta máquina de conversación. Y encima sin cobrar.`,
-      `${c} mensajes, %N. Más de un tema de este grupo lo has empezado tú. Y más de una bronca.`,
+      `${c} mensajes, %N. Este grupo habla porque tú empujas. Los demás, que aguanten el ritmo.`,
       `%N, ${c} mensajes. Roastearte es difícil: tu único delito es dejar en evidencia a los fantasmas.`,
       `${c} mensajes, %N. Ya puedes presumir, que te lo has ganado a pulso. Los demás, que tomen nota.`,
     ];
@@ -116,7 +116,7 @@ function getActivityPhrases(count) {
     `%N, ${c} mensajes. Se te lee. No se te cita.`,
     `${c} mensajes, %N. Das conversación como quien da el cambio: lo justo y contado.`,
     `%N, ${c} mensajes. Estás en el grupo lo suficiente para opinar y nunca lo suficiente para convencer.`,
-    `${c} mensajes, %N. Hablas, sí. De lo que dices, nadie se acuerda al día siguiente.`,
+    `${c} mensajes, %N. Hablas, sí. De lo que dices no queda una cita que el grupo repita.`,
     `${c} mensajes, %N. Das la cara a ratos. El resto del tiempo te la guardas.`,
     `%N, ${c} mensajes. Nadie te nombra cuando se habla de quién lleva el grupo.`,
     `${c} mensajes, %N. Lo tuyo son apariciones estelares, sin estrella.`,

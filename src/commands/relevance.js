@@ -106,7 +106,7 @@ const RELEVANTE = [
   '%MSG mensajes, %N. El día que falta tu nombre en el chat, el chat se nota vacío. No por casualidad.',
   '%N con %MSG mensajes. Cuando alguien pregunte quién sostiene esto, se enseña este número y punto.',
   'Con %MSG mensajes, %N, eres el puto pilar de este grupo. Sin adorno. El dato.',
-  'Con %MSG mensajes, %N, cada vez que hay drama apareces con opinión y quince mensajes seguidos. Imprescindible. El resto, a reaccionar.',
+  'Con %MSG mensajes, %N, cada vez que hay drama apareces con opinión y no paras. Imprescindible. El resto, a reaccionar.',
   '%MSG mensajes, %N. Cuando tú hablas, el resto responde. Eso, cabrón, es tener el mando y lo sabes.',
   '%N con %MSG mensajes. Sigues escribiendo aunque nadie te haya preguntado nada, y aun así funciona. Ese descaro mantiene esto vivo.',
   '%MSG mensajes, %N. Tu teclado debe de estar hecho polvo. Con ese desgaste nadie discute tu puto peso en el grupo.',
