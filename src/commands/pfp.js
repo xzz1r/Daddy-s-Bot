@@ -2,7 +2,9 @@ const axios = require('axios');
 // Arma el freno de salidas a redes internas (ver src/utils/redSegura.js).
 require('../utils/redSegura');
 const logger = require('../utils/logger');
-const { getTarget, getSender, canonicalJid, fetchPfpUrl } = require('../utils/wa');
+const { getTarget, getSender, canonicalJid, fetchPfpUrl, isGroupAdmin } = require('../utils/wa');
+const { SOLO_ADMINS } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { computeHash } = require('../utils/phash');
 const { recordAndMatch } = require('../utils/pfpStore');
@@ -106,6 +108,11 @@ async function cmdPfp(sock, msg, args, groupMeta) {
   // Consultar la foto de otro cuesta aura: cada !pfp es una peticion a los
   // servidores de WhatsApp y era el comando mas facil de disparar en bucle.
   const quienPide = getSender(msg);
+  // SOLO ADMINS, por decision del dueño. Se mira ANTES de cobrar: al que no
+  // puede usarlo no se le toca el saldo. isGroupAdmin ya incluye al dueño.
+  if (!isGroupAdmin(quienPide, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
+  }
   const pago = await cobrar(jid, quienPide, 'pfp', { fromMe: msg.key.fromMe, groupMeta });
   if (!pago.ok) {
     return sock.sendMessage(jid, { text: textoSinSaldo('pfp', pago, jid) }, { quoted: msg });

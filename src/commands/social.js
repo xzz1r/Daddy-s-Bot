@@ -421,7 +421,6 @@ ${p}x · ${p}twitter · ${p}tuit · ${p}tweet
 ${p}next · ${p}otra · ${p}siguiente
 ${p}s · ${p}sticker · ${p}stk — hacer sticker
 ${p}toimg · ${p}stimg  ·  ${p}tovid  ·  ${p}ttp · ${p}texto
-${p}pfp · ${p}foto  ·  ${p}fk · ${p}verificar · ${p}verify · ${p}check
 ${p}cachelist · ${p}listacache · ${p}cache
 
 *DINÁMICAS*
@@ -462,6 +461,7 @@ ${p}promote · ${p}ascender  ·  ${p}allow · ${p}permitir  ·  ${p}r · ${p}pre
 ${p}scan · ${p}escanear  ·  ${p}marcarfake · ${p}fake
 ${p}fkban · ${p}banear · ${p}ban  ·  ${p}fkunban · ${p}desbanear · ${p}unban
 ${p}fklist  ·  ${p}antifake · ${p}antifk
+${p}pfp · ${p}foto  ·  ${p}fk · ${p}verificar · ${p}verify · ${p}check
 ${p}notifadmin  ·  ${p}autoaccept · ${p}autoaceptar · ${p}autoapprove · ${p}autoaprobar
 ` : ''}${esOwner ? `
 *ADMINS SUPERIORES*
@@ -561,8 +561,6 @@ _Enlaces de publicaciones, no de perfiles._
 *${p}toimg* ${c('toimg')} — sticker a foto
 *${p}tovid* ${c('tovid')} — sticker animado a vídeo
 *${p}ttp* ${c('ttp')} <texto> — texto a sticker
-*${p}pfp* ${c('pfp')} @user — su foto de perfil
-*${p}fk* ${c('fk')} @user — cuánto huele a cuenta falsa
 
 *DINÁMICAS*
 _Sin @ va sobre ti, con @ sobre esa persona_
@@ -590,6 +588,7 @@ ${esAdmin ? `
 *${p}kick* · *${p}unmute* · *${p}del* · *${p}tagall* · *${p}allow*
 *${p}mute* @user <tiempo> — le borro todo lo que escriba (*60s* · *60m* · *60h* · *7d*)
 *${p}fkban* · *${p}fkunban* · *${p}marcarfake* · *${p}fklist* · *${p}scan*
+*${p}pfp* ${c('pfp')} @user — su foto de perfil · *${p}fk* ${c('fk')} @user — ¿cuenta falsa?
 *${p}close* · *${p}open* · *${p}promote* · *${p}count* ${c('count')} · *${p}inactivos* ${c('inactivos')}
 *${p}r* — pide a los nuevos que se presenten, sin un @ a la vista
 *${p}antifake* · *${p}notifadmin* · *${p}autoaccept* — on/off

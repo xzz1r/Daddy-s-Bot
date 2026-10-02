@@ -24,7 +24,9 @@ const logger = require('./logger');
 // EL CONTADOR DE RAFAGA. Cuenta cuantas veces ha usado ESTE concepto ESTA
 // persona en ESTE grupo hoy. Se limpia solo al cambiar el dia, asi que no crece:
 // como mucho tiene una entrada por persona, grupo y comando de un solo dia.
-const RAFAGA = { gratis: 3, multiplicador: 2 };
+// Y UN SEGUNDO ESCALON desde que los precios bajaron un 40 %: de la 4.ª a la
+// 6.ª del dia, el doble; de la 7.ª en adelante, el triple.
+const RAFAGA = { gratis: 3, multiplicador: 2, triple: 6, multiplicadorTriple: 3 };
 const usos = new Map();       // 'grupo|persona|concepto' -> veces
 let diaUsos = null;
 
@@ -114,7 +116,10 @@ async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta
   // apuntaba el intento igual: cinco intentos sin aura y, cuando por fin la
   // tenia, le salia al doble sin haber usado nada. Aqui solo se LEE; se apunta
   // abajo, y solo si el cobro ha salido.
-  if (usosDe(groupJid, senderJid, concepto) >= RAFAGA.gratis) {
+  const yaUsados = usosDe(groupJid, senderJid, concepto);
+  if (yaUsados >= RAFAGA.triple) {
+    precio = Math.round(precio * RAFAGA.multiplicadorTriple);
+  } else if (yaUsados >= RAFAGA.gratis) {
     precio = Math.round(precio * RAFAGA.multiplicador);
   }
 

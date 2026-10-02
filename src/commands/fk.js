@@ -250,6 +250,10 @@ async function cmdFk(sock, msg, args, groupMeta) {
   // El analisis anti-fake mueve huella de imagen, busqueda facial y consultas
   // externas: es caro y se cobra.
   const quienPide = getSender(msg);
+  // SOLO ADMINS, por decision del dueño. Antes de cobrar.
+  if (!isGroupAdmin(quienPide, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
+  }
   const pago = await cobrar(jid, quienPide, 'fk', { fromMe: msg.key.fromMe, groupMeta });
   if (!pago.ok) {
     return sock.sendMessage(jid, { text: textoSinSaldo('fk', pago, jid) }, { quoted: msg });

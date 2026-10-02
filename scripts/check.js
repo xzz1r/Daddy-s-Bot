@@ -18293,10 +18293,14 @@ const manda = async (quien, tipo, opciones) => {
     //
     // Es lo que mas facil se descuadra: hay que sacar el precio MAS el
     // impuesto, y el impuesto tiene que acabar en el bote, no evaporado.
+    // CON EL CONCEPTO MAS CARO, NO CON !play. Las cifras de abajo (30 sueltos,
+    // 60 en la caja) se escribieron con !play a 50; al bajar los precios un
+    // 40 % los 30 sueltos pagaban !play entero y la caja no llegaba a tocarse.
+    const CONC101 = 'accionNsfw';
     for (const [etq, suelto, dentro] of [
       ['sin suelto, caja de sobra', 0, 500],
       ['algo de suelto y el resto', 30, 500],
-      ['un suelto de casi todo   ', P101.play - 1, 500],
+      ['un suelto de casi todo   ', P101[CONC101] - 1, 500],
     ]) {
       const U = cuenta101();
       await as101.addAura(G101, U, -(await as101.getAura(G101, U)));
@@ -18308,7 +18312,7 @@ const manda = async (quien, tipo, opciones) => {
       const s0 = await as101.getAura(G101, U);
       const c0 = await as101.verCaja(G101, U);
       const b0 = await rs101.verBote(G101).catch(() => 0);
-      const r = await cobrar101(G101, U, 'play', {});
+      const r = await cobrar101(G101, U, CONC101, {});
       const s1 = await as101.getAura(G101, U);
       const c1 = await as101.verCaja(G101, U);
       const b1 = await rs101.verBote(G101).catch(() => 0);
@@ -18319,8 +18323,8 @@ const manda = async (quien, tipo, opciones) => {
         const llega = r.pagado + (b1 - b0);
         exige(sale === llega,
           `${etq}: del bolsillo salen ${sale} y solo se justifican ${llega} (precio ${r.pagado} + bote ${b1 - b0}): se está evaporando aura`);
-        exige(r.pagado === P101.play,
-          `${etq}: ha cobrado ${r.pagado} y el precio es ${P101.play}`);
+        exige(r.pagado === P101[CONC101],
+          `${etq}: ha cobrado ${r.pagado} y el precio es ${P101[CONC101]}`);
         exige((b1 - b0) === (r.impuestoCaja || 0),
           `${etq}: el impuesto de la caja (${r.impuestoCaja}) no ha llegado al bote (subió ${b1 - b0})`);
         exige((r.impuestoCaja || 0) > 0,
@@ -18336,7 +18340,7 @@ const manda = async (quien, tipo, opciones) => {
       await as101.meterEnCaja(G101, U, 60);          // menos que precio+impuesto
       await as101.addAura(G101, U, -(await as101.getAura(G101, U)));
       const c0 = await as101.verCaja(G101, U);
-      const r = await cobrar101(G101, U, 'play', {});
+      const r = await cobrar101(G101, U, CONC101, {});
       const c1 = await as101.verCaja(G101, U);
       exige(!r.ok, 'con la caja corta ha cobrado igual: eso deja el saldo en negativo por la puerta de al lado');
       exige(c0 === c1,

@@ -1284,6 +1284,9 @@ const DUELO = {
 //     el único freno que tiene, porque la cuota no se puede ampliar gastando más
 //     CPU.
 const PRECIOS = {
+  // BAJADOS UN 40 % POR DECISION DEL DUEÑO (2 oct 2026), redondeados a
+  // multiplos de 5. El freno contra el abuso pasa a la RAFAGA (auraCobro.js):
+  // de la 4.ª del dia el doble y de la 7.ª el triple. !pfp y !fk, solo admins.
   // Los comandos de accion (!hug, !punch, !slap…). No cuesta lo que cuesta por
   // lo que gasta —bajar un gif y convertirlo esta por debajo de un sticker—
   // sino por lo que invita a hacer: van dirigidos a alguien y piden repetirse
@@ -1294,56 +1297,56 @@ const PRECIOS = {
   // alguien se acabe en dos mensajes. El de golpe seguido (RAFAGA) sigue
   // cobrando el doble, asi que el freno contra el bucle no se toca: lo que
   // baja es el precio de usarlo con cabeza.
-  accion: 45,
+  accion: 25,
   // EL DE NSFW NO BAJA, y ahora es el triple en vez del doble. No porque gaste
   // mas —gasta lo mismo— sino porque lo que arriesga es otra cosa: una cuenta
   // que reparte esto a diario dura lo que dura. El precio es el unico freno
   // que no depende de que nadie vigile, y separarlo mas del normal es
   // exactamente lo que se queria.
-  accionNsfw: 120,
+  accionNsfw: 75,
   // ─── Lo que consume recursos de verdad ─────────────────────────────────────
-  tovid: 70,   // transcodifica el vídeo entero (CRF 12); lo más caro en CPU
-  sticker: 45, // !s — un ffmpeg por cada uno
-  toimg: 45,
-  play: 50,    // canción: ancho de banda + cuota de RapidAPI + ffmpeg
+  tovid: 40,   // transcodifica el vídeo entero (CRF 12); lo más caro en CPU
+  sticker: 25, // !s — un ffmpeg por cada uno
+  toimg: 25,
+  play: 30,    // canción: ancho de banda + cuota de RapidAPI + ffmpeg
   // !tt, !ig, !pin. LO MISMO QUE UNA CANCIÓN, por decisión del dueño, y encaja:
   // bajan de fuera, ocupan los mismos dos huecos de descarga que !play y desde
   // que se nivela el audio pasan por ffmpeg igual que ella.
-  redes: 50,
-  fk: 35,      // análisis de cuenta falsa
-  ttp: 30,     // texto a sticker
+  redes: 30,
+  fk: 20,      // análisis de cuenta falsa
+  ttp: 20,     // texto a sticker
   // !pfp es el mas caro del bot Y EL UNICO QUE SIEMPRE DEVUELVE SI NO ENTREGA.
   // Las dos cosas van juntas y por decision del owner: el precio frena el
   // rastreo de fotos a lo loco, y como solo se cobra cuando llega una imagen,
   // nadie paga por una consulta que no dio nada.
-  pfp: 80,     // foto de perfil
-  cachelist: 12, // la lista de lo ya guardado: barata a propósito, es el atajo
+  pfp: 50,     // foto de perfil
+  cachelist: 5, // la lista de lo ya guardado: barata a propósito, es el atajo
 
   // ─── Lo que molesta al grupo ───────────────────────────────────────────────
   // No cuestan CPU, cuestan paciencia: mencionan a media docena de personas de
   // golpe y son de lo más fácil de disparar en bucle.
-  top10: 55,
-  top5: 30,
-  inactivos: 35,
-  vs: 30,
-  fantasmas: 30,
-  count: 25,
-  caso: 25,       // !caso: el expediente. Lo mismo que !count, que es lo que cuesta mirar datos
-  relevancia: 25,
+  top10: 35,
+  top5: 20,
+  inactivos: 20,
+  vs: 20,
+  fantasmas: 20,
+  count: 15,
+  caso: 15,       // !caso: el expediente. Lo mismo que !count, que es lo que cuesta mirar datos
+  relevancia: 15,
 
   // ─── Las dinámicas ─────────────────────────────────────────────────────────
   // Antes gratis. Ahora el aura vale para algo más que mirarla, y reírse de
   // alguien cuesta dinero como todo lo demás.
-  roast: 35,
-  mog: 35,
-  ship: 30,
-  rizz: 30,
+  roast: 20,
+  mog: 20,
+  ship: 20,
+  rizz: 20,
   // Estos dos bajan de 30 a 20 por decision del dueño. Son los mas inofensivos
   // del bloque —no mencionan a media docena de personas ni se prestan al bucle
   // como un roast— y a 30 se usaban menos de lo que merecen.
-  piropo: 20,
-  wingman: 20,
-  percent: 25,   // el precio común de gay, puta, iq, fea, crack y compañía
+  piropo: 10,
+  wingman: 10,
+  percent: 15,   // el precio común de gay, puta, iq, fea, crack y compañía
 };
 
 // EL MINIMO DE !dar BAJA A 1, por peticion expresa.
