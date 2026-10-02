@@ -127,6 +127,9 @@ const FAMILIAS = [
   // owner. Las mismas reglas que !k: ver z.js.
   { nombres: ['z'], meta: true,
     hace: (c) => c.de('z').cmdZ(c.sock, c.msg, c.args, c.meta) },
+  // !reborn — el bot anuncia que ha vuelto. Solo desde la cuenta del bot.
+  { nombres: ['reborn'],
+    hace: (c) => c.de('reborn').cmdReborn(c.sock, c.msg) },
   { nombres: ['diag'], meta: true,
     hace: (c) => c.de('manejador').cmdDiag(c.sock, c.msg, c.meta) },
   { nombres: ['top5'], meta: true, cobraDentro: true, cobro: 'top5',
