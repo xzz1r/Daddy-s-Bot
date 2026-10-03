@@ -110,9 +110,12 @@ const SUELO_TODOS = ARRANQUE;
 // que copia el numero que tiene debajo se queda viejo en el primer reajuste y
 // despues miente a quien lo lee para decidir. Los rangos estan en TIRADA, dos
 // lineas mas abajo, y son la unica fuente.
+// BAJADOS CON LOS PRECIOS (-40 %): con los comandos a 20-30, una tirada mala
+// de antes se llevaba tres comandos de golpe. Se recorta algo menos que los
+// precios, asi que en proporcion se gana un poco mas que antes.
 const TIRADA = {
-  grande: [45, 60],
-  pequena: [15, 30],
+  grande: [30, 40],
+  pequena: [10, 20],
 };
 const TIRADA_MIN = { grande: TIRADA.grande[0], pequena: TIRADA.pequena[0] };
 const TIRADA_MAX = { grande: TIRADA.grande[1], pequena: TIRADA.pequena[1] };
