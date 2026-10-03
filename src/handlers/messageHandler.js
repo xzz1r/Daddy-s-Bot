@@ -32,7 +32,7 @@ const logger = require('../utils/logger');
 const bitacoraEstados = require('../utils/bitacoraEstados');
 
 const { clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa, PERMISO_ENLACE, puedeAnunciar, anotarTropiezo, perfilMirado } = require('../utils/antilink');
-const { MAL_ESCRITO, OBJETIVO_DIA_CARTEL, AL_BOT } = require('../data/avisos');
+const { MAL_ESCRITO, OBJETIVO_DIA_CARTEL, AL_BOT, VER_UNA_VEZ } = require('../data/avisos');
 const { cartelDelDia } = require('../utils/objetivoDia');
 const { aviso, pickBaraja } = require('../utils/helpers');
 
@@ -2431,7 +2431,7 @@ async function handleMessage(sock, msg, opciones = {}) {
         sock.sendMessage(jid, {
           text: medio === 'gif'
             ? `@${sender.split('@')[0]} aquí los GIF no se quedan. Borrado.`
-            : `@${sender.split('@')[0]} las fotos y los videos se envían siempre en *ver una vez*. Borrado.`,
+            : `@${sender.split('@')[0]} las fotos y los videos se envían siempre en *ver una vez*. ${pickFresh(VER_UNA_VEZ, `${jid}|vo`)}`,
           mentions: [sender],
         }).catch(() => {});
       }

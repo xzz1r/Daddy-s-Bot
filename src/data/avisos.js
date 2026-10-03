@@ -519,7 +519,25 @@ const OBJETIVO_DIA_CARTEL = [
   'Diana del día: %V. Desde ahora, cada robo a %V sale mejor.',
 ];
 
+// Cola del aviso de fotos y vídeos sin *ver una vez*. La primera frase del
+// aviso es fija (messageHandler); esto es lo que va detrás.
+const VER_UNA_VEZ = [
+  'Borrado, gilipoyas.',
+  'Borrado, imbécil.',
+  'Borrado, anormal.',
+  'Borrado. Nadie te quiere en su galería, subnormal.',
+  'Borrado. Tu foto no la quería guardar nadie, inútil.',
+  'Borrado. A la galería de nadie entras tú, anormal.',
+  'Borrado. Si ni tu madre guarda tus fotos, el grupo menos, imbécil.',
+  'Borrado. Con verte una vez ya sobra, subnormal.',
+  'Borrado. Las normas tampoco te las has leído, ¿no? Inútil.',
+  'Borrado. Una vez se aguanta, dos ya no, gilipoyas.',
+  'Borrado. Nadie quiere tu careto ocupando memoria, anormal.',
+  'Borrado. Ni regalada se queda tu cara en el móvil de nadie, imbécil.',
+];
+
 module.exports = {
   OBJETIVO_DIA_CARTEL,
+  VER_UNA_VEZ,
   cabeceraDe,
   MAL_ESCRITO, SOLO_GRUPOS, SIN_PERMISO, SIN_PERMISO_ADMIN, SOLO_ADMINS, PURGA_ADMIN, SIN_ACCESO, A_TI_MISMO, AL_BOT, CONTRA_UN_ADMIN, DUELO_AJENO };
