@@ -500,8 +500,8 @@ const RACHA = {
   // pagaba 20 al dia en el mejor caso, menos de la mitad de UNA tirada de
   // !aura. Aparecer todos los dias durante diez seguidos valia menos que pulsar
   // un boton una vez, asi que no era un incentivo, era un adorno.
-  pago: 3,              // por cada día de racha...
-  tope: 11,             // ...hasta este, o sea 33 al día como techo
+  pago: 2,              // por cada día de racha (3 -> 2 el 3 oct: a tope pagaba mas que un comando)
+  tope: 11,             // ...hasta este, o sea 22 al día como techo
   hitos: [7, 15, 30, 50, 100, 200, 365],   // los días que el bot canta en el grupo
 
   // Y ADEMAS UN PREMIO GORDO AL LLEGAR A CADA HITO.
@@ -562,11 +562,13 @@ const RACHA = {
 // linea de fortuna y los precios, y eso devalua el aura que la gente ya tiene:
 // es una decision del dueño, no un ajuste.
 // SUBIDOS POR DECISION DEL DUEÑO (30 sep 2026): «lo actual es bastante
-// miseria». Tramo 1 x1,75 y tramos 2 y 3 x1,4. La redencion sube al mismo ritmo
+// miseria». Y AJUSTADO EL 3 OCT, al bajar los precios un 40 %: con
+// los dos cambios juntos las ganancias se desbordaban. Queda en tramo 1 x1,25 y
+// tramos 2 y 3 x1,15 sobre los de antes: se gana un poco mas, no el doble. La redencion sube al mismo ritmo
 // para seguir por encima del mega de cada tramo.
 const BONOS = {
-  1: { win: [14, 10], bigwin: [24, 14], jackpot: [38, 21], mega: [60, 32] },
-  2: { win: [49, 28], bigwin: [77, 35], jackpot: [112, 49], mega: [168, 70] },
+  1: { win: [10, 8],  bigwin: [18, 10], jackpot: [28, 15], mega: [42, 22] },
+  2: { win: [40, 23], bigwin: [63, 29], jackpot: [92, 40], mega: [138, 58] },
   // TRAMO 3 SUBIDO UN 30 % AL PASAR LOS HITOS A UMBRALES.
   //
   // No es un regalo: es devolver lo que el arreglo se llevo. Con el modulo, el
@@ -581,7 +583,7 @@ const BONOS = {
   // Y se queda en 462 al dia, por debajo de los 486 que ingresaba antes: sigue
   // sin entrar aura nueva al sistema, y la distancia con el que escribe poco
   // vuelve a pasar del 2,5x que exige el validador.
-  3: { win: [161, 70], bigwin: [238, 112], jackpot: [343, 147], mega: [476, 217] },
+  3: { win: [132, 58], bigwin: [196, 92], jackpot: [282, 121], mega: [391, 178] },
 };
 
 // Premio de redención para quien está en negativo. Su función es sacar a
@@ -604,7 +606,7 @@ const BONOS = {
 // Y se paga con dinero que ya existia: a cambio bajan las tiradas de pago de
 // !aura (ver TIRADAS_PAGADAS). Lo que el bot deja de repartir por darle a un
 // boton lo reparte por escribir, que es lo que dice ser en todas partes.
-const PRIMERA_DEL_DIA = 80;
+const PRIMERA_DEL_DIA = 65;
 
 // LOS TRES HITOS DEL DIA. Viven aqui y no en casino.js porque este fichero es
 // la escala entera del bot y porque el validador (scripts/economia.js) modela
@@ -696,9 +698,9 @@ const HITOS = [
 ];
 
 const REDENCION = {
-  1: [95, 80],    // por encima del mega de tier 1 (60-92)
-  2: [245, 165],  // por encima del mega de tier 2 (168-238)
-  3: [700, 360],  // por encima del mega de tier 3 (476-693)
+  1: [70, 50],    // por encima del mega de tier 1 (42-64)
+  2: [200, 140],  // por encima del mega de tier 2 (138-196)
+  3: [575, 300],  // por encima del mega de tier 3 (391-569)
 };
 // ─── !robo ───────────────────────────────────────────────────────────────────
 //
@@ -732,7 +734,13 @@ const ROBO = {
   // Que esto no descuadre el ranking no depende de un tope: depende de que
   // pedir mucho sea muy dificil de acertar. Ver RIESGO.codiciaMax, que subio a
   // la vez que esto y por esto.
-  techoFraccion: 1,       // se puede pedir hasta todo lo que tenga la victima
+  // HASTA LA MITAD DE LO QUE TIENE LA VICTIMA, Y NUNCA MAS DE 400. El techo
+  // absoluto lo nombraba robo.js y ya no existia: se podia pedir el saldo
+  // entero de alguien y, con robo redondo, llevarse x1,8. Puesto el 3 oct
+  // porque los robos se veian desbordados. 400 son unos dos dias de un
+  // miembro normal; con robo redondo, 720 como mucho.
+  techoFraccion: 0.5,
+  techoAbsoluto: 400,
   minVictima: 20,         // por debajo de esto no se le puede robar a alguien
 };
 
