@@ -155,7 +155,7 @@ const ALTO = [
   'Con %IQ ves venir las tonterías del grupo antes que nadie. Y aun así te metes, cabrón.',
   '%IQ de IQ. Tienes de las mejores cabezas de aquí, que con este nivel tampoco es decir mucho.',
   '%IQ. Piensas rápido, hablas bien y lo usas para ganar discusiones que no importan una mierda.',
-  'Con %IQ podrías estar haciendo algo grande. Estás aquí, mirando tu IQ en un bot.',
+  'Con %IQ podrías estar haciendo algo grande. Y aquí estás, con tu IQ en un bot.',
   '%IQ de IQ. Se te nota la cabeza. También se te nota lo mucho que te gusta que se te note.',
   '%IQ. Por encima de la media y por debajo de lo que tú te crees.',
   'Con %IQ entiendes las cosas a la primera. Lo jodido es tener que esperar a que el resto llegue.',

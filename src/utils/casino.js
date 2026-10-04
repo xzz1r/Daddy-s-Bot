@@ -51,7 +51,7 @@ const PHRASES = {
     jackpot: [
       'Pleno. %M mensajes y el premio gordo. Hoy el aura es tuya.',
       'Premio máximo del tramo. Escribir %M mensajes tiene esto: a veces toca.',
-      'Pleno con %M mensajes. El grupo lo ha visto y a más de uno le escuece.',
+      'Pleno con %M mensajes. La cifra más alta del tramo, y es tuya.',
       'El pleno del tramo, para ti. %M mensajes y la suerte en el mismo día.',
       'Pleno. No se gana apareciendo una vez: se gana apareciendo %M.',
       'Premio gordo por %M mensajes. A quien escribe, a veces, el aura le devuelve el favor.',
@@ -73,7 +73,7 @@ const PHRASES = {
       'El aura ha pagado de más. Con %M mensajes, hoy te lo mereces entero.',
       '%M mensajes y un pago que se nota. Así da gusto aparecer.',
       'Pago generoso por %M. Hay días en que el aura te devuelve lo que pones.',
-      'Bono gordo. %M mensajes y el grupo mirando el número con envidia.',
+      'Bono gordo. %M mensajes y una cifra que da envidia.',
       'Te ha salido redondo: %M mensajes y el pago por encima.',
     ],
     jackpot: [
@@ -82,7 +82,7 @@ const PHRASES = {
       'Pleno. Has escrito %M mensajes y el aura se ha vaciado los bolsillos por ti.',
       'Pleno con %M. Si alguien pregunta para qué sirve escribir, que mire esto.',
       'Premio gordo del tramo. %M mensajes que le han salido carísimos al aura.',
-      'Pleno por %M mensajes. Hoy el grupo va a hablar de ti. Más todavía.',
+      'Pleno por %M mensajes. Hoy el marcador habla de ti.',
     ],
   },
   tier3: {
@@ -93,7 +93,7 @@ const PHRASES = {
       'Cobrado por %M. Hay quien lo intenta toda la semana y no llega.',
       '%M mensajes hoy. El marcador no tiene más tramos para ti.',
       'Hito máximo. %M mensajes y ni una excusa. Así se hace.',
-      '%M mensajes. Mañana el contador vuelve a cero, pero lo de hoy lo ha visto todo el mundo.',
+      '%M mensajes. Mañana el contador vuelve a cero, pero lo de hoy ya está cobrado.',
       'Bono del tramo alto por %M. Quien diga que el grupo está muerto, que te pregunte cómo se hace.',
     ],
     bigwin: [
@@ -107,7 +107,7 @@ const PHRASES = {
     jackpot: [
       'Pleno en lo más alto. %M mensajes y el premio gordo. Es lo máximo que da el bot.',
       'Premio gordo por %M. Constancia y suerte el mismo día. Pocos lo ven.',
-      'Pleno. %M mensajes y el aura a tus pies. El grupo lo va a comentar un buen rato.',
+      'Pleno. %M mensajes y el aura a tus pies. Hoy no hay quien te tosa en el marcador.',
       'Premio máximo del tramo alto. %M mensajes y ni uno de relleno.',
       'Pleno con %M mensajes. Hoy mandas en el marcador y en el chat.',
       'El pleno más alto, por %M mensajes de los buenos. Así funciona esto.',
@@ -115,8 +115,8 @@ const PHRASES = {
   },
   redemption: [
     'Bono de redención. Estabas en el sótano y esto es un pellizco, no la salida.',
-    'Aura en negativo y mensajes de verdad. El marcador cambia de cara y el grupo lo ha visto.',
-    'El grupo daba tu aura por perdida. Tú has seguido escribiendo. Bono de redención.',
+    'Aura en negativo y mensajes de verdad. Tu marcador empieza a cambiar de cara.',
+    'Tu aura estaba en rojo y has seguido escribiendo. Bono de redención.',
     'Desde el fondo del pozo, un bono por mensajes. No es la puerta: es un empujón, y lo has cobrado.',
     'Redención. Un pago por estar en rojo y haber escrito. Las tiradas de antes no pintan aquí.',
     'Aura negativa y bono igual. Aquí se paga por aparecer, aunque vengas de abajo.',

@@ -238,7 +238,7 @@ const AURA_LINES = [
   'Hay hitos de mensajes que pagan extra. Llegar a ellos pide algo que no todo el mundo tiene: constancia.',
   'Quien más escribe no es quien más pesa. Es quien cobra.',
   'Con aura se compra en la tienda: escudo, ganzúa, cebo. Sin aura te compras un disgusto.',
-  'El aura se nota en el saldo y en la cara. La tuya lleva un rato diciendo que te falta.',
+  'Tu aura se nota en el saldo, y el saldo no se puede disimular.',
   'Nadie te regala nada en este marcador. Lo que tienes lo has escrito, lo has robado o te ha tocado en los dados.',
   'Los fantasmas no cobran ni un punto. Lo que tienen se queda a la vista del primero que pase.',
   'Robar sale bien a veces. Escribir sale bien siempre. Haz las cuentas.',

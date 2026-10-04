@@ -1407,9 +1407,9 @@ const REMATES = [
   '«es que salgo mal en las fotos» y en persona también. Manda una y acabamos antes.',
   '«yo vengo a mirar». Aquí no se mira gratis: foto y edad.',
   '«paso de estas chorradas» lo dice quien le está dando vueltas. Manda la foto.',
-  'Mandas la foto y te «olvidas» de la edad. No cuela. Pon el número.',
+  'Foto sin edad, o edad sin foto, no cuenta. Las dos cosas.',
   '«no me gusta exponerme», dice quien entró en un grupo por su cuenta. Da la cara.',
-  'Llevas un rato buscando la buena. No la hay. Manda la última y ya.',
+  'No te hace falta la foto buena. Vale cualquiera, y ya.',
   'Esperando a ver quién se presenta primero para copiar el tono. No hay tono. Sal tú.',
   'Un «hola» no es una presentación. Foto y edad, o vuelve a tu agujero.',
 ];

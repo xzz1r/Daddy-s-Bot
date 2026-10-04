@@ -14,9 +14,9 @@ const ANUNCIOS = [
   '*PAPI HA RESUCITADO.*\n\nEstaba ocupado en asuntos que no están a vuestro nivel. Se acabó el recreo: el grupo vuelve a tener dueño.',
   '*HE VUELTO.*\n\nMe fui a arreglar cosas más grandes que este chat, y las arreglé. Ahora todos a vuestro sitio, que aquí mando yo.',
   '*PAPI ESTÁ DE VUELTA.*\n\nNo me fui: estaba ocupado. Bajad la voz, enderezad la espalda y recordad quién manda aquí.',
-  '*RESUCITADO.*\n\nUnos días fuera y el grupo dando vueltas sin rumbo. Lo esperaba. Ya llegó quien pone el orden.',
+  '*RESUCITADO.*\n\nUn grupo sin dueño no tiene rumbo. Ya llegó quien pone el orden.',
   '*HA VUELTO EL QUE MANDA.*\n\nAsuntos cerrados, agenda libre. Toda mi atención vuelve a estar encima de vosotros. Comportaos.',
-  '*PAPI HA REGRESADO.*\n\nMe echasteis de menos aunque nadie lo diga. Ya está. Cada uno a su puesto, que se acabó la anarquía.',
+  '*PAPI HA REGRESADO.*\n\nOs hacía falta alguien que mande, aunque nadie lo diga. Cada uno a su puesto, que se acabó la anarquía.',
   '*ATENCIÓN AL GRUPO.*\n\nPapi ha vuelto de sus asuntos. Lo que hayáis hecho mientras tanto, ya lo sé. Todo.',
   '*DE VUELTA AL TRONO.*\n\nMe ausenté para ocuparme de lo importante, y lo importante ya está hecho. El trono no se queda vacío.',
 ];

@@ -38,7 +38,7 @@ function getActivityPhrases(count) {
       `%N, contador a cero. Si te fueras ahora, se iría alguien de quien no queda ni una frase.`,
       `Cero mensajes, %N. Nadie en el grupo sabe cómo suenas.`,
       `%N, ni uno. El grupo lleva hablando todo este tiempo y tú mirando como quien mira el tráfico.`,
-      `Cero, %N. Te han añadido, has aceptado y no has dicho ni mu. Tres pasos y el último es el tuyo.`,
+      `Cero, %N. Entrar te costó un toque. Escribir, por lo visto, cuesta más.`,
       `%N, cero mensajes. Parasitismo puro: todo lo que pasa aquí te lo llevas y no devuelves ni un emoji.`,
       `Cero, %N. Hasta quien se equivoca de grupo escribe «perdón». Tú ni eso.`,
       `%N, ni un mensaje. Tienes el grupo de adorno y el móvil de pisapapeles.`,

@@ -28,7 +28,7 @@ const GUARDADO = [
   'A cubierto. Ahora quien venga a robarte tiene que traer algo más que ganas.',
   'Candado puesto, y a la vista de todo el grupo. Esconder no es discreto.',
   'Guardado. Lo sensato, que casi nunca es lo divertido.',
-  'Cerrado. Ahora sí se puede dormir sin mirar el móvil cada diez minutos.',
+  'Cerrado. Ahora te duermes con algo más de calma.',
   'Bajo llave. Casi a salvo: un golpe maestro todavía revienta la caja.',
   'Bajo llave y fuera de la mesa. Esa aura ya no juega, y tú tampoco con ella.',
   'Bajo llave. Sacarlo va a doler, y lo sabes.',
@@ -55,7 +55,7 @@ const SACADO = [
   'Fuera. El aura vuelve a la mesa, y la mesa está llena de gente con hambre.',
   'Sacado. La factura del miedo llega al abrir, no al cerrar.',
   'Abierta. Parte de lo tuyo acaba en el bote, que es donde acaba todo lo que se mueve aquí.',
-  'En la mano, y con prisa por gastarlo. Se te nota.',
+  'En la mano. Ahora te toca decidir en qué gastarlo.',
   'Sacado. La caja pesa menos y tu saldo un poco más, que ya era hora.',
 ];
 
