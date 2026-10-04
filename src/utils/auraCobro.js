@@ -90,7 +90,7 @@ async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta
     precio = Math.max(1, Math.round(precio * (1 - ADMIN.descuento)));
   }
 
-  // ─── LA CUARTA DEL DIA CUESTA EL DOBLE ──────────────────────────────────
+  // ─── LA RAFAGA DEL DIA SE PAGA MAS CARA ─────────────────────────────────
   //
   // El precio es el unico freno que no depende de que nadie vigile, y estaba
   // frenando al reves. Medida la curva de ingresos: el que escribe mil mensajes
@@ -99,9 +99,10 @@ async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta
   // molestaba.
   //
   // Asi que el freno deja de estar en el precio y pasa a estar en la RAFAGA.
-  // Las tres primeras del dia valen lo de siempre; de la cuarta en adelante,
-  // el doble. Diez acciones seguidas pasan de costar 600 a costar 1.020, que
-  // para el de mil mensajes son tres dias de ingresos.
+  // Las primeras del dia valen lo de siempre y a partir de ahi el precio sube
+  // por tramos. Cuantas y cuanto vive en RAFAGA, arriba, y en ningun otro
+  // sitio: este comentario decia «el doble desde la cuarta» y unas cifras de
+  // cuando los precios eran otros.
   //
   // TRES Y NO UNA: el objetivo no es que nadie use el bot, es que una rafaga
   // contra medio grupo cueste. Tres seguidas es una conversacion; diez es otra
