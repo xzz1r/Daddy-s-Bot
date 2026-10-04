@@ -76,7 +76,7 @@ const ROTA = [
   '%N, *%P días* de racha y un día de silencio. Ha ganado el silencio.',
   'Racha rota. %N llevaba *%P días*, y ahora el marcador empieza de cero.',
   '%N ha perdido *%P días* de golpe. Ni un robo le habría quitado la racha entera así.',
-  '*%P días* rotos, %N. El grupo sabía que no ibas a aguantar. Lo que no sabía era cuándo.',
+  '*%P días* rotos, %N. Ahora a ver si aguantas otros tantos.',
   '%N, *%P días* a cero. La racha era lo único tuyo que crecía.',
 ];
 

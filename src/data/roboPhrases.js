@@ -15,7 +15,7 @@ const ROBO_FALLO_REMATE = [
   'y se le acabó el cuento en el primer verbo. El verbo era robar. No sabe',
   'y volvió al sofá con menos. El sofá no le pregunta. Menos mal',
   'y ni el azar quiso ser cómplice. El azar tiene más dignidad',
-  'y se acabó como se acaba todo lo suyo: mal, rápido y en ridículo',
+  'y se acabó mal, rápido y en ridículo',
   'y volvió con las manos vacías y el bolsillo más ligero',
   'y lo único que tocó fue fondo',
   'y la jugada le cabía en un mensaje. La vergüenza no le cabe en el chat',
@@ -27,7 +27,7 @@ const ROBO_FALLO_REMATE = [
   'y terminó pidiendo perdón con su propia aura',
   'y le costó más caro que no haber abierto la puta boca',
   'y dejó el suelo lleno de excusas',
-  'y acabó donde acaba siempre: mirando su saldo con cara de gilipoyas',
+  'y acabó mirando su saldo con cara de gilipoyas',
   'y la víctima ni se despeinó',
   'y volvió a su sitio, que está bastante abajo',
   'y pagó por aprender algo que no va a aprender',
@@ -51,9 +51,9 @@ const ROB_WIN = [
   '%A entra, coge y sale. %V sigue buscando dónde lo había dejado.',
   'A %V le han quitado el aura y la chulería en el mismo movimiento. Solo le queda la cara de pasmo.',
   '%A ha cobrado sin prisa. Con %V no hace falta correr.',
-  '%V tiene un rato para devolver el golpe. Viendo cómo reacciona %V a todo, %A ya puede ir gastándolo.',
+  '%V tiene un rato para devolverle el golpe a %A. A ver si le da para algo.',
   '%A le ha limpiado el bolsillo a %V sin sudar. Lo que a %V le cuesta a pulso se va en un comando.',
-  'El grupo se está riendo de %V y ni siquiera ha tenido que decir nada. Con el saldo basta.',
+  '%V acaba de quedar en evidencia sin decir nada. Con el saldo basta.',
   'Todo lo que %V escribió para juntar esa aura acaba de cobrarlo %A. Horas de chat para pagarle el día a otro.',
   '%A ni lo celebra. Robarle a %V le ha costado un comando.',
   '%V se ha defendido exactamente cero. Ni un escudo, ni una excusa, ni un puto grito.',
@@ -135,7 +135,7 @@ const ROB_MAESTRO = [
 ];
 
 const ROB_PARCIAL = [
-  '%A entró a por todo y salió con las manos medio llenas. %V se salvó por poco, que es como se salva de todo: por poco y por casualidad.',
+  '%A entró a por todo y salió con las manos medio llenas. %V se salva por poco y por casualidad.',
   '%A entró con ambición y salió con un consuelo. %V no ganó nada, solo perdió menos de lo que tocaba.',
   '%A se llevó una parte y dejó el resto. Robarle a %V del todo no le ha salido.',
   '%A hizo lo que pudo con el tiempo que tuvo. %V conserva un resto que va a proteger como si valiera algo.',

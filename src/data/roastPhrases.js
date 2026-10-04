@@ -136,7 +136,7 @@ const COMBINED_ACTIVE = [
 
 const NAME_ONLY = [
   '%N. Cuando ese nombre sale en el grupo, nadie espera nada bueno.',
-  '%N. Tu nombre salta en la pantalla y medio grupo baja el volumen.',
+  '%N. Tu nombre salta en la pantalla y no promete nada bueno.',
   'Se te menciona, %N, y el grupo ya sabe que viene algo malo.',
   '%N. Hay nombres que suenan a alguien. El tuyo suena a relleno.',
   '%N, tu nombre en una notificación es la manera más rápida de que alguien suelte el móvil.',
@@ -148,7 +148,7 @@ const NAME_ONLY = [
   'Cuando sale %N en la lista de quién ha leído el mensaje, nadie se alegra.',
   '%N, tu nombre es el que nadie elige para los equipos. Se lo quedan por sorteo.',
   '%N. Ver tu nombre encima de un mensaje largo es motivo suficiente para no leerlo.',
-  'A %N se le menciona poco, y siempre por error.',
+  'A %N se le menciona poco, y cuando se le menciona es para esto.',
   '%N. El nombre de alguien que se presenta y nadie se queda con la cara.',
   '%N. Si te cambiaras de nombre mañana, el grupo tardaría una semana en darse cuenta. Y le daría igual.',
   '%N, con ese nombre podrías ser cualquiera. Y lo eres: cualquiera.',
@@ -156,7 +156,7 @@ const NAME_ONLY = [
   '%N. Ese nombre no lo grita nadie en una fiesta. Lo susurran cuando te vas.',
   '%N, tu nombre es la contraseña que nadie quiere recordar.',
   'Quien busca %N en el chat encuentra poco, y nada bueno.',
-  '%N, tu nombre no tiene fama. Tiene historial, y del malo.',
+  '%N, tu nombre no tiene fama. Tiene esto.',
   '%N. Alguien eligió ese nombre con ilusión. Luego llegaste tú y la ilusión se fue a tomar por culo.',
   '%N. Ni el nombre te sale con gracia. Para caer en gracia hace falta algo más.',
   '%N, tu nombre suena a disculpa. A «perdón, ¿quién eras?».',

@@ -240,10 +240,10 @@ async function cmdFantasmas(sock, msg, groupMeta) {
 // grupo (no su físico ni su vida) y terminan en un remate. Sin remate no es un
 // chiste, es una queja.
 let AVISO_PURGA = [
-  'El bot ha repasado vuestro historial buscando algo que salvar. Un chiste malo, un audio, una opinión de mierda, lo que fuera. No hay nada. Sois una foto de perfil con conexión a internet.',
+  'El contador no encuentra nada que salvar: ni un chiste malo, ni una opinión de mierda, nada. Sois una foto de perfil con conexión a internet.',
   'Hay gente en este grupo que ha escrito más que vosotros discutiendo dónde pedir la cena. Vosotros ni el nombre del restaurante.',
   'Si desaparecéis, el grupo se entera por esta lista, no porque os eche de menos. Ese es exactamente vuestro peso aquí: el de un mueble que nadie mueve.',
-  'El bot ha buscado vuestra mejor intervención del año para citarla aquí. Sigue buscando. Va a seguir un buen rato, y cuando termine no va a encontrar nada.',
+  'Diez mensajes o menos. Si hubiera que citar vuestra mejor intervención, no habría de dónde sacarla.',
   'Estáis en el grupo igual que está el extintor en la pared: alguien os puso ahí un día, nadie os mira, y en el fondo todos esperan no tener que usaros nunca.',
   'Diez mensajes o menos. No sois callados: los callados escuchan. Vosotros sois ausentes con la aplicación abierta, que es otra cosa y bastante más triste.',
   'El contador no da para más análisis: diez mensajes o menos no dicen nada, y vosotros tampoco.',
@@ -273,7 +273,7 @@ let AVISO_PURGA = [
   'Diez mensajes o menos. La gente entra aquí a hablar con sus amigos; vosotros entráis a comprobar que siguen ahí, como quien mira si la nevera sigue enchufada.',
   'La lista pone el número de cada uno, y ninguno pasa de diez. Se puede leer en voz alta y sobra dedo para señalaros.',
   'Sois miembros del grupo en el mismo sentido en que un cartel es parte de la calle: estáis pegados ahí, nadie os quita, y nadie os lee tampoco.',
-  'El bot ha buscado en vuestro historial una sola frase digna de captura. Con diez mensajes o menos, la búsqueda ha sido corta.',
+  'Diez mensajes o menos. Ni una frase vuestra que merezca captura, porque no hay frases.',
   'Una foto de perfil y un historial que se lee de un tirón, entre dos notificaciones.',
   'Hay gente que aporta contenido, gente que aporta caos y gente que aporta al menos su presencia. Vosotros habéis descubierto una cuarta categoría y os la habéis quedado entera.',
   'Estáis por debajo del corte. No del corte de los graciosos ni del de los pesados: del corte de los que existen. Ese es el listón que no habéis pasado.',
@@ -282,7 +282,7 @@ let AVISO_PURGA = [
   'Sois la prueba de que se puede estar en un sitio sin llegar a estar nunca. Un mérito filosófico enorme y absolutamente inútil para todo lo demás.',
   'El grupo os aceptó, os dio sitio y esperó. El grupo ya no espera. El bot tampoco, y el bot es el que tiene el botón.',
   'El número de cada uno cabe en la lista sin apretar: se dice sin abrir la boca del todo.',
-  'He revisado si escribís en otros sitios y volvéis aquí a descansar. No lo sé y me da igual: lo que sé es que aquí no habéis dicho nada que valga la pena leer dos veces.',
+  'Dónde escribáis fuera de aquí da igual: aquí no habéis dicho nada que valga la pena leer dos veces.',
   'Vuestra aportación al grupo es tan escasa que el bot ha tenido que crear una lista solo para poder nombraros. Antes de esto no había motivo para escribir vuestro nombre.',
   'Diez mensajes o menos. En el tiempo que lleváis aquí, alguien ha entrado, se ha hecho amigo de todos, ha discutido con la mitad y ha vuelto a caer bien. Vosotros seguís cargando.',
 ]
@@ -312,7 +312,7 @@ let AMENAZAS = [
   'El grupo no os necesita y el bot ya lo sabe. Os va a expulsar, y la única prueba de que estuvisteis aquí va a ser esta lista.',
   'Esta lista se vacía de dos maneras: escribiendo o expulsados. Elegís vosotros, pero elegís hoy.',
   'El bot os saca sin ceremonia, sin mensaje y sin aviso. Igual que entrasteis, pero al revés y con menos gente mirando.',
-  'El bot os expulsa cuando le dé la gana y no avisa antes. Podría estar haciéndolo mientras leéis esto.',
+  'Esta lista es la que se usa para echar. No hay otra, y vosotros estáis en ella.',
   'Escribid o el bot os borra del grupo. Y sinceramente, borrar algo que no estaba tampoco es un gran esfuerzo.',
   'Os quedan las horas que tarde el bot en aburrirse y expulsaros. Calculad.',
   'La expulsión no es un castigo, es una corrección: el bot solo va a poner la lista de miembros al día con la realidad.',

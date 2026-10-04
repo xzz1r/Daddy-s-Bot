@@ -122,7 +122,7 @@ const PHRASES = {
     'Aura negativa y bono igual. Aquí se paga por aparecer, aunque vengas de abajo.',
     'Comeback a medias. Mientras otros miran el saldo, a ti te ha caído un bono. El rojo, si sigue, sigue.',
     'El sótano tiene salida y la has encontrado tú. Escribiendo, no tirando dados.',
-    'Bono de redención. Nadie apostaba por ti y has vuelto hablando.',
+    'Bono de redención. Estabas en rojo y has vuelto hablando.',
     'Remontada confirmada. El marcador te debía una y hoy te la paga.',
   ],
 };

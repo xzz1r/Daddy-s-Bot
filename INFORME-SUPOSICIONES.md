@@ -1,5 +1,18 @@
 # Frases que dan por hecho lo que el bot no sabe — 4 oct 2026
 
+## Hecho — 4 oct 2026
+
+Reescritas en su sitio todas las frases de abajo menos siete. Después, una pasada más a cero tolerancia sobre todo lo revisado, acciones incluidas: unas 110 frases más con «como siempre», historiales inventados, objetos o rasgos que la persona no tiene por qué tener (gafas, coche, oficina) y cosas que el bot decía haber hecho sin hacerlas («he revisado vuestro historial», «he preguntado al grupo»).
+
+Sin tocar, a propósito:
+- Los siete ejemplos del dueño marcados como intocables en `aura.js` (`blessed` 139, 140, 141; `loss` 250, 251, 254; `cursed` 318).
+- Los pools sexuales, `!gay`, `!maricon`, `!femboy`, `PIROPOS` y `WINGMAN_ANECDOTAS`, que no se han revisado.
+
+`npm run check` en verde y `npm run frases` baja de 1.212 a 1.157 frases con defecto.
+
+La lista de abajo es la de antes de reescribir: las frases citadas ya no están en el bot.
+
+
 Solo marcadas, sin tocar. Cada línea lleva el fichero, la línea del fichero, la frase y lo que da por hecho.
 
 Dos pasadas. La primera marcó lo que falla siempre. La segunda (²) es más estricta: añade lo que falla a menudo, como «como siempre», la cara que pone, lo que piensa o la reacción del grupo, y en los porcentajes los hechos concretos que se pueden comprobar (la foto de perfil, «compartes piso», «el año pasado fuiste a un salón del manga»).

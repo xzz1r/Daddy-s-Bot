@@ -88,7 +88,7 @@ const LLENO = [
   'No cabe más. La caja tiene tope, y tú acabas de encontrarlo.',
   'No cabe. Una caja por persona, y la tuya ya no admite ni una moneda.',
   'Sin sitio. Si tienes tanto, ya puedes ir comprando escudo para lo de fuera.',
-  'Llena. Más aura de la que cabe en la caja, y aún te quejas.',
+  'Llena. Tienes más aura de la que te cabe en la caja, y lo que sobra, a la vista.',
 ];
 
 // No llega al mínimo o no tiene saldo suficiente.
