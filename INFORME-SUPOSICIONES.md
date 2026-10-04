@@ -2,6 +2,8 @@
 
 Solo marcadas, sin tocar. Cada línea lleva el fichero, la línea del fichero, la frase y lo que da por hecho.
 
+Dos pasadas. La primera marcó lo que falla siempre. La segunda (²) es más estricta: añade lo que falla a menudo, como «como siempre», la cara que pone, lo que piensa o la reacción del grupo, y en los porcentajes los hechos concretos que se pueden comprobar (la foto de perfil, «compartes piso», «el año pasado fuiste a un salón del manga»).
+
 El criterio: la frase afirma algo de esta persona o de este momento que el bot no tiene, y que quien la lee puede ver que es falso. Es lo que deja a la gente con un «¿qué?».
 
 Lo que más se repite:
@@ -18,7 +20,7 @@ Lo que más se repite:
 No entran:
 
 - El veredicto de un %, un IQ o un rizz, que por diseño describe un hábito («guardas capturas de hace años»). Ahí solo se marca lo que inventa una persona o un hecho concreto.
-- Las escenas de las acciones, que son ficción.
+- Las escenas de las acciones (unas 660), que son ficción: «%V suspira», «%V se pone de rodillas». Solo se marca cuando inventan un historial. Si las quieres dentro, casi todas narran lo que hace %V.
 - Los pools sexuales, `!gay`, `!maricon`, `!femboy`, `PIROPOS` y `WINGMAN_ANECDOTAS`, que no se han revisado.
 
 De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
@@ -27,33 +29,33 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 
 | Fichero | Frases |
 |---|---|
-| `src/commands/aura.js` | 32 |
+| `src/commands/aura.js` | 52 |
+| `src/data/percentLabels.js` | 50 |
+| `src/data/roboExtraPhrases.js` | 42 |
+| `src/data/cooldownPhrases.js` | 36 |
 | `src/data/fidelityPhrases.js` | 28 |
-| `src/data/cooldownPhrases.js` | 27 |
-| `src/data/roboExtraPhrases.js` | 23 |
 | `src/commands/ship.js` | 20 |
-| `src/commands/count.js` | 15 |
-| `src/data/avisos.js` | 12 |
-| `src/commands/activity.js` | 11 |
-| `src/data/roastPhrases.js` | 7 |
+| `src/data/avisos.js` | 19 |
+| `src/data/apuestaPhrases.js` | 16 |
+| `src/commands/count.js` | 16 |
+| `src/commands/activity.js` | 15 |
+| `src/data/roastPhrases.js` | 11 |
+| `src/data/rencorPhrases.js` | 10 |
+| `src/data/roboPhrases.js` | 7 |
 | `src/commands/duel.js` | 7 |
-| `src/data/apuestaPhrases.js` | 6 |
-| `src/utils/casino.js` | 5 |
-| `src/data/rencorPhrases.js` | 4 |
-| `src/data/roboPhrases.js` | 4 |
-| `src/data/rachaPhrases.js` | 3 |
-| `src/utils/antilink.js` | 3 |
-| `src/data/accionPhrases.js` | 3 |
+| `src/utils/casino.js` | 7 |
+| `src/data/rachaPhrases.js` | 6 |
+| `src/utils/antilink.js` | 5 |
+| `src/commands/relevance.js` | 4 |
+| `src/data/accionPhrases.js` | 4 |
+| `src/commands/mog.js` | 3 |
 | `src/data/vaultPhrases.js` | 2 |
-| `src/data/percentLabels.js` | 2 |
 | `src/commands/group.js` | 2 |
-| `src/commands/mog.js` | 1 |
 | `src/commands/social.js` | 1 |
-| `src/commands/relevance.js` | 1 |
 | `src/commands/iq.js` | 1 |
 | `src/commands/roast.js` | 1 |
 | `src/commands/reborn.js` | 1 |
-| **Total** | **222** |
+| **Total** | **366** |
 
 
 ## `src/data/avisos.js` · SIN_PERMISO
@@ -67,12 +69,14 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 
 ## `src/data/avisos.js` · SOLO_ADMINS
 
+- **153** ² · «Los admins te han visto intentarlo. Ahora ya saben a quién no darle el rango.» — Da por hecho por qué lo hizo o cómo lo hizo.
 - **157** · «Lo sabías y lo has probado igual, por si el bot se despistaba. No se despista.» — Da por hecho lo que sabía o hacía antes.
 - **163** · «No te han votado y no te van a votar. Eso dice el botón que no te funciona.» — Da por hecho lo que sabía o hacía antes.
 - **170** · «Sin corona, lameculos. Por mucho que pelotees a los admins, no te la dan.» — Da por hecho lo que sabía o hacía antes.
 
 ## `src/data/avisos.js` · CONTRA_UN_ADMIN
 
+- **252** ² · «Los admins no se callan entre sí. Si os aguantáis poco, es problema vuestro.» — Da por hecho por qué lo hizo o cómo lo hizo.
 - **258** · «Otro admin. El mute no pasa, y el cabreo te lo quedas tú.» — Da por hecho que está cabreado.
 
 ## `src/data/avisos.js` · VER_UNA_VEZ
@@ -86,6 +90,7 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 ## `src/data/cooldownPhrases.js` · GENERICO
 
 - **24** · «Impaciente. Es la palabra. Llevas siéndolo desde que entraste y hoy se te ve entera.» — «desde que entraste»: no sabe cómo era antes.
+- **33** ² · «Otra vez tú. Siempre tú. El grupo entero ya tiene tu ansiedad fichada.» — «Siempre tú»: puede ser la primera vez que espera.
 - **34** · «Vuelves antes de que se te pase, cretino. Y luego te ofendes cuando alguien te llama pesado.» — Inventa que se ofende cuando le llaman pesado.
 - **51** · «El "escribiendo..." eras tú pidiendo lo mismo. Bórralo. Da vergüenza ajena.» — Inventa que el «escribiendo…» era suyo.
 
@@ -97,7 +102,9 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 ## `src/data/cooldownPhrases.js` · AURA_APOSTAR
 
 - **92** · «Ansioso hasta para perder. Ni eso sabes hacer con dignidad, cabrón.» — Da por hecho que perdió la última apuesta. Pudo ganarla.
+- **108** ² · «La mesa todavía humea. Tus manos también. El temblor ya es el espectáculo, cabrón.» — Inventa su gesto o cómo escribe.
 - **113** · «Quieres recuperar lo perdido. Así empieza todo el que acaba sin nada.» — Da por hecho que perdió la última apuesta. Pudo ganarla.
+- **114** ² · «Otra apuesta ahora sería puro tilt, y se te nota en cómo escribes.» — Inventa su gesto o cómo escribe.
 - **115** · «La casa ya ha cobrado. Vuelve cuando tengas algo más que ganas.» — Da por hecho que perdió la última apuesta. Pudo ganarla.
 - **118** · «Apostar a esta velocidad es donar a plazos. Hoy ya has pagado el primero.» — Da por hecho que perdió la última apuesta. Pudo ganarla.
 
@@ -118,6 +125,7 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 ## `src/data/cooldownPhrases.js` · AURA_TOP_POBRE
 
 - **168** · «Tres horas. Podrías haber robado, escrito, tirado. Has elegido la puta ventana. El escaparate no suma.» — Da por hecho que lleva tres horas mirando la lista.
+- **174** ² · «Tu nombre no está. Lo sabías antes de pedirlo, y lo has pedido igual.» — Da por hecho lo que sabía.
 - **175** · «Los del top no saben que existes. Tú te sabes sus nombres de memoria.» — Da por hecho lo que hizo o se sabe. La espera es del grupo.
 - **181** · «Te sabes el top mejor que quienes están en él. Lo que no sabes es cómo entrar.» — Da por hecho lo que hizo o se sabe. La espera es del grupo.
 
@@ -130,24 +138,37 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 ## `src/data/cooldownPhrases.js` · PLAY
 
 - **295** · «Impaciente. Ni tres minutos de atención tienes, y encima presumes de playlist.» — Inventa que presume de playlist.
+- **307** ² · «Tu lista es un montón de cosas que nunca has oído enteras. Patético.» — Inventa una costumbre.
 
 ## `src/data/apuestaPhrases.js` · APUESTA_GANA
 
+- **38** ² · «Gana, y desde aquí se le ve la sonrisa de imbécil. %S.» — Inventa su cara, lo que piensa o la reacción del grupo.
+- **44** ² · «Ha cobrado. El grupo fingiendo que se alegra, panda de falsos de mierda.» — Inventa su cara, lo que piensa o la reacción del grupo.
 - **52** · «Ha ganado sin saber ni lo que estaba apostando. Puta suerte.» — Inventa su pasado o la reacción del grupo.
 - **53** · «Sale bien y de repente todos teníais fe en %A. Hipócritas de mierda.» — Inventa que el grupo «tenía fe».
+- **56** ² · «Sale bien y ya está calculando cuánto puede perder mañana. Imbécil.» — Inventa su cara, lo que piensa o la reacción del grupo.
 - **58** · «Ha salido. Y de golpe se le olvidan todas las hostias anteriores.» — Da por hecho que perdió las anteriores.
+- **59** ² · «Ha acertado y el grupo disimulando la envidia. Se os ve, gilipoyas.» — Inventa su cara, lo que piensa o la reacción del grupo.
+- **60** ² · «Sale. %S y una anécdota que va a repetir hasta el puto vómito.» — Inventa su cara, lo que piensa o la reacción del grupo.
+- **64** ² · «Cobra. El saldo le queda en %S y ya está contando la siguiente.» — Inventa su cara, lo que piensa o la reacción del grupo.
 
 ## `src/data/apuestaPhrases.js` · APUESTA_PIERDE
 
+- **77** ² · «La mesa no perdona a los que llegan sonriendo. %S, imbécil.» — Inventa su cara, lo que piensa o la reacción del grupo.
 - **81** · «Se le veía venir en la puta forma de escribirlo.» — «en la forma de escribirlo»: escribió *!aura apostar*.
 - **90** · «Pierde %A. Lo apuntamos con las otras hostias.» — Da por hecho que perdió otras.
+- **92** ² · «Se esfuma todo. %S, y la cara de haber visto un fantasma.» — Inventa su cara, lo que piensa o la reacción del grupo.
 - **96** · «Lo ha puesto todo con fe. La fe no cotiza. %S.» — «todo»: apuesta lo que elige, no todo.
+- **97** ² · «Se queda en %S con cara de pedir la revancha. La revancha, en tres horas.» — Inventa su cara, lo que piensa o la reacción del grupo.
+- **99** ² · «Mal. Muy mal. %S, y el grupo haciendo como que no ha visto nada.» — Inventa su cara, lo que piensa o la reacción del grupo.
 
 ## `src/data/rachaPhrases.js` · ROTA
 
+- **51** ² · «Ahí está %N, con la cara de quien acaba de ver que sus *%P días* valen ahora exactamente nada.» — Inventa el día, su cara o lo que siente.
 - **54** · «%N ha tirado *%P días* a la basura por un día de pereza. Menudo negocio.» — Inventa por qué o cuándo la rompió.
 - **55** · «*%P días* de racha y %N la rompe sin despedirse. Como hace con todo.» — Inventa por qué o cuándo la rompió.
 - **69** · «%N ha roto *%P días* de racha. Lo que cuesta un mes se pierde en un domingo.» — «en un domingo»: puede ser cualquier día.
+- **77** ² · «Racha rota. %N llevaba *%P días* y ahora no tiene ganas ni de mirar el marcador.» — Inventa el día, su cara o lo que siente.
 
 ## `src/data/vaultPhrases.js` · GUARDADO
 
@@ -206,6 +227,7 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 ## `src/data/rencorPhrases.js` · MOG_REVANCHA
 
 - **60** · «%D %V moggeó a %A y no ha parado de recordarlo. Ya puede ir parando.» — Inventa que no ha parado de recordarlo.
+- **62** ² · «Hay victorias que se celebran demasiado. La de %V %D era una, y hoy %A se ha encargado de dejarlo claro.» — Inventa lo que sintió o hizo entre un cruce y el otro.
 
 ## `src/data/rencorPhrases.js` · DUELO_REPITE
 
@@ -213,6 +235,7 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 
 ## `src/data/rencorPhrases.js` · DUELO_REVANCHA
 
+- **110** ² · «%V venía muy arriba después de lo de %D. Hoy %A le ha bajado los humos y el saldo a la vez.» — Inventa lo que sintió o hizo entre un cruce y el otro.
 - **115** · «%D presumía %V de haberle ganado a %A. Hoy le toca pagar y callarse.» — Inventa que presumía.
 
 ## `src/data/rencorPhrases.js` · DUELO_RACHA
@@ -226,18 +249,24 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 
 ## `src/data/roastPhrases.js` · NAME_ONLY
 
+- **138** ² · «%N. Cuando sale tu nombre en el grupo, es porque alguien necesita a quién echarle la culpa.» — Da por hecho algo del nombre o de la bio que no sabe.
 - **141** · «%N. Ese nombre lo lleva mucha gente. Tú eres la versión que salió regular.» — Trata %N como nombre de pila. Suele ser un apodo, un emoji o «Lucyyy».
+- **152** ² · «%N. El nombre de alguien que se presenta dos veces porque la primera nadie se quedó.» — Da por hecho algo del nombre o de la bio que no sabe.
 - **160** · «%N. Tus padres eligieron ese nombre con ilusión. Luego creciste y la ilusión se fue a tomar por culo.» — Trata %N como nombre de pila. Suele ser un apodo, un emoji o «Lucyyy».
 - **161** · «%N. Nadie te ha puesto apodo. Para eso primero hay que caer en gracia.» — Trata %N como nombre de pila. Suele ser un apodo, un emoji o «Lucyyy».
 
 ## `src/data/roastPhrases.js` · BIO_FULL
 
 - **202** · ««%B». Tu bio parece una petición de auxilio mal redactada, %N.» — Da por hecho de qué va la bio.
+- **203** ² · «%N lleva «%B» en la bio. Hay gente que se tatúa errores y luego está quien los pone de presentación.» — Da por hecho algo del nombre o de la bio que no sabe.
 - **209** · «La bio de %N: «%B». Alguien debería quitarle el móvil cuando se pone profundo.» — Da por hecho de qué va la bio.
+- **221** ² · «%N, «%B» suena a algo que te dijo alguien una vez y te lo creíste.» — Da por hecho algo del nombre o de la bio que no sabe.
 
 ## `src/data/roboPhrases.js` · ROB_WIN
 
+- **50** ² · «%V va a mirar su saldo dentro de un rato y se va a cagar en todo. Tarde, como siempre.» — Inventa una costumbre o la reacción del grupo.
 - **58** · «%A ni lo celebra. Robarle a %V ya le parece rutina.» — «ya le parece rutina»: puede ser la primera vez.
+- **62** ² · «%A ha elegido a %V entre todo el grupo. No por rico: por fácil.» — Inventa una costumbre o la reacción del grupo.
 - **65** · «%V se va a pasar la tarde contando lo que tenía. %A se la va a pasar gastándolo.» — «la tarde»: a las once de la noche no cuadra.
 
 ## `src/data/roboPhrases.js` · ROB_PARCIAL
@@ -250,12 +279,15 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 
 ## `src/data/roboExtraPhrases.js` · BOTE_REVIENTA
 
+- **26** ² · «Bote reventado. %A se lleva %C y se lo va a gastar antes de que acabe el día.» — Inventa una costumbre, un pasado o la reacción del grupo.
 - **29** · «%C para %A. El bote llevaba días sin dueño y ya tiene uno, con nombre y apellidos.» — Inventa cuánto llevaba el bote.
+- **35** ² · «%A ha tenido la suerte que el resto lleva semanas pidiendo. %C, y ni una disculpa.» — Inventa una costumbre, un pasado o la reacción del grupo.
 
 ## `src/data/roboExtraPhrases.js` · BOTE_FALLA
 
 - **49** · «%A ha donado otra entrada al bote. Filantropía involuntaria en estado puro.» — Da por hecho que ya había fallado antes.
 - **50** · «El bote le ha cerrado la puerta en la cara a %A. Otra vez. Y va a seguir cerrándosela.» — Da por hecho que ya había fallado antes.
+- **54** ² · «Nada. %A se queda sin bote y con el orgullo en el suelo, que ya es costumbre.» — Inventa una costumbre, un pasado o la reacción del grupo.
 - **62** · «%A venía a reventar el bote y lo único que ha reventado es su racha.» — «su racha»: ¿qué racha? Suena a otra cosa.
 - **65** · «Otra entrada de %A al bote. A este ritmo le van a poner su nombre.» — Da por hecho que ya había fallado antes.
 
@@ -277,8 +309,12 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 ## `src/data/roboExtraPhrases.js` · INVENTARIO_VACIO
 
 - **240** · «Tu inventario está tan vacío como tu historial de robos con éxito.» — Inventa su historial de robos o de compras.
+- **244** ² · «Vacío. Ni siquiera has intentado prepararte, y luego te quejas del resultado.» — Inventa una costumbre, un pasado o la reacción del grupo.
+- **252** ² · «No llevas nada encima. Tus bolsillos tienen más eco que tu último audio.» — Inventa una costumbre, un pasado o la reacción del grupo.
+- **258** ² · «Vacío. La tienda lleva días viéndote pasar por la puerta sin entrar.» — Inventa una costumbre, un pasado o la reacción del grupo.
 - **263** · «No tienes nada comprado, y se nota en cómo te va.» — Inventa su historial de robos o de compras.
 - **266** · «No llevas nada. La última vez que compraste algo aquí, ni te acuerdas.» — Inventa su historial de robos o de compras.
+- **268** ² · «Cero objetos. Luego te roban y preguntas por qué a ti.» — Inventa una costumbre, un pasado o la reacción del grupo.
 
 ## `src/data/roboExtraPhrases.js` · COMPRA_OK
 
@@ -287,9 +323,12 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 ## `src/data/roboExtraPhrases.js` · CEBO_PICA
 
 - **386** · «%V ha pagado el cebo y %A se lo ha amortizado en una tarde, con su codicia y a precio de saldo.» — Hora inventada («en una tarde»).
+- **399** ² · «%A ha picado. Alguien en el grupo ya está haciendo la captura.» — Inventa una costumbre, un pasado o la reacción del grupo.
 
 ## `src/data/roboExtraPhrases.js` · CONTRA_GANA
 
+- **420** ² · «%V ha tardado lo justo en cobrarse la venganza: %C, y %A todavía con la sonrisa puesta.» — Inventa una costumbre, un pasado o la reacción del grupo.
+- **425** ² · «%A se estaba riendo del golpe cuando %V le ha cobrado %C. Se le ha cortado la risa a mitad.» — Inventa una costumbre, un pasado o la reacción del grupo.
 - **426** · «%A ya puede ir borrando el mensaje en el que se reía. %V acaba de llevarse %C.» — Inventa un mensaje que no existe.
 
 ## `src/data/roboExtraPhrases.js` · CONTRA_RUINA
@@ -299,42 +338,66 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 ## `src/data/roboExtraPhrases.js` · ATRACO_GANA
 
 - **651** · «La tienda le vendía a %A a precio de oro. Hoy %A ha ajustado cuentas a hostias: %C.» — Da por hecho que compraba en la tienda.
+- **655** ² · «Se lleva %C. La tienda lleva meses cobrando y hoy le ha tocado pagar, que jode.» — Inventa una costumbre, un pasado o la reacción del grupo.
 - **670** · «%A ha atracado la tienda en la que compraba. %C, y ya no piensa volver a pagar.» — Da por hecho que compraba en la tienda.
 
 ## `src/data/percentLabels.js` · linda
 
 - **93** · «Te piden fotos para la orla, para la boda de tu prima y para el cartel del bar. Tu cara trabaja más que tú.» — «la boda de tu prima».
+- **107** ² · «Arreglada ganas mucho. En pijama, la gente que vive contigo ya ni hace comentarios.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **108** ² · «Te ponen un corazón en las fotos, nunca un comentario. El corazón es lo que se da por educación.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **113** ² · «Tu foto de perfil sigue siendo la misma, y todos sabemos por qué: es la única que no da tanto asco.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
 
 ## `src/data/percentLabels.js` · friki
 
+- **741** ² · «Llevas años con la misma foto de perfil de un personaje. Ni tu cara pones ya, y el personaje da menos vergüenza que tú.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
 - **752** · «Tienes opiniones firmísimas sobre el final de una serie y ninguna sobre por qué a tu edad sigues en casa de tus padres.» — «sigues en casa de tus padres».
+- **757** ² · «[nombre], el año pasado saliste de casa para ir a un salón del manga y volviste con tres bolsas y ningún teléfono.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **774** ² · «Tu foto de perfil es de persona normal. Tus historias son capturas de un juego de madrugada.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
 
 ## `src/commands/aura.js` · blessed
 
 - **139** · «Por una vez no fuiste el chiste del grupo.» — Inventa la reacción del grupo. Nadie ha reaccionado: la tirada acaba de salir.
+- **140** ² · «Sacaste un número que obligó a esta gente a tragar saliva.» — Inventa la reacción del grupo o su cara.
 - **141** · «El silencio después de tu tirada pesó más que cualquier comentario.» — Inventa la reacción del grupo. Nadie ha reaccionado: la tirada acaba de salir.
 - **144** · «Te miraron distinto. Solo un segundo, pero ese segundo ya no te lo quitan, cabrón.» — Inventa la reacción del grupo. Nadie ha reaccionado: la tirada acaba de salir.
+- **145** ² · «Joder, nadie te felicitó y eso es lo mejor que te ha pasado.» — Inventa la reacción del grupo o su cara.
 - **146** · «Tu tirada ha dejado frases a medio escribir. El remate se les ha caído de las manos.» — Inventa la reacción del grupo. Nadie ha reaccionado: la tirada acaba de salir.
+- **147** ² · «Dejaste al grupo con la cara de cuando les deben dinero.» — Inventa la reacción del grupo o su cara.
+- **149** ² · «Coño, te debían una y te la has cobrado en público.» — Inventa la reacción del grupo o su cara.
 - **150** · «Coño, te han mirado como se mira al que acierta la lotería: con rabia educada.» — Inventa la reacción del grupo. Nadie ha reaccionado: la tirada acaba de salir.
 - **151** · «Había un puto hilo de burla a medio construir. Lo has tirado abajo con un ladrillo.» — Inventa la reacción del grupo. Nadie ha reaccionado: la tirada acaba de salir.
 - **152** · «El que te subestimaba está recalculando.» — Inventa la reacción del grupo. Nadie ha reaccionado: la tirada acaba de salir.
 - **153** · «Has dejado el "jajaja" a medias. Se ven los puntos suspensivos y ninguna risa.» — Inventa la reacción del grupo. Nadie ha reaccionado: la tirada acaba de salir.
 - **155** · «Has dejado al que siempre te tira sin material.» — Inventa la reacción del grupo. Nadie ha reaccionado: la tirada acaba de salir.
+- **157** ² · «Todo lo que tenían preparado para ti se les ha caducado.» — Inventa la reacción del grupo o su cara.
 - **159** · «Alguien ha escrito tu puto nombre y lo ha borrado.» — Inventa la reacción del grupo. Nadie ha reaccionado: la tirada acaba de salir.
+- **160** ² · «Has hecho que el "seguro que pierde" se atragante.» — Inventa la reacción del grupo o su cara.
+- **162** ² · «Has obligado a que el "era de esperar" se use al revés.» — Inventa la reacción del grupo o su cara.
 - **163** · «Te miran de reojo, que es el único respeto honesto que hay aquí.» — Inventa la reacción del grupo. Nadie ha reaccionado: la tirada acaba de salir.
 - **165** · «Has dejado un "me cago en" a medias. La frase no tenía final que no te reconociera.» — Inventa la reacción del grupo. Nadie ha reaccionado: la tirada acaba de salir.
 - **166** · «Alguien ha ido a ver tu historial por si esto venía de antes.» — Inventa la reacción del grupo. Nadie ha reaccionado: la tirada acaba de salir.
+- **168** ² · «Te han dado el respeto de la rabia: no te quieren ahí, y ahí estás.» — Inventa la reacción del grupo o su cara.
 
 ## `src/commands/aura.js` · loss
 
+- **250** ² · «Bajaste y nadie se inmutó. Ya es parte del puto paisaje verte perder aura.» — Inventa la reacción del grupo o su cara.
+- **251** ² · «Se te escurrió un poco más de presencia. El grupo ni parpadeó, pringado.» — Inventa la reacción del grupo o su cara.
+- **254** ² · «Hoy el puto grupo te bajó un escalón más y ni se molestó en reírse.» — Inventa la reacción del grupo o su cara.
+- **256** ² · «Perdiste poco. Era de los golpes pequeños, y te ha dolido como si fuera la renta.» — Inventa la reacción del grupo o su cara.
 - **257** · «Te quitaron aura y el puto grupo siguió hablando de comida.» — «siguió hablando de comida».
+- **262** ² · «Te baja el aura y el teléfono de nadie ha vibrado por ti. Como siempre.» — Inventa la reacción del grupo o su cara.
 - **266** · «Mirar así una pérdida pequeña es de gilipoyas: parece que te suben el alquiler.» — Inventa su cara al mirar.
 - **269** · «Sales en rojo. El grupo ha seguido con la comida y ni ha levantado la vista.» — «ha seguido con la comida».
+- **274** ² · «Pierdes tan poco que ni lo miras. Y aun así te duele, rata.» — Inventa la reacción del grupo o su cara.
+- **277** ² · «Te toca perder justo cuando creías que ya te tocaba ganar.» — Inventa la reacción del grupo o su cara.
 - **279** · «Has salido en rojo y han vuelto al programa.» — «han vuelto al programa»: ¿qué programa?
 - **280** · «El grupo ya te tenía en cero. Hoy han confirmado el mute.» — «han confirmado el mute»: no hay ningún mute.
 
 ## `src/commands/aura.js` · spiral
 
+- **285** ² · «El saldo ya estaba bajo cero y esta tirada lo ha empujado. Se te ha visto la cara.» — Inventa la reacción del grupo o su cara.
+- **292** ² · «Joder, otra vez. El grupo ya no mira el número, mira cuánto tardas en volver a darle.» — Inventa la reacción del grupo o su cara.
 - **303** · «Otra bajada firmada con el saldo ya en rojo. Has guardado el móvil boca abajo.» — «has guardado el móvil boca abajo».
 - **304** · «Rojo, y encima te han cobrado otra. Te has quedado mirando el número.» — «te has quedado mirando el número».
 - **306** · «El grupo ha pasado de reírse a preocuparse. Y de preocuparse, a pasar.» — Inventa lo que hace él o el grupo.
@@ -347,8 +410,10 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 - **330** · «Has puesto cara de examen al puto grupo. Nadie copiaba. Nadie sabía a dónde mirar.» — Inventa la reacción del grupo.
 - **331** · «Has hecho que cierren la app y abran otra cosa.» — Inventa la reacción del grupo.
 - **332** · «Has dejado el puto chat con esa cara de cuando el camarero oye lo que no debía.» — Inventa la reacción del grupo.
+- **335** ² · «Quien iba a vacilarte se ha quedado sin ganas. Ni odio te mereces hoy. Solo pena.» — Inventa la reacción del grupo o su cara.
 - **337** · «Alguien ha ido a ver si podías borrar el mensaje. No se puede. Qué suerte la nuestra.» — Inventa la reacción del grupo.
 - **340** · «Has hecho que el "menos mal que no soy yo" se diga en voz alta.» — Inventa la reacción del grupo.
+- **342** ² · «Le has puesto cara de funeral al grupo. Nadie sabía si dar el pésame.» — Inventa la reacción del grupo o su cara.
 - **344** · «Nadie quería retomar con tu puto número todavía en pantalla.» — Inventa la reacción del grupo.
 - **345** · «El grupo se ha quedado callado mirando lo que acabas de perder.» — Inventa la reacción del grupo.
 - **346** · «El puto chat ha respirado cuando ha salido otro mensaje que no eras tú.» — Inventa la reacción del grupo.
@@ -365,6 +430,8 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 
 ## `src/commands/mog.js` · MOG_PHRASES
 
+- **35** ² · «La proyección maxilar de %M liquida a %L sin mirar nada más. %L respira por la boca y se le nota en la estructura.» — Inventa sus hábitos.
+- **42** ² · «Frame, altura, estructura: todo en %M. A %L le quedan los suplementos, el cope y la oración nocturna.» — Inventa sus hábitos.
 - **50** · «%L va al gym, lee libros, trabaja la actitud. Sigue siendo %L. El óseo no se levanta a press.» — Inventa sus hábitos.
 
 ## `src/commands/social.js` · AURA_LINES
@@ -377,6 +444,7 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 - **13** · «Primero y con margen. Los de abajo no te persiguen, te miran de lejos y aceptan que no llegan.» — Inventa la distancia con el de arriba o el de abajo. Sale al azar, se lleve uno o mil.
 - **42** · «Segundo. Tan cerca del primero que duele, y aun así no lo has alcanzado. Otra vez será. O no.» — Inventa la distancia con el de arriba o el de abajo. Sale al azar, se lleve uno o mil.
 - **47** · «Casi lo tocas. Casi. Y ese casi lleva persiguiéndote más tiempo del que reconoces en público.» — Inventa la distancia con el de arriba o el de abajo. Sale al azar, se lleve uno o mil.
+- **52** ² · «Número dos. Aprietas, se te nota, y aun así el marcador no se mueve. Frustrante de ver desde fuera.» — Inventa su gesto.
 - **53** · «Plata. Le vas pisando los talones a alguien que ni se ha girado a mirarte. Duro pero real.» — Inventa la distancia con el de arriba o el de abajo. Sale al azar, se lleve uno o mil.
 - **55** · «Número dos. Te sobra presencia y te falta el último empujón. Lleva faltándote desde el principio.» — Inventa la distancia con el de arriba o el de abajo. Sale al azar, se lleve uno o mil.
 - **59** · «Casi. El grupo entero ha visto lo cerca que estuviste y lo poco que sirvió al final.» — Inventa la distancia con el de arriba o el de abajo. Sale al azar, se lleve uno o mil.
@@ -394,21 +462,26 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 
 ## `src/commands/relevance.js` · RELEVANTE
 
+- **109** ² · «Con %MSG mensajes, %N, cada vez que hay drama apareces con opinión y no paras. Imprescindible. El resto, a reaccionar.» — Inventa una costumbre.
 - **115** · «Con %MSG mensajes, %N, cada vez que te callas unos días alguien pregunta si te ha pasado algo. Esa pregunta es la prueba.» — Inventa un hecho.
+- **133** ² · «%N, %MSG mensajes. Cuando este grupo se calienta es porque tú metiste la mecha.» — Inventa una costumbre.
 
 ## `src/commands/activity.js` · GHOST_ROASTS
 
 - **150** · «Lurker con doctorado. Lleva años mirando cómo otros hablan y tomando apuntes que jamás va a usar. Espectador profesional, perdedor.» — Inventa tiempo o hábitos.
 - **155** · «Reacciona a los memes pero jamás hace uno. Consumidor crónico, productor cero. La balanza más desequilibrada del grupo entero.» — «Reacciona a los memes»: no lo sabe.
+- **161** ² · «Nadie recuerda su último mensaje. Probablemente porque no lo ha escrito todavía.» — Inventa una hora, una costumbre o lo que hace con el móvil.
 
 ## `src/commands/activity.js` · AVISO_PURGA
 
 - **249** · «He mirado si al menos reaccionabais a los mensajes de otros, por darle una oportunidad a la duda. Ni eso. También sois inútiles en silencio, que tiene mérito.» — «He mirado si reaccionabais»: el bot no mira reacciones.
+- **258** ² · «Sois esa gente que abre el grupo, lee doscientos mensajes, se ríe por dentro y se va sin escribir. Por dentro no cuenta. Por dentro no lo ve nadie.» — Inventa una hora, una costumbre o lo que hace con el móvil.
 - **262** · «Sois los únicos capaces de estar en un grupo de amigos durante meses y no tener un solo amigo dentro. Eso no se consigue por accidente: hay que esforzarse.» — Dice que el bot ha hecho algo que no hace, o da meses a quien quizá entró ayer.
 - **266** · «Diez mensajes o menos y aun así abrís el grupo todos los días. Eso ya no es timidez. Eso es mirar por la ventana de una fiesta a la que os invitaron.» — «abrís el grupo todos los días»: no lo sabe.
 - **267** · «He preguntado al grupo si alguien os echaría de menos. Nadie ha contestado. Curiosamente, con el mismo silencio que usáis vosotros. Debe ser contagioso.» — «He preguntado al grupo»: no ha preguntado nada.
 - **276** · «El bot ha buscado en vuestro historial una sola frase digna de captura de pantalla. Ha encontrado tres mensajes, y dos son "jaja". El tercero es un sticker.» — Inventa el contenido exacto: «dos son jaja, el tercero un sticker».
 - **280** · «El bot lleva meses esperando que digáis algo para poder meterse con vosotros. Se ha cansado de esperar y se va a meter igual, que para eso está esta lista.» — Dice que el bot ha hecho algo que no hace, o da meses a quien quizá entró ayer.
+- **281** ² · «Diez mensajes o menos. Vuestro móvil recibe las notificaciones de este grupo, las silencia, y esa es toda la relación que tenéis con la gente de aquí.» — Inventa una hora, una costumbre o lo que hace con el móvil.
 
 ## `src/commands/activity.js` · AMENAZAS
 
@@ -473,11 +546,15 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 - **54** · «Pleno con %M mensajes. El grupo lo ha visto y a más de uno le escuece.» — Inventa la reacción del grupo.
 - **76** · «Bono gordo. %M mensajes y el grupo mirando el número con envidia.» — Inventa la reacción del grupo.
 - **85** · «Pleno por %M mensajes. Hoy el grupo va a hablar de ti. Más todavía.» — Inventa la reacción del grupo.
+- **96** ² · «%M mensajes. Mañana el contador vuelve a cero, pero lo de hoy lo ha visto todo el mundo.» — Inventa la reacción del grupo.
 - **110** · «Pleno. %M mensajes y el aura a tus pies. El grupo lo va a comentar un buen rato.» — Inventa la reacción del grupo.
+- **118** ² · «Aura en negativo y mensajes de verdad. El marcador cambia de cara y el grupo lo ha visto.» — Inventa la reacción del grupo.
 - **119** · «El grupo daba tu aura por perdida. Tú has seguido escribiendo. Bono de redención.» — Inventa que el grupo «daba tu aura por perdida».
 
 ## `src/utils/antilink.js` · PERMISO_ENLACE
 
+- **349** ² · «eliminado. Llegas a un sitio que no es tuyo y sueltas links como si mandaras. No mandas una mierda: pídele el *!allow* a un admin.» — Da por hecho que es nuevo o que nadie lo abrió.
+- **362** ² · «borrado antes de que nadie lo abriera. Si quieres que se vea, el *!allow* lo da un admin, no tu dedo.» — Da por hecho que es nuevo o que nadie lo abrió.
 - **367** · «borrado. Promocionarte en un grupo ajeno sin el *!allow* de un admin es la forma más rápida de que no te vea nadie.» — Da por hecho que es publicidad o que conocía la norma.
 - **372** · «quitado. Aquí no se pega nada sin el *!allow*, y tú lo sabías. Ve a un admin a pedirlo.» — Da por hecho que es publicidad o que conocía la norma.
 - **385** · «borrado. Ese enlace era publicidad, y aquí la publicidad pasa por un admin. Pide el *!allow*.» — Da por hecho que es publicidad o que conocía la norma.
@@ -487,3 +564,162 @@ De estas frases, cinco son de las que escribí ayer (`VER_UNA_VEZ`).
 - **486** · «El gif lo ha hecho todo, %A. Tú solo has puesto el dinero, como siempre.» — Da por hecho que repite.
 - **495** · «%A ha vuelto a pagar para tener algo que contar. El grupo ya ha pillado el truco.» — Da por hecho que repite.
 - **496** · «%A, cada gif que mandas es una confesión. Hoy has confesado otra vez.» — Da por hecho que repite.
+
+## `src/data/percentLabels.js` · incel
+
+- **33** ² · «Has probado con alcohol, de noche y dando lástima, que son las tres vías por las que folla el resto de mediocres. Cero de tres.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **38** ² · «El último contacto físico que recuerdas fue el dentista, y encima le pagaste. Historial de pringado, con factura.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **50** ² · «[nombre], tu récord es haberte quedado dormido con el móvil en la mano esperando una respuesta.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **62** ² · «Tu último beso lo recuerdas con fecha, hora y canción. Hace tanto que la canción ya no suena en ningún sitio.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **65** ² · «Tienes Tinder abierto y el match de verdad no aparece. El que sale es publicidad.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **75** ² · «Ni rastro. Tu último ligue no te costó seis meses de estrategia. Te costó un «¿vamos a por otra?».» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **78** ² · «Cero. Tienes en el móvil números de gente con la que has quedado de verdad. Lo del resto del grupo es una lista de deseos.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+
+## `src/data/percentLabels.js` · fea
+
+- **151** ² · «Tu problema no se arregla adelgazando. Ya lo probaste y la estructura sigue igual. El hueso no negocia, y la cara sigue siendo basura.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **154** ² · «Ninguna versión tuya ha funcionado en foto, y ya has culpado a la cámara. La cámara está bien.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **156** ² · «Cremas, dietas, flequillo y filtro. Has tocado todo lo que se puede tocar y la cara sigue en el mismo sitio.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **175** ² · «Tu mejor foto es vieja y la sigues usando de perfil. Quien te conoce ahora sabe por qué.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **177** ² · «Con gafas de sol eres un seis. Sin ellas, el grupo entiende por qué no te las quitas nunca.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **186** ² · «Cero. Canthal tilt positivo, buen tercio medio y la mandíbula en su sitio. El resto del grupo ha dejado de subir selfies.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+
+## `src/data/percentLabels.js` · sexy
+
+- **202** ² · «Te escriben para pedirte apuntes que no necesitan. Todo el mundo lo sabe menos tú, o eso dices.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **203** ² · «Tus historias se vuelven a ver. Nadie te lo confiesa, pero el dedo vuelve, y el contador no miente.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **253** ² · «Tienes a más de uno del grupo con tu chat abierto y sin escribirte, por miedo a quedar mal.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **254** ² · «Eres el motivo de que alguien aquí haya borrado un mensaje antes de mandarlo.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+
+## `src/data/percentLabels.js` · crack
+
+- **277** ² · «Te piden ayuda con el Excel y lo arreglas en dos minutos mientras comes. Nadie te da las gracias porque les da vergüenza.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **279** ² · «Te llaman para montar muebles, para el ordenador y para la renta. Eres útil de cojones, y te lo cobran en favores.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **285** ² · «Hay gente en este grupo que repite tus ideas como si fueran suyas. Las repiten mal, pero se nota de quién son.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **297** ² · «Arreglas el ordenador de tu tía y no sabes arreglar el tuyo, que lleva el ventilador rugiendo.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **316** ² · «El grupo ya tiene un plan B: no contar contigo. Y el plan B funciona de maravilla.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **322** ² · «El grupo ya ni se enfada contigo: se organiza sin ti. Y eso escuece más.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+
+## `src/data/percentLabels.js` · feminidad
+
+- **417** ² · «Te has puesto un vestido una vez, en carnaval, y hasta el vestido pidió que te lo quitaras.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **420** ² · «Entraste en una tienda de maquillaje por error y saliste pidiéndole perdón a la dependienta.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+
+## `src/data/percentLabels.js` · masculinidad
+
+- **460** ² · «Tienes barba de leñador y lloras con los anuncios de perros, y luego juras en el grupo que era alergia.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **463** ² · «Pitas en la autopista con la ventanilla bajada y luego aparcas en batería con seis maniobras, mirando si alguien te graba.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **464** ² · «Dices que nada te afecta y se te nota el morro porque alguien no te felicitó el cumpleaños.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **488** ² · «Le has pedido a un bot que te mida la hombría. El bot te ha dejado corto, y lo ha visto el grupo.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **490** ² · «Nadie seguro de su hombría le pregunta a un bot. Tú has preguntado, y aquí tienes el número.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+
+## `src/data/percentLabels.js` · simp
+
+- **594** ² · «[nombre], dices que solo quieres que sea feliz. Te descartaron y estás haciendo el duelo en público.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **600** ² · «Tienes un chat fijado arriba del todo, y en ese chat el último mensaje siempre es tuyo.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **605** ² · «Has cambiado de planes porque alguien a quien le das igual dijo que a lo mejor se pasaba.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **619** ² · «Nadie ha conseguido tenerte pendiente del móvil. Eres tú quien tiene a gente pendiente, y alguien de este grupo lo sabe bien.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+
+## `src/data/percentLabels.js` · rata
+
+- **656** ² · «Hay gente en el grupo que ya te cuenta las cosas a medias. Contigo aprendieron a quitarle el nombre a todo.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **667** ² · «Te han contado secretos de medio grupo y no se te ha escapado ninguno. Eso asusta, porque nadie sabe qué más te callas.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+
+## `src/data/percentLabels.js` · cerdo
+
+- **837** ² · «Sin rastro. Compartes piso y nadie ha dejado notas en la nevera por tu culpa. Eso en este grupo es noticia.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+
+## `src/data/percentLabels.js` · inutil
+
+- **914** ² · «En los proyectos del grupo tu nombre sale en la portada y en ningún otro sitio. Crédito de adorno y trabajo de mierda.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+
+## `src/data/percentLabels.js` · perdedor
+
+- **1003** ² · «[nombre], en cada torneo del grupo acabas en tercer puesto de cinco, que es el puesto que nadie recuerda al día siguiente.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+
+## `src/data/percentLabels.js` · ganador
+
+- **1031** ² · «[nombre], tienes la nevera llena, las facturas pagadas y el móvil sin la pantalla rota. Eso aquí ya es de clase alta.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **1032** ² · «Te ponen una fecha límite y entregas antes, [nombre]. Hay gente en el grupo que todavía no ha entregado lo suyo.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+- **1080** ² · «Ganas tanto que el grupo ya ni te felicita. Te felicita tu madre, y porque no está en el grupo.» — Afirma un hecho concreto que se puede comprobar o que no tiene por qué existir (una foto, un piso, un viaje, algo del grupo).
+
+## `src/data/avisos.js` · A_TI_MISMO
+
+- **201** ² · «Te lo quieres hacer a ti porque nadie más te lo acepta. Normal.» — Da por hecho por qué lo hizo o cómo lo hizo.
+
+## `src/data/avisos.js` · AL_BOT
+
+- **214** ² · «Esa mención no iba para mí, imbécil. Ni apuntar sabes y quieres jugar.» — Da por hecho por qué lo hizo o cómo lo hizo.
+- **218** ² · «Ni el dedo te obedece, subnormal. Has mencionado al bot y encima esperas algo.» — Da por hecho por qué lo hizo o cómo lo hizo.
+
+## `src/data/avisos.js` · MAL_ESCRITO
+
+- **416** ² · «Lo has fallado sentado, con tiempo y sin presión. En condiciones ideales, ese es tu nivel.» — Da por hecho por qué lo hizo o cómo lo hizo.
+- **428** ² · «Lo has escrito sin dudar ni un segundo. Esa confianza es lo que mejor mide tu cabeza.» — Da por hecho por qué lo hizo o cómo lo hizo.
+
+## `src/data/cooldownPhrases.js` · ROBO_GUARDIA
+
+- **272** ² · «Otro ya ha pasado por ahí antes que tú. Aquí no hay segundo turno inmediato.» — Da por hecho que robó otro. Pudo ser el mismo que lo intenta ahora.
+- **284** ² · «Quieres el segundo plato de un robo que ni siquiera es tuyo. Hambre de gorrón.» — Da por hecho que robó otro. Pudo ser el mismo que lo intenta ahora.
+- **285** ² · «Alguien se te ha adelantado. Asúmelo y busca otra víctima, que hay de sobra.» — Da por hecho que robó otro. Pudo ser el mismo que lo intenta ahora.
+- **288** ² · «Te has quedado con las ganas. Otro ha llegado antes y con más cabeza.» — Da por hecho que robó otro. Pudo ser el mismo que lo intenta ahora.
+
+## `src/data/rachaPhrases.js` · HITO
+
+- **45** ² · «%N, *%D días*. Lo fácil era fallar un domingo. No lo has hecho.» — Inventa el día, su cara o lo que siente.
+
+## `src/data/rencorPhrases.js` · MOG_REPITE
+
+- **41** ² · «%A vuelve a pasar por encima de %V. Lo de %D no fue casualidad, y %V aún no había terminado de llorarlo.» — Inventa lo que sintió o hizo entre un cruce y el otro.
+
+## `src/data/rencorPhrases.js` · ROBO_NI_VENGARSE
+
+- **230** ² · «%A lleva desde %D rumiando la venganza contra %V, y cuando por fin lo intenta, la caga.» — Inventa lo que sintió o hizo entre un cruce y el otro.
+
+## `src/data/rencorPhrases.js` · SHIP_SUBE
+
+- **245** ² · «%A y %V venían de un %C %D. Hoy el número sube y a alguien se le va a escapar una sonrisa.» — Inventa lo que sintió o hizo entre un cruce y el otro.
+- **250** ² · «%D fue un %C para %A y %V. Hoy el número se anima, aunque ninguno de los dos lo admita.» — Inventa lo que sintió o hizo entre un cruce y el otro.
+
+## `src/data/roboPhrases.js` · ROB_FAIL
+
+- **95** ² · «El grupo ya tiene la captura de %A pagando la multa. Esa sí que no se la roba nadie.» — Inventa una costumbre o la reacción del grupo.
+
+## `src/data/roboExtraPhrases.js` · BOTE_VACIO
+
+- **85** ² · «Todavía no. El bote necesita más perdedores pagando, y tú ya sabes lo que es eso.» — Inventa una costumbre, un pasado o la reacción del grupo.
+
+## `src/data/roboExtraPhrases.js` · COMPRA_ESCUDO
+
+- **128** ² · «%N se blinda %H horas. Ha tardado más en decidirlo que va a tardar el grupo en esperar a que caduque.» — Inventa una costumbre, un pasado o la reacción del grupo.
+
+## `src/data/roboExtraPhrases.js` · COMPRA_POBRE
+
+- **312** ² · «Mierda de cuenta. %N quiere gastar lo que no tiene, como siempre.» — Inventa una costumbre, un pasado o la reacción del grupo.
+- **334** ² · «A %N no le llega ni para mirar. Y lleva un rato mirando.» — Inventa una costumbre, un pasado o la reacción del grupo.
+
+## `src/data/roboExtraPhrases.js` · ESCUDO_SALVA
+
+- **347** ² · «Nada que hacer. %V se cubrió antes y %A llegó tarde a todo, como de costumbre.» — Inventa una costumbre, un pasado o la reacción del grupo.
+- **359** ² · «El escudo de %V ha hecho más en un segundo que %A en toda la semana.» — Inventa una costumbre, un pasado o la reacción del grupo.
+- **361** ² · «Contra el escudo de %V, %A tiene lo de siempre: ganas y ningún resultado.» — Inventa una costumbre, un pasado o la reacción del grupo.
+
+## `src/data/roboExtraPhrases.js` · ATRACO_FALLA
+
+- **696** ² · «%A ha perdido %C y el derecho a comprar. Menuda tarde de mierda.» — Inventa una costumbre, un pasado o la reacción del grupo.
+
+## `src/commands/activity.js` · VS_AJUSTADO
+
+- **56** ² · «Cara a cara igualado. %W gana, y a %L le va a escocer toda la tarde.» — Inventa una hora, una costumbre o lo que hace con el móvil.
+
+## `src/commands/aura.js` · gainPobre
+
+- **212** ² · «Cobras y ya piensas en jugártelo. Sigues muerto de hambre.» — Inventa lo que piensa.
+
+## `src/commands/relevance.js` · INTERMEDIO
+
+- **83** ² · «%MSG mensajes, %N. Estás en el grupo con un pie dentro y el otro en un chat que te importa más.» — Inventa una costumbre.
+
+## `src/data/accionPhrases.js` · BLEH
+
+- **981** ² · «%A hace burla delante del grupo. El grupo se pone de parte de %A, como siempre.» — «Como siempre»: inventa un historial.
