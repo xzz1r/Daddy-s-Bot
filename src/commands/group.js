@@ -18,6 +18,7 @@ const UNOS_KICK = AVISOS_KICK.map((a) => a.uno);
 const { A_TI_MISMO, CONTRA_UN_ADMIN, SOLO_ADMINS, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso, avisoPermiso } = require('../utils/helpers');
 const { HUMOR_NEGRO } = require('../data/humorNegroPhrases');
+const { SIN_SERVICIO } = require('../utils/auraCobro');
 
 // In-memory mute store: `groupJid|bareJid` -> expireTimestamp
 // Hard-capped: insertion-ordered Map evicts oldest entry past the cap so a
@@ -1456,9 +1457,11 @@ async function cmdPresentarse(sock, msg, args, groupMeta) {
 
   // En un grupo, admins. En privado, groupMeta no existe y isGroupAdmin se
   // queda solo con isOwner, que es exactamente la puerta que hace falta ahi.
+  // Cuesta 150 y lo cobra el reparto ANTES de llegar aqui. Todo lo que no
+  // llega a soltar el aviso devuelve SIN_SERVICIO para que se reembolse.
   if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
-    if (enGrupo) return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
-    return;   // en privado, silencio
+    if (enGrupo) await sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
+    return SIN_SERVICIO;   // en privado, silencio
   }
 
   // En un grupo, SOLO ese grupo. Desde el privado del owner, todos.
@@ -1478,7 +1481,10 @@ async function cmdPresentarse(sock, msg, args, groupMeta) {
 
   if (enGrupo) {
     const ok = await soltar(jid, groupMeta?.participants);
-    if (!ok) return sock.sendMessage(jid, { text: 'No pude mandarlo a este grupo.' }, { quoted: msg });
+    if (!ok) {
+      await sock.sendMessage(jid, { text: 'No pude mandarlo a este grupo.' }, { quoted: msg });
+      return SIN_SERVICIO;
+    }
     return;
   }
 

@@ -26,6 +26,10 @@ const logger = require('./logger');
 // como mucho tiene una entrada por persona, grupo y comando de un solo dia.
 // Y UN SEGUNDO ESCALON desde que los precios bajaron un 40 %: de la 4.ª a la
 // 6.ª del dia, el doble; de la 7.ª en adelante, el triple.
+// Comandos sin descuento de admin: solo los usan admins y el dueño fijo su
+// precio exacto. *!r* cuesta 150, no 128.
+const SIN_DESCUENTO_ADMIN = new Set(['presentarse']);
+
 const RAFAGA = { gratis: 3, multiplicador: 2, triple: 6, multiplicadorTriple: 3 };
 const usos = new Map();       // 'grupo|persona|concepto' -> veces
 let diaUsos = null;
@@ -86,7 +90,9 @@ async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta
   //
   // El suelo es 1. Un comando con precio no puede acabar saliendo gratis,
   // porque entonces el precio es decoracion.
-  if (groupMeta && isGroupAdmin(senderJid, fromMe, groupMeta)) {
+  // Menos lo que solo pueden usar admins y tiene precio fijado por el dueño:
+  // descontarlo seria cobrar siempre otra cifra.
+  if (groupMeta && isGroupAdmin(senderJid, fromMe, groupMeta) && !SIN_DESCUENTO_ADMIN.has(concepto)) {
     precio = Math.max(1, Math.round(precio * (1 - ADMIN.descuento)));
   }
 
@@ -202,11 +208,11 @@ function esSinServicio(x) {
 // Están escritas para leerse DELANTE DEL GRUPO, porque ahí es donde salen. La
 // gracia no es que te digan que no tienes dinero, es que te lo digan en público.
 const MISERIA = [
-  'No te llega para esto. Este comando no sale, y el saldo va justo debajo, pequeña.',
+  'No te llega para esto. Este comando no sale, y el saldo va justo debajo, bonita.',
   'Mírate el saldo y luego mírate a ti. Encajáis.',
   'No te llega el aura para esto. Hay ganas, que es lo que tienen los pobres.',
   'Ese saldo no da para esto. Da para mirar cómo lo usan otros, que es lo tuyo.',
-  'Aquí se paga por adelantado. Y tú no tienes con qué, pequeña.',
+  'Aquí se paga por adelantado. Y tú no tienes con qué, mi niña.',
   'Te has venido arriba sin cubrir el precio. Muy propio.',
   'No tienes. Y lo peor es que el bot ya se lo esperaba.',
   'Fallaste. No en el comando: en la vida, un poco antes.',
@@ -214,18 +220,18 @@ const MISERIA = [
   'Con eso no. Con eso ni te acerques.',
   'Cuesta más de lo que tienes. Bastante más. Incómodo, ¿verdad?',
   'No llegas. Ni de sobra ni de milagro. Impecable gestión.',
-  'Te has plantado aquí a gastar sin cubrir el precio, y encima delante de todos, gilipoyas.',
+  'Te has plantado aquí a gastar sin cubrir el precio, y encima delante de todos, chiquitina.',
   'Menuda puta miseria de cuenta. Aquí se viene llorado y con dinero.',
   'No cubres el precio y vienes a gastar. Brillante.',
   'Con ese saldo no compras ni el silencio del bot, y eso es gratis.',
   'No hay pasta. Hay un pringado mirando un escaparate con los bolsillos del revés.',
-  'Ese saldo da para mirarlo y llorar. Igual que tu perfil, pequeña.',
+  'Ese saldo da para mirarlo y llorar. Igual que tu perfil, reina.',
   'Cuenta seca, ambición mojada. Vuelve cuando la proporción se invierta.',
   'Mierda de saldo. Hasta el bot tiene más aura que tú, y el bot no participa.',
   'Ese saldo no impresiona a nadie. Ni siquiera al contador, que ha visto miserias pero no como la tuya.',
   'Saldo insuficiente. La casa no hace descuentos a quien da pena.',
   'Con eso no pagas ni la propina del comando. Aparta.',
-  'Tu cuenta ha dicho que no antes que el bot. Hazle caso a tu cuenta, pequeña.',
+  'Tu cuenta ha dicho que no antes que el bot. Hazle caso a tu cuenta, chiquitina.',
   'Pagar no puedes. Hacer el ridículo en público, por lo visto, sí.',
   'Precio fijo, saldo por debajo. Matemáticas de pobre.',
   'Pedir sin tener se nota desde lejos, y hoy se te ha visto desde la otra punta del grupo.',

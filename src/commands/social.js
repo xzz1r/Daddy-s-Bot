@@ -227,7 +227,7 @@ const AURA_LINES = [
   'La racha se rompe el día que no llegas al mínimo. Un día flojo y a empezar otra vez.',
   'Lo que ganas escribiendo te lo pueden quitar robando. Guárdalo en la caja o reza.',
   'Apostar es la forma más rápida de tener menos aura. Casi nadie lo aprende a la primera.',
-  'Puedes regalar aura con !dar. Que lo hagas ya es otra cosa, rata.',
+  'Puedes regalar aura con !dar. Que lo hagas ya es otra cosa, muñeca.',
   'El aura no se hereda ni se pide prestada. Se escribe, mensaje a mensaje.',
   'Cuanto más escribes, más tienes. Cuanto más tienes, más ganas les das a los ladrones.',
   'El top del aura lo ocupa quien aparece, no quien presume.',
@@ -590,9 +590,9 @@ ${esAdmin ? `
 *${p}fkban* · *${p}fkunban* · *${p}marcarfake* · *${p}fklist* · *${p}scan*
 *${p}pfp* ${c('pfp')} @user — su foto de perfil · *${p}fk* ${c('fk')} @user — ¿cuenta falsa?
 *${p}close* · *${p}open* · *${p}promote* · *${p}count* ${c('count')} · *${p}inactivos* ${c('inactivos')}
-*${p}r* — pide a los nuevos que se presenten, sin un @ a la vista
+*${p}r* ${c('presentarse')} — pide a los nuevos que se presenten, sin un @ a la vista
 *${p}antifake* · *${p}notifadmin* · *${p}autoaccept* — on/off
-_Y todo te cuesta un *${Math.round(ADMIN.descuento * 100)} %* menos que al resto. Por ser admin._
+_Y todo te cuesta un *${Math.round(ADMIN.descuento * 100)} %* menos que al resto, menos *${p}r*. Por ser admin._
 ` : ''}${esOwner ? `
 *ADMINS SUPERIORES*
 *${p}demote* · *${p}resetaura* · *${p}resetcount* · *${p}on*/*${p}off* · *${p}clearcache* · *${p}diag*

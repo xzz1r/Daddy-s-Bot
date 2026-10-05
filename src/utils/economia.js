@@ -1358,6 +1358,12 @@ const PRECIOS = {
   piropo: 10,
   wingman: 10,
   percent: 15,   // el precio común de gay, puta, iq, fea, crack y compañía
+
+  // !r: el aviso que menciona a TODO el grupo para que los nuevos se presenten.
+  // 150 por decision del dueño. Es solo de admins, y por eso no lleva el
+  // descuento de admin (ver auraCobro.js): con el, nunca costaria lo que se
+  // pidio.
+  presentarse: 150,
 };
 
 // EL MINIMO DE !dar BAJA A 1, por peticion expresa.

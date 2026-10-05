@@ -177,7 +177,7 @@ const FAMILIAS = [
     hace: (c) => c.de('count').cmdResetCount(c.sock, c.msg, c.meta) },
   // !r — ping invisible pidiendo que los NUEVOS se presenten. En un grupo sale
   // ahi; en el privado del bot sale en todos los grupos.
-  { nombres: ['r', 'presentarse', 'presentacion'], meta: true,
+  { nombres: ['r', 'presentarse', 'presentacion'], meta: true, cobro: 'presentarse',
     hace: (c) => c.de('group').cmdPresentarse(c.sock, c.msg, c.args, c.meta) },
   { nombres: ['tagall', 'todos', 'all', 'everyone'], meta: true,
     hace: (c) => c.de('group').cmdTodos(c.sock, c.msg, c.args, c.meta) },
