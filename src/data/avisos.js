@@ -536,8 +536,39 @@ const VER_UNA_VEZ = [
   'Borrado. Ni regalado se queda en el móvil de nadie, imbécil.',
 ];
 
+// !purge: el aviso que sale delante de los que se van a echar, justo antes del
+// kick. Va detras de las menciones, por eso empieza en minuscula. El motivo es
+// el que da el dueño al purgar —no cumplir las reglas— y no se inventa otro:
+// el bot no sabe cual de ellas se ha saltado cada uno. Uno en singular y
+// varios en vosotros, como el resto del bot. En baraja.
+const PURGE_UNO = [
+  'fuera. Las reglas estaban a la vista y no las has cumplido.',
+  'a la calle. Aquí se entra cumpliendo las reglas, y tú no las cumples.',
+  'fuera del grupo. Las normas no eran opcionales, y te las has saltado.',
+  'te vas por no cumplir las reglas. Sin segunda oportunidad.',
+  'las reglas pedían poco y no has llegado ni a eso. Fuera.',
+  'fuera. No cumples lo que pide el grupo, y aquí no se queda quien no cumple.',
+  'te vas. Las reglas no se negocian, y tú no las cumples.',
+  'fuera. Cumplir las reglas te habría costado menos que esto.',
+  'se acabó tu sitio aquí. Las reglas mandan y no las cumples.',
+  'fuera. Aquí las reglas se cumplen o se sale, y tú sales.',
+];
+
+const PURGE_VARIOS = [
+  'fuera. Las reglas estaban a la vista y no las habéis cumplido.',
+  'a la calle. Aquí se entra cumpliendo las reglas, y vosotros no las cumplís.',
+  'fuera del grupo. Las normas no eran opcionales, y os las habéis saltado.',
+  'os vais por no cumplir las reglas. Sin segunda oportunidad.',
+  'las reglas pedían poco y no habéis llegado ni a eso. Fuera.',
+  'fuera. No cumplís lo que pide el grupo, y aquí no se queda quien no cumple.',
+  'os vais. Las reglas no se negocian, y vosotros no las cumplís.',
+  'fuera. Cumplir las reglas os habría costado menos que esto.',
+  'se acabó vuestro sitio aquí. Las reglas mandan y no las cumplís.',
+  'fuera. Aquí las reglas se cumplen o se sale, y vosotros salís.',
+];
+
 module.exports = {
   OBJETIVO_DIA_CARTEL,
-  VER_UNA_VEZ,
+  VER_UNA_VEZ, PURGE_UNO, PURGE_VARIOS,
   cabeceraDe,
   MAL_ESCRITO, SOLO_GRUPOS, SIN_PERMISO, SIN_PERMISO_ADMIN, SOLO_ADMINS, PURGA_ADMIN, SIN_ACCESO, A_TI_MISMO, AL_BOT, CONTRA_UN_ADMIN, DUELO_AJENO };

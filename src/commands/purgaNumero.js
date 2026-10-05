@@ -22,7 +22,8 @@
 const { getSender, isMainOwner, isOwner, isBotJid, isBotAdmin, bareJid, canonicalJid, extractText, extractQuotedText } = require('../utils/wa');
 // Tope a onWhatsApp: sin el, el comando mas destructivo del bot podia quedarse
 // colgado sin decir si hizo algo o no.
-const { withTimeout } = require('../utils/helpers');
+const { withTimeout, pickBaraja } = require('../utils/helpers');
+const { PURGE_UNO, PURGE_VARIOS } = require('../data/avisos');
 const { banAccount } = require('../utils/banlist');
 // Costura para las pruebas. El veto es lo UNICO que este comando escribe en
 // disco, y es global: sin poder sustituirlo, comprobar que un @usuario no
@@ -91,14 +92,14 @@ function avisoDeVeto(hits) {
   };
 }
 
-// Aviso de !purge: frío, sin drama. No cumplen las reglas; uno más que se va.
-// Tú en singular y vosotros en plural, como el resto del bot.
-function avisoDePurge(hits) {
+// Aviso de !purge. Las frases viven en data/avisos.js (PURGE_UNO y
+// PURGE_VARIOS) y salen en baraja: la de antes era una sola, siempre la misma,
+// y el dueño la leyó así: «esta frase de !purge es una mierda».
+function avisoDePurge(hits, clave = 'purge') {
   const tags = etiquetasDe(hits);
   const menciones = tags.map((t) => `@${t.label}`).join(' ');
-  const texto = tags.length === 1
-    ? `${menciones} no cumples los requisitos de las reglas.\nUno más. Fuera.`
-    : `${menciones} no cumplís los requisitos de las reglas.\nUnos más. Fuera.`;
+  const pool = tags.length === 1 ? PURGE_UNO : PURGE_VARIOS;
+  const texto = `${menciones} ${pickBaraja(pool, `${clave}|${tags.length === 1 ? 'uno' : 'varios'}`)}`;
   return {
     text: texto,
     mentions: tags.map((t) => t.mention),
