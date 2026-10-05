@@ -211,7 +211,7 @@ const MISERIA = [
   'No tienes. Y lo peor es que el bot ya se lo esperaba.',
   'Fallaste. No en el comando: en la vida, un poco antes.',
   'El bot no fía. Y menos a ti, que ya se te ve el percal.',
-  'Con eso no. Con eso ni te acerques.',
+  'Con eso no, pequeña. Con eso ni te acerques.',
   'Cuesta más de lo que tienes. Bastante más. Incómodo, ¿verdad?',
   'No llegas. Ni de sobra ni de milagro. Impecable gestión.',
   'Te has plantado aquí a gastar sin cubrir el precio, y encima delante de todos, gilipoyas.',

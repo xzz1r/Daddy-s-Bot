@@ -148,7 +148,7 @@ const SOLO_ADMINS = [
   'Sin rango no se toca, bocazas. Y rango, lo que se dice rango, tú no tienes.',
   'Aquí mandan los que tienen la corona. Tú tienes el móvil y ganas de mandar.',
   'Has pulsado un botón que no es tuyo delante de todos. Más cerca no vas a estar.',
-  'Te has creído admin durante un segundo. El grupo ha visto el segundo entero.',
+  'Te has creído admin un segundo, pequeña. El grupo ha visto el segundo entero.',
   'No tienes rango, mindundi. Tienes un teclado y la cara de intentarlo.',
   'Lo has intentado delante de todos. Ahora ya se sabe a quién no darle el rango.',
   'Eso es de quien tiene el cargo. Tú tienes sitio en la lista de miembros, y gracias.',
@@ -175,7 +175,7 @@ const A_TI_MISMO = [
   'Eso es contra otro. Que alguien te caiga mal, no puede ser tan difícil.',
   'No puedes. Y si no encuentras a nadie más, ese es otro problema.',
   'No puedes. Y que lo hayas intentado ya dice bastante.',
-  'A ti no. Métete con alguien que te conteste.',
+  'A ti no. Métete con alguien que te conteste, pequeña.',
   'Elige a otro. Si es que se te ocurre alguien.',
   'No. Eso se hace con dos, y tú has traído uno.',
   'No. Ni el bot quiere ver eso.',
@@ -223,7 +223,7 @@ const AL_BOT = [
   'Con esa puntería no le das ni a la tecla de borrar.',
   'El bot no se roba ni se insulta. Has apuntado a quien no era, y el ridículo es tuyo.',
   'Has respondido al bot. Ni leer quién escribe sabes.',
-  'Mencionar a alguien es lo más fácil del grupo y a ti se te ha atragantado.',
+  'Mencionar a alguien es lo más fácil del grupo y a ti se te ha atragantado, pequeña.',
   'Me has mencionado a mí. Hay gente despistada y luego estás tú, que no ves.',
 ];
 
@@ -550,7 +550,7 @@ const PURGE_UNO = [
   'fuera. No cumples lo que pide el grupo, y aquí no se queda quien no cumple.',
   'te vas. Las reglas no se negocian, y tú no las cumples.',
   'fuera. Cumplir las reglas te habría costado menos que esto.',
-  'se acabó tu sitio aquí. Las reglas mandan y no las cumples.',
+  'se acabó tu sitio aquí, pequeña. Las reglas mandan y no las cumples.',
   'fuera. Aquí las reglas se cumplen o se sale, y tú sales.',
 ];
 

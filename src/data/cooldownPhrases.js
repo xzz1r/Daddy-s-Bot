@@ -33,7 +33,7 @@ const GENERICO = [
   'Otra vez tú, con el mismo comando y sin esperar. El reloj no se salta.',
   'Vuelves antes de que se te pase, cretino. Así es como se gana uno el título de pesado.',
   'El grupo te está viendo apretar. Eso ya es el espectáculo, y de vergüenza ajena.',
-  'Aquí se espera y punto. Que a ti se te haga eterno es un defecto de fábrica.',
+  'Aquí se espera y punto, pequeña. Que a ti se te haga eterno es un defecto de fábrica.',
   'Aguanta como los demás, pesado. No eres especial ni en esto.',
   'El bot te da un descanso gratis y tú lo vives como una condena. Patético.',
   'Te dura menos la calma que un visto en entregado. Qué asco de pulso.',
@@ -115,14 +115,14 @@ const AURA_APOSTAR = [
   'La mesa ya ha jugado contigo. Vuelve cuando te toque.',
   'El dado no tiene prisa. Tú tienes demasiada, y así se pierde.',
   'La mesa se ha levantado. Tú sigues en la silla con la ficha en la mano.',
-  'Apostar a esta velocidad es donar a plazos. Espera tu siguiente plazo.',
+  'Apostar a esta velocidad es donar a plazos. Espera tu siguiente plazo, pequeña.',
   'El crupier te ha visto venir y ha cerrado la mesa. No es casualidad.',
   'Lo que te queda de saldo te pide que no. Por una vez, hazle caso.',
 ];
 
 // !aura top — el que SÍ está en el top. Vanidad.
 const AURA_TOP_ANSIAS = [
-  'Qué ansias. El puto podio no se evapora, sigue ahí con tu nombre.',
+  'Qué ansias, pequeña. El puto podio no se evapora, sigue ahí con tu nombre.',
   'El puto top ya te reconoció. Lo que pides ahora es que te lo reciten como nana.',
   'Vuelve luego. El puesto seguirá igual y tú también, por desgracia.',
   'Este comando no es un espejo, animal. Y tú lo usas como si lo fuera.',
@@ -182,7 +182,7 @@ const AURA_TOP_POBRE = [
   'La lista tiene sitio para pocos y ninguno se llama como tú.',
   'Ni mirándola cien veces aparece tu nombre. Esto va de aura, no de fe.',
   'Envidia en estado puro: pedir la lista de los demás para ver lo que te falta.',
-  'Los de arriba no te van a hacer sitio. Tendrás que quitárselo.',
+  'Los de arriba no te van a hacer sitio. Tendrás que quitárselo, pequeña.',
   'El top no es un sitio para visitar. O estás o no estás, y tú no estás.',
   'Mirar el top desde abajo te cuesta tiempo. Entrar te costaría esfuerzo. Ya vemos cuál eliges.',
   'Los nombres del top escriben. El tuyo solo pregunta por ellos.',
@@ -248,7 +248,7 @@ const ROBO_ASALTO = [
   'Si el bote tuviera ojos, ya te estaría mirando con asco.',
   'Acabas de ir a por la hucha. Espera a que se le pase el susto.',
   'Asaltar a lo loco es regalarle multas al bote. El bote te lo agradece. Tu saldo, no.',
-  'Espera tu turno. Hasta para robar al grupo hay cola.',
+  'Espera tu turno, pequeña. Hasta para robar al grupo hay cola.',
   'El bote se ríe cada vez que vuelves antes de tiempo. Se ríe engordando.',
   'No te toca. Ni al bote ni a ti os hace falta otro ridículo tan seguido.',
   'Tanta ansia por la hucha dice mucho de ti, y nada bueno.',
@@ -259,7 +259,7 @@ const ROBO_ASALTO = [
 // Víctima recién robada, escudo natural 7 min. Sin @ ni %V.
 const ROBO_GUARDIA = [
   'Tu objetivo todavía tiene el susto puesto. No es el momento, cabrón.',
-  'Esa puta cartera se acaba de cerrar de un golpe. No va a abrirse para ti.',
+  'Esa puta cartera se acaba de cerrar de un golpe. No va a abrirse para ti, pequeña.',
   'El escudo son siete minutos. Tú ya estás en la puerta, contando lo que acaban de sacarle.',
   'Estás oliendo sangre reciente. El puto grupo también te está oliendo a ti.',
   'El objetivo está en modo alarma. Tu puta hambre no apaga alarmas.',
@@ -315,7 +315,7 @@ const PLAY = [
   'Nadie ha pedido tu banda sonora, y encima la quieres a trozos.',
   'Espera a que acabe. Eso que suena es música, no una notificación.',
   'Ni esperas los siete segundos y ya pides otra. Tu gusto musical es la impaciencia.',
-  'El comando no va más rápido porque lo aprietes más. Tú sí te ves más ridículo.',
+  'El comando no va más rápido porque lo aprietes más, pequeña. Tú sí te ves más ridícula.',
   'Pides música para el grupo y el grupo solo oye tus prisas.',
   'Deja respirar a la canción. A ti también te vendría bien.',
   'Otra vez. El grupo ya distingue tus peticiones por lo pesadas que son.',
