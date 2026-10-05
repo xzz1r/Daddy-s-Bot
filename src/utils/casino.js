@@ -28,7 +28,7 @@ const PHRASES = {
   tier1: {
     win: [
       '%M mensajes hoy. El grupo se mueve porque alguien lo empuja, y hoy has empujado tú.',
-      'Cobrado por %M mensajes. Aquí se paga por aparecer y has aparecido, preciosa.',
+      'Cobrado por %M mensajes. Aquí se paga por aparecer y has aparecido, mi niña.',
       '%M mensajes en el día. Más de lo que escriben algunos en un mes.',
       'Bono por %M. Los fantasmas del grupo ni saben que esto existe.',
       '%M mensajes y el aura lo nota. Así se suma, cabrón.',
@@ -52,7 +52,7 @@ const PHRASES = {
       'Pleno. %M mensajes y el premio gordo. Hoy el aura es tuya.',
       'Premio máximo del tramo. Escribir %M mensajes tiene esto: a veces toca.',
       'Pleno con %M mensajes. La cifra más alta del tramo, y es tuya.',
-      'El pleno del tramo, para ti. %M mensajes y la suerte en el mismo día, bonita.',
+      'El pleno del tramo, para ti. %M mensajes y la suerte en el mismo día, reina.',
       'Pleno. No se gana apareciendo una vez: se gana apareciendo %M.',
       'Premio gordo por %M mensajes. A quien escribe, a veces, el aura le devuelve el favor.',
     ],
@@ -72,7 +72,7 @@ const PHRASES = {
       'Bono alto por %M mensajes. Trabajo y suerte, en ese orden.',
       'El aura ha pagado de más. Con %M mensajes, hoy te lo mereces entero.',
       '%M mensajes y un pago que se nota. Así da gusto aparecer.',
-      'Pago generoso por %M. Hay días en que el aura te devuelve lo que pones, cielo.',
+      'Pago generoso por %M. Hay días en que el aura te devuelve lo que pones, chiquitina.',
       'Bono gordo. %M mensajes y una cifra que da envidia.',
       'Te ha salido redondo: %M mensajes y el pago por encima.',
     ],
@@ -97,11 +97,11 @@ const PHRASES = {
       'Bono del tramo alto por %M. Quien diga que el grupo está muerto, que te pregunte cómo se hace.',
     ],
     bigwin: [
-      'Bono gordo en el tramo alto. %M mensajes y encima suerte. Hoy lo tienes todo, corazón.',
+      'Bono gordo en el tramo alto. %M mensajes y encima suerte. Hoy lo tienes todo, pequeña.',
       '%M mensajes y el aura pagando por encima. Lo tuyo hoy no tiene techo.',
       'Pago generoso por %M. Te lo has currado hasta el último mensaje.',
       'El aura se ha pasado de generosa. Con %M mensajes, tampoco tanto.',
-      'Bono alto. %M mensajes y el marcador rendido a tus pies, cariño.',
+      'Bono alto. %M mensajes y el marcador rendido a tus pies, princesa.',
       '%M mensajes premiados como toca. El resto del grupo, a mirar.',
     ],
     jackpot: [

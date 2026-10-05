@@ -208,7 +208,7 @@ function esSinServicio(x) {
 // Están escritas para leerse DELANTE DEL GRUPO, porque ahí es donde salen. La
 // gracia no es que te digan que no tienes dinero, es que te lo digan en público.
 const MISERIA = [
-  'No te llega para esto. Este comando no sale, y el saldo va justo debajo, bonita.',
+  'No te llega para esto. Este comando no sale, y el saldo va justo debajo, muñeca.',
   'Mírate el saldo y luego mírate a ti. Encajáis.',
   'No te llega el aura para esto. Hay ganas, que es lo que tienen los pobres.',
   'Ese saldo no da para esto. Da para mirar cómo lo usan otros, que es lo tuyo.',
