@@ -80,6 +80,21 @@ miró, guardado en `data/estadoReinicios.json`. Callado si no sube.
 
 ---
 
+## El ritmo: nada sale en ráfaga
+
+El número anterior se iba a revisión cada poco. Desde el cambio, cada socket
+nuevo pasa por `ponerRitmo` (`src/utils/ritmo.js`): mensajes, borrados y
+stickers (todo es `sendMessage`), expulsiones, solicitudes de entrada y
+consultas de número salen con un hueco mínimo y algo de azar desde la anterior
+del mismo tipo. Consultar si un número tiene WhatsApp lleva además un tope al
+día (lo usa la purga por número). Las reconexiones nunca bajan de cinco
+segundos.
+
+No cambia qué hace ningún comando, solo cuándo. Se espacian los arranques, no
+se espera a que terminen: un envío colgado no deja mudo al bot. El visto y el
+«en línea» quedan fuera a propósito: el dueño los quiere como estaban. La capa
+123 lo vigila.
+
 ## El guardián
 
 **Vincular el guardián se pide a mano, y esto le pasó a una persona.** Con la

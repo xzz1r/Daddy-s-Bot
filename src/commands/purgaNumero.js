@@ -45,12 +45,12 @@ const config = require('../config');
 
 // Pausa entre grupos. No es paranoia: groupParticipantsUpdate en ráfaga es
 // justo lo que dispara el rate-overlimit que ya sale en el log del bot.
-const PAUSA_MS = 1200;
+const PAUSA_MS = 2500;
 // Margen entre el aviso y el kick. sendMessage espera el ack del servidor;
 // esto es para que el mensaje llegue al teléfono antes de que WhatsApp los
 // saque del grupo. Si es demasiado corto, la frase no la ven.
 const AVISO_ANTES_MS = 1000;
-const PAUSA_ONWA_MS = 150;
+const PAUSA_ONWA_MS = 1000;
 // Tope por ráfaga. Un pegado internacional con formato ("+54 9 11 …") ronda
 // las treinta cuentas; 30 se quedaba corto en el caso real (33) y encima los
 // trozos falsos del parser llenaban el cupo antes de llegar a los de verdad.
@@ -336,6 +336,9 @@ async function resolverCuenta(sock, digitos, groupMeta, protegido = null) {
     if (esIntocable(objetivo, groupMeta, protegido)) return { skip: true };
     return { digitos, objetivo, formas: formasDeCuenta(objetivo, digitos) };
   } catch (e) {
+    // Consultar numeros en serie es lo que WhatsApp mas vigila, asi que hay un
+    // tope al dia (utils/ritmo.js). Se dice tal cual: reintentar no sirve.
+    if (e?.code === 'TOPE_DIARIO') return { error: `+${digitos}: tope de comprobaciones de hoy alcanzado. Sigue mañana.` };
     return { error: `No pude comprobar +${digitos}. Inténtalo de nuevo.` };
   }
 }

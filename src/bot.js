@@ -179,6 +179,7 @@ const { VF_STATIC } = require('./utils/sticker');
 const { recordar: recordarMensaje, recuperar: recuperarMensaje } = require('./utils/mensajesRecientes');
 const { recordar: recordarHistorial, ingestarEvento: ingestarHistorial, flush: flushHistorial } = require('./utils/historialGrupo');
 const logger = require('./utils/logger');
+const { ponerRitmo } = require('./utils/ritmo');
 
 const AUTH_DIR = path.join(__dirname, '../data/auth');
 
@@ -757,6 +758,11 @@ async function connectToWhatsApp() {
     },
   });
 
+  // Nada sale en rafaga: mensajes, expulsiones, solicitudes y consultas de
+  // numero llevan un hueco minimo entre una y otra (utils/ritmo.js). Se pone
+  // aqui, en cada socket nuevo, para que ningun comando se lo salte.
+  ponerRitmo(sock);
+
   // ── Vincular con CODIGO en vez de con QR ─────────────────────────────────
   //
   // El QR sirve cuando quien administra el servidor tiene DOS pantallas: una
@@ -975,7 +981,10 @@ async function connectToWhatsApp() {
       // 30 s sí sería el patrón de actividad automática que conviene evitar.
       consecutive401 = 0;
       reconnectAttempts++;
-      const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), ESPERA_RECONEXION_MAX);
+      // Nunca por debajo de cinco segundos y con algo de azar: reconectar a
+      // intervalos exactos, y muy seguidos, es otra firma de automatismo.
+      const delay = Math.min(Math.max(5000, 1000 * Math.pow(2, reconnectAttempts)), ESPERA_RECONEXION_MAX)
+        + Math.floor(Math.random() * 3000);
       if (reconnectAttempts === MAX_RECONNECTS) {
             logger.error(
           `Van ${reconnectAttempts} intentos de reconexión fallidos. Sigo intentándolo ` +

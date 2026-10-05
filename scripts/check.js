@@ -20138,6 +20138,44 @@ const manda = async (quien, tipo, opciones) => {
     if (fallos === antes122) console.log(verde('   ✓ %B solo donde hay bio leída, y la cita sale entera'));
   }
 
+  // ── 123. EL BOT NO DISPARA EN RÁFAGA ────────────────────────────────────
+  //
+  // El dueño cambió de número porque el anterior se iba a revisión cada poco.
+  // Mensajes, expulsiones, solicitudes y consultas de número salen con un
+  // hueco mínimo (utils/ritmo.js), y la consulta de números lleva tope diario.
+  // Si alguien quita el envoltorio del socket, el bot vuelve a las ráfagas sin
+  // que nada lo diga.
+  {
+    console.log('\n123. EL BOT NO DISPARA EN RÁFAGA');
+    const antes123 = fallos;
+    const exige = (c, q) => { if (!c) { fallos++; console.log(rojo(`   ✗ ${q}`)); } };
+    const botSrc123 = fs.readFileSync(path.join(R, 'src/bot.js'), 'utf8');
+    exige(/ponerRitmo\(sock\)/.test(botSrc123), 'bot.js ya no le pone ritmo al socket: los envíos vuelven a salir en ráfaga');
+    const { crearRitmo, crearTope, ponerRitmo, RITMOS } = require(path.join(R, 'src/utils/ritmo'));
+    let t = 0;
+    const turno = crearRitmo({ hueco: 600, azar: 0 }, () => t, () => 0);
+    const esperas = [turno(), turno(), turno()];
+    exige(esperas[0] === 0 && esperas[1] === 600 && esperas[2] === 1200,
+      `tres envíos seguidos esperan ${esperas.join('/')} ms en vez de 0/600/1200`);
+    const gastar = crearTope(2, () => t);
+    exige(gastar() && gastar() && !gastar(), 'el tope diario deja pasar más de lo que dice');
+    exige(RITMOS.onWhatsApp && RITMOS.onWhatsApp.porDia > 0, 'la consulta de números ya no tiene tope diario');
+    exige(!('sendPresenceUpdate' in RITMOS) && !('readMessages' in RITMOS),
+      'el visto o la presencia pasan por el ritmo, y el dueño los dejó fuera');
+    // Un envío colgado no puede dejar mudo al bot: la cola espacia arranques,
+    // no espera a que terminen.
+    let llamadas123 = 0;
+    const sock123 = { sendMessage: () => (llamadas123++ === 0 ? new Promise(() => {}) : Promise.resolve('ok')) };
+    ponerRitmo(sock123, { sendMessage: { hueco: 1, azar: 0 } });
+    sock123.sendMessage('a');   // se queda colgado para siempre
+    const segundo = await Promise.race([
+      sock123.sendMessage('b'),
+      new Promise((r) => setTimeout(() => r('colgado'), 500)),
+    ]);
+    exige(segundo === 'ok', 'un envío con ritmo no sale en medio segundo');
+    if (fallos === antes123) console.log(verde('   ✓ mensajes, expulsiones y consultas salen espaciadas, y el visto queda fuera'));
+  }
+
   }
 
   if (BREVE) {
