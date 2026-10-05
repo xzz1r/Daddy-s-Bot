@@ -26,6 +26,15 @@ const RITMOS = {
   // Preguntar si un número tiene WhatsApp. Es lo más vigilado: consultar
   // números en serie es exactamente lo que hace un programa de spam.
   onWhatsApp: { hueco: 2000, azar: 1500, porDia: 60 },
+  // Mirar perfiles ajenos: foto, «info» y si es cuenta de empresa. Una a una
+  // está bien; en serie es exactamente lo que hace un raspador.
+  profilePictureUrl: { hueco: 1500, azar: 1000 },
+  fetchStatus: { hueco: 1500, azar: 1000 },
+  getBusinessProfile: { hueco: 2000, azar: 1500 },
+  // La metadata de los grupos. Casi siempre sale de la caché; cuando no, que
+  // no salgan varias peticiones pegadas.
+  groupMetadata: { hueco: 1000, azar: 500 },
+  groupFetchAllParticipating: { hueco: 5000, azar: 2000 },
 };
 
 // Cada tipo lleva su propio reloj: un borrado no tiene por qué esperar a una

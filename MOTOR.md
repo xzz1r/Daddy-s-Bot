@@ -87,7 +87,10 @@ nuevo pasa por `ponerRitmo` (`src/utils/ritmo.js`): mensajes, borrados y
 stickers (todo es `sendMessage`), expulsiones, solicitudes de entrada y
 consultas de número salen con un hueco mínimo y algo de azar desde la anterior
 del mismo tipo. Consultar si un número tiene WhatsApp lleva además un tope al
-día (lo usa la purga por número). Las reconexiones nunca bajan de cinco
+día (lo usa la purga por número). Mirar perfiles ajenos (foto, info, si es
+empresa) y pedir la metadata de los grupos también va espaciado, y el escaneo
+de cuentas de empresa va de una en una. Las solicitudes de entrada se
+sondean cada seis minutos. Las reconexiones nunca bajan de cinco
 segundos.
 
 No cambia qué hace ningún comando, solo cuándo. Se espacian los arranques, no

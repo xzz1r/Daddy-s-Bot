@@ -308,7 +308,9 @@ const MAX_CICLOS_LOGOUT = 2;
 // Cada cuánto se relee la lista de solicitudes pendientes de cada grupo. Es una
 // consulta por grupo y el bot está en pocos, así que sale barato. Tiene que ser
 // bastante más corto que SONDEO_VALIDO_MS para que la lista nunca caduque.
-const INTERVALO_SOLICITUDES = 3 * 60 * 1000;
+// Seis minutos: la mitad de consultas que con tres, y sigue muy por debajo de
+// SONDEO_VALIDO_MS. Las solicitudes nuevas llegan ademas por evento.
+const INTERVALO_SOLICITUDES = 6 * 60 * 1000;
 let timerSolicitudes = null;
 
 // groupFetchAllParticipating se trae la metadata de TODOS los grupos de una

@@ -239,6 +239,12 @@ setInterval(() => {
   if (fuera) guardarMutes();
 }, 10 * 60 * 1000).unref();
 
+// UN AVISO A TODOS CADA MEDIA HORA COMO MUCHO, por grupo. Mencionar a todo el
+// grupo de golpe es el mensaje que mas se parece al spam, y repetido seguido es
+// de lo que manda una cuenta a revision. El tier dueño no tiene espera.
+const TAGALL_ESPERA_MS = 30 * 60 * 1000;
+const ultimoTagall = new Map();   // grupo -> ts
+
 // !tagall — mention everyone. Forwards media if replying to one, otherwise sends text.
 async function cmdTodos(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
@@ -255,6 +261,18 @@ async function cmdTodos(sock, msg, args, groupMeta) {
   if (!participants.length) {
     return sock.sendMessage(jid, { text: 'No pude obtener miembros del grupo.' }, { quoted: msg });
   }
+
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
+    const desde = Date.now() - (ultimoTagall.get(jid) || 0);
+    if (desde < TAGALL_ESPERA_MS) {
+      const faltan = Math.ceil((TAGALL_ESPERA_MS - desde) / 60000);
+      return sock.sendMessage(jid, {
+        text: `Ya se ha llamado a todos hace nada. El siguiente, en *${faltan} min*.`,
+      }, { quoted: msg });
+    }
+  }
+  if (ultimoTagall.size >= 500) ultimoTagall.delete(ultimoTagall.keys().next().value);
+  ultimoTagall.set(jid, Date.now());
 
   const mentions = participants.map((p) => p.id);
   const caption = (args || []).join(' ').trim();
@@ -884,7 +902,10 @@ async function detectBusinesses(sock, idToPhone) {
   const entries = Array.from(idToPhone.entries()); // [kickId, phoneJid]
   const detected = [];      // { kickId, fields }
   const sinComprobar = [];  // { kickId, motivo } — ni biz ni personal: no se supo
-  const CONC = 6;
+  // DE UNA EN UNA. Eran seis perfiles de empresa a la vez sobre el grupo
+  // entero: en serie y en paralelo, lo que mas se parece a raspar cuentas.
+  // Ahora cada consulta lleva su hueco (utils/ritmo.js).
+  const CONC = 1;
   for (let i = 0; i < entries.length; i += CONC) {
     const chunk = entries.slice(i, i + CONC);
     const results = await Promise.all(chunk.map(async ([kickId, phoneJid]) => {
