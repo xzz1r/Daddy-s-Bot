@@ -2371,7 +2371,7 @@ async function handleMessage(sock, msg, opciones = {}) {
         } else {
           marcarAvisado(jid, sender);
           sock.sendMessage(jid, {
-            text: `@${num} baja el ritmo con los stickers. Ráfaga borrada. A la siguiente te vas del grupo.`,
+            text: `@${num} baja el ritmo con los stickers. Ráfaga borrada. A la siguiente te vas del grupo, pequeña.`,
             mentions: [sender],
           }).catch(() => {});
         }

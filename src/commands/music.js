@@ -1,4 +1,5 @@
 const { downloadAudio, MAX_BYTES } = require('../utils/downloader');
+const { voc } = require('../utils/vocativo');
 const { cleanTemp } = require('../utils/helpers');
 const { incrementStat } = require('../utils/state');
 const { getCached, setCached, listCached, clearCache } = require('../utils/musicCache');
@@ -140,7 +141,7 @@ async function cmdPlay(sock, msg, args, groupMeta) {
     if (bytes > MAX_BYTES) {
       await reembolsar();
       salida = await sock.sendMessage(jid, {
-        text: `Esa canción pesa ${(bytes / 1048576).toFixed(1)}MB y WhatsApp no deja pasar de 16MB. No te he cobrado.`,
+        text: `Esa canción pesa ${(bytes / 1048576).toFixed(1)}MB y WhatsApp no deja pasar de 16MB. No te he cobrado${voc(quienPide, msg.key.fromMe, groupMeta, 'mi niña')}.`,
       }, { quoted: msg });
       return salida;
     }

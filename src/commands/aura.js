@@ -1,4 +1,5 @@
 const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameUser, soloMiembros } = require('../utils/wa');
+const { voc } = require('../utils/vocativo');
 const { pickFresh, fmt, parseCantidad, resolverCantidad, etiquetaRiesgo } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking, flushAura, resetAura } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
@@ -550,7 +551,7 @@ async function showRanking(sock, msg, groupMeta) {
       // dos veces el mismo mensaje. Lleva cabecera igual que el rechazo por
       // cooldown —es la misma pregunta desde fuera, "pedi el top y no salio"—
       // pero no dice "EN COOLDOWN", que seria mentira: el reloj ya corrio.
-      text: '*TOP SIN CAMBIOS*\nEl top no ha cambiado desde la última vez. Mueve algo y vuelve.',
+      text: `*TOP SIN CAMBIOS*\nEl top no ha cambiado desde la última vez. Mueve algo y vuelve${voc(getSender(msg), msg.key.fromMe, groupMeta, 'princesa')}.`,
     }, { quoted: msg });
   }
   if (huellaRanking.size >= 500) huellaRanking.delete(huellaRanking.keys().next().value);
@@ -947,7 +948,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
     const quien = getSender(msg);
     const mio = await getAura(jid, quien);
     return sock.sendMessage(jid, {
-      text: `Tienes *${fmt(mio)}* de aura.`,
+      text: `Tienes *${fmt(mio)}* de aura${voc(quien, msg.key.fromMe, groupMeta, 'pequeña')}.`,
     }, { quoted: msg });
   }
 
