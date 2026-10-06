@@ -142,9 +142,9 @@ const AURA = {
     'El silencio después de tu tirada pesó más que cualquier comentario.',
     'Hoy el aura del grupo se inclinó hacia ti.',
     // ── Reescritas y nuevas ──
-    'Tirada de las gordas. Hoy el aura te trata como a alguien que importa, muñeca.',
+    'Tirada de las gordas. Hoy el aura te trata como a alguien que importa, gatita.',
     'Joder, del tramo alto. Disfrútala, que a ti no te sale todos los días.',
-    'Cifra gorda y a tu nombre. Para una vez que el azar acierta contigo, pequeña.',
+    'Cifra gorda y a tu nombre. Para una vez que el azar acierta contigo, gatita.',
     'De las altas. Esto no le toca a cualquiera, y hoy te ha tocado a ti.',
     'Ganada limpia, sin asterisco y sin excusa. Hoy no hay nada que rebatirte.',
     'Coño, una de las buenas. Te la cobras entera y en público.',
@@ -177,7 +177,7 @@ const AURA = {
     'Hoy cenas, muerto de hambre.',
     '¿Lo notas? Es lo más parecido a tener dinero que vas a sentir, princesa.',
     'Tu cuenta respira un poco. Sigue en la UCI, pero respira.',
-    'Para cualquiera sería calderilla. Para ti es el sueldo del mes, pequeña.',
+    'Para cualquiera sería calderilla. Para ti es el sueldo del mes, cosita.',
     'Lo guardas o lo gastas en un sticker, que es lo que vas a hacer.',
     'Esto no te saca de pobre, pero te da para disimular un rato.',
     'Cobras. Tu cuenta no se lo cree ni ella.',
@@ -195,7 +195,7 @@ const AURA = {
     'Buena tirada para una cuenta sin nada. Ahora tiene algo. Poco, pero algo.',
     'Ganas, y aun así tu saldo cabe en una frase corta.',
     'Hoy la suerte ha tenido un detalle con los bolsillos más tristes del grupo.',
-    'Suma para ti. En tu cuenta, esto ya es un acontecimiento, pequeña.',
+    'Suma para ti. En tu cuenta, esto ya es un acontecimiento, querida.',
     'Ganas aura. Disfrútala antes de que te la quite alguien con más hambre que tú.',
     'Te entra aura y sigues muerto de hambre. La tirada no te llena.',
     'Aura nueva en una cuenta vieja y vacía. Se nota el contraste.',
@@ -230,7 +230,7 @@ const AURA = {
     'Más aura en la cuenta. La moneda más fuerte del grupo y la más débil del mundo.',
     'Rico de pantalla. Apaga el móvil y compruébalo.',
     'Tienes aura para comprarte medio grupo. El grupo no está en venta, pero bueno.',
-    'Forrado en aura. Hacienda no te persigue porque ni sabe que existe, pequeña.',
+    'Forrado en aura. Hacienda no te persigue porque ni sabe que existe, muñequita.',
     'Otra subida. El aura es tuya. Lo que vale fuera ya es otro tema.',
     'Rico de verdad, de mentira. Así funciona la economía de este bot.',
     'Tu fortuna cabe en una captura de pantalla. Y queda bien.',
@@ -262,7 +262,7 @@ const AURA = {
     'Pierdes con la misma energía con la que vives: ninguna.',
     'Te baja el aura. A ti te importa; al marcador, nada.',
     'Ni la suerte te tiene respeto. Te quita y ni se despide. Qué asco de trato, muñeca.',
-    'Has perdido lo justo para que nadie se entere y tú sí, pequeña.',
+    'Has perdido lo justo para que nadie se entere y tú sí, niña.',
     'Pierdes, y lo peor es que es lo que todos esperaban. Cutre y puntual.',
     'Es una pérdida pequeña. Si te duele como una grande, el problema no es la cifra.',
     'El grupo te archivó en "recuerdos". Ahí no entra nadie a mirar, cabrón.',
@@ -276,13 +276,13 @@ const AURA = {
     'Una bajada igual de pequeña que tú en este grupo.',
     'Con lo que te queda, mejor ni lo mires.',
     'Te toca perder. El dado no lleva la cuenta de lo que crees que te debe.',
-    'Ni el sticker de caca. Demasiado trabajo para lo que eres, pequeña.',
+    'Ni el sticker de caca. Demasiado trabajo para lo que eres, cosita.',
     'En rojo, y a otra cosa. Ni siquiera da para chiste.',
     'Otra en rojo. No hace falta que nadie te lo confirme: lo confirma la cifra.',
   ],
   spiral: [
     'Otro mínimo. Tu saldo ya no baja: se instala.',
-    'Llevas tanto abajo que el fondo te ha adoptado. Residencia permanente, muñeca.',
+    'Llevas tanto abajo que el fondo te ha adoptado. Residencia permanente, muñequita.',
     'Tu saldo ya estaba bajo cero y esta tirada te hunde más. Sigue cavando.',
     'Sigues abajo y lo peor es que ahí encajas. Ese es tu puto sitio.',
     'Joder, tu historial parece un tobogán y tú sigues subiendo solo para tirarte.',
@@ -324,7 +324,7 @@ const AURA = {
     'Perdiste con la elegancia de quien no sabe perder: ninguna.',
     'Sacaste un número que el puto grupo va a usar como unidad de medida del desastre.',
     'La tirada te ha dejado el saldo temblando. Se ve desde el otro lado del grupo.',
-    'Golpe de los grandes. Tu saldo acaba de envejecer diez años, pequeña.',
+    'Golpe de los grandes. Tu saldo acaba de envejecer diez años, querida.',
     'Cuando ni el carroñero pica, has llegado al puto fondo.',
     'Un «joder» se queda corto para lo que acabas de perder.',
     'Pérdida gorda. De las que se recuerdan cada vez que miras el saldo.',
@@ -551,7 +551,7 @@ async function showRanking(sock, msg, groupMeta) {
       // dos veces el mismo mensaje. Lleva cabecera igual que el rechazo por
       // cooldown —es la misma pregunta desde fuera, "pedi el top y no salio"—
       // pero no dice "EN COOLDOWN", que seria mentira: el reloj ya corrio.
-      text: `*TOP SIN CAMBIOS*\nEl top no ha cambiado desde la última vez. Mueve algo y vuelve${voc(getSender(msg), msg.key.fromMe, groupMeta, 'princesa')}.`,
+      text: `*TOP SIN CAMBIOS*\nEl top no ha cambiado desde la última vez. Mueve algo y vuelve${voc(getSender(msg), msg.key.fromMe, groupMeta, ['princesa', 'muñeca', 'chiquitina'])}.`,
     }, { quoted: msg });
   }
   if (huellaRanking.size >= 500) huellaRanking.delete(huellaRanking.keys().next().value);
@@ -697,7 +697,7 @@ const APUESTA_POBRE = [
   'Con esa cuenta vienes a la mesa a mirar, no a jugar. Largo.',
   'Ni la ficha más pequeña te cabe en el bolsillo. Aquí no se juega fiado.',
   'Apostar sin saldo es tu versión de la valentía. Aquí se llama hacer el ridículo.',
-  'La mesa te ha mirado el saldo y se ha reído. Luego ha seguido a lo suyo, pequeña.',
+  'La mesa te ha mirado el saldo y se ha reído. Luego ha seguido a lo suyo, gatita.',
   'Vienes a apostar con la cartera en los huesos. Ni el crupier se molesta en echarte.',
   'Tu saldo no llega ni a la apuesta mínima. Tu vergüenza, por lo visto, tampoco.',
 ];
@@ -948,7 +948,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
     const quien = getSender(msg);
     const mio = await getAura(jid, quien);
     return sock.sendMessage(jid, {
-      text: `Tienes *${fmt(mio)}* de aura${voc(quien, msg.key.fromMe, groupMeta, 'pequeña')}.`,
+      text: `Tienes *${fmt(mio)}* de aura${voc(quien, msg.key.fromMe, groupMeta, ['pequeña', 'gatita', 'muñequita', 'princesa', 'reina', 'cosita'])}.`,
     }, { quoted: msg });
   }
 

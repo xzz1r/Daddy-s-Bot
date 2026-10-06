@@ -40,7 +40,7 @@ const PHRASES = {
     ],
     bigwin: [
       'Bono gordo por %M mensajes. La suerte también sabe premiar a quien escribe.',
-      '%M mensajes y el aura se ha estirado. Hoy te toca de las buenas, pequeña.',
+      '%M mensajes y el aura se ha estirado. Hoy te toca de las buenas, muñequita.',
       'Pago por encima de lo normal. %M mensajes y la tirada a tu favor.',
       'El aura ha soltado más de la cuenta. Con %M mensajes encima de la mesa, bien soltada.',
       'Bono alto. %M mensajes y un golpe de suerte, que no viene mal.',
@@ -115,7 +115,7 @@ const PHRASES = {
   },
   redemption: [
     'Bono de redención. Estabas en el sótano y esto es un pellizco, no la salida.',
-    'Aura en negativo y mensajes de verdad. Tu marcador empieza a cambiar de cara, pequeña.',
+    'Aura en negativo y mensajes de verdad. Tu marcador empieza a cambiar de cara, niña.',
     'Tu aura estaba en rojo y has seguido escribiendo. Bono de redención.',
     'Desde el fondo del pozo, un bono por mensajes. No es la puerta: es un empujón, y lo has cobrado.',
     'Redención. Un pago por estar en rojo y haber escrito. Las tiradas de antes no pintan aquí.',
