@@ -526,14 +526,14 @@ const VER_UNA_VEZ = [
   'Borrado.',
   'Borrado, anormal.',
   'Borrado. Nadie te quiere en su galería, mi niña.',
-  'Borrado. Esto no se queda en la galería de nadie, inútil.',
-  'Borrado. A la galería de nadie entras tú, muñeca.',
-  'Borrado. ¿Tanto costaba darle al 1 antes de enviar, princesa?',
-  'Borrado. La próxima, le das al 1 antes de enviar, gatita.',
-  'Borrado. Las normas tampoco te las has leído, ¿no? Inútil.',
-  'Borrado. Aquí se cumple la norma o se borra, y tú has elegido, pequeña.',
-  'Borrado. Nadie quiere lo tuyo ocupando memoria, princesa.',
+  'Borrado. Tu mierda no se queda en la galería de nadie, muñeca.',
+  'Borrado. Guárdate tus fotos donde te quepan, reina.',
+  'Borrado. Lee las putas normas antes de mandar nada, pequeña.',
+  'Borrado. ¿Tanto te cuesta darle al puto 1, princesa?',
+  'Borrado. Lo tuyo dura aquí lo que tardo en quitarlo, chiquitina.',
   'Borrado. Ni regalado se queda en el móvil de nadie, imbécil.',
+  'Borrado. Aquí se obedece y tú no has obedecido, muñequita.',
+  'Borrado. Mandas basura y encima a la vista de todos, subnormal.',
 ];
 
 // !purge: el aviso que sale delante de los que se van a echar, justo antes del
