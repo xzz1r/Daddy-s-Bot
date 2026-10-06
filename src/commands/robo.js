@@ -436,7 +436,7 @@ async function asaltarBote(sock, msg, jid, sender, groupMeta) {
     if (desde) lastRob.set(coolKey, desde); else lastRob.delete(coolKey);
     ultimoFueAsalto.delete(coolKey);
     return sock.sendMessage(jid, {
-      text: `La entrada son *${fmt(BOTE.entrada)}* y tienes *${fmt(pago.saldo)}*. El bote no fía, princesa.`,
+      text: `La entrada son *${fmt(BOTE.entrada)}* y tienes *${fmt(pago.saldo)}*. El bote no fía.`,
     }, { quoted: msg });
   }
   const a = tag(sender);

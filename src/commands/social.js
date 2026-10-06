@@ -227,7 +227,7 @@ const AURA_LINES = [
   'La racha se rompe el día que no llegas al mínimo. Un día flojo y a empezar otra vez.',
   'Lo que ganas escribiendo te lo pueden quitar robando. Guárdalo en la caja o reza.',
   'Apostar es la forma más rápida de tener menos aura. Casi nadie lo aprende a la primera.',
-  'Puedes regalar aura con !dar. Que lo hagas ya es otra cosa, muñeca.',
+  'Puedes regalar aura con !dar. Que lo hagas ya es otra cosa.',
   'El aura no se hereda ni se pide prestada. Se escribe, mensaje a mensaje.',
   'Cuanto más escribes, más tienes. Cuanto más tienes, más ganas les das a los ladrones.',
   'El top del aura lo ocupa quien aparece, no quien presume.',
