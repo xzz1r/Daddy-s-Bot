@@ -528,10 +528,10 @@ const VER_UNA_VEZ = [
   'Borrado. Nadie te quiere en su galería, mi niña.',
   'Borrado. Esto no se queda en la galería de nadie, inútil.',
   'Borrado. A la galería de nadie entras tú, muñeca.',
-  'Borrado. Aquí nadie guarda lo que mandas.',
-  'Borrado. Aquí las fotos se ven una vez y gracias.',
+  'Borrado. ¿Tanto costaba darle al 1 antes de enviar, princesa?',
+  'Borrado. La próxima, le das al 1 antes de enviar, gatita.',
   'Borrado. Las normas tampoco te las has leído, ¿no? Inútil.',
-  'Borrado. Una vez se aguanta, dos ya no, pequeña.',
+  'Borrado. Aquí se cumple la norma o se borra, y tú has elegido, pequeña.',
   'Borrado. Nadie quiere lo tuyo ocupando memoria, princesa.',
   'Borrado. Ni regalado se queda en el móvil de nadie, imbécil.',
 ];

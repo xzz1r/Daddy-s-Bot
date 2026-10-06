@@ -115,7 +115,7 @@ const PHRASES = {
   },
   redemption: [
     'Bono de redención. Estabas en el sótano y esto es un pellizco, no la salida.',
-    'Aura en negativo y mensajes de verdad. Tu marcador empieza a cambiar de cara, niña.',
+    'Aura en negativo y mensajes de verdad. Tu marcador empieza a cambiar de cara, princesa.',
     'Tu aura estaba en rojo y has seguido escribiendo. Bono de redención.',
     'Desde el fondo del pozo, un bono por mensajes. No es la puerta: es un empujón, y lo has cobrado.',
     'Redención. Un pago por estar en rojo y haber escrito. Las tiradas de antes no pintan aquí.',
