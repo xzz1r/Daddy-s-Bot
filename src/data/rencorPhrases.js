@@ -146,7 +146,7 @@ const DUELO_PIDE = [
   '%V vuelve a por %A después de perder %C %D. Valor no le falta, lo que le falta es todo lo demás.',
   'Lo de %D sigue escociendo. %V reta a %A y el grupo ya sabe cómo acaba esto.',
   '%V busca la revancha de lo de %D, cuando %A le dejó %C más pobre.',
-  '%D se fueron %C de %V a %A. %V quiere recuperarlos y ha elegido la forma más cara de intentarlo.',
+  '%D se fueron %C de %V a %A. %V quiere recuperarlos, y va a pagar por intentarlo.',
   'Revancha a la vista. %D se lo llevó %A, y %V apuesta a que la historia no se repite.',
 ];
 
@@ -195,7 +195,7 @@ const ROBO_VENGANZA = [
   'Venganza servida. %V le quitó %C a %A %D y hoy le toca pagar a %V.',
   '%V pensó que lo de %D le iba a salir gratis. %A acaba de pasarle la factura.',
   '%A no olvida. %D %V le quitó %C, y hoy %A ha ido directo a por quien se los llevó.',
-  '%V se llevó %C de %A %D y se creyó a salvo. Nadie está a salvo de alguien con memoria.',
+  '%V se llevó %C de %A %D y se creyó a salvo. %A tiene buena memoria.',
   'Devuelta la de %D. %V aprende hoy que robar a %A tenía letra pequeña.',
   '%D robó %V, hoy roba %A. %V ya puede ir contando lo que le queda, que no es mucho.',
   'Hay deudas que se cobran solas. La de %V con %A venía de %D.',
@@ -212,7 +212,7 @@ const ROBO_SE_ACABA = [
   'Lo de %D no se repite. %A volvió a por %V y esta vez se va sin un duro y con la cara roja.',
   'Se le acabó el chollo a %A. %D se llevó %C de %V, hoy se lleva el ridículo.',
   '%A creyó que %V seguía tan a mano como %D. Ha pinchado en hueso y encima le ha costado aura.',
-  '%A volvió a por %V, la misma víctima de %D, y se ha encontrado la puerta cerrada. Codicia de manual.',
+  '%A volvió a por %V, la misma víctima de %D, y se ha encontrado la puerta cerrada. Por codicia.',
   'Hay golpes que salen una vez. El de %A a %V fue %D, y hoy toca pagar la osadía.',
   '%D %A le quitó %C a %V. Hoy intenta repetir y lo único que se lleva es la multa.',
   '%D le salió bien a %A. Hoy, contra %V, se ha dado de bruces.',
