@@ -29,7 +29,7 @@ const HIGH_MIN = 700;
 
 let PARASITO = [
   '%N, %MSG mensajes. El grupo no para de hablar y tú has aportado lo que cabe en una tarde aburrida, pequeña.',
-  '%MSG mensajes, %N. Hay gente que escribe eso en una discusión de media hora. Tú lo has estirado toda tu estancia aquí.',
+  '%MSG mensajes, %N. Eso lo escribe cualquiera en una discusión de media hora. Tú has tardado toda tu estancia aquí.',
   '%N, %MSG mensajes. Para encontrar algo tuyo en el chat hay que subir tanto que da pereza.',
   'Con %MSG mensajes, %N, tu nombre aparece en la lista de miembros y en poco más.',
   '%MSG mensajes, %N. Si mañana te vas, lo único que cambia en el grupo es el número de miembros.',
@@ -66,7 +66,7 @@ let PARASITO = [
 
 let INTERMEDIO = [
   '%N, %MSG putos mensajes. Suficiente para que te saluden, insuficiente para que te inviten a algo que importe. Así te va la vida en este grupo.',
-  '%N, %MSG mensajes. Tienes rodaje para haber dejado huella y solo has dejado una mancha del tamaño de tu esfuerzo real: minúscula.',
+  '%N, %MSG mensajes. Llevas tiempo de sobra aquí y lo único que has dejado es una mancha pequeñita.',
   '%MSG mensajes, %N. Ocupas la casilla del "normal", que es la casilla que nadie señala con el dedo ni para bien ni para mal. Ahí sigues.',
   '%MSG mensajes, %N. Sales en la foto de grupo pero en la segunda fila, sin sonreír. Presente en el registro, ausente en la puta memoria de todos.',
   'Con %MSG mensajes, %N, cumples con lo mínimo y te quedas tan ancho. Es una táctica legítima, la más aburrida de todas, pero legítima.',
@@ -103,9 +103,9 @@ let INTERMEDIO = [
 
 const RELEVANTE = [
   '%N, %MSG mensajes. Puta mula de carga: el grupo anda porque tú andas, y ni te quejas.',
-  '%MSG mensajes, %N. El día que falta tu nombre en el chat, el chat se nota vacío. No por casualidad.',
+  '%MSG mensajes, %N. El día que falta tu nombre en el chat, el chat se nota vacío.',
   '%N con %MSG mensajes. Cuando alguien pregunte quién sostiene esto, se enseña este número y punto.',
-  'Con %MSG mensajes, %N, eres el puto pilar de este grupo. Sin adorno. El dato.',
+  'Con %MSG mensajes, %N, eres el puto pilar de este grupo, y el número no miente.',
   'Con %MSG mensajes, %N, aquí no se habla de nada sin que aparezcas. Imprescindible. El resto, a reaccionar.',
   '%MSG mensajes, %N. Cuando tú hablas, el resto responde. Eso, cabrón, es tener el mando y lo sabes.',
   '%N con %MSG mensajes. Sigues escribiendo aunque nadie te haya preguntado nada, y aun así funciona. Ese descaro mantiene esto vivo, mi niña.',
@@ -120,13 +120,13 @@ const RELEVANTE = [
   '%N con %MSG mensajes. Has demostrado que se sostiene un chat a base de estar. Estar, cabrón, que es lo que el resto no hace.',
   '%N, %MSG mensajes. El resto desaparece el puente. Tú no. Por eso el grupo sigue abierto.',
   'Con %MSG mensajes, %N, has convertido el aparecer en el trabajo que el resto no pica, reina.',
-  '%N, %MSG mensajes. El chat tiene suelo porque tú lo pones. Sin suelo, esto se hunde.',
-  '%N con %MSG mensajes. El grupo te da por hecho porque eres un hecho. Los hechos no se discuten, princesa.',
+  '%N, %MSG mensajes. Si tú dejas de escribir, esto se hunde.',
+  '%N con %MSG mensajes. El grupo ya da por hecho que vas a estar, princesa.',
   'Con %MSG mensajes, %N, alguien tiene que mantener esto con vida. Ese alguien eres tú y se ve.',
   '%MSG mensajes, %N. Pesas. El número lo dice y el chat lo confirma cada puto día.',
   'Con %MSG mensajes, %N, has dejado el listón donde el resto no llega ni de lejos.',
   '%MSG mensajes, %N. Sin ti el grupo baja de revoluciones. Contigo, corre. Ese es el parte.',
-  'Con %MSG mensajes, %N, el silencio del chat te espera. Y lo rompes tú, que es lo que toca.',
+  'Con %MSG mensajes, %N, cuando el chat se queda callado, eres tú quien lo arranca.',
   '%N, %MSG mensajes. El resto tiene el visto. Tú tienes el hilo. El hilo manda, cabrón.',
   '%N, %MSG mensajes. Eres la razón por la que este grupo no es un cementerio de mensajes sin leer, muñeca.',
   '%MSG mensajes, %N. Si algún día te vas de este grupo va a haber luto. Del de verdad.',

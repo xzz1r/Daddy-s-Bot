@@ -43,7 +43,7 @@ function esShipAlto(jid) {
 
 const VERDICTS = {
   perfect: [
-    'Match del cien, cabrón. Dos piezas rotas que encajan justo por donde están rotas. Poético y patético a partes iguales.',
+    'Match del cien, cabrón. Dos piezas rotas que encajan justo por donde están rotas.',
     'Cien. Dos piezas rotas que resulta que estaban rotas por el mismo sitio. Encajan de milagro y encajan de puta madre.',
     'Match perfecto. Uno pone el caos y el otro pone la paciencia, que es exactamente como funciona la mierda que dura.',
     'Cien. El bot no reparte esto a cualquiera, y os ha tocado a vosotros dos. Qué desperdicio de cifra.',
@@ -62,7 +62,7 @@ const VERDICTS = {
   high: [
     'Con este porcentaje, el primer mensaje entre vosotros se escribiría solo. Lo difícil es mandarlo.',
     'Con esta sintonía os daría para audios de veinte minutos, no para un «jaja» suelto.',
-    'El destino os pone en bandeja una conexión de escándalo. Lo que hagáis con ella ya es cosa vuestra.',
+    'Conexión de escándalo, y os la ponen en bandeja. Lo que hagáis con ella ya es cosa vuestra.',
     'Con este porcentaje habría que celebrarlo. Ahora, a ver cuál de vosotros lo menciona primero.',
     'Alta compatibilidad. Química hay de sobra. Lo que falta son huevos para usarla.',
     'Buena cifra. Si no pasa nada, es porque alguno de los dos se caga encima.',
@@ -77,7 +77,7 @@ const VERDICTS = {
     'Con esto, cualquiera se lanzaría. Veremos si vosotros sois cualquiera.',
     'Alto. El bot ya lo ha dicho. Ahora os toca a vosotros hacer el ridículo.',
     'Compatibilidad seria. Tan seria que ya no hace gracia, y eso en este grupo es raro.',
-    'Buena pareja sobre el papel. Fuera del papel, eso lo tenéis que demostrar vosotros.',
+    'Buena pareja, según el número. Lo demás tenéis que ponerlo vosotros.',
     'Alto. Si fuera cosa de números, ya os habríais casado. El resto es cosa de cojones.',
     'Esta cifra es un empujón. Vosotros sois capaces de caeros hacia atrás.',
     'Muy compatibles. Tanto que da un poco de asco.',
@@ -174,7 +174,7 @@ const VERDICTS = {
     'Cero. Os van a preguntar por esto y la respuesta es reírse.',
     'Cero patatero. Ni el bot se atreve a imaginarlo.',
     'Nada. Compatibilidad de dos personas que se cruzan en la calle y no se miran.',
-    'Cero. Hay parejas imposibles, y luego está esto.',
+    'Cero. Hay parejas imposibles, y esta es la peor de todas.',
     'Nulo. Si alguno de los dos tenía ilusión, ya puede tirarla.',
     'Cero. Esto sale en el grupo para que quede constancia: jamás.',
     'Nada. Lo mejor que podéis hacer es no forzarlo.',

@@ -116,7 +116,7 @@ const INFIEL_HIGH = [
 
 const INFIEL_MID = [
   '[nombre] no engaña pero tampoco cierra la puerta del todo. Deja una rendija por si hay corriente de aire de otra cama.',
-  '[nombre] no ha cruzado la línea pero ha meado justo al borde. Que técnicamente no es faltar, pero los zapatos se mojan.',
+  '[nombre] no ha cruzado la línea, pero ha meado justo al borde. No es faltar, pero los zapatos se mojan.',
   '[nombre] no engaña pero tiene el kit de emergencia preparado. Condones en la cartera por si acaso. Y ese si acaso huele fatal.',
   '[nombre] tiene la coartada preparada para cosas que supuestamente no ha hecho. Ese nivel de preparación delata más que una prueba.',
   'Eres quien dice que no pasa nada mientras aparece un pelo que no es suyo. Siempre del gato. Claro, el gato.',
@@ -138,7 +138,7 @@ const INFIEL_LOW = [
   'Te sientan al lado de alguien guapísimo en la barra y no pasas de la conversación. A la media hora, se cambia de taburete.',
   'Te dejan las llaves del coche, la tarjeta y la pareja, y no tocas nada. Bueno, el coche quizá.',
   'Entre tanta gente con el móvil lleno de fotos en pelotas, [nombre] no ha mandado ni una. La evolución a veces acierta.',
-  'Tus colegas te usan de coartada cuando sus parejas sospechan: contigo nadie hace nada, en teoría.',
+  'Tus colegas te usan de coartada cuando sus parejas sospechan: contigo nunca pasa nada.',
   'Si un día te pillaran siendo infiel, saldría en las noticias. Mientras tanto no sale nada, y tu vida tampoco da para más.',
   'Eres tan fiel que das asco. Del asco bueno, el que da ver algo tan limpio en este grupo de mierda.',
   'Si alguien te revisara el móvil, se aburriría. Lo más turbio que tienes es el grupo de la familia.',
