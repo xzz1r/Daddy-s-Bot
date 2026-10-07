@@ -94,10 +94,10 @@ const LLENO = [
 // No llega al mínimo o no tiene saldo suficiente.
 const POCO = [
   'Por esa miseria no merece la pena ni abrir el banco.',
-  'Por debajo del mínimo. Vuelve con algo serio.',
+  'Por debajo del mínimo. Vuelve cuando tengas algo que te dé pena perder.',
   'Trae una cifra de verdad o deja el banco en paz.',
   'Muy poco. El banco tiene dignidad, tú no.',
-  'Ni para cubrir el fondo. Sube la cifra.',
+  'Ni para cubrir el fondo. El banco no guarda migas.',
   'Con eso no llenas ni la ranura.',
   'No llega. Y si es todo lo que tienes, peor todavía.',
   'Esa cantidad da vergüenza hasta bajo llave.',

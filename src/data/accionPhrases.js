@@ -285,7 +285,7 @@ const KICK = [
   '%A le suelta a %V un puntapié en la cadera y %V tiene que andar de lado el resto del día.',
   'Desde el suelo, %A le planta a %V una patada en la cara. Feo, pero efectivo.',
   'Pisotón de %A con el tacón en el empeine de %V. Rastrero y duele que te cagas.',
-  'La patada de %A a %V suena como un bombo.',
+  'La patada de %A a %V suena como un bombo, y %V hace de baqueta contra la pared.',
   '%A le deja a %V la marca de la suela en la camisa, y a %V en el suelo.',
   '%V intenta irse a gatas y %A le da otra patada igual. Sin piedad.',
   '%A coge carrerilla y le mete a %V una patada que le deja sin aire al caer.',
@@ -308,9 +308,9 @@ const BONK = [
   '%A le da un mazazo a %V en la cabeza. Se le ha reiniciado algo.',
   '%A le da a %V hasta que se le quita la tontería. Diez minutos, y se contaron.',
   '%A le rompe algo en la cabeza a %V. Se rompe el objeto, pero la tontería de %V sigue entera.',
-  '%A le da su merecido a %V delante de todos, que es como más escuece.',
+  '%A le da un golpe a %V delante de todos, que es como más escuece. El chichón sale en la foto.',
   '%A le sacude a %V. Y a %V se le ha bajado la calentura de golpe.',
-  '%A le da lo suyo a %V. Nadie va a preguntar por qué.',
+  '%A le da un porrazo a %V y nadie pregunta por qué. Todos tenían ganas.',
   '%A corrige a %V a golpes. Método antiguo y sigue funcionando.',
   'El porrazo de %A le pone a %V los ojos bizcos. Los dos miran igual de poco.',
   '%A le da a %V un golpe en la coronilla que suena a hueco.',
@@ -658,7 +658,7 @@ const LAUGH = [
 // Se lanza lo que sobra, y el remate esta casi siempre en lo que %A hace
 // DESPUES: sacudirse las manos, no mirar, seguir a lo suyo.
 const YEET = [
-  '%A agarra a %V y le lanza lejos, muy lejos.',
+  '%A agarra a %V y le lanza tan lejos que %V vuelve en autobús.',
   '%A lanza a %V por los aires. El vuelo es bonito; el aterrizaje, no tanto.',
   '%A suelta a %V y %V aterriza de cara. Aterrizar es mucho decir.',
   '%A lanza a %V fuera del encuadre. %V vuelve a pie y llega cuando ya se hablaba de otra cosa.',
@@ -738,7 +738,7 @@ const FEED = [
   '%A le da de comer a %V en la boca. %V abre la boca antes de que llegue la cuchara.',
   '%V come de la mano de %A como un pajarito.',
   '%A le mete un bocado a %V en la boca y %V hasta da las gracias con la boca llena.',
-  '%A le acerca la cuchara a %V haciendo el avioncito.',
+  '%A le acerca la cuchara a %V haciendo el avioncito, y %V abre la boca con ruido de motor incluido.',
   '%V estira el cuello para llegar al bocado de %A. Nadie le acercó el plato y aun así llega.',
   '%A le da de comer a %V delante del grupo. El grupo saca conclusiones y ninguna favorece a %V.',
   '%V le dice a %A que no tiene hambre. Come igual.',

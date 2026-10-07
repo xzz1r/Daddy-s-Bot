@@ -50,7 +50,7 @@ let MEMBER_PHRASES = [
     'Le miras la nuca al primero todos los días. Es lo único que ves del trono.',
     'Alguien va por delante y no eres tú. Otra vez, como en el colegio, como en el trabajo, como en todo.',
     'Te pasas el día con el móvil y te gana alguien que, encima, trabaja.',
-    'Número dos. Nadie se acuerda del segundo, pero al menos sales en la foto.',
+    'Número dos. Nadie se acuerda del segundo, y en la foto sales cortado.',
     'Segundo. Y segundo no te vale una mierda en ningún ranking del mundo, tampoco en este.',
     'Si te pagaran por mensaje, cobrarías menos que el primero. Como en todos tus trabajos.',
     'Segundo lugar y sin excusas: has tenido el mismo tiempo que el primero y lo has usado peor.',

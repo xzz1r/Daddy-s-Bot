@@ -98,7 +98,7 @@ const VEREDICTOS = {
   ],
   normal: [
     'Un expediente sin una sola línea que merezca leerse dos veces.',
-    'Del montón. Ni molesta ni aporta demasiado.',
+    'Del montón. Si mañana desaparece, se nota solo por el hueco en la lista.',
     'Nada grave en el expediente, pero nada bueno tampoco.',
   ],
 };
