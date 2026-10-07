@@ -119,7 +119,7 @@ const INFIEL_MID = [
   '[nombre] no ha cruzado la línea, pero ha meado justo al borde. No es faltar, pero los zapatos se mojan.',
   '[nombre] no engaña pero tiene el kit de emergencia preparado. Condones en la cartera por si acaso. Y ese si acaso huele fatal.',
   '[nombre] tiene la coartada preparada para cosas que supuestamente no ha hecho. Ese nivel de preparación delata más que una prueba.',
-  'Eres quien dice que no pasa nada mientras aparece un pelo que no es suyo. Siempre del gato. Claro, el gato.',
+  'Eres quien dice que no pasa nada cuando aparece un pelo que no es de nadie de la casa. Siempre del gato, claro.',
   '[nombre] tiene conversaciones que no enseñaría ni bajo amenaza. No son prueba de nada, pero de inocencia tampoco.',
   'No has sido infiel todavía, pero tienes el móvil boca abajo en la mesa como quien esconde un parte.',
   'Sales a por tabaco y vuelves con perfume nuevo, y tú ni fumas.',

@@ -44,7 +44,7 @@ const SACADO = [
   'Sacado de la caja. Menos de lo que metiste, como te dijeron.',
   'Fuera. Y de paso ya sabe todo el grupo que tenías caja.',
   'Sacado. Vuelve a la mesa, vuelve a ser carne.',
-  'Fuera. Guardarlo no cobraba. Abrirlo sí y acabas de pagarlo.',
+  'Fuera. Guardarlo era gratis, pero abrirlo se paga, y acabas de pagarlo.',
   'Abierta con tu propia llave. La cerradura también cobra.',
   'En la mano. Ese pellizco de menos es lo que vale la tranquilidad.',
   'Abierto. Y ahora a gastarlo rápido, no vaya a ser.',

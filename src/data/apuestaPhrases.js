@@ -42,7 +42,7 @@ const APUESTA_GANA = [
   'Coño, ha salido. Una casualidad con muy buena prensa.',
   'Cobra sin hacer nada más que pulsar un botón. %S, hostia.',
   'Ha cobrado %A. A los demás solo os queda mirar la cifra.',
-  'El aura afloja. Muy poco y muy tarde, la muy cabrona. %S.',
+  'El aura afloja, la muy cabrona, poco y tarde. %S.',
   '%A acierta. Aplaudid, gilipoyas, que hoy no toca reírse de %A.',
   '%A cobra y de golpe se le pone cara de estratega. Payaso.',
   'Ha acertado. Con el saldo que le queda ya puede volver a hacer el ridículo, que es lo suyo.',
@@ -83,9 +83,9 @@ const APUESTA_PIERDE = [
   'Nada. Lo normal: la casa siempre gana.',
   'Cae %A. El bote engorda a su costa y nadie va a devolverle una mierda.',
   '%A apuesta, %A pierde. El orden natural de las putas cosas.',
-  'Se queda en %S. Casi da pena. Casi, porque es imbécil.',
+  'Se queda en %S. Daría pena si no fuera tan imbécil.',
   'El aura no ha dudado ni un puto segundo. %S.',
-  'Fuera. Un botón y el saldo se queda en %S. Cojonudo, cabrón.',
+  'Fuera: un botón y te quedas en %S. Cojonudo.',
   'Cae. Todo lo puesto, sin descuento ni rebaja, cabrón.',
   'Pierde %A, y la mesa suma otro cliente fijo a su lista.',
   'El aura cierra la mano. %S y hasta luego, cabrón.',
@@ -93,10 +93,10 @@ const APUESTA_PIERDE = [
   'La mesa se lo queda sin pestañear. %A, a contar calderilla.',
   'Perdido de golpe. %S y la cuenta pidiendo auxilio.',
   'Pierde. Una parte va al bote y el resto se lo traga la casa, gilipoyas.',
-  '%A lo ha puesto con fe. La fe no cotiza. %S.',
+  '%A lo ha puesto todo con fe, y la fe no paga. %S.',
   '%A se queda en %S. Si quiere revancha, en tres horas.',
   'Ruina servida. %A ya puede ir haciéndose sitio en la lista de pringados.',
-  'Mal. Muy mal, %A. %S, y sin nada que alegar.',
+  'Mal, muy mal, %A. Te quedas en %S y no hay nada que alegar.',
 ];
 
 module.exports = { APUESTA_GANA, APUESTA_PIERDE };

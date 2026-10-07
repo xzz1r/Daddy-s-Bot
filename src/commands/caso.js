@@ -45,7 +45,7 @@ const POBRE = 100;
 // de «callado», «buscado» o «millonario»: se dice lo que hace, no como es.
 const VEREDICTOS = {
   nunca: [
-    'No ha escrito nunca. Ni un hola. Está aquí de adorno.',
+    'No ha escrito nunca, ni un hola. Está aquí de adorno.',
     'Cero mensajes desde que entró. El grupo conoce su número y poco más.',
     'Ocupa plaza y no ha dicho ni mu. Ni para despedirse va a abrir la boca.',
   ],
@@ -87,7 +87,7 @@ const VEREDICTOS = {
     'Está entre los que más escriben. Por lo menos alguien lo hace.',
   ],
   rico: [
-    'Tanta aura en un bot de WhatsApp no es un logro, es un diagnóstico.',
+    'Tanta aura en un bot de WhatsApp, más que un logro, parece un diagnóstico.',
     'Le sobra aura para este chat. Fuera no hay dónde gastarla.',
     'Una fortuna de chat. Fuera de aquí no le llega ni para el pan.',
   ],
@@ -99,7 +99,7 @@ const VEREDICTOS = {
   normal: [
     'Un expediente sin una sola línea que merezca leerse dos veces.',
     'Del montón. Ni molesta ni aporta demasiado.',
-    'Nada grave en el expediente. Nada bueno tampoco.',
+    'Nada grave en el expediente, pero nada bueno tampoco.',
   ],
 };
 

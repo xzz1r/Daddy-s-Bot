@@ -59,7 +59,7 @@ let DUEL_WIN = [
   '%W se lleva el aura de %L, y %L se queda con la cara de haber entrado. Nadie le obligó.',
   '%L entró al duelo con toda la chulería y lo ha perdido con toda la vergüenza.',
   'Duelo cerrado. %W cobra, %L paga, y el grupo se queda con la captura.',
-  '%L se jugó su aura contra %W. Ya no es suya. Así funcionan las apuestas, gilipoyas.',
+  '%L se jugó su aura contra %W y ya no es suya. Así funcionan las apuestas.',
   '%W ni se ha despeinado. %L ha perdido el aura y la dignidad en la misma tirada.',
   'La próxima vez que %L quiera un duelo, que se mire primero el saldo. Ahora mirarlo le sale más barato.',
   '%L ha puesto el aura encima de la mesa y %W se la ha llevado sin dar las gracias.',

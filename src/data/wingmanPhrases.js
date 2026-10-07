@@ -5,9 +5,9 @@
 const RIZZ = {
   high: [
     '%N mandó un audio de siete segundos diciendo "eh, hola" y hay alguien que lo tiene guardado como recuerdo desde entonces.',
-    'La última persona que salió con %N cambió de número, de ciudad y de nombre en redes. Sigue sin funcionar. %N tiene ese alcance.',
+    'La última persona que salió con %N cambió de número, de ciudad y de nombre en redes, y aun así no se lo quita de la cabeza.',
     '%N escribió "buenas noches" sin ningún emoji y alguien durmió con el teléfono sobre el pecho como si fuera un órgano vital.',
-    'La última vez que %N ignoró a alguien, esa persona contrató a un detective. No para vigilar a %N. Para entender qué había hecho mal.',
+    'La última vez que %N ignoró a alguien, esa persona contrató a un detective, no para vigilar a %N, sino para entender qué había hecho mal.',
     '%N escribió "ja", sin la segunda a ni nada más, y tres grupos de amigos se pasaron la tarde analizándolo.',
     'Si %N quisiera, podría vaciar un pueblo entero de parejas estables solo pasando por la plaza principal un domingo cualquiera.',
     'Una expareja de %N se casó, tuvo hijos, se divorció y sigue revisando si %N vio su última historia.',
@@ -17,7 +17,7 @@ const RIZZ = {
   ],
   mid: [
     '%N liga bien hasta que decide sincerarse y saca a su ex, a su terapeuta y la lista de la compra. Tres golpes, fuera.',
-    '%N tiene rizz para el segundo café y ni un gramo más. Ahí se le acaba el guion. Empieza la vergüenza.',
+    '%N tiene rizz para el segundo café y ni un gramo más: ahí se le acaba el guion y empieza la vergüenza.',
     '%N consigue el número a la primera y lo quema a la segunda con un audio de cuatro minutos.',
     '%N necesita tres copas para arrancar y dos más para estropearlo. En medio hay veinte minutos de brillo.',
     '%N liga bien en persona y fatal por escrito. Cuando llega el primer mensaje, ya se ha acabado todo.',
@@ -29,14 +29,14 @@ const RIZZ = {
   ],
   low: [
     'Te han usado de aviso en el grupo: si entra %N, nos vamos. Eres un puto protocolo de evacuación con nombre propio.',
-    'Confundes insistir con tener algo, %N. No tienes nada. Tienes un bloqueo en tres apps y una vergüenza ajena que ya es colectiva.',
+    'Confundes insistir con tener algo, %N, y no tienes nada: un bloqueo en tres apps y una vergüenza ajena que ya es colectiva.',
     'Un match contigo lo deshacen en cinco minutos, %N, y tú sigues escribiendo. El bloqueo ya está, pringado, y el párrafo también.',
     'Tu audio de ligue dura dos minutos, %N, y lo escuchan a doble velocidad para acabar antes. Dos minutos de mierda, y aun así sobran.',
     'Te inventan una pareja para no quedar contigo, %N. La inventada tiene más futuro, y tú te quedas con el plan de pringado.',
     'Mandas la misma frase a cinco personas que se conocen, %N, y ahora tienen un grupo para leerla. Tu ligue es un meme de mierda.',
-    'Insistes después del no, %N, como si el no viniera con letra pequeña. No venía. El segundo mensaje ya es de parásito.',
+    'Insistes después del no, %N, como si el no viniera con letra pequeña. No venía, y el segundo mensaje ya es de parásito.',
     'Cuando ligas en público el grupo mira al techo, %N, por no verte arrastrarte. El arrastre da vergüenza hasta a quien no te conoce.',
-    'Callado tendrías alguna oportunidad, %N, pero abres la boca a los diez segundos y se acabó. Diez segundos de ridículo y a casa.',
+    'Callado tendrías alguna oportunidad, %N, pero abres la boca a los diez segundos y se acabó: diez segundos de ridículo y a casa.',
     'El visto es el único orgasmo que vas a provocar, %N. Y ni siquiera es tuyo: es el alivio de no contestarte.',
     'Ligas como se pide limosna, %N: mano abierta y dignidad por el suelo. Te dan el no y das las gracias.',
     'Te dicen «eres buena gente» para no decirte que das asco, %N.',

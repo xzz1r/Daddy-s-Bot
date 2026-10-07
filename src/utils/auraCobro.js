@@ -219,7 +219,7 @@ const MISERIA = [
   'El bot no fía. Y menos a ti, que ya se te ve el percal, pequeña.',
   'Con eso no. Con eso ni te acerques.',
   'Cuesta más de lo que tienes. Bastante más.',
-  'No llegas. Ni de sobra ni de milagro. Impecable gestión.',
+  'No llegas, ni de sobra ni de milagro. Impecable gestión.',
   'Te has plantado aquí a gastar sin cubrir el precio, y encima delante de todos.',
   'Menuda puta miseria de cuenta. Aquí se viene llorado y con dinero.',
   'No cubres el precio y vienes a gastar. Brillante.',

@@ -21,9 +21,9 @@ function rollMog(aIsOwner, aIsAdmin, bIsOwner, bIsAdmin) {
 
 // %M = mogger (winner), %L = mogged (loser)
 let MOG_PHRASES = [
-  'It\'s over para %L. Ni siquiera empezó. %M nació ascendido y %L nació de relleno.',
+  'It\'s over para %L, y eso que ni siquiera empezó: %M nació ascendido y %L, de relleno.',
   'El mog check terminó antes de la primera foto. %M ascendió, %L lleva LDAR de nacimiento.',
-  '%L creyó que tenía oportunidad. Ese fue su primer error. El segundo fue nacer con esa cara. %M ni sudó.',
+  '%L creyó que tenía alguna oportunidad, y ese fue su primer error; el segundo, nacer con esa cara. %M ni sudó.',
   'La hipergamia ya dio su veredicto: %M arriba, %L invisible. Las mujeres ni registran que %L existe.',
   '%M activa el halo effect con solo aparecer. A %L lo cancela el mismo efecto en reversa. Pretty privilege puro.',
   '%M es Chad tier puro. %L es subhuman documentado y el grupo entero acaba de confirmarlo.',
@@ -45,7 +45,7 @@ let MOG_PHRASES = [
   'El face card de %M no declina jamás. El de %L fue rechazado en la puerta y le rompieron el documento.',
   'No hay filtro, ángulo ni luz que meta a %L en el universo de %M. La física se rinde antes que %L.',
   '%L es la razón por la que existe la palabra subhuman. %M es la razón por la que existe la palabra Chad.',
-  'Moggeo total, inapelable, humillante. %M ni miró. %L no se recupera de esta con un cambio de tema.',
+  'Moggeo total e inapelable: %M ni miró, y %L no se recupera de esta con un cambio de tema.',
   'Este mog entra directo al hall de la fama del grupo. %M leyenda, %L ejemplo de qué no querer ser.',
   '%L puede ir al gym, leer libros y trabajar la actitud. Seguiría siendo %L. El óseo no se levanta a press.',
   '%L cree que está fuera de su liga. %L ni siquiera está en la misma clasificación de ligas. Divisiones distintas.',

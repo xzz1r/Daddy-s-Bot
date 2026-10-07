@@ -241,12 +241,12 @@ const AURA_LINES = [
   'Tu aura se nota en el saldo, y el saldo no se puede disimular.',
   'Nadie te regala nada en este marcador. Lo que tienes lo has escrito, lo has robado o te ha tocado en los dados.',
   'Los fantasmas no cobran ni un punto. Lo que tienen se queda a la vista del primero que pase.',
-  'Robar sale bien a veces. Escribir sale bien siempre. Haz las cuentas.',
+  'Robar sale bien a veces y escribir sale bien siempre. Haz las cuentas.',
   'Las cifras de hoy ya están puestas. Interpretarlas a tu favor es lo único que se te da bien.',
-  'El marcador no tiene memoria para excusas. Solo para números.',
+  'El marcador no tiene memoria para excusas, solo para números.',
   'Escribe hoy, cobra hoy. Mañana es otra racha, si la aguantas.',
   'El aura es lo único de este grupo que no se puede fingir. Se ve en el número.',
-  'Si quieres subir rápido, escribe. Si quieres bajar rápido, apuesta. Tú ya sabes lo que haces.',
+  'Si quieres subir rápido, escribe, y si quieres bajar rápido, apuesta. Tú sabrás.',
   'La caja cobra comisión al sacar. Aquí hasta guardar cuesta dinero, como en la vida.',
 ];
 
