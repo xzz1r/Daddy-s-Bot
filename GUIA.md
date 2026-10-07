@@ -682,6 +682,7 @@ copia legible. Si las dos discrepan, la del código tiene razón.
 | `percent.js`, `percentLabels.js`, `fidelityPhrases.js` | `[nombre]` |
 | `roast.js`, `roastPhrases.js` | `%N` nombre, `%MSG` mensaje citado, `%B` la bio de la víctima citada (solo en `BIO_FULL` y en los `COMBINED_*`, que salen únicamente cuando hay bio leída) |
 | `relevance.js` | `%N` nombre, `%MSG` mensaje citado |
+| `count.js` (pools `DISTANCIA`) | `%G` la distancia real con el de arriba, o con el de abajo si va primero, ya escrita en negrita y con «mensajes». Solo en `DISTANCIA`: el resto de pools del podio no lleva huecos |
 | `wingman.js`, `wingmanPhrases.js` | `%N` nombre |
 | `robo.js`, `roboPhrases.js`, `roboExtraPhrases.js` | `%A` autor, `%V` víctima, `%C` cantidad, `%N` nombre, `%H` hora |
 | `apuestaPhrases.js` (aura) | `%A` apostador, `%C` cantidad, `%S` saldo final |

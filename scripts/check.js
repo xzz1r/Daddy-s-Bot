@@ -5163,6 +5163,24 @@ const di=async(quien,texto,extra)=>{
   //
   // Se ejecuta en una copia desechable del bot, con su propio `data` vacío, así
   // que corre igual con el bot en marcha y no toca ni un conteo del grupo.
+  // 30p. LA MISMA PUERTA QUE EL DESPLIEGUE. `npm run update` no reinicia si
+  // `npm run placeholders` falla, y el check no lo pasaba: un hueco nuevo (%G
+  // en los pools de distancia de !count) salio verde aqui y en GitHub y se
+  // paro en la VPS. Lo que para el despliegue tiene que parar antes el check.
+  {
+    console.log('\n30p. CADA PLACEHOLDER TIENE QUIEN LO SUSTITUYA');
+    try {
+      const out = execSync(`node ${path.join(R, 'scripts/placeholders.js')} --breve`,
+        { encoding: 'utf8', timeout: 60000, stdio: ['ignore', 'pipe', 'pipe'] });
+      console.log(verde(`   ${out.trim().split('\n').pop().trim()}`));
+    } catch (e) {
+      fallos++;
+      const malas = `${e.stdout || ''}${e.stderr || ''}`.split('\n').filter((l) => /FALLO|✗/.test(l)).slice(0, 8);
+      console.log(rojo(malas.length ? malas.map((l) => `   ✗ ${l.replace(/^\s*(FALLO|✗)\s*/, '')}`).join('\n')
+        : '   ✗ scripts/placeholders.js ha fallado sin decir por que'));
+    }
+  }
+
   {
     console.log('\n30. TODOS LOS CONTEOS CUADRAN');
     const antes = fallos;

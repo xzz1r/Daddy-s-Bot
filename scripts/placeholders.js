@@ -30,6 +30,9 @@ const CONTRATO = {
   'src/commands/mog.js':           { permite: ['%L', '%M'],                    sustituye: 'src/commands/mog.js' },
   'src/commands/percent.js':       { permite: ['[nombre]'],                    sustituye: 'src/commands/percent.js' },
   'src/data/percentLabels.js':     { permite: ['[nombre]'],                    sustituye: 'src/commands/percent.js' },
+  // %G es la distancia real con el de arriba (o con el de abajo, si vas
+  // primero), ya escrita: «*340 mensajes*». La pone fraseDelPodio.
+  'src/commands/count.js':         { permite: ['%G'],                          sustituye: 'src/commands/count.js' },
   'src/commands/relevance.js':     { permite: ['%N', '%MSG'],                    sustituye: 'src/commands/relevance.js' },
   // %PAIS SALIO DEL CONTRATO CON LA FEATURE. El roast por pais se quito y no
   // queda una sola frase que lo use, pero el contrato lo seguia permitiendo:
