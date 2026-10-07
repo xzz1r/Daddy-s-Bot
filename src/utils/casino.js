@@ -87,7 +87,7 @@ const PHRASES = {
   },
   tier3: {
     win: [
-      '%M mensajes en un día. Esto ya no es participar: es sostener el grupo entero.',
+      '%M mensajes en un día. Prácticamente estás sosteniendo el grupo tú solo.',
       'Tramo alto. %M mensajes y el aura te paga lo que vale eso, que es mucho.',
       '%M mensajes. El grupo hoy ha tenido motor, y el motor lleva tu nombre, pequeña.',
       'Cobrado por %M. Hay quien lo intenta toda la semana y no llega.',
