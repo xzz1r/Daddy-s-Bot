@@ -955,7 +955,7 @@ const ATRACO = {
   vetoHoras: 3,            // y no puede comprar en la tienda durante este rato
 };
 
-// ─── !butron: ir a por la caja de alguien ───────────────────────────────────
+// ─── !robarbanco: ir a por la caja de alguien ───────────────────────────────────
 //
 // Lo pidio el dueño: la caja era demasiado fuerte. Con todo guardado no habia
 // forma de tocar a nadie, y el robo normal sigue sin llegar ahi a proposito.

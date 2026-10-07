@@ -859,7 +859,7 @@ async function atracarTienda(sock, msg, jid, sender, groupMeta) {
   }, { quoted: msg });
 }
 
-// ─── !butron: a por la caja de otro ──────────────────────────────────────────
+// ─── !robarbanco: a por la caja de otro ──────────────────────────────────────────
 //
 // El robo normal no llega a la caja, y es a proposito: guardar tiene que servir
 // para algo. Pero el dueño la veia demasiado fuerte —con todo guardado nadie te
@@ -878,7 +878,7 @@ async function butron(sock, msg, jid, sender, groupMeta) {
   const target = getTarget(msg);
   if (!target) {
     return sock.sendMessage(jid, {
-      text: 'Dime a qué caja vas: *!butron @alguien*\n_Solo va contra lo que tiene guardado. Si fallas, pagas multa y se la lleva esa persona._',
+      text: 'Dime a qué banco vas: *!robarbanco @alguien*\n_Solo va contra lo que tiene guardado. Si fallas, pagas multa y se la lleva esa persona._',
     }, { quoted: msg });
   }
   if (sameUser(target, sender)) {
@@ -892,7 +892,7 @@ async function butron(sock, msg, jid, sender, groupMeta) {
   const espera = (kYo.valor || 0) + BUTRON.esperaMin * 60000 - ahora;
   if (espera > 0) {
     return sock.sendMessage(jid, {
-      text: bloqueCooldown({ que: 'butrón', frase: 'Todavía tienes tierra en las uñas del último túnel.', queda: espera }),
+      text: bloqueCooldown({ que: 'robo al banco', frase: 'Todavía tienes tierra en las uñas del último túnel.', queda: espera }),
     }, { quoted: msg });
   }
   const kEl = juntarEnMapa(blindadaHasta, clavesMapa(`${jid}|`, target));
@@ -944,7 +944,7 @@ async function butron(sock, msg, jid, sender, groupMeta) {
     limpiaViejos(blindadaHasta, ahora);
     blindadaHasta.set(kEl.clave, ahora + BUTRON.blindajeHoras * 3600000);
     return sock.sendMessage(jid, {
-      text: `*BUTRÓN*\n\n` +
+      text: `*ROBO AL BANCO*\n\n` +
         `${fraseCon(RX.BUTRON_GANA, `${jid}|butron|gana`, { '%A': yo, '%V': el, '%C': `*${fmt(r.sacado)}*` })}\n\n` +
         `${lineaAura(yo, r.sacado, nuevo.current)}\n` +
         `_A ${el} le quedan *${fmt(r.dentro)}* en la caja, blindada *${BUTRON.blindajeHoras} h*._${pie}`,
@@ -959,17 +959,17 @@ async function butron(sock, msg, jid, sender, groupMeta) {
   await flushAura().catch(() => {});
   const v = multa ? await addAura(jid, target, multa) : { current: await getAura(jid, target) };
   return sock.sendMessage(jid, {
-    text: `*BUTRÓN FALLIDO*\n\n` +
+    text: `*ROBO AL BANCO FALLIDO*\n\n` +
       `${fraseCon(RX.BUTRON_FALLA, `${jid}|butron|falla`, { '%A': yo, '%V': el, '%C': `*${fmt(multa)}*` })}\n\n` +
       `${lineaAura(yo, -multa, trasMulta)}\n${lineaAura(el, multa, v.current)}${pie}`,
     mentions: [sender, target],
   }, { quoted: msg });
 }
 
-// ─── !robados: quién te ha robado ────────────────────────────────────────────
+// ─── !quienmerobo: quién te ha robado ────────────────────────────────────────────
 //
 // Lo pidio el dueño: ver quien te robo y cuanto. Salen los robos, contrarobos y
-// butrones que te han hecho a ti en la ultima semana, que es lo que se guarda.
+// robos al banco que te han hecho a ti en la ultima semana, que es lo que se guarda.
 async function robados(sock, msg, jid, sender) {
   const quien = getTarget(msg) || sender;
   const propio = sameUser(quien, sender);
@@ -1139,8 +1139,8 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   if (['asalto', 'asaltar', 'reventar'].includes(sub))    return asaltarBote(sock, msg, jid, sender, groupMeta);
   if (['tienda', 'shop', 'comprar'].includes(sub))        return laTienda(sock, msg, jid, sender, args, groupMeta);
   if (['contra', 'contraataque', 'venganza'].includes(sub)) return contraatacar(sock, msg, jid, sender, groupMeta);
-  if (['butron', 'butrón', 'boquete'].includes(sub))      return butron(sock, msg, jid, sender, groupMeta);
-  if (['robados', 'historial', 'merobaron'].includes(sub)) return robados(sock, msg, jid, sender);
+  if (['banco', 'robarbanco', 'robarcaja'].includes(sub)) return butron(sock, msg, jid, sender, groupMeta);
+  if (['quienmerobo', 'robados', 'historial'].includes(sub)) return robados(sock, msg, jid, sender);
   if (['top', 'ranking', 'buscados', 'wanted', 'cartel', 'recompensas'].includes(sub)) return topLadrones(sock, msg, jid, groupMeta);
 
   const target = getTarget(msg);

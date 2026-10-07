@@ -349,9 +349,9 @@ const FAMILIAS = [
   // "atraco".
   { nombres: ['atraco', 'atracar'], meta: true, aura: true, hace: robo('atraco') },
   // Ir a por la caja de otro: el robo normal no llega ahi (lo pidio el dueño).
-  { nombres: ['butron', 'boquete'], meta: true, aura: true, aOtro: true, hace: robo('butron') },
+  { nombres: ['robarbanco', 'robarcaja'], meta: true, aura: true, aOtro: true, hace: robo('banco') },
   // Quien te ha robado y cuanto, la ultima semana.
-  { nombres: ['robados', 'merobaron'], meta: true, consulta: true, hace: robo('robados') },
+  { nombres: ['quienmerobo', 'robados'], meta: true, consulta: true, hace: robo('robados') },
   { nombres: ['caja', 'registradora'], meta: true, consulta: true, hace: robo('caja') },
   // Los mas buscados, con nombre propio. Vivia solo como *!robo top*, y el
   // propio owner tuvo que preguntar cual era el comando dos dias despues de
