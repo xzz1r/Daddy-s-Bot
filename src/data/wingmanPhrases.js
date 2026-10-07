@@ -8,7 +8,7 @@ const RIZZ = {
     'La última persona que salió con %N cambió de número, de ciudad y de nombre en redes. Sigue sin funcionar. %N tiene ese alcance.',
     '%N escribió "buenas noches" sin ningún emoji y alguien durmió con el teléfono sobre el pecho como si fuera un órgano vital.',
     'La última vez que %N ignoró a alguien, esa persona contrató a un detective. No para vigilar a %N. Para entender qué había hecho mal.',
-    '%N escribió "ja" sin la segunda a, sin nada más, y provocó una crisis existencial documentada en tres grupos de amigos distintos.',
+    '%N escribió "ja", sin la segunda a ni nada más, y tres grupos de amigos se pasaron la tarde analizándolo.',
     'Si %N quisiera, podría vaciar un pueblo entero de parejas estables solo pasando por la plaza principal un domingo cualquiera.',
     'Una expareja de %N se casó, tuvo hijos, se divorció y sigue revisando si %N vio su última historia.',
     '%N le puso «jaja» a un mensaje y la otra persona canceló una boda para pensárselo mejor.',
