@@ -13,7 +13,7 @@ const BOTE_REVIENTA = [
   '%A se queda los %C para su bolsillo y no os va a invitar a nada.',
   'Bote limpio. %A entra con %C y el resto del grupo se queda mirando cómo alguien se lleva lo suyo.',
   'El bote ha petado y %A estaba delante con las manos abiertas. %C recogidos del suelo.',
-  '%A se lleva %C del bote con el grupo mirando, entre la envidia y las ganas de robárselo.',
+  '%A se lleva %C del bote mientras el grupo mira con esa mezcla de envidia y asco que solo da el dinero ajeno.',
   '%A deja el bote a cero: se lleva %C en un momento.',
   'Se lo lleva %A de una vez, entero. Los demás se quedan mirando la hucha abierta.',
   'Se acabó la fiesta comunitaria: %C directos al bolsillo de %A.',

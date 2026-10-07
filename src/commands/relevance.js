@@ -127,7 +127,7 @@ const RELEVANTE = [
   'Con %MSG mensajes, %N, has dejado el listón donde el resto no llega ni de lejos.',
   '%MSG mensajes, %N. Sin ti el grupo baja de revoluciones y contigo corre.',
   'Con %MSG mensajes, %N, cuando el chat se queda callado, eres tú quien lo arranca.',
-  '%N, %MSG mensajes. El resto deja en visto y tú llevas el hilo.',
+  '%N, %MSG mensajes. El resto tiene el visto. Tú tienes el hilo. El hilo manda, cabrón.',
   '%N, %MSG mensajes. Eres la razón por la que este grupo no es un cementerio de mensajes sin leer, muñeca.',
   '%MSG mensajes, %N. Si algún día te vas de este grupo va a haber luto, y del de verdad.',
   '%N, %MSG mensajes. Cuando este grupo se mueve, tu nombre está en medio.',

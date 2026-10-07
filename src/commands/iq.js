@@ -87,7 +87,7 @@ const BAJO = [
   'Con %IQ entiendes los chistes tres segundos después que el resto y aun así te ríes por si acaso.',
   'Con %IQ te manejas en lo básico y te pierdes en cuanto la conversación pasa de dos ideas seguidas, cabrón.',
   '%IQ. Por debajo de la media, por encima del suelo, y sin ninguna intención de moverte de ahí.',
-  'Con %IQ tomas decisiones rápidas, malas pero rápidas, y encima las llamas instinto, gilipoyas.',
+  'Con %IQ tomas decisiones rápidas, gilipoyas, malas pero rápidas, y encima las llamas instinto.',
   'Con %IQ funcionas bien mientras nadie te cambie nada. En cuanto cambia algo, se te ve el cartón, pequeña.',
   'Con %IQ te va justo para lo cotidiano y fatal para cualquier cosa que exija pensar dos pasos por delante, inútil.',
   '%IQ de IQ. El nivel de quien entiende la mitad de las cosas y actúa como si hubiera entendido el doble, princesa.',
@@ -182,7 +182,7 @@ const ALTO = [
 ];
 
 const GENIO = [
-  '%IQ. Superdotación en un grupo de WhatsApp. Qué desperdicio.',
+  '%IQ. Superdotación en un grupo de WhatsApp. El universo tiene un sentido del humor de mierda.',
   'Con %IQ podrías estar en cualquier sitio y has elegido esto. Es la mayor tontería que has hecho en tu vida.',
   '%IQ de IQ. Aquí dentro eres lo más listo que hay, y el bot incluido.',
   '%IQ. Te sobra cerebro y lo desperdicias con una elegancia que da rabia.',
@@ -198,7 +198,7 @@ const GENIO = [
   'Con %IQ te sobra cabeza para dirigir esto y te faltan ganas de hacerlo. Menos mal para todos, mi niña.',
   '%IQ. Mente privilegiada, lástima que el móvil sea el de siempre y el grupo sea este.',
   'Con %IQ podrías cambiar el mundo. Cambias de conversación cuando se pone aburrida, que es siempre.',
-  '%IQ de IQ. Tienes tanta cabeza que da miedo contradecirte, y encima lo disfrutas, cabrón.',
+  '%IQ de IQ. Tienes tanta cabeza que da miedo contradecirte, cabrón, y encima lo disfrutas.',
   '%IQ. La media del grupo sube cuando entras y baja cuando te vas.',
   'Con %IQ tienes todo para triunfar menos una cosa: ganas de aguantar a gente normal.',
   '%IQ de IQ. Por fin alguien que entiende el bot mejor que el bot.',

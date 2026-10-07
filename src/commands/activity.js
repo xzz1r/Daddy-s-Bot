@@ -279,7 +279,7 @@ let AVISO_PURGA = [
   'Estáis por debajo del corte. No del corte de los graciosos ni del de los pesados: del corte de los que existen. Ese es el listón que no habéis pasado.',
   'El bot esperaba que dijerais algo para poder meterse con vosotros. Se ha cansado de esperar y se mete igual, que para eso está esta lista.',
   'Diez mensajes o menos. Si el grupo os manda notificaciones, se las estáis tirando todas.',
-  'Habéis conseguido estar en el grupo sin llegar a estar nunca. Tiene su mérito, pero no sirve para nada.',
+  'Sois la prueba de que se puede estar en un sitio sin llegar a estar nunca. Un mérito filosófico enorme y absolutamente inútil para todo lo demás.',
   'El grupo os aceptó, os dio sitio y esperó. El grupo ya no espera. El bot tampoco, y el bot es el que tiene el botón.',
   'El número de cada uno cabe en la lista sin apretar, y se lee en un segundo.',
   'Dónde escribáis fuera de aquí da igual: aquí no habéis dicho nada que valga la pena leer dos veces.',

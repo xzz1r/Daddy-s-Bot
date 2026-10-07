@@ -43,7 +43,7 @@ function esShipAlto(jid) {
 
 const VERDICTS = {
   perfect: [
-    'Match del cien, cabrón. Dos piezas rotas que encajan justo por donde están rotas.',
+    'Match del cien, cabrón. Dos piezas rotas que encajan justo por donde están rotas. Poético y patético a partes iguales.',
     'Cien. Dos piezas rotas que resulta que estaban rotas por el mismo sitio. Encajan de milagro y encajan de puta madre.',
     'Match perfecto. Uno pone el caos y el otro pone la paciencia, que es exactamente como funciona la mierda que dura.',
     'Cien. El bot no le da esto a cualquiera y os ha tocado a vosotros dos, qué desperdicio de cifra.',

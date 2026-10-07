@@ -392,7 +392,7 @@ const MAL_ESCRITO = [
   'No tienes ni media neurona, y lo que acabas de poner lo demuestra.',
   'Ahí dentro no hay nada, y eso que has puesto es la firma.',
   'Tu techo es teclear algo corto sin romperlo. Qué puta pena das.',
-  'Hasta aquí llegas razonando, y mira cómo ha quedado.',
+  'Hasta aquí razonas, y mira cómo ha quedado. Mañana, el mismo retraso.',
   'Acabas de tocar tu límite, y era escribir un comando. Qué puta miseria.',
   'Ni teclearlo bien, cabrón. Ese es el suelo y ahí vives.',
   'Ni escribirlo bien. Se te pide lo mínimo del mundo y ni eso, comemierda.',

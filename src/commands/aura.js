@@ -249,8 +249,8 @@ const AURA = {
   loss: [
     // ── Ejemplos del usuario (intocables) ──
     'Bajaste y nadie se inmutó. Ya es parte del puto paisaje verte perder aura.',
-    'Se te ha ido otro poco de aura y el grupo ni ha parpadeado.',
-    'Pierdes, y ni a ti te hace gracia. Era lo que tocaba.',
+    'Se te escurrió un poco más de presencia. El grupo ni parpadeó, pringado.',
+    'Ni siquiera generas gracia. Esa cara de obvio. Qué asco de previsible.',
     'Te han quitado aura sin ganas, como quien espanta una mosca.',
     'Hoy el puto grupo te bajó un escalón más y ni se molestó en reírse.',
     // ── Reescritas y nuevas ──
@@ -265,13 +265,13 @@ const AURA = {
     'Has perdido lo justo para que nadie se entere y tú sí, muñeca.',
     'Pierdes, y lo peor es que es lo que todos esperaban. Cutre y puntual.',
     'Es una pérdida pequeña. Si te duele como una grande, el problema no es la cifra.',
-    'Ya ni se acuerdan de ti en el grupo, y el aura tampoco.',
+    'El grupo te archivó en "recuerdos". Ahí no entra nadie a mirar, cabrón.',
     'Tiras para ganar y acabas pagando. Tu suerte trabaja para los demás.',
     'Tirada en rojo. Te toca perder sin drama y sin que nadie lo comente.',
     'El ranking no se ha movido. Para moverse haría falta que importaras, princesa.',
     'Pierdes, sigues tirando, y nadie viene a salvarte. Ni va a venir.',
     'Te han quitado aura porque estabas ahí. Ni siquiera por algo.',
-    'El aura te contesta con un «ok» seco en rojo. Ni un sticker.',
+    'El aura te ha puesto un "ok" en rojo. Ni sticker. Ni pena. Ok, fracasado.',
     'Pierdes poco, rata. Lo justo para que el saldo lo note.',
     'Una bajada igual de pequeña que tú en este grupo.',
     'Con lo que te queda, mejor ni lo mires.',
@@ -314,11 +314,11 @@ const AURA = {
   ],
   cursed: [
     // ── Ejemplos del usuario (intocables) ──
-    'Has perdido tanto que nadie sabe qué decirte. Qué cringe.',
+    'Perdiste tanta mierda que el silencio posterior fue puro cringe.',
     'El aura te ha puesto de ejemplo delante del puto grupo. Todos han tomado nota.',
     'Bajaste tan fuerte que hasta tus habituales defensores se hicieron los locos, cabrón.',
     'Fue el chat recordándote, sin filtro, que sigues siendo un puto desastre.',
-    'Al resto le das pena, y alivio de no ser tú.',
+    'Solo quedó esa mezcla de pena y alivio de no ser tú. Qué asco de suerte la tuya.',
     // ── Reescritas y nuevas ──
     'Joder, perdiste tanto que la cifra ya no da risa.',
     'Perdiste con la elegancia de quien no sabe perder: ninguna.',
@@ -337,7 +337,7 @@ const AURA = {
     'Del tramo grande. No hay manera digna de leer esa cifra, y es tuya.',
     'Esto no se borra: la cifra ya te la han descontado.',
     'Has perdido un montón y sigues aquí como si nada. Qué cara.',
-    'Has puesto tu nombre al lado de «no mirar», y ya han mirado todos.',
+    'Has puesto tu puto nombre al lado de "no mirar". El aviso llega tarde. Ya han mirado.',
     'Golpe de los que duelen. Y te ha tocado a ti, no a otro.',
     'Tú das asco y pena a partes iguales.',
     'Cara de funeral la que se le queda a tu saldo.',

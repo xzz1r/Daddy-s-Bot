@@ -50,7 +50,7 @@ const HITO = [
 const ROTA = [
   'Ahí está %N, con *%P días* que ahora valen exactamente nada.',
   'La racha de %N era de *%P días* y ahora es de uno. Menuda puta gestión del patrimonio.',
-  '*%P días* rotos, %N. Te ha costado menos romperlos que leer este mensaje.',
+  '*%P días* rotos, %N. Te ha costado menos romperlos que leer este mensaje. Puto récord de autodestrucción.',
   '%N ha tirado *%P días* a la basura por un solo día. Menudo negocio.',
   '*%P días* de racha y %N la rompe sin despedirse.',
   '%N, *%P días* rotos: un día sin escribir y a empezar de cero, que aquí no se perdona.',

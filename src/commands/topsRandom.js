@@ -48,7 +48,7 @@ const CIERRES = [
   'Sois carne de cachondeo grupal, los {N}.',
   'Ahí os quedáis, los {N}, con el culo al aire.',
   'El bot ha hablado: los {N}, y que os den por saco.',
-  'Sois {N} y sois la mierda de hoy. Mañana, otra tanda.',
+  'Sois {N}. Sois mierda de hoy. Mañana otra tanda de mierda.',
   'Ahí quedáis los {N}, con nombre, apellido y el grupo mirando.',
   '{N} menciones de golpe. Ya no se puede disimular.',
   'Los {N}, en fila y a la vista. El orden da igual, la vergüenza es la misma.',
