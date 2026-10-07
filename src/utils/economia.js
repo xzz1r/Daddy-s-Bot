@@ -955,6 +955,24 @@ const ATRACO = {
   vetoHoras: 3,            // y no puede comprar en la tienda durante este rato
 };
 
+// ─── !butron: ir a por la caja de alguien ───────────────────────────────────
+//
+// Lo pidio el dueño: la caja era demasiado fuerte. Con todo guardado no habia
+// forma de tocar a nadie, y el robo normal sigue sin llegar ahi a proposito.
+// Esto es otra puerta, solo contra lo guardado: cuesta caro fallar y quien lo
+// sufre queda blindado un rato, para que no se vacie una caja en una tarde.
+const BUTRON = {
+  minimoAtacante: 100,     // aura suelta que hace falta para intentarlo
+  minimoCaja: 150,         // por debajo no merece el agujero
+  base: 0.40,              // probabilidad de entrar
+  contraOwner: 0.14,       // la caja del dueño cuesta mas, igual que en el robo
+  botin: { min: 0.20, max: 0.45 },   // de lo que hay dentro
+  multa: 0.15,             // de lo que habia en la caja...
+  multaTope: 300,          // ...con tope. Y va ENTERA a la victima.
+  esperaMin: 60,           // entre intento e intento del mismo atacante
+  blindajeHoras: 4,        // la caja reventada no se puede volver a tocar en este rato
+};
+
 // LOS OBJETOS. Dan una decisión ANTES de robar, no solo al robar.
 //
 // LOS PRECIOS SE REHICIERON. Estaban puestos contra "un robo medio mueve unos
@@ -1526,7 +1544,7 @@ function tirar([min, max]) {
 }
 
 module.exports = {
-  CAJA, ADMIN,
+  CAJA, ADMIN, BUTRON,
   MILLONARIO, ARRANQUE, SUELO_TODOS,
   TIRADA, TIRADA_MIN, TIRADA_MAX, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE,
   PRIMERA_DEL_DIA, HITOS, CONTADOR, DIA,

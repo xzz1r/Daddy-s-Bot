@@ -10,7 +10,7 @@
 //   { [grupo]: {
 //       bote: <numero>,
 //       objetos: { [personaCanonica]: { escudo: <ts fin>, ganzua: <usos>, cebo: <ts fin> } },
-//       golpes:  [ { quien, cuanto, ts } ]      // solo los de la última semana
+//       golpes:  [ { quien, cuanto, premio, victima?, ts } ]  // solo los de la última semana
 //   } }
 
 const path = require('path');
@@ -365,10 +365,14 @@ async function tieneCebo(g, persona) {
 
 // ─── Golpes y ranking ────────────────────────────────────────────────────────
 
-async function anotarGolpe(g, quien, cuanto, premio = 0) {
+// `victima` solo va en los golpes a una persona (robo y contrarobo). El bote y
+// la caja de la tienda no son de nadie y no salen en ningun historial.
+async function anotarGolpe(g, quien, cuanto, premio = 0, victima = null) {
   await load();
   const x = grupo(g);
-  x.golpes.push({ quien: canonicalJid(quien), cuanto: Math.round(cuanto), premio: Math.round(premio), ts: Date.now() });
+  const gp = { quien: canonicalJid(quien), cuanto: Math.round(cuanto), premio: Math.round(premio), ts: Date.now() };
+  if (victima) gp.victima = canonicalJid(victima);
+  x.golpes.push(gp);
   podar(x);
   scheduleSave();
 }
@@ -388,9 +392,11 @@ function podar(x) {
   if (x.golpes.length > MAX_GOLPES) x.golpes = x.golpes.slice(-MAX_GOLPES);
   let renombrados = false;
   for (const gp of x.golpes) {
-    if (!String(gp.quien).endsWith('@lid')) continue;
-    const c = canonicalJid(gp.quien);
-    if (c !== gp.quien) { gp.quien = c; renombrados = true; }
+    for (const campo of ['quien', 'victima']) {
+      if (!gp[campo] || !String(gp[campo]).endsWith('@lid')) continue;
+      const c = canonicalJid(gp[campo]);
+      if (c !== gp[campo]) { gp[campo] = c; renombrados = true; }
+    }
   }
   if (renombrados) scheduleSave();
 }
@@ -439,6 +445,18 @@ async function cobrarRecompensa(g, quien) {
   return total;
 }
 
+// LOS QUE TE HAN ROBADO A TI esta semana, del mas reciente al mas viejo. Lo
+// pidio el dueño: ver quien te robo y cuanto.
+async function robosContra(g, persona) {
+  await load();
+  const x = grupo(g);
+  podar(x);
+  return x.golpes
+    .filter(gp => gp.victima && sameUser(gp.victima, persona))
+    .map(gp => ({ quien: gp.quien, cuanto: gp.cuanto, ts: gp.ts }))
+    .reverse();
+}
+
 // El número uno de la semana. Devuelve null si no hay ninguno todavía: sin esto
 // el "más buscado" saldría siendo cualquiera con un robo de cinco de aura.
 async function masBuscado(g) {
@@ -453,7 +471,7 @@ module.exports = {
   verCaja, aportarACaja, sacarDeCaja, seguridadTienda, anotarAtraco, vetarDeTienda, vetoTienda,
   ultimaVentaja, anotarVentaja,
   objetosDe, darObjeto, gastarGanzua, tieneEscudo, tieneCebo,
-  anotarGolpe, rankingLadrones, masBuscado, recompensaDe, cobrarRecompensa,
+  anotarGolpe, rankingLadrones, robosContra, masBuscado, recompensaDe, cobrarRecompensa,
   flushRobo,
   VENTANA_RANKING_MS,
 };

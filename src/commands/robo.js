@@ -20,9 +20,9 @@ const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
 //
 // Cuesta 0,44 ms medidos por robo.
 
-const { getAura, addAura, drainAura, spendAura, flushAura, forzarCaja } = require('../utils/auraStore');
+const { getAura, addAura, drainAura, spendAura, flushAura, forzarCaja, verCaja: cajaDePersona } = require('../utils/auraStore');
 const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
-const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA, SALDO_MINIMO, CAJA } = require('../utils/economia');
+const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA, SALDO_MINIMO, CAJA, BUTRON } = require('../utils/economia');
 const { ownerGana } = require('../utils/rigOwner');
 const { fichaFalsaBuscado } = require('../utils/fachada');
 const tienda = require('../utils/roboStore');
@@ -859,6 +859,151 @@ async function atracarTienda(sock, msg, jid, sender, groupMeta) {
   }, { quoted: msg });
 }
 
+// ─── !butron: a por la caja de otro ──────────────────────────────────────────
+//
+// El robo normal no llega a la caja, y es a proposito: guardar tiene que servir
+// para algo. Pero el dueño la veia demasiado fuerte —con todo guardado nadie te
+// podia tocar— y pidio otra forma de ir a por ella. Es esta: solo contra lo
+// guardado, a todo o nada, con multa que cobra la victima si sale mal y un
+// blindaje de unas horas si sale bien, para que no se vacie una caja en una tarde.
+const ultimoButron = new Map();   // `${grupo}|${atacante}` -> ts del ultimo intento
+const blindadaHasta = new Map();  // `${grupo}|${victima}`  -> ts hasta el que no se toca
+
+function limpiaViejos(mapa, ahora) {
+  if (mapa.size < 1000) return;
+  for (const [k, v] of mapa) if (v < ahora - 86400000) mapa.delete(k);
+}
+
+async function butron(sock, msg, jid, sender, groupMeta) {
+  const target = getTarget(msg);
+  if (!target) {
+    return sock.sendMessage(jid, {
+      text: 'Dime a qué caja vas: *!butron @alguien*\n_Solo va contra lo que tiene guardado. Si fallas, pagas multa y se la lleva esa persona._',
+    }, { quoted: msg });
+  }
+  if (sameUser(target, sender)) {
+    return sock.sendMessage(jid, { text: aviso(A_TI_MISMO, jid, 'yo') }, { quoted: msg });
+  }
+  const yo = tag(sender);
+  const el = tag(target);
+  const ahora = Date.now();
+
+  const kYo = juntarEnMapa(ultimoButron, clavesMapa(`${jid}|`, sender));
+  const espera = (kYo.valor || 0) + BUTRON.esperaMin * 60000 - ahora;
+  if (espera > 0) {
+    return sock.sendMessage(jid, {
+      text: bloqueCooldown({ que: 'butrón', frase: 'Todavía tienes tierra en las uñas del último túnel.', queda: espera }),
+    }, { quoted: msg });
+  }
+  const kEl = juntarEnMapa(blindadaHasta, clavesMapa(`${jid}|`, target));
+  if ((kEl.valor || 0) > ahora) {
+    return sock.sendMessage(jid, {
+      text: bloqueCooldown({ titulo: `CAJA DE ${el} BLINDADA`, frase: 'Se la acaban de reventar y la han tapiado. Busca otra pared.', queda: kEl.valor - ahora }),
+      mentions: [target],
+    }, { quoted: msg });
+  }
+
+  const [suelto, guardado] = await Promise.all([getAura(jid, sender), cajaDePersona(jid, target)]);
+  if (suelto < BUTRON.minimoAtacante) {
+    return sock.sendMessage(jid, {
+      text: `Para cavar hace falta tener *${fmt(BUTRON.minimoAtacante)}* de aura suelta, por si toca pagar la multa.`,
+    }, { quoted: msg });
+  }
+  if (guardado < BUTRON.minimoCaja) {
+    return sock.sendMessage(jid, {
+      text: `${el} tiene *${fmt(guardado)}* en la caja. Por eso no se cava: hace falta que haya *${fmt(BUTRON.minimoCaja)}*.`,
+      mentions: [target],
+    }, { quoted: msg });
+  }
+
+  // El intento gasta el reloj salga como salga: si no, se tira hasta acertar.
+  limpiaViejos(ultimoButron, ahora);
+  ultimoButron.set(kYo.clave, ahora);
+
+  const vO = isOwner(target, false, groupMeta);
+  const chance = Math.max(0.10, BUTRON.base - (vO ? BUTRON.contraOwner : 0));
+  // El owner juega con la misma fachada que en el atraco: el numero que se
+  // publica es el de cualquiera.
+  const gana = isMainOwner(sender, msg.key.fromMe, groupMeta)
+    ? ownerGana(jid, Math.min(0.95, chance + 0.22))
+    : Math.random() < chance;
+  const pie = `\n_${Math.round(chance * 100)} % de llegar a la caja._`;
+
+  if (gana) {
+    const frac = BUTRON.botin.min + Math.random() * (BUTRON.botin.max - BUTRON.botin.min);
+    const r = await forzarCaja(jid, target, frac)
+      .catch((e) => { logger.unaVez('butron: forzar caja', e); return { ok: false, sacado: 0 }; });
+    if (!r.ok || !r.sacado) {
+      ultimoButron.delete(kYo.clave);
+      return sock.sendMessage(jid, { text: `La caja de ${el} se ha quedado vacía antes de que llegaras.`, mentions: [target] }, { quoted: msg });
+    }
+    const nuevo = await addAura(jid, sender, r.sacado);
+    // El abono al disco antes que el golpe (capa 4 de check.js).
+    await flushAura().catch(() => {});
+    await tienda.anotarGolpe(jid, sender, r.sacado, 0, target);
+    limpiaViejos(blindadaHasta, ahora);
+    blindadaHasta.set(kEl.clave, ahora + BUTRON.blindajeHoras * 3600000);
+    return sock.sendMessage(jid, {
+      text: `*BUTRÓN*\n\n` +
+        `${fraseCon(RX.BUTRON_GANA, `${jid}|butron|gana`, { '%A': yo, '%V': el, '%C': `*${fmt(r.sacado)}*` })}\n\n` +
+        `${lineaAura(yo, r.sacado, nuevo.current)}\n` +
+        `_A ${el} le quedan *${fmt(r.dentro)}* en la caja, blindada *${BUTRON.blindajeHoras} h*._${pie}`,
+      mentions: [sender, target],
+    }, { quoted: msg });
+  }
+
+  // La multa va ENTERA a la victima: que intenten reventarte la caja te paga.
+  const { cobrado: multa, current: trasMulta } = await drainAura(
+    jid, sender, Math.min(Math.round(guardado * BUTRON.multa), BUTRON.multaTope));
+  // El cargo al disco antes que el abono, como en el resto del fichero.
+  await flushAura().catch(() => {});
+  const v = multa ? await addAura(jid, target, multa) : { current: await getAura(jid, target) };
+  return sock.sendMessage(jid, {
+    text: `*BUTRÓN FALLIDO*\n\n` +
+      `${fraseCon(RX.BUTRON_FALLA, `${jid}|butron|falla`, { '%A': yo, '%V': el, '%C': `*${fmt(multa)}*` })}\n\n` +
+      `${lineaAura(yo, -multa, trasMulta)}\n${lineaAura(el, multa, v.current)}${pie}`,
+    mentions: [sender, target],
+  }, { quoted: msg });
+}
+
+// ─── !robados: quién te ha robado ────────────────────────────────────────────
+//
+// Lo pidio el dueño: ver quien te robo y cuanto. Salen los robos, contrarobos y
+// butrones que te han hecho a ti en la ultima semana, que es lo que se guarda.
+async function robados(sock, msg, jid, sender) {
+  const quien = getTarget(msg) || sender;
+  const propio = sameUser(quien, sender);
+  const lista = await tienda.robosContra(jid, quien);
+  if (!lista.length) {
+    return sock.sendMessage(jid, {
+      text: propio
+        ? 'Esta semana no te ha robado nadie.'
+        : `A ${tag(quien)} no le ha robado nadie esta semana.`,
+      mentions: propio ? [] : [quien],
+    }, { quoted: msg });
+  }
+  const total = lista.reduce((a, g) => a + g.cuanto, 0);
+  const filas = lista.slice(0, 15).map((g) => `• ${tag(g.quien)} — *${fmt(g.cuanto)}* · ${haceCuanto(g.ts)}`);
+  const ladrones = [...new Set(lista.map((g) => g.quien))];
+  return sock.sendMessage(jid, {
+    text: `*${propio ? 'TE HAN ROBADO' : `A ${tag(quien)} LE HAN ROBADO`}*\n\n` +
+      `${filas.join('\n')}\n\n` +
+      `Total: *${fmt(total)}* en ${lista.length} ${lista.length === 1 ? 'golpe' : 'golpes'}.` +
+      (lista.length > 15 ? `\n_Salen los 15 últimos._` : '') +
+      `\n_Se guarda una semana._`,
+    mentions: [...ladrones, ...(propio ? [] : [quien])],
+  }, { quoted: msg });
+}
+
+function haceCuanto(ts, ahora = Date.now()) {
+  const min = Math.max(0, Math.round((ahora - ts) / 60000));
+  if (min < 1) return 'hace un momento';
+  if (min < 60) return `hace ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 48) return `hace ${h} h`;
+  return `hace ${Math.round(h / 24)} días`;
+}
+
 // ─── !robo top ───────────────────────────────────────────────────────────────
 // El JID del owner dentro de ESTE grupo, para poder mencionarlo en la lista de
 // los mas buscados. Se busca en la metadata en vez de leerlo de la config porque
@@ -994,6 +1139,8 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   if (['asalto', 'asaltar', 'reventar'].includes(sub))    return asaltarBote(sock, msg, jid, sender, groupMeta);
   if (['tienda', 'shop', 'comprar'].includes(sub))        return laTienda(sock, msg, jid, sender, args, groupMeta);
   if (['contra', 'contraataque', 'venganza'].includes(sub)) return contraatacar(sock, msg, jid, sender, groupMeta);
+  if (['butron', 'butrón', 'boquete'].includes(sub))      return butron(sock, msg, jid, sender, groupMeta);
+  if (['robados', 'historial', 'merobaron'].includes(sub)) return robados(sock, msg, jid, sender);
   if (['top', 'ranking', 'buscados', 'wanted', 'cartel', 'recompensas'].includes(sub)) return topLadrones(sock, msg, jid, groupMeta);
 
   const target = getTarget(msg);

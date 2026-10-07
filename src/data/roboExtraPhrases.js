@@ -710,6 +710,76 @@ const ATRACO_FALLA = [
   'La tienda estaba en guardia y %A ha entrado cantando. %C de multa por la canción.',
 ];
 
+// ─── El butrón a la caja de otro ─────────────────────────────────────────────
+//
+// %A = quien cava · %V = a quien · %C = lo que se lleva, o la multa que le paga
+
+const BUTRON_GANA = [
+  '%A ha hecho un boquete en la caja de %V. Por ahí han salido %C.',
+  '%V guardaba el aura para que nadie la tocara. %A se lleva %C de ahí dentro.',
+  'La caja de %V tenía pared. Ahora tiene agujero, y %A tiene %C más.',
+  '%A ha entrado por debajo y %V ni lo ha oído. %C fuera de su caja.',
+  '%C del banco de %V a la cuenta de %A. Guardar no era esconderse.',
+  '%V lo tenía bajo llave y %A ha traído la radial. %C.',
+  'Butrón de manual: %A cava, %V paga. %C.',
+  '%A ha vaciado una parte de la caja de %V: %C. El resto se ha salvado por los pelos.',
+  '%V creía que la caja era un búnker. %A acaba de sacarle %C por debajo.',
+  'Una noche de pico y pala y %A sale con %C de %V.',
+  '%A ha abierto la caja de %V como una lata de atún. %C.',
+  '%V tenía el aura guardada. Tenía. %A se lleva %C.',
+  '%C menos en la caja de %V. %A ha dejado el boquete de recuerdo.',
+  '%A no ha tocado el saldo de %V: ha ido directo a lo que escondía. %C.',
+  'La caja de %V aguantaba robos. Los butrones, no. %C para %A.',
+  '%A ha atravesado la pared del banco de %V y vuelve con %C en los bolsillos.',
+  'Lo que %V juntaba a escondidas ahora lo gasta %A. %C.',
+  '%A ha bajado por el túnel y ha subido con %C de %V. Ni una alarma.',
+  'A %V sacar su aura le cuesta comisión. A %A le ha salido gratis: %C.',
+  '%A ha reventado el banco de %V. %C, y la caja con corriente de aire.',
+  '%C de la caja de %V. %A ha cavado lo justo y ha cogido lo que cabía.',
+  'El escondite de %V tenía un fallo, y se llama %A. %C fuera.',
+  '%A ha entrado en la caja de %V con linterna y sin prisa. %C.',
+  '%V guardaba para cuando hiciera falta. Hacía falta, pero a %A: %C.',
+  'Golpe al banco de %V: %C para %A, y un hueco en la pared del tamaño de su orgullo.',
+  '%A ha salido del túnel lleno de polvo y con %C de %V. Ha merecido la pena.',
+  'La caja de %V ya no es un búnker: %A le ha sacado %C por el suelo.',
+  '%V lo guardó para que no se lo robaran. Se lo han robado igual: %C para %A.',
+  '%A deja la caja de %V con un agujero y %C menos dentro.',
+  '%C. %A ha entrado al banco de %V por donde nadie mira, que es el suelo.',
+];
+
+const BUTRON_FALLA = [
+  '%A ha cavado hacia la caja de %V y ha salido en la cocina de los vecinos. Multa: %C para %V.',
+  'La caja de %V tenía alarma. %A paga %C y se va con las manos llenas de tierra.',
+  '%A ha reventado la pared equivocada. %C de multa, y van para %V.',
+  'Pillado a medio túnel. %A le paga %C a %V por el destrozo.',
+  '%A ha venido a por la caja de %V y le ha acabado pagando %C. Gilipoyas.',
+  'El butrón de %A se ha hundido antes de llegar. %C para %V, por las molestias.',
+  '%V ni se ha despeinado: la caja aguanta y %A paga %C.',
+  '%A se ha quedado atascado en su propio agujero. %C de multa, directos a %V.',
+  '%A traía radial y se le ha acabado la batería. %C para %V.',
+  'Intento de butrón con la elegancia de un topo borracho. %A paga %C a %V.',
+  '%A ha tocado la caja de %V y ha saltado todo. %C de multa.',
+  'La caja de %V sigue entera. La cuenta de %A, no: −%C.',
+  '%A ha cavado toda la noche para nada. %C a %V y a dormir.',
+  '%A ha intentado abrir la caja de %V con una cuchara, como un subnormal. %C de multa.',
+  '%V le cobra a %A %C por intentar entrar. Su caja, sus normas.',
+  'Túnel derrumbado, %A cubierto de mierda y %C para %V.',
+  '%A ha llegado a la caja de %V justo cuando saltaba la alarma. %C.',
+  'Butrón fallido. %A sale por donde ha entrado y deja %C a %V.',
+  '%A ha calculado mal y ha salido en el baño de %V. %C de multa y vergüenza para rato.',
+  '%A ha picado la pared de %V una hora y no ha pasado del yeso. %C.',
+  '%A ha metido la pala en la caja de %V y se la han devuelto en la cara. %C.',
+  '%V cobra intereses por los intentos fallidos: %C de %A.',
+  'Ni un rasguño a la caja de %V. %A, en cambio, deja %C.',
+  '%A ha traído túnel, linterna y plan. Le ha faltado cerebro. %C para %V.',
+  '%A quería vaciar a %V y le ha llenado el saldo: %C.',
+  'La alarma de %V ha sonado para el grupo entero. %A paga %C.',
+  '%A ha cavado hacia arriba en vez de hacia la caja. %C de multa, anormal.',
+  '%V gana %C sin mover un dedo: los paga %A por fallar el butrón.',
+  '%A deja un agujero en la pared y %C en la cuenta de %V.',
+  'Topo de mierda. %A no llega a la caja de %V y le paga %C.',
+];
+
 const ATRACO_VACIA = [
   'Atracar eso sería pedir limosna con pasamontañas. Quedan %N.',
   'No hay una mierda que robar: %N en la caja. La tienda está más tiesa que tú, muñeca.',
@@ -784,4 +854,5 @@ module.exports = {
   CONTRA_DEMOLEDOR, CONTRA_RASPADO, CONTRA_RUINA,
   DIANA_GOLPE,
   ATRACO_GANA, ATRACO_FALLA, ATRACO_VACIA, ATRACO_VETADO,
+  BUTRON_GANA, BUTRON_FALLA,
 };
