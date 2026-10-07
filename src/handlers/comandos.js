@@ -349,7 +349,7 @@ const FAMILIAS = [
   // "atraco".
   { nombres: ['atraco', 'atracar'], meta: true, aura: true, hace: robo('atraco') },
   // Ir a por la caja de otro: el robo normal no llega ahi (lo pidio el dueño).
-  { nombres: ['robarbanco', 'robarcaja'], meta: true, aura: true, aOtro: true, hace: robo('banco') },
+  { nombres: ['robarbanco'], meta: true, aura: true, aOtro: true, hace: robo('banco') },
   // Quien te ha robado y cuanto, la ultima semana.
   { nombres: ['quienmerobo', 'robados'], meta: true, consulta: true, hace: robo('robados') },
   { nombres: ['caja', 'registradora'], meta: true, consulta: true, hace: robo('caja') },

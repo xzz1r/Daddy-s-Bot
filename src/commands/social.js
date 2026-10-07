@@ -444,7 +444,7 @@ ${p}contrarobo · ${p}contraataque · ${p}contraatacar · ${p}vengarse
 ${p}buscados · ${p}cartel · ${p}wanted · ${p}mostwanted · ${p}recompensas
 ${p}tienda · ${p}shop  ·  ${p}comprar  ·  ${p}bote  ·  ${p}caja · ${p}registradora
 ${p}asalto · ${p}asaltar  ·  ${p}atraco · ${p}atracar
-${p}robarbanco · ${p}robarcaja  ·  ${p}quienmerobo · ${p}robados
+${p}robarbanco  ·  ${p}quienmerobo · ${p}robados
 ${p}banco · ${p}vault · ${p}safe  ·  ${p}lock · ${p}stash  ·  ${p}unlock
 
 *ACTIVIDAD*
