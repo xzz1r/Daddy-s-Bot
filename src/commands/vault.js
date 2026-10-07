@@ -86,12 +86,12 @@ async function cmdVault(sock, msg, args, groupMeta) {
         return sock.sendMessage(jid, {
           // «TODAVÍA NO» no decia QUE estaba esperando, que es la mitad del
           // trabajo de la cabecera. Es la caja, y se dice.
-          text: bloqueCooldown({ que: 'caja', frase: frase(RX.ENFRIAMIENTO, jid, 'frio'), queda: r.espera }),
+          text: bloqueCooldown({ que: 'banco', frase: frase(RX.ENFRIAMIENTO, jid, 'frio'), queda: r.espera }),
         }, { quoted: msg });
       }
       if (r.motivo === 'lleno') {
         return sock.sendMessage(jid, {
-          text: `*LA CAJA ESTÁ LLENA*\n${frase(RX.LLENO, jid, 'lleno')}\n` +
+          text: `*EL BANCO ESTÁ LLENO*\n${frase(RX.LLENO, jid, 'lleno')}\n` +
             `_Dentro hay *${fmt(r.dentro)}* y no cabe más de *${fmt(CAJA.capacidad)}*._`,
         }, { quoted: msg });
       }
@@ -105,7 +105,7 @@ async function cmdVault(sock, msg, args, groupMeta) {
       text: `*BAJO LLAVE*\n\n` +
         `${nm} guarda *${fmt(r.guardado)}*.\n` +
         `_Dentro *${fmt(r.dentro)}* · a la vista *${fmt(r.saldo)}*` +
-        (r.hueco > 0 ? ` · cabe *${fmt(r.hueco)}* más_` : ` · la caja está llena_`) + `\n\n` +
+        (r.hueco > 0 ? ` · cabe *${fmt(r.hueco)}* más_` : ` · el banco está lleno_`) + `\n\n` +
         frase(RX.GUARDADO, jid, 'ok', { N: nm, C: r.guardado, Z: r.dentro, S: r.saldo }),
       mentions: [sender],
     }, { quoted: msg });
@@ -116,7 +116,7 @@ async function cmdVault(sock, msg, args, groupMeta) {
     const dentro = await verCaja(jid, sender);
     if (dentro <= 0) {
       return sock.sendMessage(jid, {
-        text: `*LA CAJA ESTÁ VACÍA*\n${frase(RX.VACIO, jid, 'vacio')}`,
+        text: `*EL BANCO ESTÁ VACÍO*\n${frase(RX.VACIO, jid, 'vacio')}`,
       }, { quoted: msg });
     }
     // Sin cantidad se saca TODO: quien abre la caja a por su dinero no suele ir
@@ -128,7 +128,7 @@ async function cmdVault(sock, msg, args, groupMeta) {
 
     if (!r.ok) {
       return sock.sendMessage(jid, {
-        text: `*LA CAJA ESTÁ VACÍA*\n${frase(RX.VACIO, jid, 'vacio')}`,
+        text: `*EL BANCO ESTÁ VACÍO*\n${frase(RX.VACIO, jid, 'vacio')}`,
       }, { quoted: msg });
     }
 
@@ -145,7 +145,7 @@ async function cmdVault(sock, msg, args, groupMeta) {
     }
 
     return sock.sendMessage(jid, {
-      text: `*FUERA DE LA CAJA*\n\n` +
+      text: `*FUERA DEL BANCO*\n\n` +
         `${nm} saca *${fmt(r.sacado)}* y le llegan *${fmt(r.neto)}*.\n` +
         `_La cerradura se queda *${fmt(r.comision)}* (${Math.round(CAJA.comision * 100)} %), que van al bote._\n` +
         `_Queda dentro *${fmt(r.dentro)}* · a la vista *${fmt(r.saldo)}*_\n\n` +
@@ -158,7 +158,7 @@ async function cmdVault(sock, msg, args, groupMeta) {
   const dentro = await verCaja(jid, sender);
   if (dentro <= 0) {
     return sock.sendMessage(jid, {
-      text: `*TU CAJA*\n${frase(RX.VACIO, jid, 'vacio')}\n\n` +
+      text: `*TU BANCO*\n${frase(RX.VACIO, jid, 'vacio')}\n\n` +
         `_Se guarda con *!lock <cantidad>*. Cabe hasta *${fmt(CAJA.capacidad)}*._`,
       mentions: [sender],
     }, { quoted: msg });
@@ -169,9 +169,9 @@ async function cmdVault(sock, msg, args, groupMeta) {
   const coste = Math.max(CAJA.comisionMinima, Math.round(dentro * CAJA.comision));
 
   return sock.sendMessage(jid, {
-    text: `*TU CAJA*\n\n` +
+    text: `*TU BANCO*\n\n` +
       `Dentro: *${fmt(dentro)}* de *${fmt(CAJA.capacidad)}*\n` +
-      `A la vista: *${fmt(saldo)}* — esto te lo roba cualquiera. La caja, solo un golpe maestro o un *!robarbanco*.\n\n` +
+      `A la vista: *${fmt(saldo)}* — esto te lo roba cualquiera. El banco, solo un golpe maestro o un *!robarbanco*.\n\n` +
       `_Sacarlo todo costaría *${fmt(coste)}*._\n` +
       (espera > 0
         ? `_No puedes volver a guardar hasta dentro de *${duracion(espera)}*._`

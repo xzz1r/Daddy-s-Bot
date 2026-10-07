@@ -225,14 +225,14 @@ const AURA_LINES = [
   'El marcador no sabe quién eres. Sabe cuánto escribes, y con eso le basta.',
   'Escribir es gratis y paga. Es el único trato decente que vas a encontrar en este bot.',
   'La racha se rompe el día que no llegas al mínimo. Un día flojo y a empezar otra vez.',
-  'Lo que ganas escribiendo te lo pueden quitar robando. Guárdalo en la caja o reza.',
+  'Lo que ganas escribiendo te lo pueden quitar robando. Guárdalo en el banco o reza.',
   'Apostar es lo que más rápido te deja sin aura. Casi nadie lo aprende a la primera.',
   'Puedes regalar aura con !dar. Que lo hagas ya es otra cosa.',
   'El aura no se hereda ni se pide prestada. Se escribe, mensaje a mensaje.',
   'Cuanto más escribes, más tienes. Cuanto más tienes, más ganas les das a los ladrones.',
   'El top del aura lo ocupa quien aparece, no quien presume.',
   'Quien no escribe no sale en el top ni en ningún sitio. El marcador lo ignora igual que el grupo.',
-  'Aura en la mano es aura en peligro. En la caja, por lo menos, cuesta sacarla.',
+  'Aura en la mano es aura en peligro. En el banco, por lo menos, cuesta sacarla.',
   'El bote se llena con las multas de los que fallan robando. Tus fracasos también le pagan a alguien.',
   'Cada !aura es una tirada. La suerte pone el número y tú pones las veces que haces el ridículo.',
   'Hay hitos de mensajes que pagan extra. Llegar a ellos pide algo que no todo el mundo tiene: constancia.',
@@ -247,7 +247,7 @@ const AURA_LINES = [
   'Escribe hoy, cobra hoy. Mañana es otra racha, si la aguantas.',
   'El aura es lo único de este grupo que no se puede fingir. Se ve en el número.',
   'Si quieres subir rápido, escribe, y si quieres bajar rápido, apuesta. Tú sabrás.',
-  'La caja cobra comisión al sacar. Aquí hasta guardar cuesta dinero, como en la vida.',
+  'El banco cobra comisión al sacar. Aquí hasta guardar cuesta dinero, como en la vida.',
 ];
 
 // !casino / !aura hoy — progreso diario de aura del que lo pide
@@ -445,7 +445,7 @@ ${p}buscados · ${p}cartel · ${p}wanted · ${p}mostwanted · ${p}recompensas
 ${p}tienda · ${p}shop  ·  ${p}comprar  ·  ${p}bote  ·  ${p}caja · ${p}registradora
 ${p}asalto · ${p}asaltar  ·  ${p}atraco · ${p}atracar
 ${p}robarbanco · ${p}robarcaja  ·  ${p}quienmerobo · ${p}robados
-${p}vault · ${p}safe  ·  ${p}lock · ${p}stash  ·  ${p}unlock
+${p}banco · ${p}vault · ${p}safe  ·  ${p}lock · ${p}stash  ·  ${p}unlock
 
 *ACTIVIDAD*
 ${p}relevancia · ${p}importancia · ${p}relevance
@@ -577,7 +577,7 @@ ${bloqueAcciones(p, c)}
 *${p}robo* @user <cant.> · *${p}contrarobo* · *${p}buscados*
 *${p}asalto* · *${p}atraco* — contra la casa, no contra nadie
 *${p}robarbanco* @user — a por lo que guarda · *${p}quienmerobo*
-*${p}vault* · *${p}lock* <cant.> · *${p}unlock* <cant.> — a salvo del *${p}robo*, no del *${p}robarbanco*
+*${p}banco* · *${p}lock* <cant.> · *${p}unlock* <cant.> — a salvo del *${p}robo*, no del *${p}robarbanco*
 *${p}apostar* mitad/todo/2k · *${p}duel* @user · *${p}dar* @user <cant.>
 *${p}tienda* · *${p}comprar* <objeto> · *${p}bote* · *${p}caja*
 *${p}aura* la tirada · *${p}saldo* · *${p}top* · *${p}hoy* · *${p}guia*

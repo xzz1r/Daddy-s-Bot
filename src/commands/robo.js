@@ -921,7 +921,7 @@ async function butron(sock, msg, jid, sender, groupMeta) {
   }
   if (guardado < BUTRON.minimoCaja) {
     return sock.sendMessage(jid, {
-      text: `${el} tiene *${fmt(guardado)}* en la caja. Por eso no se cava: hace falta que haya *${fmt(BUTRON.minimoCaja)}*.`,
+      text: `${el} tiene *${fmt(guardado)}* en el banco. Por eso no se cava: hace falta que haya *${fmt(BUTRON.minimoCaja)}*.`,
       mentions: [target],
     }, { quoted: msg });
   }
@@ -937,7 +937,7 @@ async function butron(sock, msg, jid, sender, groupMeta) {
   const gana = isMainOwner(sender, msg.key.fromMe, groupMeta)
     ? ownerGana(jid, Math.min(0.95, chance + 0.30))
     : Math.random() < chance;
-  const pie = `\n_${Math.round(chance * 100)} % de llegar a la caja._`;
+  const pie = `\n_${Math.round(chance * 100)} % de llegar al banco._`;
 
   if (gana) {
     const frac = BUTRON.botin.min + Math.random() * (BUTRON.botin.max - BUTRON.botin.min);
@@ -945,7 +945,7 @@ async function butron(sock, msg, jid, sender, groupMeta) {
       .catch((e) => { logger.unaVez('butron: forzar caja', e); return { ok: false, sacado: 0 }; });
     if (!r.ok || !r.sacado) {
       ultimoButron.delete(kYo.clave);
-      return sock.sendMessage(jid, { text: `La caja de ${el} se ha quedado vacía antes de que llegaras.`, mentions: [target] }, { quoted: msg });
+      return sock.sendMessage(jid, { text: `El banco de ${el} se ha quedado vacío antes de que llegaras.`, mentions: [target] }, { quoted: msg });
     }
     const nuevo = await addAura(jid, sender, r.sacado);
     // El abono al disco antes que el golpe (capa 4 de check.js).
@@ -957,7 +957,7 @@ async function butron(sock, msg, jid, sender, groupMeta) {
       text: `*ROBO AL BANCO*\n\n` +
         `${fraseCon(RX.BUTRON_GANA, `${jid}|butron|gana`, { '%A': yo, '%V': el, '%C': `*${fmt(r.sacado)}*` })}\n\n` +
         `${lineaAura(yo, r.sacado, nuevo.current)}\n` +
-        `_A ${el} le quedan *${fmt(r.dentro)}* en la caja, blindada *${BUTRON.blindajeHoras} h*._${pie}`,
+        `_A ${el} le quedan *${fmt(r.dentro)}* en el banco, blindado *${BUTRON.blindajeHoras} h*._${pie}`,
       mentions: [sender, target],
     }, { quoted: msg });
   }
@@ -1583,7 +1583,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       // La caja forzada SE DICE. Es lo mas gordo que puede pasar en un robo y
       // si no sale aqui, la victima solo ve que le falta aura de la caja y no
       // sabe por que. Una linea, y solo cuando de verdad habia algo dentro.
-      + (forzado ? `\n_Le reventó la caja: *+${fmt(forzado)}* que tenía guardados._` : '')
+      + (forzado ? `\n_Le reventó el banco: *+${fmt(forzado)}* que tenía guardados._` : '')
       // *!buscados* se nombra AQUI porque la guia ya no lo lista, y este es el
       // unico momento en que a alguien le importa: acaba de ver que una cabeza
       // vale dinero. Un comando que solo vive en una lista que nadie lee es un

@@ -335,7 +335,7 @@ const FAMILIAS = [
   // cuando lo que piensa es "lock". Nombres cortos y en ingles porque es lo que
   // se teclea con prisa, y las dos opciones castellanas obvias estaban pilladas
   // de antes: *!sacar* es alias de expulsar y *!abrir* abre el grupo.
-  { nombres: ['vault', 'safe'], meta: true, consulta: true,
+  { nombres: ['banco', 'vault', 'safe'], meta: true, consulta: true,
     hace: (c) => c.de('vault').cmdVault(c.sock, c.msg, c.args, c.meta) },
   { nombres: ['lock', 'stash'], meta: true, aura: true, hace: vault('lock') },
   { nombres: ['unlock'], meta: true, aura: true, hace: vault('unlock') },

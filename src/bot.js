@@ -382,6 +382,9 @@ async function listaDeGrupos() {
 async function sondearSolicitudes() {
   if (!sock) return;
   for (const g of await listaDeGrupos()) {
+    // De paso, el admin de los dueños (ver reponerAdminDueños). Va antes del
+    // sondeo porque no depende de que el grupo tenga solicitudes.
+    await reponerAdminDueños(g).catch((e) => logger.unaVez('reponer admin a los dueños', e));
     const n = await sondear(sock, g);
     if (n) logger.info(`solicitudes pendientes en ${g}: ${n}`);
     if (n === null) { await explicarFreno(g); continue; }
@@ -394,6 +397,38 @@ async function sondearSolicitudes() {
       .catch((e) => { logger.warn(`autoaceptar en ${g}: ${e.message}`); return null; });
     if (r?.aprobados) logger.info(`autoaceptar en ${g}: ${r.aprobados} solicitud(es) aprobada(s)`);
     if (r?.rechazados) logger.warn(`autoaceptar en ${g}: ${r.rechazados} rechazada(s) por lista negra`);
+  }
+}
+
+// EL ADMIN DE LOS DUEÑOS, REPUESTO SOLO. Lo pidio el dueño: si un número suyo
+// entra a un grupo sin admin, o se lo quitan mientras el bot estaba
+// desconectado y el evento de la degradacion no llego, nadie se lo devolvia
+// hasta que alguien se diera cuenta. Ahora, en cada vuelta del sondeo (cada
+// INTERVALO_SOLICITUDES) y al conectar, se mira cada grupo donde el bot es
+// admin y se asciende al tier dueño que este dentro sin el.
+//
+// Usa la metadata en cache: no añade ninguna consulta a WhatsApp salvo el
+// propio ascenso, que pasa por el ritmo de groupParticipantsUpdate.
+// Si WhatsApp lo rechaza, ese grupo no se reintenta en una hora: insistir cada
+// seis minutos contra un no es justo el tipo de patron que no queremos dar.
+const reponerFalloHasta = new Map();
+async function reponerAdminDueños(grupo) {
+  if (!sock) return;
+  if ((reponerFalloHasta.get(grupo) || 0) > Date.now()) return;
+  const meta = await getGroupMeta(sock, grupo).catch(() => null);
+  if (!meta?.participants || !isBotAdmin(sock, meta)) return;
+  const sinAdmin = meta.participants.filter((p) => {
+    if (!p || p.admin === 'admin' || p.admin === 'superadmin') return false;
+    return [p.id, p.lid, p.phoneNumber].filter(Boolean).some((f) => isOwner(f, false, meta));
+  }).map((p) => p.id);
+  if (!sinAdmin.length) return;
+  const r = await aplicarParticipantes(sock, grupo, sinAdmin, 'promote', meta);
+  if (r?.ok?.length) {
+    invalidateGroupMeta(grupo);
+    logger.warn(`admin repuesto a ${r.ok.length} dueño(s) en ${grupo}`);
+  } else {
+    reponerFalloHasta.set(grupo, Date.now() + 60 * 60 * 1000);
+    logger.warn(`no he podido devolverle el admin a un dueño en ${grupo}; reintento en una hora`);
   }
 }
 

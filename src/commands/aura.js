@@ -191,7 +191,7 @@ const AURA = {
     'Hoy tu cuenta no da pena. Da un poco menos de pena.',
     'Menos pobre que hace un minuto. No mucho menos.',
     'Cobras. Con este saldo ya casi puedes mirar el ranking sin apartar la vista.',
-    'Algo entra en la cuenta. Guárdalo en la caja antes de que te lo huelan.',
+    'Algo entra en la cuenta. Guárdalo en el banco antes de que te lo huelan.',
     'Buena tirada para una cuenta que no tenía nada. Ahora tiene algo, poco, pero algo.',
     'Ganas, y aun así tu saldo cabe en una frase corta.',
     'Hoy la suerte ha tenido un detalle con los bolsillos más tristes del grupo.',
@@ -647,7 +647,7 @@ La moneda del grupo. Empiezas con *${fmt(ARRANQUE)}* y casi todo cuesta.
 
 *!aura* — te da o te quita, a suerte
 *!robo* @alguien [cuánto] — se lo quitas
-*!vault* — lo guardas; el *!robo* no llega ahí
+*!banco* — lo guardas; el *!robo* no llega ahí
 *!robarbanco* @alguien — vas a por lo que tiene guardado
 *!quienmerobo* — quién te ha robado y cuánto
 *!duel* @alguien — 1v1

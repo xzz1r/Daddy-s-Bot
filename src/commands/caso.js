@@ -179,7 +179,7 @@ async function cmdCaso(sock, msg, args, groupMeta) {
   const tag = `@${persona.split('@')[0]}`;
   const lineas = [`*EXPEDIENTE* · ${tag}`];
   lineas.push(`Mensajes: *${fmt(mensajes)}*${iM >= 0 ? ` · ${iM + 1}.º del grupo` : ''}`);
-  lineas.push(`Aura: *${fmt(aura)}*${iA >= 0 ? ` · ${iA + 1}.º` : ''}${caja > 0 ? ` · *${fmt(caja)}* en la caja` : ''}`);
+  lineas.push(`Aura: *${fmt(aura)}*${iA >= 0 ? ` · ${iA + 1}.º` : ''}${caja > 0 ? ` · *${fmt(caja)}* en el banco` : ''}`);
   // Sin golpes ni precio no hay linea: una fila de ceros es ruido.
   // Los golpes se podan a los siete dias (roboStore), asi que la linea lo dice:
   // «3 golpes» a secas sonaria a historial de toda la vida.
