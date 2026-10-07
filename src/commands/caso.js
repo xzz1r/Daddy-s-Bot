@@ -82,8 +82,8 @@ const VEREDICTOS = {
     'Se está enfriando. Un par de días más y pasa a mueble.',
   ],
   pilar: [
-    'Sostiene el grupo a base de mensajes. Nada que alegar.',
-    'Si deja de escribir, el grupo se muere.',
+    'Sostiene el grupo a base de mensajes. Fuera de aquí no se le conoce actividad.',
+    'Si deja de escribir, el grupo se muere. Si sale a la calle, también, del susto.',
     'Está entre los que más escriben. Por lo menos alguien lo hace.',
   ],
   rico: [

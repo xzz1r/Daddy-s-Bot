@@ -55,7 +55,7 @@ const SACADO = [
   'Fuera. El aura vuelve a la mesa, y la mesa está llena de gente con hambre.',
   'Sacado, y con la comisión cobrada. El miedo sale caro.',
   'Abierto. Parte de lo tuyo acaba en el bote, que es donde acaba todo lo que se mueve aquí.',
-  'En la mano. Ahora te toca decidir en qué gastarlo, pequeña.',
+  'En la mano. Fuera del banco dura lo que tardes en apostarlo, pequeña.',
   'Sacado. El banco pesa menos y tu saldo un poco más, que ya era hora.',
 ];
 

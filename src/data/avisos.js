@@ -542,28 +542,28 @@ const VER_UNA_VEZ = [
 // el bot no sabe cual de ellas se ha saltado cada uno. Uno en singular y
 // varios en vosotros, como el resto del bot. En baraja.
 const PURGE_UNO = [
-  'fuera. Las reglas estaban a la vista y no las has cumplido.',
-  'a la calle. Aquí se entra cumpliendo las reglas, y tú no las cumples.',
+  'fuera. Las reglas estaban a la vista y no las has leído, como no lees nada.',
+  'a la calle. Aquí se entra cumpliendo las reglas, y tú entraste a mirar.',
   'fuera del grupo. Las normas no eran opcionales y te las has saltado, chiquitina.',
-  'te vas por no cumplir las reglas. Sin segunda oportunidad.',
+  'te vas por no cumplir las reglas. Sin segunda oportunidad, que la primera ya la tiraste.',
   'las reglas pedían poco y no has llegado ni a eso. Fuera.',
-  'fuera. No cumples lo que pide el grupo, y aquí no se queda quien no cumple.',
-  'te vas. Las reglas no se negocian, y tú no las cumples.',
-  'fuera. Cumplir las reglas te habría costado menos que esto.',
-  'se acabó tu sitio aquí. Las reglas mandan y no las cumples.',
+  'fuera. No cumples lo que pide el grupo, y el grupo no te va a echar de menos.',
+  'te vas. Las reglas no se negocian, y tú no tenías nada con qué negociar.',
+  'fuera. Cumplir las reglas te habría costado menos que esto, pero pensar te cuesta más.',
+  'se acabó tu sitio aquí. Las reglas mandan, y tu plaza va para alguien que sepa leer.',
   'fuera. Aquí las reglas se cumplen o se sale y tú sales, pequeña.',
 ];
 
 const PURGE_VARIOS = [
-  'fuera. Las reglas estaban a la vista y no las habéis cumplido.',
-  'a la calle. Aquí se entra cumpliendo las reglas, y vosotros no las cumplís.',
+  'fuera. Las reglas estaban a la vista y no las habéis leído, como no leéis nada.',
+  'a la calle. Aquí se entra cumpliendo las reglas, y vosotros entrasteis a mirar.',
   'fuera del grupo. Las normas no eran opcionales, y os las habéis saltado.',
-  'os vais por no cumplir las reglas. Sin segunda oportunidad.',
+  'os vais por no cumplir las reglas. Sin segunda oportunidad: la primera ya la tirasteis.',
   'las reglas pedían poco y no habéis llegado ni a eso. Fuera.',
-  'fuera. No cumplís lo que pide el grupo, y aquí no se queda quien no cumple.',
-  'os vais. Las reglas no se negocian, y vosotros no las cumplís.',
-  'fuera. Cumplir las reglas os habría costado menos que esto.',
-  'se acabó vuestro sitio aquí. Las reglas mandan y no las cumplís.',
+  'fuera. No cumplís lo que pide el grupo, y el grupo no os va a echar de menos.',
+  'os vais. Las reglas no se negocian, y vosotros no teníais nada con qué negociar.',
+  'fuera. Cumplir las reglas os habría costado menos que esto, pero pensar os cuesta más.',
+  'se acabó vuestro sitio aquí. Las reglas mandan, y la plaza va para gente que sepa leer.',
   'fuera. Aquí las reglas se cumplen o se sale, y vosotros salís.',
 ];
 

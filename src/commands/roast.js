@@ -101,13 +101,13 @@ function getActivityPhrases(count) {
       `%N, ${c} mensajes. Mientras otros se esconden, tú das la cara. Es lo mínimo, y aquí casi nadie cumple el mínimo.`,
       `${c} mensajes, %N. El marcador no miente, y el que se ría de ti que enseñe primero su número.`,
       `%N, ${c} mensajes. Te has ganado el derecho a ser insoportable, y lo estás usando.`,
-      `${c} mensajes, %N. El motor del grupo eres tú y el resto va de pasajero.`,
-      `%N, ${c}. Con ese número ya no se te roastea: se les piden explicaciones a los demás.`,
+      `${c} mensajes, %N. El motor del grupo eres tú: mucho ruido, mucho gasto y ningún sitio al que ir.`,
+      `%N, ${c}. Con ese número ya no se te roastea por callar: se te roastea por no saber callarte.`,
       `${c} mensajes, %N. Si hablaras menos, el grupo lo notaría; si hablaran menos los demás, no lo notaría nadie.`,
-      `%N, ${c} mensajes. Eres una puta máquina de conversación, y encima gratis.`,
+      `%N, ${c} mensajes. Eres una puta máquina de conversación, y como toda máquina, no tienes vida.`,
       `${c} mensajes, %N. Llevas tú el ritmo del grupo, y los demás, a aguantarlo.`,
-      `%N, ${c} mensajes. Roastearte es difícil: tu único delito es dejar en evidencia a los fantasmas.`,
-      `${c} mensajes, %N. Ya puedes presumir, que te lo has ganado a pulso, y los demás que tomen nota.`,
+      `%N, ${c} mensajes. Roastearte es fácil: con ese número, se ve desde aquí que no sales de casa.`,
+      `${c} mensajes, %N. Ya puedes presumir, que te lo has ganado a pulso, a pulgar y a costa de dormir.`,
     ];
   }
   // 60-149

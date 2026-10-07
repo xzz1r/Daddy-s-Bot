@@ -66,7 +66,7 @@ let DUEL_WIN = [
   'Duelo para %W. %L ya puede ir pensando una excusa, que el grupo la está esperando.',
   '%L ha perdido un duelo que decidió jugar. Quien no sale al campo no lo pisan, y %L ha salido, imbécil.',
   '%W suma, %L resta, y el marcador ya lo ha publicado para todo el grupo.',
-  '%L ha demostrado una cosa en este duelo: que contra %W no tiene nada que hacer.',
+  '%L ha demostrado en este duelo que contra %W no tiene nada que hacer, y lo ha pagado en aura.',
   'El dado ha hablado y ha dicho %W. A %L le ha dicho otra cosa que no se puede repetir.',
   '%W cobra el duelo con la calma de quien cobra lo suyo. %L paga con la cara colorada.',
   '%L ha perdido y ahora tiene dos opciones: pedir la revancha o callarse. Las dos le van a salir mal.',

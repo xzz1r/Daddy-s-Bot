@@ -55,7 +55,7 @@ const CLOSERS = [
   '_Léelo otra vez despacio. Sigues siendo tú._',
   '_El grupo toma nota. Tú, a tragar._',
   '_Queda archivado en tu expediente._',
-  '_Nadie va a salir a defenderte. Estás tú solo._',
+  '_Nadie va a salir a defenderte. Ni tu sombra._',
   '_Ya puedes cambiarte la foto. No va a servir._',
   '_Esto es lo suave. Lo demás no se puede escribir._',
   '_Respira hondo. Sigues siendo esto._',

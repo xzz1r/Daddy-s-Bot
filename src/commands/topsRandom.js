@@ -55,12 +55,12 @@ const CIERRES = [
   'Sois {N} y os ha tocado por sorteo. Ni el sorteo os quería.',
   'Los {N} de hoy, servidos. Los demás, que no se rían tan alto.',
   '{N} nombres metidos en el mismo saco, y el saco huele.',
-  'Lo que diga el título es lo de menos. Lo que cuenta es que sois vosotros los {N}.',
+  'El título da igual. Lo que se va a recordar es que os tocó a vosotros, los {N}.',
   'Los {N} en el cartel. A partir de ahora, esto es lo que se recuerda de vosotros.',
   'Tanta gente en el grupo y han salido justo estos {N}. Qué puntería.',
   '{N} nombres y ni una queja válida. El sorteo no admite reclamaciones.',
   'Los {N}, apuntados con arroba. Así no se escapa ni uno.',
-  'Enhorabuena a los {N}, o lo que sea esto.',
+  'Los {N}, enhorabuena. Es lo más cerca de un premio que vais a estar en la vida.',
 ];
 
 function rellenar(plantilla, picked) {
