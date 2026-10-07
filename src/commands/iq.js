@@ -99,14 +99,14 @@ const BAJO = [
   'Estás en la franja del que lee las instrucciones después de romper la pieza. Y ni entonces las lee entera.',
   '%IQ. Un escalón por debajo del que hay que ser para que te tomen en serio en una discusión seria.',
   'Con %IQ das el nivel para lo simple y te caes en cuanto hay que sostener un razonamiento largo.',
-  'Tienes el criterio de quien elige por cansancio. Nunca decide: se rinde y llama a eso decidir.',
-  'Con %IQ vas tirando. Que es exactamente lo que se dice de alguien cuando no se puede decir nada mejor.',
+  'Tienes el criterio de quien elige por cansancio: te rindes y lo llamas decidir.',
+  'Con %IQ vas tirando, que es lo que se dice de alguien cuando no hay nada mejor que decir.',
   '%IQ de IQ. El tramo de los que se saben la teoría de memoria y no la entienden ni por accidente.',
   '%IQ. Un poco por debajo de lo normal, un poco por encima de lo preocupante. El limbo exacto.',
   'Con %IQ te apañas. Apañarse es lo que hace la gente que no llega y llevas años apañándote, mi niña.',
   '%IQ de IQ. Justo lo que hace falta para funcionar sin que nadie te pregunte nunca la opinión.',
   '%IQ. El número que sale cuando alguien tiene ganas pero no herramientas. Y tú ni las ganas, la verdad, pringado.',
-  '%IQ de IQ. Justo lo que hace falta para discutir de oídas y callarte cuando llega un dato.',
+  '%IQ de IQ. Te da para discutir de oídas y para callarte en cuanto llega un dato.',
   '%IQ. Un escalón por debajo de tomar nota, y encima te ofendes si te la toman. Qué asco de orgullo, pequeña.',
   'Con %IQ vas tirando hasta que hay que leer el segundo párrafo. Ahí se te acaba el combustible, pringado.',
   '%IQ. Te falta un hervor y te sobra seguridad. Mala mezcla para abrir la boca en el grupo.',
@@ -182,7 +182,7 @@ const ALTO = [
 ];
 
 const GENIO = [
-  '%IQ. Superdotación en un grupo de WhatsApp. El universo tiene un sentido del humor de mierda.',
+  '%IQ. Superdotación en un grupo de WhatsApp. Qué desperdicio.',
   'Con %IQ podrías estar en cualquier sitio y has elegido esto. Es la mayor tontería que has hecho en tu vida.',
   '%IQ de IQ. Aquí dentro eres lo más listo que hay, y el bot incluido.',
   '%IQ. Cerebro de sobra. Lo desperdicias con una elegancia que da rabia.',
@@ -197,9 +197,9 @@ const GENIO = [
   '%IQ. Genio certificado. Lo único que no calculaste es en qué grupo te ibas a meter.',
   'Con %IQ te sobra cabeza para dirigir esto y te faltan ganas de hacerlo. Menos mal para todos, mi niña.',
   '%IQ. Mente privilegiada. Lástima que el móvil sea el de siempre y el grupo, este.',
-  'Con %IQ hay gente que cambia el mundo. Tú cambias de conversación cuando se pone aburrida, que es siempre.',
+  'Con %IQ podrías cambiar el mundo. Cambias de conversación cuando se pone aburrida, que es siempre.',
   '%IQ de IQ. Tienes tanta cabeza que contradecirte da miedo. Y lo disfrutas, cabrón.',
-  '%IQ. La media del grupo sube cuando entras y baja cuando te vas. Así de simple, así de injusto.',
+  '%IQ. La media del grupo sube cuando entras y baja cuando te vas.',
   'Con %IQ tienes todo para triunfar menos una cosa: ganas de aguantar a gente normal.',
   '%IQ de IQ. Por fin alguien que entiende el bot mejor que el bot.',
 ];
