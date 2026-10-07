@@ -5,11 +5,11 @@
 // consulta a WhatsApp) y se devuelve si el recurso falla, para que nadie pague
 // por una canción que no llegó.
 
-const { spendAura, addAura, pagarConCaja, flushAura } = require('./auraStore');
+const { spendAura, addAura, pagarConCaja, flushAura, devolverACaja } = require('./auraStore');
 const { PRECIOS, SALDO_MINIMO, OBJETOS, DIA, CAJA, ADMIN } = require('./economia');
 // require perezoso: roboStore importa de aqui? No, pero se deja explicito para
 // que quede claro que este modulo depende del inventario.
-const { tieneSocio, aportarAlBote } = require('./roboStore');
+const { tieneSocio, aportarAlBote, retirarDelBote } = require('./roboStore');
 const { fmt, pickFresh, claveDia } = require('./helpers');
 const { isOwner, isGroupAdmin } = require('./wa');
 const { clavesMapa, juntarEnMapa, sumar } = require('./persona');
@@ -183,9 +183,26 @@ async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta
 }
 
 // Devuelve lo cobrado. Se llama cuando el recurso falló después del cobro.
-async function devolver(groupJid, senderJid, pagado, concepto = null) {
-  if (!pagado) return;
-  await addAura(groupJid, senderJid, pagado);
+//
+// Acepta el numero de siempre o el objeto entero de `cobrar`, y con el objeto
+// DEVUELVE CADA COSA A SU SITIO. Lo pidio el dueño: si el comando se pago con
+// el banco, antes se devolvia solo el precio y a la vista —el 22 % de
+// impuesto se perdia y lo del banco quedaba a tiro de cualquier robo—. Ahora
+// lo suelto vuelve suelto, lo del banco vuelve entero al banco, y el impuesto
+// sale del bote, que es donde habia ido.
+async function devolver(groupJid, senderJid, pago, concepto = null) {
+  const p = pago && typeof pago === 'object' ? pago : { pagado: pago };
+  if (!p.pagado) return;
+  const delBanco = Math.max(0, p.deLaCaja || 0);
+  const impuesto = Math.max(0, p.impuestoCaja || 0);
+  const suelto = Math.max(0, p.pagado - (delBanco - impuesto));
+  if (suelto > 0) await addAura(groupJid, senderJid, suelto);
+  if (delBanco > 0) {
+    // Primero sale del bote y luego entra al banco: si algo se corta en medio,
+    // se pierde un impuesto, que es mejor que inventar aura.
+    if (impuesto > 0) await retirarDelBote(groupJid, impuesto).catch((e) => logger.unaVez('cobro: impuesto de vuelta del bote', e));
+    await devolverACaja(groupJid, senderJid, delBanco);
+  }
   // Y SE BORRA EL USO. Un comando devuelto no ha ocurrido: si el gif no llego o
   // el roast no tenia a quien, esa vez no puede contar para encarecer la
   // siguiente. Sin esto, una tarde con la web caida dejaba a alguien pagando el

@@ -522,6 +522,22 @@ async function forzarCaja(groupJid, victimaJid, fraccion) {
   });
 }
 
+// DEVOLVER AL BANCO lo que se cobro de el para un comando que luego no salio.
+// Sin tope de capacidad ni enfriamiento: no es guardar, es deshacer un cobro.
+async function devolverACaja(groupJid, userJid, cantidad) {
+  const n = Math.floor(cantidad);
+  if (!(n > 0)) return 0;
+  await load();
+  const qKey = `${groupJid}|${canonicalJid(userJid)}`;
+  return serialized(qKey, () => {
+    const z = cajaDe(groupJid);
+    const kZ = foldCaja(z, userJid);
+    z[kZ] = (z[kZ] || 0) + n;
+    scheduleSave();
+    return z[kZ];
+  });
+}
+
 // PAGAR CON LO GUARDADO. Lo pidio el dueño: «que descuente lo que se tenga
 // guardado en el banco para que cuando se compre algo con eso no diga que no
 // tienes aura, simplemente descuente del banco con impuestos».
@@ -672,4 +688,4 @@ async function flushAura() {
 }
 
 module.exports = { getAura, addAura, spendAura, drainAura, transferAura, getAuraRanking, resetAura, flushAura, STARTING_AURA,
-  verCaja, esperaCaja, meterEnCaja, sacarDeCaja, forzarCaja, pagarConCaja };
+  verCaja, esperaCaja, meterEnCaja, sacarDeCaja, forzarCaja, pagarConCaja, devolverACaja };

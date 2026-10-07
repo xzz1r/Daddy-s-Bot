@@ -203,6 +203,119 @@ let ADMIN_PHRASES = [
   ],
 ];
 
+// ─── LA DISTANCIA REAL CON EL DE ARRIBA ──────────────────────────────────────
+//
+// Lo pidio el dueño. Las frases del podio decian «por poco» o «te falta un
+// empujon» sin mirar cuantos mensajes separaban a nadie: podias ir segundo a
+// dos mil del primero y leer que estabas a un paso. Ahora se mide el hueco con
+// el de arriba (o, para el primero, con el de abajo) y se elige frase de
+// cerca o de lejos. %G es ese hueco, ya escrito («*340 mensajes*»).
+const DISTANCIA = {
+  primeroJusto: [
+    'Vas primero, pero con el segundo pegado al culo: %G de ventaja y bajando.',
+    'Vas arriba por %G. Como te despistes una tarde, te pasan por encima.',
+    'Eres el número uno con %G de margen, que es lo que pierdes en una tarde floja.',
+    'Te sientas en el trono con %G de ventaja. Yo no me relajaría, pequeña.',
+    'Arriba del todo, pero por %G. El segundo ya te está oliendo la nuca.',
+    'Primero por los pelos: %G. Un audio largo del de abajo y se acabó tu reinado.',
+    'Lideras por %G, que en este grupo es lo que suelta uno en una bronca. Ojo contigo.',
+    'Tienes el primer puesto con %G de colchón, y tu colchón es de los finos.',
+    'Te llevas el oro por %G. Escribe esta noche o mañana lo tienes que devolver.',
+    'Eres el número uno, payaso, aunque el segundo está a %G y con ganas de quitártelo.',
+  ],
+  primeroHolgado: [
+    'Le sacas %G al segundo. Te aburres de ganar y aun así no te callas, yonqui.',
+    'Vas primero con %G de ventaja. El resto se pelea por la plata porque tu oro ni lo huele.',
+    'Número uno por %G. Para alcanzarte, el segundo tendría que dejar de dormir una semana.',
+    'Vas tan por delante que el segundo te ve a %G y ni lo intenta, reina.',
+    'Le has metido %G al de abajo. Eso no se remonta ni con insomnio.',
+    'El trono es tuyo, y con %G de foso alrededor. Que te lo intenten quitar.',
+    'Primero con %G de diferencia. Si te callas un mes, igual te pillan. Igual.',
+    'Vas %G por delante del segundo. Llevas el grupo a cuestas y el marcador lo dice.',
+    'Número uno a %G del siguiente. Los demás se reparten tus sobras.',
+    'Le sacas %G al segundo, que ya ni mira hacia arriba, el pobre.',
+  ],
+  segundoCerca: [
+    'Estás a %G del primero. Un par de broncas bien llevadas y te sientas en el trono.',
+    'Segundo, a %G del número uno. Huele el oro, muñeca, que lo tienes ahí.',
+    'Te quedan %G para pasar al primero. Una noche sin dormir y mañana mandas tú.',
+    'Plata a %G del oro. Si no lo pasas es porque no te da la gana.',
+    'Estás a %G del primero, y el primero lo sabe.',
+    'Vas segundo por %G. Un día bueno y le quitas el puesto, pequeña.',
+    'Te separan %G del primero. Eso se escribe en una tarde de cotilleo.',
+    'A %G del oro. Lo tienes tan cerca que joder que te quedes en plata.',
+    'Vas segundo, pisándole los talones al primero: %G y nada más.',
+    'Tienes la plata, a %G. Como el primero se vaya de vacaciones, el trono es tuyo.',
+  ],
+  segundoLejos: [
+    'Te tiene a %G el primero. Eso no lo recortas ni a base de audios.',
+    'Plata, a %G del oro. Lo ves de lejos, como quien mira un yate desde la playa.',
+    'Vas segundo, pero a %G del primero. Tu carrera es la de los que no ganan.',
+    'Te faltan %G para el primer puesto. Pide un café, que va para largo, princesa.',
+    'Tienes la plata, a %G. Al primero ni le hace falta mirarte.',
+    'Medalla de plata a %G del número uno. Pelea por el oro, ninguna, y tú lo sabes.',
+    'A %G del primero. Para alcanzarle tendrías que escribir hasta en sueños.',
+    'Te quedan %G por detrás del oro, y no lo ves ni con prismáticos, bobo.',
+    'Estás a %G del primero, tirado en la plata, que es lo que te pega.',
+    'Te sacan %G desde el primer puesto. Agárrate a la plata, que es lo que hay.',
+  ],
+  terceroCerca: [
+    'Estás a %G del segundo. Un empujón y le quitas la plata, chiquitina.',
+    'Tienes el bronce, a %G de la plata. Eso lo recuperas en una conversación.',
+    'Te faltan %G para subir al segundo. Hoy mismo, si te pones.',
+    'Tercero, a %G del de arriba. La plata la tienes a tiro de piedra.',
+    'Te quedas a %G del segundo puesto. Si no lo pasas esta semana es por pura pereza.',
+    'Bronce por los pelos: el de arriba te saca %G y nada más.',
+    'Estás a %G de la plata. Escribe un poco más y el podio se reordena.',
+    'Vas tercero, pisándole los talones al segundo: %G de diferencia.',
+    'Te separan %G del segundo, y ya le estás oliendo la nuca.',
+    'Te quedan %G para subir un escalón. Ponte las pilas, muñeca.',
+  ],
+  terceroLejos: [
+    'Tercero, y a %G del segundo. Del podio tienes el escalón y poco más.',
+    'Tienes el bronce a %G de la plata. El de arriba ni sabe que existes.',
+    'Te faltan %G para el segundo. Disfruta del bronce, que es lo que hay.',
+    'A %G del segundo puesto. Para eso hace falta escribir, no mirar.',
+    'Tercero con %G por detrás del segundo. Estás en el podio de milagro.',
+    'Tienes el bronce, y la plata a %G. No la pillas ni corriendo, reina.',
+    'Estás a %G del segundo. Eso no se arregla con dos memes.',
+    'Vas tercero, a %G de la plata, y no parece que vayas a acortar.',
+    'Te sacan %G desde el segundo. El bronce es tuyo; lo demás, de momento, no.',
+    'Bronce a %G del de arriba. Te ha tocado el escalón barato del podio.',
+  ],
+};
+
+// Frases viejas del podio que dan por hecho una distancia. Las de «cerca» solo
+// salen si de verdad estas cerca; las de dominio del primero, solo si va
+// sobrado. El resto vale para cualquier hueco.
+const SUENA_CERCA = /por poco|empuj|un escal[oó]n|a un puesto|falta un puesto|tenerlo todo|vacaciones|si aflojas|si faltas/i;
+const SUENA_SOBRADO = /indiscutible|sin discusi|nadie te lo va a quitar|el resto compite|que descansen/i;
+
+// Cerca = a menos de 15 mensajes o del 10 % de lo que lleva el de arriba.
+function estaCerca(gap, arriba) {
+  return gap <= Math.max(15, Math.round(arriba * 0.10));
+}
+
+const msgsTxt = (n) => `*${n}* ${n === 1 ? 'mensaje' : 'mensajes'}`;
+
+// La frase de un puesto del podio, mirando el hueco real.
+function fraseDelPodio(jid, i, admin, gap, arriba) {
+  const cerca = estaCerca(gap, arriba);
+  const clave = i === 0 ? (cerca ? 'primeroJusto' : 'primeroHolgado')
+    : i === 1 ? (cerca ? 'segundoCerca' : 'segundoLejos')
+    : (cerca ? 'terceroCerca' : 'terceroLejos');
+  const viejas = (admin ? ADMIN_PHRASES[i] : MEMBER_PHRASES[i]).filter((f) => {
+    if (i === 0) return cerca ? !SUENA_SOBRADO.test(f) : true;
+    return cerca ? true : !SUENA_CERCA.test(f);
+  });
+  // Mitad y mitad: la distancia se dice siempre en la linea de abajo, asi que
+  // no hace falta que todas las frases la repitan.
+  if (Math.random() < 0.5 || !viejas.length) {
+    return pickFresh(DISTANCIA[clave], `${jid}|count|dist|${clave}`).replace(/%G/g, msgsTxt(gap));
+  }
+  return pickFresh(viejas, `${jid}|count|${i}|${admin ? 'a' : 'm'}|${cerca ? 'c' : 'l'}`);
+}
+
 // Fecha del ultimo reseteo, en formato corto. Se calcula a mano en vez de con
 // toLocaleDateString porque el locale del servidor no es fiable y en la VPS
 // salia en ingles.
@@ -299,8 +412,12 @@ async function cmdCount(sock, msg, groupMeta, args) {
     const phone = mentioned.split('@')[0];
     const msgs = count === 1 ? '1 mensaje' : `${count} mensajes`;
     const rankStr = rankIdx >= 0 ? ` — puesto #${rankIdx + 1}` : '';
+    // Y a cuanto esta del de arriba, que es lo que de verdad quiere saber
+    // quien pregunta por alguien.
+    const arriba = rankIdx > 0 ? sorted[rankIdx - 1] : null;
+    const huecoStr = arriba ? `\n_A ${msgsTxt(arriba.count - count)} del puesto #${rankIdx}._` : '';
     return sock.sendMessage(jid, {
-      text: `@${phone} tiene *${msgs}* en este grupo${rankStr}.` + await pieDeReset(jid),
+      text: `@${phone} tiene *${msgs}* en este grupo${rankStr}.` + huecoStr + await pieDeReset(jid),
       mentions: [mentioned],
     }, { quoted: msg });
   }
@@ -322,9 +439,17 @@ async function cmdCount(sock, msg, groupMeta, args) {
 
     if (i < 3) {
       const admin = isAdmin(groupMeta?.participants, u.jid);
-      const phrase = pickFresh(admin ? ADMIN_PHRASES[i] : MEMBER_PHRASES[i], `${jid}|count|${i}|${admin ? 'a' : 'm'}`);
+      // El hueco: el primero contra el segundo; el resto, contra el de arriba.
+      const ref = i === 0 ? top[1] : top[i - 1];
+      const gap = ref ? Math.abs(ref.count - u.count) : 0;
+      const phrase = ref
+        ? fraseDelPodio(jid, i, admin, gap, i === 0 ? u.count : ref.count)
+        : pickFresh(admin ? ADMIN_PHRASES[i] : MEMBER_PHRASES[i], `${jid}|count|${i}|${admin ? 'a' : 'm'}`);
+      const linea = !ref ? ''
+        : i === 0 ? `_Le saca ${msgsTxt(gap)} al segundo._\n`
+        : `_A ${msgsTxt(gap)} del ${i === 1 ? 'primero' : 'segundo'}._\n`;
       text += `${pos} *@${phone}* — ${msgs}\n`;
-      text += `${phrase}\n\n`;
+      text += `${phrase}\n${linea}\n`;
     } else {
       text += `${pos} @${phone} — ${msgs}\n`;
     }
@@ -356,4 +481,4 @@ async function cmdResetCount(sock, msg, groupMeta) {
   }, { quoted: msg });
 }
 
-module.exports = { cmdCount, cmdResetCount, MEMBER_PHRASES, ADMIN_PHRASES, fechaCorta, rankedUsers };
+module.exports = { cmdCount, cmdResetCount, MEMBER_PHRASES, ADMIN_PHRASES, DISTANCIA, estaCerca, fechaCorta, rankedUsers };

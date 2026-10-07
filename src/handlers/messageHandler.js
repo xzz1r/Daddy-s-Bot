@@ -2589,6 +2589,7 @@ async function handleMessage(sock, msg, opciones = {}) {
   // Lo cobrado se guarda para poder DEVOLVERLO si el comando revienta. Ver el
   // catch del final.
   let cobradoAqui = 0;
+  let pagoAqui = null;   // el cobro entero: para devolver cada parte a su sitio (suelto, banco, impuesto)
 
   // EL AURA VIVE POR GRUPO, ASI QUE EN PRIVADO NO HAY DE DONDE COBRAR — y la
   // condicion de abajo lleva `jid.endsWith('@g.us')` justamente por eso. El
@@ -2625,6 +2626,7 @@ async function handleMessage(sock, msg, opciones = {}) {
       return;
     }
     cobradoAqui = pago.pagado || 0;
+    pagoAqui = pago;
   }
 
   try {
@@ -2677,7 +2679,7 @@ async function handleMessage(sock, msg, opciones = {}) {
     // relevancia al owner) devuelven SIN_SERVICIO y aquí se deshace el cobro,
     // en silencio, para no añadir un mensaje donde el comando eligió callarse.
     if (esSinServicio(resultado) && cobradoAqui > 0) {
-      await devolverAura(jid, sender, cobradoAqui, conceptoCobro)
+      await devolverAura(jid, sender, pagoAqui || cobradoAqui, conceptoCobro)
         .catch((e) => logger.unaVez('devolver aura', e));
       cobradoAqui = 0;
     }
@@ -2693,7 +2695,7 @@ async function handleMessage(sock, msg, opciones = {}) {
     // Los comandos que se cobran por dentro (COBRAN_SOLOS) ya devuelven ellos
     // mismos cuando falla su recurso; aqui solo se deshace lo que se cobro aqui.
     if (cobradoAqui > 0) {
-      await devolverAura(jid, sender, cobradoAqui, conceptoCobro)
+      await devolverAura(jid, sender, pagoAqui || cobradoAqui, conceptoCobro)
         .catch((e) => logger.unaVez('devolver aura', e));
     }
 

@@ -113,9 +113,11 @@ const SUELO_TODOS = ARRANQUE;
 // BAJADOS CON LOS PRECIOS (-40 %): con los comandos a 20-30, una tirada mala
 // de antes se llevaba tres comandos de golpe. Se recorta algo menos que los
 // precios, asi que en proporcion se gana un poco mas que antes.
+// Y LA PEQUEÑA SUBE UN ESCALON (7 oct, lo pidio el dueño): es la que sale casi
+// siempre y se habia quedado corta despues del recorte. La grande no cambia.
 const TIRADA = {
   grande: [30, 40],
-  pequena: [10, 20],
+  pequena: [15, 25],
 };
 const TIRADA_MIN = { grande: TIRADA.grande[0], pequena: TIRADA.pequena[0] };
 const TIRADA_MAX = { grande: TIRADA.grande[1], pequena: TIRADA.pequena[1] };

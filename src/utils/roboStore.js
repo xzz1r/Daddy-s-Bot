@@ -249,6 +249,18 @@ async function aportarAlBote(g, cuanto) {
   return x.bote;
 }
 
+// Saca del bote hasta `cuanto` (lo que haya, si hay menos). Para deshacer un
+// impuesto que entro por un cobro que luego se devolvio.
+async function retirarDelBote(g, cuanto) {
+  if (!(cuanto > 0)) return 0;
+  await load();
+  const x = grupo(g);
+  const sale = Math.min(x.bote, Math.round(cuanto));
+  x.bote -= sale;
+  if (sale) scheduleSave();
+  return sale;
+}
+
 async function vaciarBote(g) {
   await load();
   const x = grupo(g);
@@ -467,7 +479,7 @@ async function masBuscado(g) {
 module.exports = {
   tieneSocio, gastarUso, tieneUso,
   tienePase, tieneIndulto, gastarIndulto,
-  verBote, aportarAlBote, vaciarBote,
+  verBote, aportarAlBote, retirarDelBote, vaciarBote,
   verCaja, aportarACaja, sacarDeCaja, seguridadTienda, anotarAtraco, vetarDeTienda, vetoTienda,
   ultimaVentaja, anotarVentaja,
   objetosDe, darObjeto, gastarGanzua, tieneEscudo, tieneCebo,

@@ -1035,7 +1035,7 @@ function hazAccion(nombre) {
       traido = await traerAccion(cat, nsfw, catNsfw);
     } catch (e) {
       logger.warn(`accion ${nombre}: ${e.message}`);
-      await devolver(jid, quien, pago.pagado, concepto).catch((e) => logger.unaVez('acciones: devolver', e));
+      await devolver(jid, quien, pago, concepto).catch((e) => logger.unaVez('acciones: devolver', e));
       return sock.sendMessage(jid, {
         text: `No he podido traer el gif. No te he cobrado${voc(quien, msg.key.fromMe, groupMeta, 'princesa')}.`,
       }, { quoted: msg });
