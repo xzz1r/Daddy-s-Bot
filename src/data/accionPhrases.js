@@ -641,7 +641,7 @@ const LAUGH = [
   '%A se aguanta la risa dos segundos por educación y luego la suelta en la cara de %V.',
   'Nadie se atrevía. %A se ríe de %V y el grupo aprende que se podía.',
   '%V no ha dicho nada gracioso y %A se ríe igual. Un poco mal de la cabeza.',
-  'La risa de %A mata la conversación, y %V se queda con la frase en la boca.',
+  '%A se ríe tan fuerte que mata la conversación, y %V se queda con la frase en la boca.',
   'Ni mirar hace falta: %A se ríe de %V con los ojos cerrados.',
   '%V intenta seguir hablando por encima de la risa de %A. No le oye nadie.',
   '%A se ríe de %V con esa risa que se contagia. Se contagió a todos menos a %V.',
