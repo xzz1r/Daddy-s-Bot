@@ -577,7 +577,7 @@ ${bloqueAcciones(p, c)}
 *${p}robo* @user <cant.> · *${p}contrarobo* · *${p}buscados*
 *${p}asalto* · *${p}atraco* — contra la casa, no contra nadie
 *${p}robarbanco* @user — a por lo que guarda · *${p}quienmerobo*
-*${p}vault* · *${p}lock* <cant.> · *${p}unlock* <cant.> — a salvo del robo
+*${p}vault* · *${p}lock* <cant.> · *${p}unlock* <cant.> — a salvo del *${p}robo*, no del *${p}robarbanco*
 *${p}apostar* mitad/todo/2k · *${p}duel* @user · *${p}dar* @user <cant.>
 *${p}tienda* · *${p}comprar* <objeto> · *${p}bote* · *${p}caja*
 *${p}aura* la tirada · *${p}saldo* · *${p}top* · *${p}hoy* · *${p}guia*

@@ -647,7 +647,9 @@ La moneda del grupo. Empiezas con *${fmt(ARRANQUE)}* y casi todo cuesta.
 
 *!aura* — te da o te quita, a suerte
 *!robo* @alguien [cuánto] — se lo quitas
-*!vault* — lo guardas donde solo llega un golpe maestro
+*!vault* — lo guardas; el *!robo* no llega ahí
+*!robarbanco* @alguien — vas a por lo que tiene guardado
+*!quienmerobo* — quién te ha robado y cuánto
 *!duel* @alguien — 1v1
 *!aura apostar* [cuánto] — te lo juegas
 *!tienda* — te compras algo

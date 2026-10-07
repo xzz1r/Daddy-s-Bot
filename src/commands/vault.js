@@ -171,7 +171,7 @@ async function cmdVault(sock, msg, args, groupMeta) {
   return sock.sendMessage(jid, {
     text: `*TU CAJA*\n\n` +
       `Dentro: *${fmt(dentro)}* de *${fmt(CAJA.capacidad)}*\n` +
-      `A la vista: *${fmt(saldo)}* — esto te lo roba cualquiera. La caja, solo un golpe maestro.\n\n` +
+      `A la vista: *${fmt(saldo)}* — esto te lo roba cualquiera. La caja, solo un golpe maestro o un *!robarbanco*.\n\n` +
       `_Sacarlo todo costaría *${fmt(coste)}*._\n` +
       (espera > 0
         ? `_No puedes volver a guardar hasta dentro de *${duracion(espera)}*._`
