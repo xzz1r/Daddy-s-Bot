@@ -16,7 +16,7 @@
 const HITO = [
   '%N lleva *%D días* seguidos. Cuando alguien pregunte quién sostiene esto, se enseña este número y punto.',
   '%N lleva *%D días* aquí sin hueco. El hueco lo ponen los demás.',
-  '%N encadena *%D días*. El día que falte, el grupo se va a enterar. El resto, no.',
+  '%N encadena *%D días*. El día que falte, se va a notar.',
   '%N lleva *%D días* seguidos. Hay gente que no aguanta ni una semana de gimnasio.',
   '*%D días* sin fallar, %N. El grupo sigue vivo en parte por culpa tuya.',
   '%N, *%D días*. Mientras otros desaparecen el fin de semana, tú sigues aquí dando la cara, pequeña.',
@@ -73,7 +73,7 @@ const ROTA = [
   '*%P días* tirados, %N. Una racha así no se abandona, y tú la has abandonado.',
   '%N ha roto *%P días*. Desde abajo otra vez, que ese camino ya se lo conoce.',
   '*%P días* se han ido por el desagüe, %N. Y los has tirado tú, pequeña.',
-  '%N, *%P días* de racha y un día de silencio. Ha ganado el silencio.',
+  '%N, *%P días* de racha y un día sin aparecer. Se acabó.',
   'Racha rota. %N llevaba *%P días*, y ahora el marcador empieza de cero.',
   '%N ha perdido *%P días* de golpe. Ni un robo le habría quitado la racha entera así.',
   '*%P días* rotos, %N. Ahora a ver si aguantas otros tantos.',

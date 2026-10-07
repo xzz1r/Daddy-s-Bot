@@ -121,7 +121,7 @@ function calcChance(aO, aA, vO, vA, auraA, auraV) {
 // Desenlaces del robo. Antes solo había dos (te llevas todo / pierdes la mitad),
 // así que el comando era una moneda al aire con texto bonito. Ahora el dado
 // decide TAMBIÉN cuánto, y hay dos extremos que cambian la historia: el golpe
-// maestro se lleva casi el doble, y el desastre le regala tu aura a la víctima.
+// maestro revienta además la caja (antes se llevaba casi el doble), y el desastre le regala tu aura a la víctima.
 //
 // `mult` se aplica sobre lo apostado. Positivo: pasa de la víctima al ladrón.
 // Negativo: sale del ladrón (y en el desastre, entra a la víctima).

@@ -80,7 +80,7 @@ const APUESTA_PIERDE = [
   '%A pierde lo apostado y un poco de credibilidad de propina. Cojonudo.',
   'Pierde %A. La probabilidad estaba ahí, y ha hecho su trabajo.',
   'Fuera. La mesa ni se ha inmutado, cabrón.',
-  'Nada. La estadística cumpliendo su puta faena con puntualidad.',
+  'Nada. Lo normal: la casa siempre gana.',
   'Cae %A. El bote engorda a su costa y nadie va a devolverle una mierda.',
   '%A apuesta, %A pierde. El orden natural de las putas cosas.',
   'Se queda en %S. Casi da pena. Casi, porque es imbécil.',
