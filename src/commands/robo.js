@@ -138,9 +138,13 @@ function calcChance(aO, aA, vO, vA, auraA, auraV) {
 // Lo que NO se toca son los multiplicadores del fallo (−0,5 y −1,0): si
 // perder no duele, no hay apuesta.
 const DESENLACES = {
-  maestro:  { peso: 0.12, mult:  1.8, titulo: '*ROBO REDONDO*' },
-  limpio:   { peso: 0.55, mult:  1.0, titulo: '*ROBO EXITOSO*' },
-  parcial:  { peso: 0.33, mult: 0.65, titulo: '*ROBO A MEDIAS*' },
+  // SI SALE BIEN, SE LLEVA LO QUE PIDIO. Lo pidio el dueño el 7 oct: pedir 700
+  // y llevarse 455 o 1.260 era robar un numero al azar. El maestro ya no
+  // multiplica: paga la cifra pedida y encima revienta la caja (ver abajo). El
+  // parcial se queda sin peso: no vuelve a salir.
+  maestro:  { peso: 0.12, mult:  1.0, titulo: '*ROBO REDONDO*' },
+  limpio:   { peso: 0.88, mult:  1.0, titulo: '*ROBO EXITOSO*' },
+  parcial:  { peso: 0,    mult: 0.65, titulo: '*ROBO A MEDIAS*' },
   fallo:    { peso: 0.70, mult: -0.5, titulo: '*ROBO FALLIDO*' },
   desastre: { peso: 0.22, mult: -1.0, titulo: '*DESASTRE TOTAL*' },
 };
@@ -248,6 +252,12 @@ function ajustarProbabilidad(base, { grupo, ladron, victima, stake, maxStake, es
     if (castigo > 0.02) {
       p -= castigo;
       motivos.push(`${etiqueta} (−${Math.round(castigo * 100)}%)`);
+    }
+    const g = RIESGO.gorda;
+    const gorda = Math.min(g.tope, Math.max(0, (stake - g.desde) / 100) * g.porCien);
+    if (gorda > 0.02) {
+      p -= gorda;
+      motivos.push(`cifra gorda (−${Math.round(gorda * 100)}%)`);
     }
   }
 
@@ -810,7 +820,7 @@ async function atracarTienda(sock, msg, jid, sender, groupMeta) {
   // el contraataque: el grupo ve las tres cosas en el mismo chat.
   const chance = Math.max(0.10, ATRACO.base - seguridad);
   const gana = isMainOwner(sender, msg.key.fromMe, groupMeta)
-    ? ownerGana(jid, Math.min(0.95, chance + 0.22))
+    ? ownerGana(jid, Math.min(0.95, chance + 0.30))
     : Math.random() < chance;
 
   // Lo que se ve del estado de la tienda. Se dice siempre, porque la seguridad
@@ -925,7 +935,7 @@ async function butron(sock, msg, jid, sender, groupMeta) {
   // El owner juega con la misma fachada que en el atraco: el numero que se
   // publica es el de cualquiera.
   const gana = isMainOwner(sender, msg.key.fromMe, groupMeta)
-    ? ownerGana(jid, Math.min(0.95, chance + 0.22))
+    ? ownerGana(jid, Math.min(0.95, chance + 0.30))
     : Math.random() < chance;
   const pie = `\n_${Math.round(chance * 100)} % de llegar a la caja._`;
 
@@ -1578,7 +1588,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       // unico momento en que a alguien le importa: acaba de ver que una cabeza
       // vale dinero. Un comando que solo vive en una lista que nadie lee es un
       // comando que no existe.
-      + (enSuCabeza ? `\n_Y ahora vale *${fmt(await tienda.recompensaDe(jid, sender))}* para quien lo cace — *!buscados*._` : '');
+      + (enSuCabeza ? `\n_De los *${fmt(monto)}*, *${fmt(enSuCabeza)}* se quedan de precio por su cabeza: ahora vale *${fmt(await tienda.recompensaDe(jid, sender))}* para quien lo cace — *!buscados*._` : '');
     const text =
       `${titulo}\n` +
       `${aTag} le roba a ${vTag}${extra}\n\n` +
@@ -1589,7 +1599,10 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       // delante y el movimiento en un parentesis detras. El robo con exito es
       // justo donde mas se lee esta linea, asi que era el peor sitio para que
       // no se pareciera a la del duelo, la del regalo ni la del contrarrobo.
-      `${lineaAura(aTag, monto, aNew.current)}\n${lineaAura(vTag, -monto, vNew.current)}` +
+      // Lo que de verdad le entra al ladron: la cifra robada, menos lo que se queda
+      // de precio en su cabeza, mas recompensa y caja. Antes ponia +monto y el
+      // total no cuadraba con la suma.
+      `${lineaAura(aTag, monto - enSuCabeza + cobrada + forzado, aNew.current)}\n${lineaAura(vTag, -monto, vNew.current)}` +
       // SE AVISA A LA VICTIMA, que si no el contraataque no existe.
       //
       // La ventana es de 90 segundos y el mensaje del robo no la mencionaba por

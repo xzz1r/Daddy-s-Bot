@@ -742,8 +742,14 @@ const ROBO = {
   // entero de alguien y, con robo redondo, llevarse x1,8. Puesto el 3 oct
   // porque los robos se veian desbordados. 400 son unos dos dias de un
   // miembro normal; con robo redondo, 720 como mucho.
-  techoFraccion: 0.5,
-  techoAbsoluto: 400,
+  //
+  // Y QUITADO OTRA VEZ el 7 oct, lo pidio el dueño: «se pone 700 y no roba eso,
+  // roba un numero aleatorio. Se debe poder escoger, y en base a eso sube el
+  // riesgo». Ahora se puede pedir hasta TODO lo que tiene la victima, si acierta
+  // se lleva exactamente esa cifra, y lo que frena el desborde es la curva de
+  // RIESGO: pedirlo todo cae al suelo de probabilidad.
+  techoFraccion: 1.0,
+  techoAbsoluto: Infinity,
   minVictima: 20,         // por debajo de esto no se le puede robar a alguien
 };
 
@@ -767,15 +773,21 @@ const ROBO = {
 // La curva es cuadrática en los dos lados: cerca del punto dulce casi no se
 // nota, y son los extremos los que duelen.
 const RIESGO = {
-  puntoDulce: 0.45,   // fracción del tope donde la probabilidad es máxima
+  // Bajado de 0,45 a 0,25 al pasar el tope a TODO el saldo de la victima: el 45 %
+  // de la mitad era el ~22 % del total, y ahi sigue estando el punto dulce.
+  puntoDulce: 0.25,   // fracción del tope donde la probabilidad es máxima
   // SUBIDO DE 0,14 A 0,30 al quitar el techo fijo del robo, y es la pieza que
   // sostiene todo lo demas. Sin techo, la jugada obvia seria pedir siempre la
   // fortuna entera de la victima; con este castigo, pedirlo todo hunde la
   // probabilidad hasta el suelo (15 %) y sale a perder de largo. El punto dulce
   // sigue en el 45 % del tope: ahi es donde compensa.
-  codiciaMax: 0.30,   // castigo al pedir el tope entero
+  codiciaMax: 0.34,   // castigo al pedir el tope entero (subido de 0,30 con el tope)
   miseriaMax: 0.08,   // castigo al pedir el mínimo
   allIn: 0.85,        // a partir de aquí el robo es "a lo grande" (ver DESENLACES)
+  // LA CIFRA EN SI TAMBIEN PESA, no solo la fraccion. Sin esto, pedir 700 a
+  // alguien con 3.000 salia casi gratis. Por encima de `desde`, cada 100 resta
+  // `porCien`, hasta `tope`. El owner no lo paga, igual que la codicia.
+  gorda: { desde: 300, porCien: 0.01, tope: 0.15 },
 };
 
 // ─── !robo: cuánto se gana ───────────────────────────────────────────────────
@@ -831,7 +843,8 @@ const ROBO_LIMITES = {
 
 // El owner roba con ventaja y la cifra que elija le da igual: ni codicia ni
 // miseria le afectan, y su probabilidad nunca baja de aquí.
-const ROBO_OWNER_MIN = 0.78;
+// Subido de 0,78 el 7 oct: el dueño pidio que su ventaja subiera aun mas.
+const ROBO_OWNER_MIN = 0.82;
 
 // Cuanto acierta el owner principal cuando roba. NO es 1.
 //
@@ -849,7 +862,9 @@ const ROBO_OWNER_MIN = 0.78;
 // Eso no es tener suerte, es una anomalia que cualquiera nota sin contar nada.
 // Con 0,62 salen unos 12 contra 7: sigue siendo mejor mano que la de nadie, pero
 // entra en lo que se puede explicar con suerte.
-const ROBO_OWNER_EXITO = 0.62;
+// Y SUBIDO DE NUEVO A 0,76 el 7 oct, por peticion del dueño. Lo que delata un
+// amaño es la racha, no la tasa, y la racha sigue con techo (abajo).
+const ROBO_OWNER_EXITO = 0.76;
 
 // PERO LA TASA NO ERA EL PROBLEMA PRINCIPAL. Lo que delata un amaño no es el
 // porcentaje, es la RACHA: nadie del grupo lleva la cuenta de cuantos robos
@@ -864,7 +879,9 @@ const ROBO_OWNER_EXITO = 0.62;
 // El contador es COMPARTIDO entre !robo y !contrarobo a proposito: el grupo ve
 // las dos cosas en el mismo chat y no distingue de que comando venia cada
 // victoria. Contarlas por separado dejaria pasar rachas de seis mezcladas.
-const ROBO_OWNER_RACHA_MAX = 3;
+// De 3 a 4 con la subida del 7 oct: con 0,76 cortar a la tercera se comia casi
+// toda la ventaja nueva.
+const ROBO_OWNER_RACHA_MAX = 4;
 
 // La cifra que se le ENSEÑA al owner cuando roba, que no es la suya.
 //
@@ -1126,7 +1143,7 @@ const CONTRA = {
   //
   // Y cuenta para la misma racha que el robo (ROBO_OWNER_RACHA_MAX): a la cuarta
   // victoria seguida entre los dos comandos, esta se pierde.
-  owner: 0.66,
+  owner: 0.74,   // subido de 0,66 el 7 oct con el resto del rig
 
   // ─── LA VELOCIDAD IMPORTA ──────────────────────────────────────────────────
   //
