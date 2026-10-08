@@ -62,10 +62,15 @@ const ROB_COOLDOWN_MS = 6 * 60 * 1000;
 //
 // Dentro de eso, la cantidad que pides es la que va. El precio de pedir mucho se
 // paga en probabilidad, no en un recorte silencioso.
-function topeRobo(auraLadron, auraVictima) {
+function topeRobo(auraLadron, auraVictima, { sinFianza = false } = {}) {
+  // EL OWNER PRINCIPAL NO DEJA FIANZA. Guarda casi todo en el banco, asi que su
+  // saldo suelto es poco, y este tope le recortaba *!robo @x 666* a 78 en
+  // silencio — lo que tuviera fuera. Si le sale mal se le cobra lo que tenga
+  // suelto (drainAura no baja de cero), igual que a cualquiera.
+  const fianza = sinFianza ? Infinity : auraLadron;
   return Math.max(
     ROBO.suelo,
-    Math.min(Math.floor(auraVictima * ROBO.techoFraccion), auraLadron, ROBO.techoAbsoluto),
+    Math.min(Math.floor(auraVictima * ROBO.techoFraccion), fianza, ROBO.techoAbsoluto),
   );
 }
 
@@ -1246,7 +1251,12 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // para nada — el botin real sigue limitado por lo que tiene DE VERDAD.
   const conCebo = await tienda.tieneCebo(jid, target);
   const auraAparente = conCebo ? Math.round(auraV * OBJETOS.cebo.multiplicador) : auraV;
-  const maxStake = topeRobo(auraA, auraAparente);
+  const sinFianza = isMainOwner(sender, msg.key.fromMe, groupMeta);
+  const maxStake = topeRobo(auraA, auraAparente, { sinFianza });
+  // Quien limita la cifra: la victima o el propio saldo suelto del ladron. El
+  // aviso decia siempre «la victima solo tenia X», y casi siempre el que no
+  // tenia era el ladron, con lo suyo en el banco.
+  const limitaLadron = !sinFianza && auraA < Math.floor(auraAparente * ROBO.techoFraccion);
   const parsed = parseCantidad(args);
   const { stake, pedido: raw, elegido, recortado } = resolverCantidad(parsed, {
     max: maxStake,
@@ -1402,9 +1412,10 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // es 18" y sonaba a reproche al que escribió el comando, además de no explicar
   // nada útil. Ahora solo aparece un recorte cuando de verdad lo hubo, y se dice
   // POR QUÉ (la víctima no tenía tanto), no como una regla del bot.
-  const notaTope = recortado
-    ? `\n_Ibas a por ${fmt(raw)}, pero ${vTag} solo tenía ${fmt(maxStake)}._`
-    : '';
+  const notaTope = !recortado ? ''
+    : limitaLadron
+      ? `\n_Ibas a por ${fmt(raw)}, pero solo tienes ${fmt(maxStake)} sueltos para pagar si sale mal. Saca del *!banco* o pide menos._`
+      : `\n_Ibas a por ${fmt(raw)}, pero ${vTag} solo tenía ${fmt(maxStake)}._`;
   const fraccion = maxStake > 0 ? stake / maxStake : 0;
   // La cifra se enseña SIEMPRE. Era lo que faltaba: se podia elegir desde hacia
   // tiempo, pero el bot solo lo mencionaba al recortar, y si el parser fallaba
@@ -1601,7 +1612,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       + (enSuCabeza ? `\n_De los *${fmt(monto)}*, *${fmt(enSuCabeza)}* se quedan de precio por su cabeza: ahora vale *${fmt(await tienda.recompensaDe(jid, sender))}* para quien lo cace — *!buscados*._` : '');
     const text =
       `${titulo}\n` +
-      `${aTag} le roba a ${vTag}${extra}\n\n` +
+      `${aTag} le roba *${fmt(botinPedido)}* a ${vTag}${extra}\n\n` +
       `${phrase}` +
       (memoria ? `\n_${memoria}_` : '') +
       `\n\n` +
