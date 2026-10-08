@@ -1475,8 +1475,15 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     anotarRoboExitoso(jid, canonicalJid(sender), canonicalJid(target));
     anotarFama(jid, canonicalJid(sender));
     // Robar al mas buscado paga mas, pero nunca por encima de lo que tiene.
-    if (esDiana) monto = Math.min(auraV, Math.round(monto * (1 + DIANA.bonoBotin)));
-    if (esObjDia) monto = Math.min(auraV, Math.round(monto * (1 + OBJETIVO_DIA.bonoBotin)));
+    // EL PLUS VA APARTE DE LA CIFRA. Se multiplicaba el botin por la diana y
+    // por el objetivo del dia, y el que pedia *!robo @x 1111* veia 1.356 o
+    // 1.500 sin saber por que: parecia que el bot ignoraba la cifra. Lo pidio
+    // el dueño. Ahora lo robado es lo que se pidio, y el plus sale en su linea.
+    const pedidoExacto = monto;
+    let plus = 0;
+    if (esDiana) plus += Math.round(monto * DIANA.bonoBotin);
+    if (esObjDia) plus += Math.round(monto * OBJETIVO_DIA.bonoBotin);
+    monto = Math.min(auraV, monto + plus);
     // EL CEBO PICA cuando el golpe iba a por mas de lo que la victima tiene de
     // verdad: el ladron calculo sobre el saldo inflado y se lleva el real.
     // Antes esto era un `motivos.push` que no salia en ningun sitio, porque el
@@ -1514,6 +1521,9 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // cifra que nunca se movio.
     const { cobrado: movido, current: vTras } = await drainAura(jid, target, monto);
     monto = movido;
+    // Lo que se enseña como botin es la cifra pedida; lo de encima, el plus.
+    const botinPedido = Math.min(monto, pedidoExacto);
+    const plusCobrado = monto - botinPedido;
     const vNew = { current: vTras };
 
     // ─── EL GOLPE MAESTRO REVIENTA LA CAJA ──────────────────────────────────
@@ -1556,10 +1566,10 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // ha pasado, y DIANA_GOLPE estaba escrito y sin llamar desde ningun sitio.
     // Si las dos coinciden, manda el cebo, que es el que cambia la cifra.
     const phrase = picoCebo
-      ? fraseCon(RX.CEBO_PICA, `${jid}|cebo`, { '%A': aTag, '%V': vTag, '%C': `*${fmt(monto)}*` })
+      ? fraseCon(RX.CEBO_PICA, `${jid}|cebo`, { '%A': aTag, '%V': vTag, '%C': `*${fmt(botinPedido)}*` })
       : esDiana
-      ? fraseCon(RX.DIANA_GOLPE, `${jid}|diana`, { '%A': aTag, '%V': vTag, '%C': `*${fmt(monto)}*` })
-      : pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag).replace(/%C/g, `*${fmt(monto)}*`);
+      ? fraseCon(RX.DIANA_GOLPE, `${jid}|diana`, { '%A': aTag, '%V': vTag, '%C': `*${fmt(botinPedido)}*` })
+      : pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag).replace(/%C/g, `*${fmt(botinPedido)}*`);
     // Si ya hubo robo entre estos dos otro dia, el bot se acuerda
     // (utils/rencor.js). Una linea, y solo cuando hay historia: el robo que
     // sale bien se queda corto, que es lo que pidio el dueño.
@@ -1579,7 +1589,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       // retienen, cree que el bot le ha pagado de menos; y si el que caza a un
       // buscado no ve el cobro, la lista sigue pareciendo decorativa.
       + (cobrada ? `\n_Llevaba precio en la cabeza: *+${fmt(cobrada)}* de recompensa encima del botín._` : '')
-      + (esObjDia ? `\n_Era el objetivo del día: botín +${Math.round(OBJETIVO_DIA.bonoBotin * 100)}%._` : '')
+      + (plusCobrado ? `\n_${esDiana && esObjDia ? 'Era la diana y el objetivo del día' : esDiana ? 'Era la diana' : 'Era el objetivo del día'}: *+${fmt(plusCobrado)}* encima de lo que pediste._` : '')
       // La caja forzada SE DICE. Es lo mas gordo que puede pasar en un robo y
       // si no sale aqui, la victima solo ve que le falta aura de la caja y no
       // sabe por que. Una linea, y solo cuando de verdad habia algo dentro.

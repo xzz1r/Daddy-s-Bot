@@ -22,11 +22,15 @@ const racha = new Map();   // grupo -> victorias seguidas
 
 // Vive en memoria y se pierde al reiniciar, y esta bien asi: lo que se corta es
 // la racha que el grupo esta VIENDO ahora mismo, no un historial.
-function ownerGana(grupo, probabilidad) {
-  const seguidas = racha.get(grupo) || 0;
+// `canal` separa contadores. Sin canal, el de siempre: robo, contrarobo, duelo
+// y mog comparten racha a proposito. La apuesta lleva el suyo: cuatro mogs
+// ganados no pueden costarle al dueño la siguiente apuesta.
+function ownerGana(grupo, probabilidad, canal = null) {
+  const k = canal ? `${grupo}|${canal}` : grupo;
+  const seguidas = racha.get(k) || 0;
   const gana = seguidas >= ROBO_OWNER_RACHA_MAX ? false : Math.random() < probabilidad;
   if (racha.size >= 500) racha.delete(racha.keys().next().value);
-  racha.set(grupo, gana ? seguidas + 1 : 0);
+  racha.set(k, gana ? seguidas + 1 : 0);
   return gana;
 }
 

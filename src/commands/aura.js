@@ -786,7 +786,7 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
       pReal = Math.min(0.95, pReal + OBJETOS.amuleto.bono);
       pVisible = Math.min(0.95, pVisible + OBJETOS.amuleto.bono);
     }
-    const gana = esOwnerPrincipal ? ownerGana(jid, pReal) : Math.random() < pReal;
+    const gana = esOwnerPrincipal ? ownerGana(jid, pReal, 'apuesta') : Math.random() < pReal;
     const sello = etiquetaRiesgo(fraccion);
 
     // El pago SUBE con lo que te juegas de lo tuyo. El acierto BAJA. Las dos

@@ -401,6 +401,10 @@ const APUESTA = {
   suelo: ARRANQUE,      // perder nunca te deja por debajo del arranque
   cooldownMin: 180,     // tres horas entre apuestas
   p: { owner: 0.58, admin: 0.47, miembro: 0.45 },
+  // El owner principal, aparte de los co-owners. Subido de 0,58 a 0,66 por
+  // decision del dueño (8 oct): con el tope de rachas el 58 % se quedaba en un
+  // 54-55 % real, y apostando fuerte eso le dejaba en el suelo casi siempre.
+  ownerPrincipal: 0.66,
 
   // LA CURVA. Pedir más baja el acierto, igual que el robo. Sin esto,
   // *!apostar 300* y *!apostar todo* son la misma ficha con distinto cartel:
@@ -432,7 +436,8 @@ const APUESTA = {
 // Lo que ve el grupo no cambia: pApuestaVisible sigue inventando una cifra de
 // banda de miembro, y esa SI baja cuando se pide mas.
 function pApuestaDe(fraccion, rol, { suave = false, exento = false } = {}) {
-  const base = APUESTA.p[rol] != null ? APUESTA.p[rol] : APUESTA.p.miembro;
+  const base = exento ? APUESTA.ownerPrincipal
+    : APUESTA.p[rol] != null ? APUESTA.p[rol] : APUESTA.p.miembro;
   const a = Math.min(1, Math.max(0, Number(fraccion) || 0));
   const { puntoDulce: pd, codiciaMax, miseriaMax } = APUESTA.riesgo;
   let castigo = 0;
@@ -448,7 +453,10 @@ function pApuestaDe(fraccion, rol, { suave = false, exento = false } = {}) {
   }
   if (exento) { castigo = 0; etiqueta = null; }
   else if (suave) castigo *= 0.5;
-  const p = Math.min(APUESTA.techoP, Math.max(APUESTA.sueloP, base - castigo));
+  // El techo es para el resto de la mesa: al owner principal le cortaba su
+  // base de 0,66 en 0,62.
+  const techo = exento ? Math.max(APUESTA.techoP, base) : APUESTA.techoP;
+  const p = Math.min(techo, Math.max(APUESTA.sueloP, base - castigo));
   return { p, castigo, etiqueta: castigo > 0.02 ? etiqueta : null };
 }
 
