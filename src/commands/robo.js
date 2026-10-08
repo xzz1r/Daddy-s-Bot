@@ -20,7 +20,7 @@ const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
 //
 // Cuesta 0,44 ms medidos por robo.
 
-const { getAura, addAura, drainAura, spendAura, flushAura, forzarCaja, verCaja: cajaDePersona } = require('../utils/auraStore');
+const { getAura, addAura, drainAura, drainConCaja, spendAura, flushAura, forzarCaja, verCaja: cajaDePersona } = require('../utils/auraStore');
 const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
 const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA, SALDO_MINIMO, CAJA, BUTRON } = require('../utils/economia');
 const { ownerGana } = require('../utils/rigOwner');
@@ -62,15 +62,10 @@ const ROB_COOLDOWN_MS = 6 * 60 * 1000;
 //
 // Dentro de eso, la cantidad que pides es la que va. El precio de pedir mucho se
 // paga en probabilidad, no en un recorte silencioso.
-function topeRobo(auraLadron, auraVictima, { sinFianza = false } = {}) {
-  // EL OWNER PRINCIPAL NO DEJA FIANZA. Guarda casi todo en el banco, asi que su
-  // saldo suelto es poco, y este tope le recortaba *!robo @x 666* a 78 en
-  // silencio — lo que tuviera fuera. Si le sale mal se le cobra lo que tenga
-  // suelto (drainAura no baja de cero), igual que a cualquiera.
-  const fianza = sinFianza ? Infinity : auraLadron;
+function topeRobo(auraLadron, auraVictima) {
   return Math.max(
     ROBO.suelo,
-    Math.min(Math.floor(auraVictima * ROBO.techoFraccion), fianza, ROBO.techoAbsoluto),
+    Math.min(Math.floor(auraVictima * ROBO.techoFraccion), auraLadron, ROBO.techoAbsoluto),
   );
 }
 
@@ -1251,12 +1246,16 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // para nada — el botin real sigue limitado por lo que tiene DE VERDAD.
   const conCebo = await tienda.tieneCebo(jid, target);
   const auraAparente = conCebo ? Math.round(auraV * OBJETOS.cebo.multiplicador) : auraV;
-  const sinFianza = isMainOwner(sender, msg.key.fromMe, groupMeta);
-  const maxStake = topeRobo(auraA, auraAparente, { sinFianza });
-  // Quien limita la cifra: la victima o el propio saldo suelto del ladron. El
-  // aviso decia siempre «la victima solo tenia X», y casi siempre el que no
-  // tenia era el ladron, con lo suyo en el banco.
-  const limitaLadron = !sinFianza && auraA < Math.floor(auraAparente * ROBO.techoFraccion);
+  // LA FIANZA ES LO QUE TIENES EN TOTAL, suelto mas banco. Contaba solo lo
+  // suelto, y quien guardaba en el banco veia *!robo @x 666* recortado a 78 sin
+  // entender por que (lo vio el dueño). Para todos igual: si sale mal, la multa
+  // sale primero de lo suelto y lo que falte del banco (drainConCaja).
+  const bancoA = await cajaDePersona(jid, sender).catch(() => 0);
+  const fianzaA = auraA + (bancoA || 0);
+  const maxStake = topeRobo(fianzaA, auraAparente);
+  // Quien limita la cifra: la victima o lo que tiene el ladron. El aviso decia
+  // siempre «la victima solo tenia X», y a veces el que no tenia era el ladron.
+  const limitaLadron = fianzaA < Math.floor(auraAparente * ROBO.techoFraccion);
   const parsed = parseCantidad(args);
   const { stake, pedido: raw, elegido, recortado } = resolverCantidad(parsed, {
     max: maxStake,
@@ -1397,7 +1396,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // Nunca se mueve más aura de la que la víctima tiene ni de la que el ladrón
   // puede pagar: un golpe maestro sobre alguien con poco no le deja en negativo.
   const bruto = Math.max(1, Math.round(stake * Math.abs(mult)));
-  let monto = mult > 0 ? Math.min(bruto, auraV) : Math.min(bruto, auraA);
+  let monto = mult > 0 ? Math.min(bruto, auraV) : Math.min(bruto, fianzaA);
 
   // Lo que movió la balanza se cuenta abajo del mensaje: si no, el jugador ve
   // resultados distintos sin entender por qué y parece que el bot va al azar.
@@ -1414,7 +1413,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // POR QUÉ (la víctima no tenía tanto), no como una regla del bot.
   const notaTope = !recortado ? ''
     : limitaLadron
-      ? `\n_Ibas a por ${fmt(raw)}, pero solo tienes ${fmt(maxStake)} sueltos para pagar si sale mal. Saca del *!banco* o pide menos._`
+      ? `\n_Ibas a por ${fmt(raw)}, pero entre suelto y banco solo tienes ${fmt(maxStake)} para pagar si sale mal._`
       : `\n_Ibas a por ${fmt(raw)}, pero ${vTag} solo tenía ${fmt(maxStake)}._`;
   const fraccion = maxStake > 0 ? stake / maxStake : 0;
   // La cifra se enseña SIEMPRE. Era lo que faltaba: se podia elegir desde hacia
@@ -1669,7 +1668,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
 
   // Fallo. En el desastre lo que pierde el ladrón se lo queda la víctima; en el
   // fallo normal solo es una multa y la víctima no toca nada.
-  const { cobrado: pagado, current: aTras } = await drainAura(jid, sender, monto);
+  const { cobrado: pagado, delBanco: multaBanco, current: aTras } = await drainConCaja(jid, sender, monto);
   monto = pagado;
   const aNew = { current: aTras };
   const vNew = clave === 'desastre' ? await addAura(jid, target, +monto) : null;
@@ -1715,6 +1714,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     (vNew
       ? lineaAura(vTag, monto, vNew.current)
       : lineaAura(vTag, 0, auraV)) +
+    (multaBanco ? `\n_No te llegaba con lo suelto: *${fmt(multaBanco)}* han salido de tu banco._` : '') +
     (boteAhora ? `\n_El bote del grupo sube a *${fmt(boteAhora)}*._` : '') +
     notaDinamicas;
   return sock.sendMessage(jid, { text, mentions: [sender, target] });

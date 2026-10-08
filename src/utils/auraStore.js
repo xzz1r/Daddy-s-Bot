@@ -522,6 +522,34 @@ async function forzarCaja(groupJid, victimaJid, fraccion) {
   });
 }
 
+// COBRAR UNA MULTA CON LO SUELTO Y, SI NO LLEGA, CON EL BANCO. Para el robo
+// fallido: el tope de lo que se puede pedir es lo que uno tiene en total
+// (suelto mas banco), asi que la multa tiene que poder salir de los dos. Si
+// no, guardarlo todo en el banco convertia el robo en una tirada gratis.
+// Las dos restas en el mismo bloque serializado, igual que pagarConCaja.
+async function drainConCaja(groupJid, userJid, amount) {
+  await load();
+  const qKey = `${groupJid}|${canonicalJid(userJid)}`;
+  return serialized(qKey, () => {
+    if (!store[groupJid]) store[groupJid] = {};
+    const key = foldPerson(store[groupJid], userJid);
+    const saldo = store[groupJid][key] === undefined ? STARTING_AURA : store[groupJid][key];
+    const pedido = Math.max(0, Math.floor(amount));
+    const delSuelto = Math.min(pedido, Math.max(0, saldo));
+    store[groupJid][key] = saldo - delSuelto;
+    const z = cajaDe(groupJid);
+    const kZ = foldCaja(z, userJid);
+    const dentro = z[kZ] || 0;
+    const delBanco = Math.min(pedido - delSuelto, dentro);
+    if (delBanco > 0) {
+      z[kZ] = dentro - delBanco;
+      if (z[kZ] === 0) delete z[kZ];
+    }
+    scheduleSave();
+    return { cobrado: delSuelto + delBanco, delBanco, current: store[groupJid][key] };
+  });
+}
+
 // DEVOLVER AL BANCO lo que se cobro de el para un comando que luego no salio.
 // Sin tope de capacidad ni enfriamiento: no es guardar, es deshacer un cobro.
 async function devolverACaja(groupJid, userJid, cantidad) {
@@ -688,4 +716,4 @@ async function flushAura() {
 }
 
 module.exports = { getAura, addAura, spendAura, drainAura, transferAura, getAuraRanking, resetAura, flushAura, STARTING_AURA,
-  verCaja, esperaCaja, meterEnCaja, sacarDeCaja, forzarCaja, pagarConCaja, devolverACaja };
+  verCaja, esperaCaja, meterEnCaja, sacarDeCaja, forzarCaja, pagarConCaja, devolverACaja, drainConCaja };
