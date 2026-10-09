@@ -1431,7 +1431,7 @@ const REMATES = [
   '«paso de estas chorradas» lo dice quien le está dando vueltas. Manda la foto.',
   'Foto sin edad, o edad sin foto, no cuenta. Las dos cosas.',
   '«no me gusta exponerme», dice quien entró en un grupo por su cuenta. Da la cara.',
-  'No te hace falta la foto buena. Vale cualquiera, y ya.',
+  '«espero la foto buena». No existe. Manda una del carrete y la edad, y deja de rebuscar.',
   'No hace falta esperar a que se presente otro para copiarle el tono, que no hay tono. Sal tú.',
   'Un «hola» no es una presentación. Foto y edad, o vuelve a tu agujero.',
 ];

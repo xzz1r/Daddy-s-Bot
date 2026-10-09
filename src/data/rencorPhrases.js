@@ -39,7 +39,7 @@ const MOG_REPITE = [
   'Ni el tiempo que ha pasado desde %D le ha servido a %V. Pierde contra %A igual que entonces, y con menos excusas.',
   '%V ya se comió el mog de %A %D, y hoy se lo ha vuelto a comer entero.',
   '%A vuelve a pasar por encima de %V. Lo de %D no fue casualidad, y hoy queda confirmado.',
-  '%D ya quedó claro quién mandaba entre %A y %V. Hoy se ha repetido en voz alta.',
+  '%D dejó a %A encima de %V, y hoy el bot saca la misma foto sin tener que buscarla.',
   'El mismo resultado que %D. A %V la cara no le ha cambiado, y a %A tampoco.',
   '%D %A arriba y %V abajo. Hoy, exactamente igual.',
   '%V perdió contra %A %D y hoy vuelve a perder. Hay derrotas que se aprenden a la primera, y %V no.',
@@ -60,7 +60,7 @@ const MOG_REVANCHA = [
   '%D %V moggeó a %A. Hoy se acaba, y %A sale arriba.',
   'Dura poco la gloria con esa cara. %V ganó %D y hoy %A le devuelve al suelo.',
   'Hay victorias que duran poco. La de %V %D era una, y hoy %A se ha encargado de dejarlo claro.',
-  '%V pensó que lo de %D contra %A iba a ser lo normal. Lo normal es esto.',
+  '%V se creyó lo de %D contra %A y hoy pierde con esa captura todavía abierta.',
   'Lo de %D fue un préstamo. %A lo ha recuperado hoy y %V se queda sin nada que contar.',
   '%V venía de moggear a %A %D. Tenía que haberse quedado con esa, porque hoy gana %A.',
   'Se acabó lo de %D. %V le ganó a %A, se lo creyó, y hoy lo paga delante de todos.',
@@ -75,7 +75,7 @@ const MOG_RACHA = [
   'Con esta van %N. %V ha convertido perder contra %A en lo único constante de su vida.',
   'Las últimas %N son de %A. %V no ha rascado nada desde entonces.',
   'Otra más, y van %N. %V pierde contra %A con una regularidad que no tiene en nada más.',
-  '%N seguidas de %A. Lo de %D ya no es noticia, lo raro sería que %V ganara una.',
+  '%N seguidas de %A sobre %V, y lo de %D sigue en la columna sin una raya tachada.',
   'Van %N seguidas de %A contra %V, y la última fue %D. El grupo ya ni pregunta quién gana.',
   '%N de %N para %A. %V ya no pierde contra %A: lo tiene por costumbre.',
   '%V lleva %N derrotas seguidas contra %A. A estas alturas el mog es un trámite.',
@@ -90,7 +90,7 @@ const MOG_RACHA = [
 const DUELO_REPITE = [
   '%A ya le quitó %C de aura a %V %D. Hoy repite, y %V paga otra vez por el mismo error.',
   '%V tenía desde %D para aprender. Hoy le vuelve a dar el aura a %A.',
-  'Lo de %D contra %A no fue un mal día de %V. Es que %V es así.',
+  'Lo de %D contra %A sigue abierto en la cuenta, y %V vuelve a empujar el aura mientras %V ve bajar el saldo.',
   'Otra vez se lleva %A el aura de %V. %D fueron %C, y %V lo ha vuelto a poner encima de la mesa por gusto.',
   '%V no escarmienta ni pagando: ya perdió %C contra %A %D y hoy vuelve a pasar por caja.',
   'Mismo duelo, mismo ganador que %D. %A cobra otra vez y lo único nuevo es lo poco que le queda a %V.',
@@ -130,7 +130,7 @@ const DUELO_RACHA = [
   'Ya son %N. %A cobra de %V con una regularidad que ya quisiera cualquier nómina.',
   'Racha de %N para %A. La anterior fue %D, y %V ha vuelto a caer como si nada.',
   'Otra, y van %N. %V se sienta delante de %A con la ilusión intacta y el saldo cada vez más flaco.',
-  '%A suma %N seguidas contra %V. Lo siguiente sería que %V se apartara, pero eso es aprender.',
+  '%A suma %N seguidas contra %V, y %V suelta las monedas sin contarlas.',
 ];
 
 // Al LANZAR el duelo, si esos dos ya se batieron otro dia. Aqui %A es quien
@@ -144,7 +144,7 @@ const DUELO_PIDE = [
   '%V todavía no ha digerido lo de %D. Reta a %A otra vez, a ver si esta vez escuece menos.',
   'Ojo al historial. %D %A le ganó %C a %V, y %V ha decidido que no fue suficiente.',
   '%V vuelve a por %A después de perder %C %D. Valor no le falta, lo que le falta es todo lo demás.',
-  'Lo de %D sigue escociendo. %V reta a %A y el grupo ya sabe cómo acaba esto.',
+  '%V reta a %A con lo de %D todavía en la cara, y manda el reto encima de la derrota vieja.',
   '%V busca la revancha de lo de %D, cuando %A le dejó %C más pobre.',
   '%D se fueron %C de %V a %A. %V quiere recuperarlos, y va a pagar por intentarlo.',
   'Revancha a la vista. %D se lo llevó %A, y %V apuesta a que la historia no se repite.',
@@ -156,7 +156,7 @@ const DUELO_VUELVE = [
   'Precedente: %D %A se llevó %C de %V. %V puede aceptar, o puede ahorrarse la vergüenza.',
   '%A reta otra vez a %V. La última, %D, le salió a %V por %C, y todavía se nota.',
   'Historial entre estos dos: %D ganó %A. %V decide ahora si quiere repetir la lección.',
-  '%A vuelve a por %V después de lo de %D. Rechazar sería lo más sensato que ha hecho %V en semanas.',
+  '%A vuelve a por %V con lo de %D todavía apuntado, y %V abre el chat con ese nombre ya arriba.',
   '%D %A le dejó a %V %C más pobre. Hoy le propone repetir, y %V tiene la mala costumbre de aceptar.',
   '%A no se ha cansado de ganarle a %V. Lo de %D fue solo el principio.',
   '%V ya le pagó %C a %A %D. Ahora %A pregunta si quiere pagar otra vez.',
@@ -198,11 +198,11 @@ const ROBO_VENGANZA = [
   '%V se llevó %C de %A %D y se creyó a salvo. %A tiene buena memoria.',
   'Devuelta la de %D. %V aprende hoy que robar a %A tenía letra pequeña.',
   '%D robó %V, hoy roba %A. %V ya puede ir contando lo que le queda, que no es mucho.',
-  'Hay deudas que se cobran solas. La de %V con %A venía de %D.',
+  '%A saca del bolsillo de %V el aura que el bot tenía apuntada desde %D.',
   '%V creía que lo de %D estaba olvidado. %A estaba esperando el momento, y el momento es hoy.',
   '%A le ha devuelto a %V el robo de %D. Con la misma mano y con más ganas.',
   'A %V lo de %D le ha salido caro. %A no ha olvidado ni una cifra.',
-  '%A tenía pendiente lo de %D, y hoy %V se lo ha pagado.',
+  '%V ve cómo se tacha lo de %D mientras %A cobra sin levantar la vista.',
   'Lo de %D ya está devuelto: %V robó a %A y hoy %A le roba a %V. Cuentas en paz.',
   'Cuentas saldadas. %V le robó %C a %A %D y hoy %A se ha cobrado lo suyo.',
 ];
@@ -216,9 +216,9 @@ const ROBO_SE_ACABA = [
   'Hay golpes que salen una vez. El de %A a %V fue %D, y hoy toca pagar la osadía.',
   '%D %A le quitó %C a %V. Hoy intenta repetir y lo único que se lleva es la multa.',
   '%D le salió bien a %A. Hoy, contra %V, se ha dado de bruces.',
-  'Lo de %D con %V se le subió a la cabeza a %A, y lo acaba de pagar.',
+  '%A alarga la mano hacia %V por lo de %D y vuelve con la mano vacía y la multa contada.',
   '%A ha vuelto a por %V y esta vez sin premio. Lo de %D ya no se lo cree ni %A.',
-  'A %A le gustó lo de %D con %V y ha vuelto sin pensar. Hoy la suerte se ha quedado con %V.',
+  '%A vuelve donde %V con la sonrisa de %D, y %V cierra el puño porque el aura no se mueve.',
 ];
 
 // %V le robo %C a %A otro dia, y hoy %A intenta vengarse y le sale mal.
@@ -247,7 +247,7 @@ const SHIP_SUBE = [
   '%D, %C para %A y %V, y hoy bastante más. El bot solo apunta, el cotilleo ya es cosa del grupo.',
   '%A y %V suben desde el %C de %D. A este paso, la próxima vez hay que buscar padrinos.',
   'El ship de %A y %V se quedó %D en %C. Hoy mejora, que ya es más de lo que mejora casi nadie aquí.',
-  '%D fue un %C para %A y %V. Hoy el número se anima, y lo demás depende de %A y %V.',
+  '%D fue un %C entre %A y %V. Hoy el número sube y ni %A ni %V aparta la mirada.',
   '%A y %V dejan atrás el %C de %D. Si esto sigue así, alguien va a tener que dar explicaciones.',
 ];
 
@@ -271,7 +271,7 @@ const SHIP_IGUAL = [
   'Otra vez en torno al %C de %D. Lo de %A y %V es estable, estable de no ir a ninguna parte.',
   '%D a %A y %V les salió %C, y hoy más o menos lo mismo. Esto no se mueve.',
   '%A y %V repiten número, casi calcado al de %D. Esto no va a ningún lado.',
-  'Lo de %A y %V sigue donde estaba %D. La respuesta es la misma por mucho que se pregunte.',
+  '%A y %V vuelven a preguntar y sale lo de %D, el número clavado en el mismo sitio.',
   'Desde %D, %A y %V siguen igual. La química de siempre, que es poca.',
 ];
 

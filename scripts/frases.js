@@ -98,7 +98,20 @@ const POOLS_MODO = args.includes('--pools');
 // texto con tildes contra una lista sin ellas, asi que «, cabrón.» o
 // «, inútil.» no casaban nunca: contaba 169 y son 601. La foto de abajo es la
 // primera que mira el bot entero.
-const TECHO = { nadie: 1046, analogia: 68, coletilla: 601, eco: 12, molde: 725, enlatado: 415, roto: 2 };
+//
+// Bajado el 8 oct 2026, despues de reescribir en el sitio las 1.066 frases
+// marcadas ese dia (humor soso y palabra que no se dice, sin las 5 de muestra
+// del dueño). Misma foto: el numero de ahora, no una meta.
+// Y otra vez el mismo dia, al acortar los avisos y el aura que no cabian en
+// la capa 26: nadie 515, enlatado 228. El resto no se movio.
+// Y al quitar el apelativo (pequeña, mi niña y el resto): enlatado 224.
+// Y al quitar el dedo/pantalla del cooldown y de los avisos: nadie 511, coletilla 89.
+// Y al quitar el dedo/pantalla de los rankings de !count: nadie 508.
+// Y al quitar los cierres de pantalla en percent: nadie 507, enlatado 218.
+// Y al quitar el dedo y el móvil de !vs, fantasmas y la purga: enlatado 217.
+// Y al quitar el dedo y la pantalla de iq, relevance, aura, robo, casino,
+// rencor, racha, kick, antilink, duel y el gif: nadie 502, enlatado 212.
+const TECHO = { nadie: 502, analogia: 9, coletilla: 89, eco: 5, molde: 154, enlatado: 212, roto: 1 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();

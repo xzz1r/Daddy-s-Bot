@@ -15,7 +15,6 @@
 // comando que no ha traído nada es exactamente lo que el resto del bot ya
 // aprendió a no hacer.
 const axios = require('axios');
-const { voc } = require('../utils/vocativo');
 // Arma el freno de salidas (ver src/utils/redSegura.js): sin esto, una URL
 // que devuelva una API de fuera puede apuntar al metadata del VPS.
 const { urlSegura, DestinoProhibido } = require('../utils/redSegura');
@@ -1019,7 +1018,7 @@ function hazAccion(nombre) {
 
     if (nsfw && (sinResolver || isMainOwner(objetivo, false, groupMeta))) {
       return sock.sendMessage(jid, {
-        text: `No he podido traer el gif. No te he cobrado${voc(quien, msg.key.fromMe, groupMeta, 'princesa')}.`,
+        text: `No he podido traer el gif. No te he cobrado.`,
       }, { quoted: msg });
     }
 
@@ -1037,7 +1036,7 @@ function hazAccion(nombre) {
       logger.warn(`accion ${nombre}: ${e.message}`);
       await devolver(jid, quien, pago, concepto).catch((e) => logger.unaVez('acciones: devolver', e));
       return sock.sendMessage(jid, {
-        text: `No he podido traer el gif. No te he cobrado${voc(quien, msg.key.fromMe, groupMeta, 'princesa')}.`,
+        text: `No he podido traer el gif. No te he cobrado.`,
       }, { quoted: msg });
     }
 

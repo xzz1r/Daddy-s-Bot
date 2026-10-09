@@ -36,12 +36,12 @@ const FIEL_HIGH = [
 const FIEL_MID = [
   '[nombre] guarda conversaciones como quien guarda cupones: no los usa, pero le jode tirarlos por si acaso valen para algo.',
   '[nombre] ejerce la lealtad por cuenta propia: trabaja para quien pague mejor en cada momento, sin contrato fijo.',
-  'Eres quien ayuda a mudarse pero se larga antes de montar los muebles. Presente en lo fácil, ausente en lo jodido, pequeña.',
+  'Eres quien ayuda a mudarse pero se larga antes de montar los muebles. Presente en lo fácil, ausente en lo jodido.',
   'Lo tuyo es una puta lealtad de temporada. Te apuntas cuando hace buen tiempo y te das de baja cuando llueve.',
   'Eres fiel hasta que alguien te pone delante una cerveza fría y una sonrisa, y entonces empiezas a negociar.',
   'Contestarías al primer mensaje de un ex «por educación». La educación, en ti, no tiene hora de cierre.',
   'No has hecho nada todavía, pero tienes la excusa redactada por si acaso.',
-  'Eres fiel cuando te miran. Cuando no te miran, miras tú, y bastante, chiquitina.',
+  'Eres fiel cuando te miran. Cuando no te miran, miras tú, y bastante.',
   'Ayudas a tus amigos si no coincide con el fútbol, con la siesta o con un plan mejor.',
   '[nombre] no engaña a nadie porque no le sale ligar. El día que le salga, el grupo tiene tema para un año.',
 ];
@@ -61,20 +61,20 @@ const FIEL_LOW = [
   '[nombre] es el tipo de persona que te denuncia a la policía y luego te visita en la cárcel para preguntarte qué tal.',
   'Eres de esa escoria que le copia los deberes al compañero y luego le acusa de copiar.',
   'La última vez que fuiste fiel a algo fue a tu mano derecha, y eso porque la izquierda no tenía suficiente técnica.',
-  'Guardas un secreto hasta que alguien te invita a una caña. Lo sueltas antes de que baje la espuma, mi niña.',
+  'Guardas un secreto hasta que alguien te invita a una caña. Lo sueltas antes de que baje la espuma.',
   'Te cuentan un secreto y al rato ya lo sabe gente que ni conoce a quien te lo contó.',
   '[nombre] dice que ayuda con la mudanza y a esa hora está subiendo historias desde una piscina.',
-  'Te vas de la cena antes del postre y sin pagar tu parte, y luego preguntas qué tal fue, pequeña.',
+  'Te vas de la cena antes del postre y sin pagar tu parte, y luego preguntas qué tal fue.',
   'Cambias de bando en una bronca según quién tenga más gente detrás. Tu lealtad la decide un recuento.',
   '[nombre] tiene capturas de todos sus amigos guardadas por si algún día hacen falta. Ya han hecho falta.',
   'Celebras tu cumpleaños con la gente que les cae mal a tus amigos, y dejas que se enteren por las historias.',
   'Prometes que vas y a la hora te inventas una fiebre. La fiebre sale luego en una foto de discoteca.',
   'Te prestan dinero y sigues sin blanca, según tú, brindando en una terraza.',
   'Tus amigos te cuentan sus problemas y tú se los cuentas a sus ex. Las rupturas llevan tu firma.',
-  'Hablas bien de la gente delante y la despellejas en el audio siguiente, y a veces te equivocas de chat, princesa.',
+  'Hablas bien de la gente delante y la despellejas en el audio siguiente, y a veces te equivocas de chat.',
   '[nombre] vende a quien sea por un sitio en la mesa buena. Cambia de mesa, y nadie le guarda la silla.',
   'Te piden que guardes el sitio en la cola y se lo das al primero que te sonríe.',
-  'Juras por tu madre cada vez que mientes, y a tu madre ya le deben de pitar los oídos todo el día, pequeña.',
+  'Juras por tu madre cada vez que mientes, y a tu madre ya le deben de pitar los oídos todo el día.',
   'Abandonas los grupos de trabajo justo antes de entregar, y luego pones tu nombre en la portada.',
 ];
 
@@ -83,7 +83,7 @@ const FIEL_LOW = [
 // ═══════════════════════════════════════════════════════════════════════════
 
 const INFIEL_HIGH = [
-  'Eres tan infiel que tu entrepierna debería tener su propio DNI y cotizar a la Seguridad Social por horas extras, muñeca.',
+  'Eres tan infiel que tu entrepierna debería tener su propio DNI y cotizar a la Seguridad Social por horas extras.',
   'Quien esté contigo te espera en casa mientras tú haces horas extra de mierda. Y las horas extra no son en la oficina.',
   '[nombre] guarda a sus ex en un puto archivo histórico, y todas las carpetas llevan la misma etiqueta: traición.',
   'Quien salga contigo necesita más una aseguradora que un anillo. Lo tuyo es siniestro total.',
@@ -96,13 +96,13 @@ const INFIEL_HIGH = [
   'Engañar es tu cardio: lo haces todos los días, mantienes el ritmo y ni sudas la camiseta.',
   'Eres de esa gente que se descarga Tinder en la boda y lo usa durante la ceremonia.',
   'Tu historial sentimental debería venir con un aviso: peligro biológico, no tocar sin protección y, a ser posible, no tocar.',
-  'Engañarías a tu pareja con la misma cara con la que le das los buenos días, reina.',
+  'Engañarías a tu pareja con la misma cara con la que le das los buenos días.',
   'Quien te aguante como pareja debería cobrar un sueldo, con plus de peligrosidad y horas nocturnas.',
   '[nombre], eres tan infiel que tu funeral va a parecer una reunión de antiguos alumnos: todo el mundo se conoce y nadie dice de qué.',
   'Guardarías a la pareja como «Casa» y al resto como «Trabajo».',
-  'Dices que vas al gimnasio y vuelves con el pelo mojado y la bolsa sin abrir, pequeña.',
+  'Dices que vas al gimnasio y vuelves con el pelo mojado y la bolsa sin abrir.',
   'Tienes dos cargadores, dos móviles y dos versiones del mismo finde. Las dos te salen bien, y eso asusta.',
-  'Borras el historial y acto seguido pides que confíen en ti, chiquitina.',
+  'Borras el historial y acto seguido pides que confíen en ti.',
   '[nombre] pide perdón con el mismo ramo a parejas distintas. En la floristería ya le conocen.',
   'Quien salga contigo se va a enterar de la mitad. La otra mitad la sabrá el grupo entero, con capturas.',
   'Eres capaz de liarte con alguien en una boda mientras tu pareja baila con la abuela.',
@@ -123,7 +123,7 @@ const INFIEL_MID = [
   '[nombre] tiene conversaciones que no enseñaría ni bajo amenaza. No son prueba de nada, pero de inocencia tampoco.',
   'No has sido infiel todavía, pero tienes el móvil boca abajo en la mesa como quien esconde un parte.',
   'Sales a por tabaco y vuelves con perfume nuevo, y tú ni fumas.',
-  'Tienes un contacto guardado como «Fontanero» al que se escribe cuando el resto duerme, pequeña.',
+  'Tienes un contacto guardado como «Fontanero» al que se escribe cuando el resto duerme.',
   'Juras que solo es amistad, y a esa amistad le mandas audios que no le mandas a nadie más. Tú sabrás.',
 ];
 
@@ -133,7 +133,7 @@ const INFIEL_MID = [
 
 const INFIEL_LOW = [
   '[nombre] no engaña ni en los sueños. Sueña que le ponen los cuernos y se despierta pidiendo explicaciones. Fiel hasta con los ojos cerrados.',
-  'Eres tan fiel que podrían mandarte a una despedida en Benidorm y volverías sin nada más que quemaduras de sol, princesa.',
+  'Eres tan fiel que podrían mandarte a una despedida en Benidorm y volverías sin nada más que quemaduras de sol.',
   '[nombre] deja el móvil desbloqueado encima de la mesa y nadie se pone nervioso. Qué vida más tranquila, y qué aburrida.',
   'Te sientan al lado de alguien guapísimo en la barra y no pasas de la conversación. A la media hora, se cambia de taburete.',
   'Te dejan las llaves del coche, la tarjeta y la pareja, y no tocas nada. Bueno, el coche quizá.',

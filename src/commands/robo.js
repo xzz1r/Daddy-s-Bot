@@ -1,5 +1,4 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser, soloMiembros } = require('../utils/wa');
-const { voc } = require('../utils/vocativo');
 const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
 // ─── POR QUE HAY VOLCADOS DE AURA A MANO EN ESTE FICHERO ────────────────────
 //
@@ -1222,7 +1221,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   if (auraA < MIN_AURA) {
     lastRob.delete(coolKey); // no robó: devuelve el cooldown
     return sock.sendMessage(jid, {
-      text: `Necesitas al menos ${MIN_AURA} de aura para intentar un robo${voc(sender, msg.key.fromMe, groupMeta, 'pequeña')}.`,
+      text: `Necesitas al menos ${MIN_AURA} de aura para intentar un robo.`,
     }, { quoted: msg });
   }
   if (auraV <= 0) {
