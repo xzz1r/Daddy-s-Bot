@@ -678,9 +678,16 @@ async function contraatacar(sock, msg, jid, sender, groupMeta) {
   // El owner NO cobra el bono de velocidad: su probabilidad ya viene amañada y
   // sumarle otros 14 puntos lo devolveria al terreno del que se acaba de salir.
   const contraEsOwner = isMainOwner(sender, msg.key.fromMe, groupMeta);
+  // Y AL REVES: si el que robo es el owner, se defiende con su mismo rig. Lo
+  // dijo el dueño: «soy muy vulnerable a los /contrarobo». Su amaño solo
+  // existia cuando contraatacaba el; cuando le contraatacaban, la victima
+  // ganaba un 42 % (o mas, rapida) y se llevaba el doble de lo robado.
+  const ladronEsOwner = !contraEsOwner && isMainOwner(p.ladron, false, groupMeta);
   const gana = contraEsOwner
     ? ownerGana(jid, CONTRA.owner)
-    : Math.random() < Math.min(0.95, CONTRA.probabilidad + bonoVel);
+    : ladronEsOwner
+      ? !ownerGana(jid, CONTRA.owner)
+      : Math.random() < Math.min(0.95, CONTRA.probabilidad + bonoVel);
 
   // El dado decide ADEMAS cuanto, igual que en el robo desde hace tiempo. Cinco
   // escalones en vez de cara o cruz: ver CONTRA.desenlaces. Se sortea dentro de
