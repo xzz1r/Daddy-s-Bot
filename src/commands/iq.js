@@ -89,7 +89,7 @@ const BAJO = [
   '%IQ. Por debajo de la media, por encima del suelo, y a gusto de cojones ahí abajo.',
   'Con %IQ tomas decisiones rápidas, gilipoyas, malas pero rápidas, y encima las llamas instinto.',
   'Con %IQ funcionas bien mientras nadie te cambie nada. En cuanto cambia algo, se te ve el cartón.',
-  'Con %IQ eres un inútil para todo lo que exija pensar más de un paso por delante, o sea, para casi todo.',
+  'Con %IQ eres inútil para todo lo que exija pensar más de un paso por delante, o sea, para casi todo.',
   '%IQ de IQ. El nivel de quien entiende la mitad de las cosas y actúa como si hubiera entendido el doble.',
   '%IQ. Ni brillas ni preocupas: eres el ruido de fondo del grupo con un número puesto.',
   'Con %IQ sabes lo justo para meterte en discusiones que no puedes ganar. Y te metes en todas.',

@@ -174,9 +174,9 @@ const AURA_TOP_POBRE = [
   'Tu nombre no está, y pedir la lista no lo va a poner. Ni rezando.',
   'Los del top no necesitan saber que existes. Tú sí necesitas ver sus nombres.',
   'Pides la lista donde no sales. Tienes el masoquismo muy entrenado.',
-  'Buscas tu nombre en la lista y no está. Ni el último puesto le dan a un pringado.',
+  'Buscas tu nombre en la lista y no está. Ni el último puesto le dan a alguien tan pringado.',
   'Te pasas por el top como quien pasa por delante de una tienda que no se puede permitir.',
-  'El ranking no tiene lista de espera, y tú llevas meses apuntado en ella como un gilipoyas.',
+  'El ranking no tiene lista de espera, y tú llevas meses en ella como los gilipoyas.',
   'Desde abajo el top se ve precioso, y tú tienes la mejor vista de todo el puto sótano.',
   'Te sabes el top de memoria como quien se sabe un equipo que nunca le va a fichar.',
   'La lista tiene sitio para pocos y ninguno se llama como tú.',
@@ -184,7 +184,7 @@ const AURA_TOP_POBRE = [
   'Envidia en estado puro: pedir la lista de los demás para ver lo que te falta.',
   'Los de arriba no te van a hacer sitio. Tendrías que quitárselo, y no tienes con qué.',
   'El top no es un sitio para visitar. O estás o no estás y tú no estás.',
-  'Entrar al top te costaría esfuerzo y mirarlo solo tiempo. Un vago de mierda como tú ya ha elegido.',
+  'Entrar al top te costaría esfuerzo y mirarlo solo tiempo. Tu vagancia de mierda ya ha elegido.',
   'Los nombres del top escriben. El tuyo solo pregunta por ellos.',
 ];
 
