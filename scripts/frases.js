@@ -116,7 +116,7 @@ const POOLS_MODO = args.includes('--pools');
 // se reescribio. Los numeros de arriba eran una meta que nunca se midio entera
 // (nadie 502 con 520 dentro): esta es la foto real, y aun asi por debajo de
 // lo que habia antes de Grok en todas las familias.
-const TECHO = { nadie: 520, analogia: 8, coletilla: 93, eco: 4, molde: 159, enlatado: 142, roto: 2 };
+const TECHO = { nadie: 494, analogia: 6, coletilla: 93, eco: 4, molde: 159, enlatado: 142, roto: 2 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();

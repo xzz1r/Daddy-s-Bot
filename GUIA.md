@@ -428,6 +428,13 @@ halago.
 > «Estructura buena, piel buena, proporciones buenas. Aburrido de leer y
 > molesto de aceptar.»
 
+**El podio de `!count` alaba.** Lo fijó el dueño: las frases de los tres
+primeros del ranking (`MEMBER_PHRASES`, `ADMIN_PHRASES` y `DISTANCIA`, en
+`src/commands/count.js`) halagan el carisma de quien va arriba: que se le lee,
+que se le busca, que el grupo gira a su alrededor. Van con lenguaje vulgar («de
+puta madre», «de cojones», «la hostia»), pero el golpe es el elogio, no una
+puya. Las de los que no están en el podio siguen siendo palizas.
+
 ### Lo que la tira
 
 **7. La analogía barata.** Si el chiste es el objeto («Café de máquina: dos
