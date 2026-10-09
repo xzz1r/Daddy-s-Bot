@@ -1245,16 +1245,15 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // para nada — el botin real sigue limitado por lo que tiene DE VERDAD.
   const conCebo = await tienda.tieneCebo(jid, target);
   const auraAparente = conCebo ? Math.round(auraV * OBJETOS.cebo.multiplicador) : auraV;
-  // LA FIANZA ES LO QUE TIENES EN TOTAL, suelto mas banco. Contaba solo lo
-  // suelto, y quien guardaba en el banco veia *!robo @x 666* recortado a 78 sin
-  // entender por que (lo vio el dueño). Para todos igual: si sale mal, la multa
-  // sale primero de lo suelto y lo que falte del banco (drainConCaja).
+  // LA CIFRA QUE SE ESCRIBE ES LA QUE VA, tenga lo que tenga el ladron. Lo
+  // pidio el dueño, y para todos igual: *!robar 630 @x* con 34 en la cuenta va
+  // a por 630, no a por 34. Lo unico que la recorta es lo que tiene la victima.
+  // Si sale mal, la multa sale de lo suelto y luego del banco (drainConCaja), y
+  // no baja de cero: quien no tiene, pierde lo que tiene.
   const bancoA = await cajaDePersona(jid, sender).catch(() => 0);
   const fianzaA = auraA + (bancoA || 0);
-  const maxStake = topeRobo(fianzaA, auraAparente);
-  // Quien limita la cifra: la victima o lo que tiene el ladron. El aviso decia
-  // siempre «la victima solo tenia X», y a veces el que no tenia era el ladron.
-  const limitaLadron = fianzaA < Math.floor(auraAparente * ROBO.techoFraccion);
+  const maxStake = topeRobo(Infinity, auraAparente);
+  const limitaLadron = false;
   const parsed = parseCantidad(args);
   const { stake, pedido: raw, elegido, recortado } = resolverCantidad(parsed, {
     max: maxStake,
