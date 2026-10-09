@@ -111,7 +111,12 @@ const POOLS_MODO = args.includes('--pools');
 // Y al quitar el dedo y el móvil de !vs, fantasmas y la purga: enlatado 217.
 // Y al quitar el dedo y la pantalla de iq, relevance, aura, robo, casino,
 // rencor, racha, kick, antilink, duel y el gif: nadie 502, enlatado 212.
-const TECHO = { nadie: 502, analogia: 9, coletilla: 89, eco: 5, molde: 154, enlatado: 212, roto: 1 };
+// Y el 9 oct, al revisar las de Grok contra el suelo de oro: de sus mil
+// reescrituras se quedaron las que golpeaban, el resto volvio a la de antes o
+// se reescribio. Los numeros de arriba eran una meta que nunca se midio entera
+// (nadie 502 con 520 dentro): esta es la foto real, y aun asi por debajo de
+// lo que habia antes de Grok en todas las familias.
+const TECHO = { nadie: 520, analogia: 8, coletilla: 93, eco: 4, molde: 159, enlatado: 142, roto: 2 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();

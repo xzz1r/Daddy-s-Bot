@@ -74,7 +74,7 @@ const VEREDICTOS = {
   buscado: [
     'Tiene precio en la cabeza. Cualquiera puede ir a cobrarlo.',
     'Hay gente con ganas de ir a por su cabeza, y con motivos.',
-    'El precio va puesto en la cabeza y sale en el expediente. Se cobra yendo a por esa cabeza.',
+    'El precio se lo ha ganado a pulso. Ahora que no se queje.',
   ],
   ausente: [
     'Unos días sin escribir. Se le está olvidando cómo se hace.',
@@ -94,12 +94,12 @@ const VEREDICTOS = {
   pobre: [
     'Su cuenta da pena hasta al bot, y el resto del grupo lo sabe.',
     'Pobre de solemnidad. Pide comandos con la mirada.',
-    'No le llega para casi nada de la tienda. El saldo se queda corto, a la vista del expediente.',
+    'No le llega ni para lo más barato de la tienda, y aun así entra a mirar.',
   ],
   normal: [
     'Un expediente sin una sola línea que merezca leerse dos veces.',
     'Del montón. Si mañana desaparece, se nota solo por el hueco en la lista.',
-    'El expediente lo deja en el medio. No lleva precio en la cabeza, no está en la miseria y no tiene fortuna. Se lee y se pasa la página.',
+    'Nada grave y nada bueno. Una vida de relleno que da pereza hasta archivar.',
   ],
 };
 

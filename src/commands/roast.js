@@ -44,9 +44,9 @@ function getActivityPhrases(count) {
       `%N, ni un mensaje. Tienes el grupo de adorno y el móvil de pisapapeles.`,
       `Cero mensajes, %N. Si hubiera un censo del grupo, te contarían por error.`,
       `%N, cero. Cualquiera que entre mañana ya habrá dicho más que tú en toda tu estancia.`,
-      `%N, contador en cero. Llevan el hilo a audios de mierda y tu nombre no ha dejado ni una burbuja que pinchar.`,
+      `%N, contador en cero y dignidad parecida.`,
       `Cero mensajes, %N. Estás aquí para ver y no para que te vean, y enhorabuena: no te ve nadie.`,
-      `%N, el grupo escupe mierda en el chat y tú no has dejado ni una mancha en el hilo.`,
+      `%N, ni una letra. Tu silencio ya ni incomoda: se da por hecho.`,
     ];
   }
   if (count < 20) {
@@ -62,7 +62,7 @@ function getActivityPhrases(count) {
       `${c} mensajes, %N. Si cada mensaje tuyo fuera un euro, no tendrías ni para el pan.`,
       `%N, ${c}. Los de arriba escriben eso antes del desayuno.`,
       `%N, ${c} mensajes. A este ritmo, para cuando digas algo interesante el grupo ya no existe.`,
-      `${c} mensajes, %N. Abres la boca, nadie contesta y te vuelves al visto con la frase atascada en la garganta.`,
+      `${c} mensajes, %N. Lo que no dices tú lo dicen otros, y encima mejor.`,
       `%N, ${c} mensajes. Presencia de figurante: sales en la escena y nadie recuerda tu cara.`,
       `%N, ${c} mensajes. Escribes como quien paga una multa: lo mínimo y de mala gana.`,
       `${c} mensajes, %N. Si te callas mañana, el grupo ni gira la puta cabeza.`,
@@ -70,21 +70,21 @@ function getActivityPhrases(count) {
   }
   if (count < 60) {
     return [
-      `${c} mensajes, %N. Ya constas en la lista, y el grupo sigue la pelea sin abrir tu nombre ni una puta vez.`,
-      `%N, ${c} mensajes. Apareces lo justo para que no te den de baja, y ni eso te sale del todo.`,
-      `${c} mensajes, %N. Saben tu nombre. De tu voz, ni una muestra que alguien pueda imitar.`,
+      `${c} mensajes, %N. Suficientes para que se sepa que existes y pocos para que importe.`,
+      `%N, ${c} mensajes. Apareces lo justo para demostrar que el móvil te sigue funcionando.`,
+      `${c} mensajes, %N. El grupo sabe cómo te llamas, y de ahí no ha pasado.`,
       `%N, ${c}. Hablas cuando se te pregunta y nadie te pregunta.`,
       `${c} mensajes, %N. Tu aportación al grupo es de las que se olvidan antes de terminar de leerlas.`,
       `%N, ${c} mensajes. Participas como quien firma el libro de visitas y se va.`,
-      `${c} mensajes, %N. No te echan de menos. Te encuentran de vez en cuando, como quien encuentra una moneda en el sofá.`,
+      `${c} mensajes, %N. A ti no se te echa de menos: se te descubre de vez en cuando.`,
       `%N, ${c} mensajes. Das para una anécdota, y la anécdota es que casi nunca hablas.`,
       `${c} mensajes, %N. Si el grupo hiciera una lista de gente imprescindible, no estarías ni entre los suplentes.`,
       `%N, ${c} mensajes. Más que un fantasma y menos que un vecino: saludas en el ascensor y ya.`,
       `${c} mensajes, %N. El grupo no te odia, que eso requiere conocerte.`,
       `%N, ${c}. Cuando escribes, parece que pasabas por aquí de casualidad.`,
-      `${c} mensajes, %N. Apareces, dices algo flojo y un audio de mierda te tapa la frase antes de que nadie la lea.`,
-      `%N, ${c} mensajes. Todo lo tuyo cabe en el hueco de un audio, y ni así se para nadie a contestarte.`,
-      `${c} mensajes, %N. Tu frase entra en la pelea y se queda flotando, sin un solo mensaje que la recoja.`,
+      `${c} mensajes, %N. Tu mejor aportación hasta ahora ha sido no molestar.`,
+      `%N, ${c} mensajes. Todo lo tuyo se lee rápido porque hay muy poco.`,
+      `${c} mensajes, %N. Con eso no te ganas un sitio: te ganas un hueco.`,
     ];
   }
   // 150+ — quien escribe sostiene el grupo, y la guía dice que la actividad se
@@ -93,13 +93,13 @@ function getActivityPhrases(count) {
   // y con los demás, no con que escriba.
   if (count >= 150) {
     return [
-      `${c} mensajes, %N. El chat te obedece y aún así miras alrededor, a ver si alguien se ha enterado de que mandas tú.`,
-      `%N, ${c} mensajes. Tiras del chat y a los demás se les ve el esfuerzo: frase corta, y se les muere antes del punto.`,
+      `${c} mensajes, %N. Sostienes tú este grupo de mierda y nadie te da ni las gracias.`,
+      `%N, ${c} mensajes. Empujas tú este grupo y los demás van montados encima sin dar un puto palo.`,
       `${c} mensajes, %N. Si mañana no apareces, el chat se queda en coma. Eso da poder, y lo sabes, cabrón.`,
       `%N, ${c}. Tú escribes y los demás leen, así va la cadena alimenticia de este grupo.`,
       `${c} mensajes, %N. Para roastearte habría que buscar lo que no has dicho, y no queda mucho.`,
-      `%N, ${c} mensajes. Metes la frase en la pelea y al resto se le queda la réplica en la garganta.`,
-      `${c} mensajes, %N. Sale el número y a quien se ríe se le corta la risa al verlo.`,
+      `%N, ${c} mensajes. Das la cara más que nadie, y con la cara que tienes, eso tiene mérito.`,
+      `${c} mensajes, %N. El marcador no miente, y el que se ría de ti que enseñe primero su número.`,
       `%N, ${c} mensajes. Te has ganado el derecho a ser insoportable, y lo estás usando.`,
       `${c} mensajes, %N. El motor del grupo eres tú: mucho ruido, mucho gasto y ningún sitio al que ir.`,
       `%N, ${c}. Con ese número ya no se te roastea por callar: se te roastea por no saber callarte.`,
@@ -107,25 +107,25 @@ function getActivityPhrases(count) {
       `%N, ${c} mensajes. Eres una puta máquina de conversación, y como toda máquina, no tienes vida.`,
       `${c} mensajes, %N. Llevas tú el ritmo del grupo, y los demás, a aguantarlo.`,
       `%N, ${c} mensajes. Roastearte es fácil: con ese número, se ve desde aquí que no sales de casa.`,
-      `${c} mensajes, %N. Ya puedes presumir, que te lo has ganado a pulso y a costa de dormir.`,
+      `${c} mensajes, %N. Ya puedes presumir, que te lo has ganado a pulso, a pulgar y a costa de dormir.`,
     ];
   }
   // 60-149
   return [
-    `${c} mensajes, %N. Tu frase entra y la respuesta se la lleva la burbuja de debajo.`,
-    `%N, ${c} mensajes. Te leen, asienten con la cabeza y siguen el hilo de siempre.`,
+    `${c} mensajes, %N. No das ni para que te echen de menos ni para que te echen.`,
+    `%N, ${c} mensajes. Se te lee, pero no se te cita.`,
     `${c} mensajes, %N. Das conversación como quien da el cambio: lo justo y contado.`,
     `%N, ${c} mensajes. Das tu opinión, el grupo suelta un «ya» y sigue con el plan que ya tenía escrito.`,
-    `${c} mensajes, %N. Hablas, y cuando alguien quiere repetir lo tuyo se le queda la boca a medias, sin el remate.`,
+    `${c} mensajes, %N. Hablas, sí, y en cuanto sueltas el móvil nadie se acuerda de una puta palabra.`,
     `${c} mensajes, %N. Das la cara a ratos y el resto del tiempo te la guardas.`,
-    `%N, ${c} mensajes. Cuando dicen quién mueve esto, señalan otra burbuja y la tuya sigue quieta.`,
+    `%N, ${c} mensajes. Nadie te nombra cuando se habla de quién lleva el grupo.`,
     `${c} mensajes, %N. Lo tuyo son apariciones estelares, sin estrella.`,
-    `%N, ${c} mensajes. Te ven escribir, esperan el golpe y sale una frase que no mueve la pelea ni un milímetro.`,
+    `%N, ${c} mensajes. Te ven escribiendo, esperan el zasca y sueltas una mierda que no mueve nada.`,
     `${c} mensajes, %N. Das para un «ah, sí, está», pero no para un «¿dónde está?».`,
-    `%N, ${c}. Mandas el mensaje y te vas. La respuesta se queda fuera, sin nadie que la recoja.`,
-    `${c} mensajes, %N. Tienen tu tono pillado y lo usan para adelantarte la frase, antes de que acabes de escribir.`,
-    `%N, ${c} mensajes. Tu mensaje suena, el grupo lo oye y sigue a gritos en el audio de otra persona.`,
-    `${c} mensajes, %N. Dejas la frase puesta y ya vas de salida, con el chat todavía abierto detrás.`,
+    `%N, ${c}. Sueltas el mensaje y te piras. Normal que ya no te conteste ni Dios.`,
+    `${c} mensajes, %N. Has escrito lo justo para que el grupo te tenga calado.`,
+    `%N, ${c} mensajes. Si te vas, el grupo pierde un poco de ruido y nada más.`,
+    `${c} mensajes, %N. Estás, pero de paso.`,
     `%N, ${c} mensajes. Te has quedado a mitad de camino y te has sentado ahí.`,
   ];
 }
