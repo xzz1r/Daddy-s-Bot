@@ -12,13 +12,13 @@ const { pickFresh } = require('../utils/helpers');
 // entrada, no una respuesta.
 const ANUNCIOS = [
   '*PAPI HA RESUCITADO.*\n\nEstaba ocupado en asuntos que no están a vuestro nivel. Se acabó el recreo: el grupo vuelve a tener dueño.',
-  '*HE VUELTO.*\n\nMe fui a arreglar cosas más grandes que este chat, y las arreglé. Ahora todos a vuestro sitio, que aquí mando yo.',
+  '*HE VUELTO.*\n\nMi voz vuelve a estar encima de la vuestra. El último mensaje del grupo se queda debajo, y yo encima.',
   '*PAPI ESTÁ DE VUELTA.*\n\nNo me fui: estaba ocupado. Bajad la voz, enderezad la espalda y recordad quién manda aquí.',
-  '*RESUCITADO.*\n\nUn grupo sin dueño no tiene rumbo. Ya llegó quien pone el orden.',
-  '*HA VUELTO EL QUE MANDA.*\n\nAsuntos cerrados, agenda libre. Toda mi atención vuelve a estar encima de vosotros. Comportaos.',
-  '*PAPI HA REGRESADO.*\n\nOs hacía falta alguien que mande, aunque nadie lo diga. Cada uno a su puesto, que se acabó la anarquía.',
+  '*RESUCITADO.*\n\nHe entrado y os he cortado la frase. Vosotros seguís con la palabra en la boca, y el chat ya es mío.',
+  '*AQUÍ MANDO.*\n\nEsto vuelve a tener dueño. Vosotros salís en letra pequeña, debajo.',
+  '*PAPI HA REGRESADO.*\n\nEl chat vuelve a sonar en mi mano. Vosotros hablabais hacia un hueco, y el hueco ya tiene quien lo lee.',
   '*ATENCIÓN AL GRUPO.*\n\nPapi ha vuelto de sus asuntos. Lo que hayáis hecho mientras tanto, ya lo sé. Todo.',
-  '*DE VUELTA AL TRONO.*\n\nMe ausenté para ocuparme de lo importante, y lo importante ya está hecho. El trono no se queda vacío.',
+  '*DE VUELTA AL TRONO.*\n\nAbro el chat y mi mensaje cae el primero. Los vuestros se quedan debajo, en fila, como quien espera turno.',
 ];
 
 async function cmdReborn(sock, msg) {

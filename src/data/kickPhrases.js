@@ -38,8 +38,8 @@ const AVISOS_KICK = [
     varios: '%M no hay «dejadnos explicar», inútiles. El grupo no os debe una audiencia. Os debe una salida.\nLleváis tiempo siendo un problema que nadie quería nombrar. Hoy se nombra: sobráis, putos. No hay segunda ronda. Os echan. Idos.',
   },
   {
-    uno: '%M este grupo te midió el primer puto día y suspendiste, retrasado.\nNo te avisaron porque se te veía. Estuviste de relleno, nunca de miembro. Hoy se publica el resultado delante de todos. No fue un malentendido. Fuiste un error. Fuera.',
-    varios: '%M este grupo os midió el primer puto día y suspendisteis, retrasados.\nNo os avisaron porque se os veía. Estuvisteis de relleno, nunca de miembros. Hoy se publica el resultado delante de todos. No fue un malentendido. Fuisteis un error. Fuera.',
+    uno: '%M te pasaste el grupo entero en «escribiendo...» y nunca soltaste la puta frase, retrasado.\nSalía tu nombre, se movían los puntos y abajo no quedaba nada. Hoy te echan con esos puntos todavía en el aire. No había texto. Había teatro. Fuera.',
+    varios: '%M os pasasteis el grupo entero en «escribiendo...» y nunca soltasteis la puta frase, retrasados.\nSalían vuestros nombres, se movían los puntos y abajo no quedaba nada. Hoy os echan con esos puntos todavía en el aire. No había texto. Había teatro. Fuera.',
   },
   {
     uno: '%M cuando te vayas nadie va a preguntar dónde estás, guarra. Y no es crueldad: es que no hacías falta.\nPara cuando termines de leer esto, ya te olvidaron. El nombre se le borra a la gente en dos conversaciones. Fuera, cero a la izquierda.',
@@ -86,8 +86,8 @@ const AVISOS_KICK = [
     varios: '%M os fuisteis hace tiempo. Hoy solo se hace oficial, fantasmas de mierda.\nDejasteis de contar el día en que el grupo aprendió a ignoraros, maricones. Estar en la lista no es pertenecer. Nadie va a pelear por vuestros nombres. Nadie va a decir «pena». Fuera.'
   },
   {
-    uno: '%M este grupo no es un refugio para el que no pinta una mierda, guarra.\nEntraste como si el sitio fuera un derecho. Se gana, y tú no lo ganaste. Hoy se corrige. No hay «una oportunidad más». Fuera, gilipoyas.',
-    varios: '%M este grupo no es un refugio para el que no pinta una mierda, guarras.\nEntrasteis como si el sitio fuera un derecho. Se gana, y vosotros no lo ganasteis. Hoy se corrige. No hay «una oportunidad más». Fuera, gilipoyas.',
+    uno: '%M entraste, plantaste la foto y te quedaste en ese icono, guarra. Ni una frase que alguien contestara.\nHoy te echan y el icono aguanta un segundo en la lista, mudo, hasta que desaparece. Eso es todo lo que fuiste aquí. Fuera, gilipoyas.',
+    varios: '%M entrasteis, plantasteis la foto y os quedasteis en el icono, guarras. Ni una frase que alguien contestara.\nHoy os echan y el icono aguanta un segundo en la lista, mudo, hasta que desaparece. Eso es todo lo que fuisteis aquí. Fuera, gilipoyas.',
   },
   {
     uno: '%M nadie en este grupo te quiere cerca, y se te nota a kilómetros, puta.\nNo caes, no aportas, no follas y aun así te quedaste pegado. Confundiste que no te echaran con que te aceptaran. Te acaban de echar. Se te acabó el cuento. Fuera, miseria.',
@@ -126,8 +126,8 @@ const AVISOS_KICK = [
     varios: '%M llegabais tarde a cada conversación y la matabais con un comentario que nadie pidió, cabrones.\nSois los que entran cuando ya se rieron y preguntan qué pasó. Hoy el grupo se quita el retraso. Nunca estuvisteis a tiempo. Fuera, lastre.',
   },
   {
-    uno: '%M tus mensajes se saltaban. Se veían y se bajaba el pulgar, coño. Nadie te respondía porque no había nada que responder.\nNo eras conversación: eras interrupción. El grupo te echa para dejar de pasar por encima de ti. Fuera, ridículo.',
-    varios: '%M vuestros mensajes se saltaban. Se veían y se bajaba el pulgar, coño. Nadie os respondía porque no había nada que responder.\nNo erais conversación: erais interrupción. El grupo os echa para dejar de pasar por encima de vosotros. Fuera, ridículos.',
+    uno: '%M tus mensajes se saltaban. Se veían y se seguía de largo, coño. Nadie te respondía porque no había nada que responder.\nNo eras conversación: eras interrupción. El grupo te echa para dejar de pasar por encima de ti. Fuera, ridículo.',
+    varios: '%M vuestros mensajes se saltaban. Se veían y se seguía de largo, coño. Nadie os respondía porque no había nada que responder.\nNo erais conversación: erais interrupción. El grupo os echa para dejar de pasar por encima de vosotros. Fuera, ridículos.',
   },
   {
     uno: '%M pertenecer cuesta, muerto de hambre. Cuesta escribir, mojarse, quedar mal, volver. Tú no pagaste nada y ocupaste igual, joder.\nQuerías el grupo sin el trabajo de ser alguien aquí. Hoy se te cobra de golpe: la plaza y la cara. No hay crédito. Fuera.',
@@ -146,8 +146,8 @@ const AVISOS_KICK = [
     varios: '%M esta expulsión llega tarde, gilipoyas, y se nota.\nHace semanas que el grupo os tenía sentenciados. Solo faltaba que alguien pulsara. Hoy pulsan. El resto ya lo había decidido. Vosotros os enteráis ahora. Os echan. Largaos.'
   },
   {
-    uno: '%M lo más memorable que has hecho aquí es que te echen, retrasado.\nHasta hoy no había un momento tuyo que alguien pudiera contar. Ahora sí: el final. Un fracaso tan limpio que no deja ni anécdota. Fuera.',
-    varios: '%M lo más memorable que habéis hecho aquí es que os echen, retrasados.\nHasta hoy no había un momento vuestro que alguien pudiera contar. Ahora sí: el final. Un fracaso tan limpio que no deja ni anécdota. Os echan. Fuera.'
+    uno: '%M tu nota de voz sigue en gris, retrasado, y ya nadie le va a dar al play.\nLa mandaste, el grupo pasó de largo y el audio se quedó sin abrir. Hoy te echan con esa nota todavía sin reproducir, pudriéndose en el chat. Fuera.',
+    varios: '%M vuestra nota de voz sigue en gris, retrasados, y ya nadie le va a dar al play.\nLa mandasteis, el grupo pasó de largo y el audio se quedó sin abrir. Hoy os echan con esa nota todavía sin reproducir, pudriéndose en el chat. Fuera.'
   },
   {
     uno: '%M usaste el grupo para soltar tu mierda y desaparecer, guarra.\nQuejas, dramas, silencios de tres días. Nunca una conversación de verdad. Hoy te echan y se acaba el vertido. El grupo no era tu urgencia. Fuera.',
@@ -170,12 +170,12 @@ const AVISOS_KICK = [
     varios: '%M para este grupo erais un número, inútiles. Ni cara, ni frase, ni un hueco que tapar cuando os vayáis, coño.\nWhatsApp os cuenta en la lista. El grupo no. Hoy la lista se pone honesta y os echan. Fuera.'
   },
   {
-    uno: '%M tu silencio no era misterio. Era pobreza, cabrón. No tenías qué decir y lo disfrazaste de pose.\nEl grupo ya no te compra el disfraz. Te echan callado, que es exactamente como viviste aquí. No había nada detrás. Fuera.',
-    varios: '%M vuestro silencio no era misterio. Era pobreza, cabrones. No teníais qué decir y lo disfrazasteis de pose.\nEl grupo ya no os compra el disfraz. Os echan callados, que es exactamente como vivisteis aquí. No había nada detrás. Fuera.',
+    uno: '%M el puntito verde era toda tu presencia, cabrón. En línea, leyendo, y sin una puta frase.\nEl grupo te veía conectado y el chat no recibía nada tuyo. Hoy te echan y el puntito se apaga delante de todos. Detrás no había nadie. Fuera.',
+    varios: '%M el puntito verde era toda vuestra presencia, cabrones. En línea, leyendo, y sin una puta frase.\nEl grupo os veía conectados y el chat no recibía nada vuestro. Hoy os echan y el puntito se apaga delante de todos. Detrás no había nadie. Fuera.',
   },
   {
-    uno: '%M usaste lo solo que estás como escudo para que nadie te echara. Ya no cuela, maricón.\nEl grupo no es terapia y tú no eres un caso. Eres un lastre con cuento. Hoy se te acaba el cuento y la plaza. Fuera.',
-    varios: '%M usasteis lo solos que estáis como escudo para que nadie os echara. Ya no cuela, maricones.\nEl grupo no es terapia y vosotros no sois un caso. Sois un lastre con cuento. Hoy se os acaba el cuento y la plaza. Fuera.'
+    uno: '%M pegaste el párrafo de víctima para que nadie te tocara, maricón, y el grupo lo ha leído hasta el final.\nEse texto lloraba en el chat y no se ha movido nadie. Hoy te echan con el párrafo todavía delante. El copia y pega no frena la puerta. Fuera.',
+    varios: '%M pegasteis el párrafo de víctima para que nadie os tocara, maricones, y el grupo lo ha leído hasta el final.\nEse texto lloraba en el chat y no se ha movido nadie. Hoy os echan con el párrafo todavía delante. El copia y pega no frena la puerta. Fuera.'
   },
   {
     uno: '%M viviste de los chistes de otros. Ni uno fue tuyo. Ni uno, joder.\nTe reías tarde, reenviabas peor y te creíste parte del tono. El tono era de ellos. Tú eras el eco. Hoy se apaga el tuyo. Fuera.',

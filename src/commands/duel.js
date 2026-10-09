@@ -1,5 +1,4 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, bareJid, sameUser, canonicalJid } = require('../utils/wa');
-const { voc } = require('../utils/vocativo');
 const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
 const { getAura, transferAura } = require('../utils/auraStore');
 const { ownerGana } = require('../utils/rigOwner');
@@ -57,32 +56,32 @@ function rollWinner(cO, cA, tO, tA) {
 let DUEL_WIN = [
   '%L tiró los dados como quien compra un rasca esperando jubilarse. %W le explicó la estadística a hostia limpia y gratis.',
   '%W se lleva el aura de %L, y %L se queda con la cara de haber entrado. Nadie le obligó.',
-  '%L entró al duelo con toda la chulería y lo ha perdido con toda la vergüenza.',
+  '%L ha metido el aura en el duelo y no se la han devuelto. Se le queda el gesto de cobrar y el saldo, más corto.',
   'Duelo cerrado. %W cobra, %L paga, y el grupo se queda con la captura.',
-  '%L se jugó su aura contra %W. Ya no es suya. Así funcionan las apuestas, gilipoyas.',
+  '%L se ha jugado el aura contra %W y la ha perdido en el mismo mensaje. El saldo de la derrota se queda abierto en el chat.',
   '%W ni se ha despeinado. %L ha perdido el aura y la dignidad en la misma tirada.',
   'La próxima vez que %L quiera un duelo, que se mire primero el saldo. Ahora mirarlo le sale más barato.',
   '%L ha puesto el aura encima de la mesa y %W se la ha llevado sin dar las gracias.',
   'Duelo para %W. %L ya puede ir pensando una excusa, que el grupo la está esperando.',
-  '%L ha perdido un duelo que decidió jugar. Quien no sale al campo no lo pisan, y %L ha salido, imbécil.',
-  '%W suma, %L resta, y el marcador ya lo ha publicado para todo el grupo.',
-  '%L ha demostrado en este duelo que contra %W no tiene nada que hacer, y lo ha pagado en aura.',
+  '%L ha perdido el duelo que acaba de pedir. El aura de %L sale en la línea de abajo y ya no está en su saldo.',
+  '%W suma el aura y %L la suelta en la misma línea. Los dos nombres se quedan en el mensaje, con la resta ya hecha.',
+  '%L se ha estrellado contra %W. El aura ha cambiado de mano y el nombre de la derrota se queda fijo en el chat.',
   'El dado ha hablado y ha dicho %W. A %L le ha dicho otra cosa que no se puede repetir.',
   '%W cobra el duelo con la calma de quien cobra lo suyo. %L paga con la cara colorada.',
-  '%L ha perdido y ahora tiene dos opciones: pedir la revancha o callarse. Las dos le van a salir mal.',
-  'Duelo resuelto y humillación servida. %W ni lo celebra y %L no lo supera.',
+  '%L ha perdido el duelo y el aura en el mismo mensaje. El nombre queda debajo, y el saldo, más flaco.',
+  '%W se queda el aura del duelo en el saldo. %L queda en la línea de abajo, con menos de lo que puso.',
   '%L vino a por aura y se va sin la suya. Gran negocio, fenómeno.',
   '%W le ha quitado a %L el aura, las ganas y el derecho a hablar de duelos en una semana.',
   'Cuando %L diga que tiene mala suerte, que alguien le enseñe este duelo contra %W.',
   '%W gana limpio y %L pierde con la boca abierta.',
   '%L se ha metido en el duelo como quien firma sin leer. %W sí leyó la letra pequeña: gana %W.',
   'Aura de %L al bolsillo de %W. Lo que %L tenía en la mesa, %W se lo ha cobrado en un comando.',
-  '%W, con el premio. %L, con la factura.',
+  '%W, con el premio ya dentro del saldo. %L, con la factura del duelo escrita debajo, en el chat.',
   '%L sale del duelo más pobre y con menos ganas de hablar. Lo segundo es lo único bueno.',
   '%W le ha ganado a %L sin esfuerzo y sin piedad. %L ha puesto lo demás: el aura y la cara.',
   'Si %L quería protagonismo, ya lo tiene: es el nombre que sale restando.',
   '%W se lleva lo que %L ha puesto en la mesa. %L mira el saldo como si se hubiera jugado la vida.',
-  '%W se va con el premio. %L, con el recuerdo de haberse metido.',
+  '%W se va con el premio en el saldo. %L se queda en la línea de la resta, sin el aura que puso.',
   '%L ha perdido tan rápido que el duelo ha durado menos que el reto.',
   '%W gana. %L se queda buscando culpables y no los encuentra porque no se mira al espejo.',
 ];
@@ -254,7 +253,7 @@ async function cmdDuel(sock, msg, args, groupMeta) {
   const existing = getPending(jid);
   if (existing) {
     return sock.sendMessage(jid, {
-      text: `Ya hay un duelo pendiente: @${existing.challenger.split('@')[0]} vs @${existing.target.split('@')[0]}. Espera a que se resuelva${voc(sender, msg.key.fromMe, groupMeta, 'muñeca')}.`,
+      text: `Ya hay un duelo pendiente: @${existing.challenger.split('@')[0]} vs @${existing.target.split('@')[0]}. Espera a que se resuelva.`,
       mentions: [existing.challenger, existing.target],
     }, { quoted: msg });
   }
@@ -284,7 +283,7 @@ async function cmdDuel(sock, msg, args, groupMeta) {
 
   if (auraC < stake || auraT < stake) {
     return sock.sendMessage(jid, {
-      text: `Con ese saldo no te da para un duelo${voc(sender, msg.key.fromMe, groupMeta, 'pequeña')}.`,
+      text: `Con ese saldo no te da para un duelo.`,
     }, { quoted: msg });
   }
 
