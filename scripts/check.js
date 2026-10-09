@@ -3596,9 +3596,10 @@ const di=async(quien,texto,extra)=>{
       const po = cifras.map((c) => EC.exitoOwnerRobo(c));
       const baja = (xs) => xs.every((x, i) => i === 0 || x <= xs[i - 1]) && xs[xs.length - 1] < xs[0];
       if (!baja(pm)) { fallos++; console.log(rojo(`   ✗ al miembro pedir más no le baja el acierto: ${pm.map((x) => Math.round(x * 100)).join(' · ')}`)); }
-      if (!baja(po)) { fallos++; console.log(rojo(`   ✗ al owner pedir más no le baja el acierto: ${po.map((x) => Math.round(x * 100)).join(' · ')}`)); }
+      // Y AL OWNER NO: lo dijo el dueño, «el owner queda exento de eso».
+      if (!po.every((x) => x === po[0])) { fallos++; console.log(rojo(`   ✗ al owner la cifra le cambia el acierto, y está exento: ${po.map((x) => Math.round(x * 100)).join(' · ')}`)); }
     }
-    if (fallos === antes) console.log(verde('   ✓ la cifra escrita llega entera al robo, con poco aura o con todo en el banco, y pedir más es más difícil'));
+    if (fallos === antes) console.log(verde('   ✓ la cifra escrita llega entera al robo, con poco aura o con todo en el banco, y pedir más es más difícil (salvo para el owner)'));
   }
 
   // 12c. SIN PRECIO DOBLE EN TOPS, SHIP Y HERRAMIENTAS. Lo pidio el dueño: esos

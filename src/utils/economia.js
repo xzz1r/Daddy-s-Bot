@@ -883,11 +883,11 @@ const ROBO_OWNER_MIN = 0.82;
 // Y SUBIDO DE NUEVO A 0,76 el 7 oct, por peticion del dueño. Lo que delata un
 // amaño es la racha, no la tasa, y la racha sigue con techo (abajo).
 const ROBO_OWNER_EXITO = 0.76;
-// EL OWNER TAMBIEN NOTA LA CIFRA, a la mitad que el resto y desde mas arriba.
-// Lo pidio el dueño: que pedir mas sea mas dificil para todos, y que no cante
-// que a el le sale igual pida 50 o 10.000. Con 0,76 fijo era lo mas cantoso de
-// la mesa. Ahora: 50 → 89 % · 630 → 84 % · 3.000 → 79 % · 10.000 → 74 %.
-const ROBO_OWNER_CURVA = { techo: 0.90, suelo: 0.70, peso: 0.5 };
+// EL OWNER NO NOTA LA CIFRA. Lo dijo el dueño (9 oct): «el owner queda exento
+// de eso». La curva de dificultad por cifra es para el resto; a el le sale
+// igual pida 50 que 10.000, al techo de la curva que tuvo un dia. Lo que el
+// grupo ve sigue siendo una cifra de miembro inventada (chanceVisibleDe).
+const ROBO_OWNER_CURVA = { techo: 0.90, suelo: 0.90, peso: 0 };
 function castigoCifra(stake) {
   const g = RIESGO.gorda;
   const n = Math.max(0, Number(stake) || 0);
