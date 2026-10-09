@@ -3601,6 +3601,19 @@ const di=async(quien,texto,extra)=>{
     if (fallos === antes) console.log(verde('   ✓ la cifra escrita llega entera al robo, con poco aura o con todo en el banco, y pedir más es más difícil'));
   }
 
+  // 12c. SIN PRECIO DOBLE EN TOPS, SHIP Y HERRAMIENTAS. Lo pidio el dueño: esos
+  // cuestan siempre lo mismo. El resto sigue con la rafaga.
+  {
+    console.log('\n12c. TOPS, SHIP Y HERRAMIENTAS NO SUBEN DE PRECIO');
+    const antes = fallos;
+    const { SIN_RAFAGA } = require(path.join(R, 'src/utils/auraCobro'));
+    for (const c of ['top5', 'top10', 'ship', 'play', 'redes', 'sticker', 'toimg', 'tovid', 'ttp', 'cachelist']) {
+      if (!SIN_RAFAGA || !SIN_RAFAGA.has(c)) { fallos++; console.log(rojo(`   ✗ *${c}* vuelve a cobrar el doble desde el cuarto uso`)); }
+    }
+    if (SIN_RAFAGA && SIN_RAFAGA.has('roast')) { fallos++; console.log(rojo('   ✗ el roast se ha quedado sin ráfaga, y esa no la pidió quitar nadie')); }
+    if (fallos === antes) console.log(verde('   ✓ precio fijo en tops, ship y herramientas; el resto sigue con la ráfaga'));
+  }
+
   // ── LAS TRES PUERTAS NUEVAS, Y LA FACHADA DEL OWNER ───────────────────────
   //
   // Tres dinamicas: racha caliente/tilt entre !aura y !robo, curva de acierto

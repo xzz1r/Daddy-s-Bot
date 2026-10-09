@@ -31,6 +31,14 @@ const logger = require('./logger');
 const SIN_DESCUENTO_ADMIN = new Set(['presentarse']);
 
 const RAFAGA = { gratis: 3, multiplicador: 2, triple: 6, multiplicadorTriple: 3 };
+// SIN RAFAGA, por decision del dueño (9 oct): los tops, el ship y todas las
+// herramientas cuestan siempre lo mismo, se usen las veces que se usen. Son los
+// que se piden por necesidad o en cadena (un sticker detras de otro, una
+// cancion detras de otra) y el doble ahi castigaba el uso normal, no el ruido.
+const SIN_RAFAGA = new Set([
+  'top5', 'top10', 'ship',
+  'play', 'redes', 'sticker', 'toimg', 'tovid', 'ttp', 'cachelist',
+]);
 const usos = new Map();       // 'grupo|persona|concepto' -> veces
 let diaUsos = null;
 
@@ -123,7 +131,7 @@ async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta
   // apuntaba el intento igual: cinco intentos sin aura y, cuando por fin la
   // tenia, le salia al doble sin haber usado nada. Aqui solo se LEE; se apunta
   // abajo, y solo si el cobro ha salido.
-  const yaUsados = usosDe(groupJid, senderJid, concepto);
+  const yaUsados = SIN_RAFAGA.has(concepto) ? 0 : usosDe(groupJid, senderJid, concepto);
   if (yaUsados >= RAFAGA.triple) {
     precio = Math.round(precio * RAFAGA.multiplicadorTriple);
   } else if (yaUsados >= RAFAGA.gratis) {
@@ -305,4 +313,4 @@ function textoSinSaldo(concepto, { precio, saldo }, jid) {
     `_Cuesta *${fmt(precio)}*${doble} y tienes *${fmt(saldo)}*. ${cierre}_`;
 }
 
-module.exports = { cobrar, devolver, textoSinSaldo, MISERIA, HABLA_MAS, SIN_SERVICIO, esSinServicio, RAFAGA, usosDe, _usos: usos };
+module.exports = { cobrar, devolver, textoSinSaldo, MISERIA, HABLA_MAS, SIN_SERVICIO, esSinServicio, RAFAGA, SIN_RAFAGA, usosDe, _usos: usos };
