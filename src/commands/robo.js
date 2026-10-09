@@ -21,7 +21,7 @@ const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
 
 const { getAura, addAura, drainAura, drainConCaja, spendAura, flushAura, forzarCaja, verCaja: cajaDePersona } = require('../utils/auraStore');
 const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
-const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA, SALDO_MINIMO, CAJA, BUTRON } = require('../utils/economia');
+const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, castigoCifra, exitoOwnerRobo, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA, SALDO_MINIMO, CAJA, BUTRON } = require('../utils/economia');
 const { ownerGana } = require('../utils/rigOwner');
 const { fichaFalsaBuscado } = require('../utils/fachada');
 const tienda = require('../utils/roboStore');
@@ -252,8 +252,7 @@ function ajustarProbabilidad(base, { grupo, ladron, victima, stake, maxStake, es
       p -= castigo;
       motivos.push(`${etiqueta} (−${Math.round(castigo * 100)}%)`);
     }
-    const g = RIESGO.gorda;
-    const gorda = Math.min(g.tope, Math.max(0, (stake - g.desde) / 100) * g.porCien);
+    const gorda = castigoCifra(stake);
     if (gorda > 0.02) {
       p -= gorda;
       motivos.push(`cifra gorda (−${Math.round(gorda * 100)}%)`);
@@ -1370,7 +1369,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // Víctima = owner principal → el robo falla siempre.
   // Atacante = owner principal → ownerGana(ROBO_OWNER_EXITO), no el 100 %.
   if (isMainOwner(target, false, groupMeta)) success = false;
-  else if (isMainOwner(sender, msg.key.fromMe, groupMeta)) success = ownerGana(jid, ROBO_OWNER_EXITO);
+  else if (isMainOwner(sender, msg.key.fromMe, groupMeta)) success = ownerGana(jid, exitoOwnerRobo(stake));
 
   const aTag = `@${sender.split('@')[0]}`;
   const vTag = `@${target.split('@')[0]}`;

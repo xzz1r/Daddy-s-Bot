@@ -3585,7 +3585,20 @@ const di=async(quien,texto,extra)=>{
         console.log(rojo(`   ✗ ${quien} con ${suelto} sueltos pide ${pedido} y el titular dice: ${titular.slice(0, 120)}`));
       }
     }
-    if (fallos === antes) console.log(verde('   ✓ la cifra escrita llega entera al robo, con poco aura o con todo en el banco'));
+    // Y PEDIR MAS NUNCA ES MAS FACIL. Lo pidio el dueño: «entre más alta la
+    // cifra, más dificultad», para el miembro y para el owner.
+    {
+      const RB = require(path.join(R, 'src/commands/robo'));
+      const EC = require(path.join(R, 'src/utils/economia'));
+      const cifras = [50, 100, 300, 630, 1000, 2000, 5000, 10000];
+      const pm = cifras.map((c) => RB.ajustarProbabilidad(EC.ROBO_BASE.miembro,
+        { grupo: 'g12b' + c, ladron: 'a', victima: 'b', stake: c, maxStake: 20000 }).p);
+      const po = cifras.map((c) => EC.exitoOwnerRobo(c));
+      const baja = (xs) => xs.every((x, i) => i === 0 || x <= xs[i - 1]) && xs[xs.length - 1] < xs[0];
+      if (!baja(pm)) { fallos++; console.log(rojo(`   ✗ al miembro pedir más no le baja el acierto: ${pm.map((x) => Math.round(x * 100)).join(' · ')}`)); }
+      if (!baja(po)) { fallos++; console.log(rojo(`   ✗ al owner pedir más no le baja el acierto: ${po.map((x) => Math.round(x * 100)).join(' · ')}`)); }
+    }
+    if (fallos === antes) console.log(verde('   ✓ la cifra escrita llega entera al robo, con poco aura o con todo en el banco, y pedir más es más difícil'));
   }
 
   // ── LAS TRES PUERTAS NUEVAS, Y LA FACHADA DEL OWNER ───────────────────────

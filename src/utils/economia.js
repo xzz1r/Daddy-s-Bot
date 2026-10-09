@@ -792,12 +792,20 @@ const RIESGO = {
   // probabilidad hasta el suelo (15 %) y sale a perder de largo. El punto dulce
   // sigue en el 45 % del tope: ahi es donde compensa.
   codiciaMax: 0.34,   // castigo al pedir el tope entero (subido de 0,30 con el tope)
-  miseriaMax: 0.08,   // castigo al pedir el mínimo
+  // A CERO por decision del dueño (9 oct): «entre más alta la cifra, más
+  // dificultad». Castigar tambien al que pide poco hacia que 100 fuera mas
+  // dificil que 600, que es justo lo contrario de lo que se lee en el grupo.
+  miseriaMax: 0,      // pedir poco ya no se castiga
   allIn: 0.85,        // a partir de aquí el robo es "a lo grande" (ver DESENLACES)
   // LA CIFRA EN SI TAMBIEN PESA, no solo la fraccion. Sin esto, pedir 700 a
   // alguien con 3.000 salia casi gratis. Por encima de `desde`, cada 100 resta
   // `porCien`, hasta `tope`. El owner no lo paga, igual que la codicia.
-  gorda: { desde: 300, porCien: 0.01, tope: 0.15 },
+  // REHECHO el 9 oct: «entre más alta la cifra, más dificultad». Antes era
+  // lineal desde 300 y se plantaba en un 15 % a partir de 1.800: pedir 2.000 o
+  // 10.000 costaba lo mismo. Ahora es una curva que no para de subir:
+  //   castigo = factor · ln(1 + cifra / escala), con techo en `tope`.
+  //   50 → 2 % · 300 → 8 % · 630 → 12 % · 1.000 → 15 % · 3.000 → 23 % · 10.000 → 30 %
+  gorda: { escala: 150, factor: 0.075, tope: 0.30 },
 };
 
 // ─── !robo: cuánto se gana ───────────────────────────────────────────────────
@@ -875,6 +883,20 @@ const ROBO_OWNER_MIN = 0.82;
 // Y SUBIDO DE NUEVO A 0,76 el 7 oct, por peticion del dueño. Lo que delata un
 // amaño es la racha, no la tasa, y la racha sigue con techo (abajo).
 const ROBO_OWNER_EXITO = 0.76;
+// EL OWNER TAMBIEN NOTA LA CIFRA, a la mitad que el resto y desde mas arriba.
+// Lo pidio el dueño: que pedir mas sea mas dificil para todos, y que no cante
+// que a el le sale igual pida 50 o 10.000. Con 0,76 fijo era lo mas cantoso de
+// la mesa. Ahora: 50 → 89 % · 630 → 84 % · 3.000 → 79 % · 10.000 → 74 %.
+const ROBO_OWNER_CURVA = { techo: 0.90, suelo: 0.70, peso: 0.5 };
+function castigoCifra(stake) {
+  const g = RIESGO.gorda;
+  const n = Math.max(0, Number(stake) || 0);
+  return Math.min(g.tope, g.factor * Math.log(1 + n / g.escala));
+}
+function exitoOwnerRobo(stake) {
+  const { techo, suelo, peso } = ROBO_OWNER_CURVA;
+  return Math.min(techo, Math.max(suelo, techo - peso * castigoCifra(stake)));
+}
 
 // PERO LA TASA NO ERA EL PROBLEMA PRINCIPAL. Lo que delata un amaño no es el
 // porcentaje, es la RACHA: nadie del grupo lleva la cuenta de cuantos robos
@@ -1579,7 +1601,7 @@ module.exports = {
   pApuestaDe, pApuestaVisible, APUESTA_OWNER_VISIBLE,
   RACHA, BONOS, REDENCION,
   VETERANIA_MSGS, VETERANIA_PAGO, VETERANIA_TOPE, bonoVeterania,
-  ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, DUELO, REGALO_MIN,
+  ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_CURVA, castigoCifra, exitoOwnerRobo, ROBO_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, DUELO, REGALO_MIN,
   BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA,
   PRECIOS, SALDO_MINIMO, IMPUESTO, impuestoDe,
   rango, tirar,
