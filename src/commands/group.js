@@ -647,6 +647,8 @@ async function cmdDel(sock, msg, groupMeta) {
   }
 }
 
+const MOTES_MUTE = ['esa puta', 'esa guarra', 'esa perra', 'esa cachorrita', 'esa zorra', 'esa cerda', 'esa rata', 'esa furcia'];
+
 // !mute @user [minutos] — silencia comandos de un usuario (admin only)
 async function cmdMute(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
@@ -708,7 +710,10 @@ async function cmdMute(sock, msg, args, groupMeta) {
 
   muteUser(jid, target, Date.now() + d.ms);
 
-  let texto = `@${num} muteado *${formatoDuracion(d.ms)}*. Todo lo que escriba esta puta se borra.`;
+  // El mote del muteado lo eligio el dueño: «esa puta» y variaciones. Sale en
+  // baraja para que no se repita hasta haber salido todos.
+  const mote = pickBaraja(MOTES_MUTE, `${jid}|mute|mote`);
+  let texto = `@${num} muteado *${formatoDuracion(d.ms)}*. Todo lo que escriba ${mote} se borra.`;
   if (d.ajustado === 'min') texto += `\nEl mínimo es ${formatoDuracion(MUTE_MIN_MS)}.`;
   if (d.ajustado === 'max') texto += `\nEl máximo es ${formatoDuracion(MUTE_MAX_MS)}.`;
 
