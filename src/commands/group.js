@@ -708,7 +708,7 @@ async function cmdMute(sock, msg, args, groupMeta) {
 
   muteUser(jid, target, Date.now() + d.ms);
 
-  let texto = `@${num} muteado *${formatoDuracion(d.ms)}*. Todo lo que escriba se borra.`;
+  let texto = `@${num} muteado *${formatoDuracion(d.ms)}*. Todo lo que escriba esta puta se borra.`;
   if (d.ajustado === 'min') texto += `\nEl mínimo es ${formatoDuracion(MUTE_MIN_MS)}.`;
   if (d.ajustado === 'max') texto += `\nEl máximo es ${formatoDuracion(MUTE_MAX_MS)}.`;
 
