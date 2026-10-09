@@ -3556,6 +3556,38 @@ const di=async(quien,texto,extra)=>{
     if (fallos === antes) console.log(verde('   ✓ la cifra se lee, el telefono no, y *!aura robar* roba'));
   }
 
+  // 12b. LA CIFRA PEDIDA ES LA QUE VA, POR EL CAMINO DE VERDAD.
+  //
+  // El dueño escribia *!robar 630 @x* teniendo 34 y salia 34. Semanas. Las
+  // pruebas de arriba miran el parser y el codigo, y daban verde: el recorte
+  // estaba en el tope del ladron, que solo se ve con el mensaje entrando entero
+  // por handleMessage. Aqui se manda el texto como llega del grupo y se exige
+  // que el titular lleve la cifra pedida, salga bien o mal el robo.
+  {
+    console.log('\n12b. !robar 630 CON 34 DE AURA VA A POR 630');
+    const antes = fallos;
+    const casos = [
+      ['owner', '34', '0', '648', '/robar 630 @V'],
+      ['miembro', '34', '0', '648', '!robo @V 630'],
+      ['owner', '50', '3000', '9000', '!robar 1.111 @V'],
+    ];
+    for (const [quien, suelto, banco, victima, texto] of casos) {
+      const pedido = (texto.match(/[\d.]{3,}/) || [''])[0].replace(/\./g, '');
+      let out = '';
+      try {
+        out = execSync(`node ${JSON.stringify(path.join(R, 'scripts/robo-cifra.js'))} ${quien} ${suelto} ${banco} ${victima} ${JSON.stringify(texto)}`,
+          { encoding: 'utf8', timeout: 60000, stdio: ['ignore', 'pipe', 'ignore'] });
+      } catch (e) { out = `${e.stdout || ''}`; }
+      const ok = new RegExp(`(le roba|intentó robarle) \\*${pedido}\\*`).test(out);
+      if (!ok) {
+        fallos++;
+        const titular = out.split('\n').find((l) => /le roba|intentó robarle/.test(l)) || out.trim().split('\n').slice(-2).join(' | ');
+        console.log(rojo(`   ✗ ${quien} con ${suelto} sueltos pide ${pedido} y el titular dice: ${titular.slice(0, 120)}`));
+      }
+    }
+    if (fallos === antes) console.log(verde('   ✓ la cifra escrita llega entera al robo, con poco aura o con todo en el banco'));
+  }
+
   // ── LAS TRES PUERTAS NUEVAS, Y LA FACHADA DEL OWNER ───────────────────────
   //
   // Tres dinamicas: racha caliente/tilt entre !aura y !robo, curva de acierto
