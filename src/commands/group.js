@@ -194,6 +194,29 @@ const UNIDADES_MUTE = { s: 1000, m: 60 * 1000, h: 60 * 60 * 1000, d: 24 * 60 * 6
 // cuenta que ya no cabe en un entero seguro antes de llegar al recorte.
 const FORMA_MUTE = /^(\d{1,6})\s*([smhd])$/;
 
+// LO QUE SE QUISO DECIR, para el aviso. La forma sigue siendo una sola (ver
+// arriba): esto no mutea con «5 horas», solo traduce lo que se escribio a la
+// forma buena para que el aviso diga «¿Querías *5h*?» en vez de un «no
+// entiendo» que obliga a adivinar. Lo pidio el dueño: el aviso estaba mal
+// explicado.
+const PALABRAS_MUTE = [
+  [/^seg(?:undo)?s?\.?$/, 's'],
+  [/^min(?:uto)?s?\.?$/, 'm'],
+  [/^(?:h(?:ora)?s?|hrs?)\.?$/, 'h'],
+  [/^d(?:[ií]a)?s?\.?$/, 'd'],
+];
+const NUMEROS_MUTE = { un: 1, una: 1, uno: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, diez: 10, quince: 15, veinte: 20, treinta: 30 };
+function sugerenciaMute(texto) {
+  const t = String(texto || '').trim().toLowerCase();
+  if (/^media\s+hora$/.test(t)) return '30m';
+  const m = /^(\d{1,6}|[a-z]+)\s*([a-záéíóú.]+)$/.exec(t);
+  if (!m) return null;
+  const n = /^\d+$/.test(m[1]) ? m[1] : NUMEROS_MUTE[m[1]];
+  if (!n) return null;
+  const u = (PALABRAS_MUTE.find(([re]) => re.test(m[2])) || [])[1];
+  return u ? `${n}${u}` : null;
+}
+
 // Devuelve { ms } | { ms, ajustado: 'min'|'max' } | { error: true, sinUnidad? }.
 function parsearDuracionMute(texto) {
   const t = String(texto || '').trim().toLowerCase();
@@ -671,11 +694,15 @@ async function cmdMute(sock, msg, args, groupMeta) {
     // El numero solo lleva su propio aviso: no es que la orden este mal escrita,
     // es que le falta decir de que. Un "no entiendo" ahi manda a releer la
     // sintaxis cuando lo unico que hay que añadir es una letra.
+    const sug = sugerenciaMute(pedido);
     const que = d.sinUnidad
-      ? `*${pedido}* ¿de qué? Ponle la unidad.`
-      : `No entiendo *${pedido}* como tiempo.`;
+      ? `*${pedido}* ¿qué? ¿Segundos, minutos, horas? Ponle la letra: *${pedido}m*, *${pedido}h*…`
+      : sug
+        ? `*${pedido}* no lo pillo. ¿Querías decir *${sug}*?`
+        : `*${pedido}* no lo pillo como tiempo.`;
     return sock.sendMessage(jid, {
-      text: `${que} No he muteado a nadie.\nAsí sí: *60s* · *60m* · *60h* · *7d*.`,
+      text: `${que}\n@${num} sigue sin mutear.\n_El tiempo va con el número y una letra pegada: *s* segundos · *m* minutos · *h* horas · *d* días. Por ejemplo, *!mute @alguien 5h*._`,
+      mentions: [target],
     }, { quoted: msg });
   }
 
@@ -1534,7 +1561,7 @@ async function cmdPresentarse(sock, msg, args, groupMeta) {
   }, { quoted: msg });
 }
 
-module.exports = {
+module.exports = { sugerenciaMute,
   flushMutes,
   cmdVisto,
   cmdAutoAceptar,

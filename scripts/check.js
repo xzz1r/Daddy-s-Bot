@@ -12927,9 +12927,14 @@ const borrados = (s) => s.enviados.filter((e) => e.c && e.c.delete);
       exige(G.getMuteRemaining(g, v) === 0,
         'una duracion que el bot no entiende acaba muteando igual: el admin cree que ha puesto una cosa y el bot ha puesto otra');
       const dicho10 = s.enviados.map((e) => (e.c && e.c.text) || '').join(' ');
-      exige(/No entiendo/.test(dicho10), 'no se avisa de que el tiempo no se ha entendido');
-      exige(/60s/.test(dicho10) && /60m/.test(dicho10) && /60h/.test(dicho10),
+      exige(/no lo pillo/.test(dicho10) && /sigue sin mutear/.test(dicho10), 'no se avisa de que el tiempo no se ha entendido y de que nadie ha quedado muteado');
+      exige(/\*s\* segundos/.test(dicho10) && /\*m\* minutos/.test(dicho10) && /\*h\* horas/.test(dicho10) && /\*d\* días/.test(dicho10) && /5h/.test(dicho10),
         'el aviso no enseña la forma buena: decir que algo esta mal sin decir como se escribe deja al admin probando a ciegas');
+      // Y lo que se queria decir, traducido a la forma buena. El dueño vio
+      // «No entiendo *5 horas*» y lo llamo mal explicado: es obvio lo que se
+      // pedia, y el aviso tiene que decirlo.
+      exige(G.sugerenciaMute('5 horas') === '5h' && G.sugerenciaMute('30 minutos') === '30m' && G.sugerenciaMute('mañana') === null,
+        'el aviso del mute ya no traduce «5 horas» a *5h*: vuelve a ser un «no entiendo» que obliga a adivinar');
     }
 
     // 11. un numero pelado tampoco mutea, y el aviso dice que falta la unidad.
@@ -12944,7 +12949,7 @@ const borrados = (s) => s.enviados.filter((e) => e.c && e.c.delete);
       exige(G.getMuteRemaining(g, v) === 0,
         '!mute @x 60 mutea igual: sesenta es sesenta segundos para quien lo escribe y sesenta minutos para quien lo lee, y esa adivinanza es la que se quito');
       const dicho11 = s.enviados.map((e) => (e.c && e.c.text) || '').join(' ');
-      exige(/unidad/i.test(dicho11),
+      exige(/Ponle la letra/i.test(dicho11),
         'a un numero sin unidad se le contesta lo mismo que a "mañana": lo unico que le falta es una letra y el aviso tiene que decirlo');
     }
   } catch (e) {
