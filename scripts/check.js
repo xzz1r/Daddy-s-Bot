@@ -3657,6 +3657,36 @@ const di=async(quien,texto,extra)=>{
     if (fallos === antes) console.log(verde(`   ✓ ${n} frases con apelativo, y al tier dueño se le quita antes de mandarlo`));
   }
 
+  // 12e. !pfp Y !s CON LO QUE FALLABA EL 10 OCT. Un numero de Mexico que
+  // onWhatsApp devuelve con el 1 de movil y que solo contesta sin el (o al
+  // reves), la miniatura cuando la grande se deniega, y un !s sobre una foto de
+  // ver una vez, que al bot le llega sin clave y no se puede bajar nunca.
+  {
+    console.log('\n12e. !pfp PRUEBA LAS DOS FORMAS DE MEXICO Y LA MINIATURA, Y !s AVISA CON VER UNA VEZ');
+    const antes = fallos;
+    const W = require(path.join(R, 'src/utils/wa'));
+    const no = () => { const e = new Error('not-authorized'); e.data = 401; return e; };
+    const sockMx = { profilePictureUrl: async (j) => { if (j === '525500000000@s.whatsapp.net') return 'https://x/52'; throw no(); } };
+    const u1 = await W.fetchPfpUrl(sockMx, '5215500000000@s.whatsapp.net').catch((e) => (e.restringida ? 'RESTRINGIDA' : 'ERR'));
+    if (u1 !== 'https://x/52') { fallos++; console.log(rojo(`   ✗ !pfp no prueba el numero mexicano sin el 1 de movil: ${u1}`)); }
+    const sockPrev = { profilePictureUrl: async (j, t) => { if (t === 'preview') return 'https://x/prev'; throw no(); } };
+    const u2 = await W.fetchPfpUrl(sockPrev, '34600000001@s.whatsapp.net').catch((e) => (e.restringida ? 'RESTRINGIDA' : 'ERR'));
+    if (u2 !== 'https://x/prev') { fallos++; console.log(rojo(`   ✗ !pfp no cae a la miniatura cuando la foto grande se deniega: ${u2}`)); }
+    const sockNada = { profilePictureUrl: async () => { throw no(); } };
+    const u3 = await W.fetchPfpUrl(sockNada, '34600000001@s.whatsapp.net').catch((e) => (e.restringida ? 'RESTRINGIDA' : 'ERR'));
+    if (u3 !== 'RESTRINGIDA') { fallos++; console.log(rojo(`   ✗ una foto denegada en todas las formas ya no se da por restringida: ${u3}`)); }
+
+    const ST = require(path.join(R, 'src/commands/sticker'));
+    const dichos = [];
+    const sockS = { sendMessage: async (j, c) => { dichos.push(c.text || ''); return {}; } };
+    await ST.cmdSticker(sockS, {
+      key: { remoteJid: '120000999@g.us', participant: '34600000099@s.whatsapp.net', fromMe: false, id: 'S1' },
+      message: { extendedTextMessage: { text: '!s', contextInfo: { quotedMessage: { viewOnceMessageV2: { message: { imageMessage: { mimetype: 'image/jpeg', viewOnce: true } } } } } } },
+    }, { participants: [] });
+    if (!/ver una vez/.test(dichos.join(' '))) { fallos++; console.log(rojo(`   ✗ !s sobre una foto de ver una vez sin clave no explica por qué no sale: "${dichos.join(' | ').slice(0, 80)}"`)); }
+    if (fallos === antes) console.log(verde('   ✓ !pfp prueba 52 y 521 y la miniatura antes de rendirse, y !s explica lo de ver una vez sin cobrar'));
+  }
+
   // 12c. SIN PRECIO DOBLE EN TOPS, SHIP Y HERRAMIENTAS. Lo pidio el dueño: esos
   // cuestan siempre lo mismo. El resto sigue con la rafaga.
   {

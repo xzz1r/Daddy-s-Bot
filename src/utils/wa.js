@@ -748,9 +748,23 @@ function esFotoRestringida(err) {
 // despues la cruda. Y una foto solo se declara restringida si LAS DOS formas
 // lo dicen: con una sola no se distingue "no me la enseña" de "no sabes
 // preguntar".
+// Y DOS INTENTOS MAS antes de rendirse, por lo que se vio el 10 oct con un
+// numero de Mexico: el dueño veia la foto y el bot decia «limitada».
+//   · El otro formato del numero mexicano. onWhatsApp devuelve 521XXXXXXXXXX
+//     (el 1 de movil de antes) y hay cuentas que solo contestan por 52XXXXXXXXXX,
+//     o al reves.
+//   · La miniatura ('preview') cuando la grande ('image') se deniega. WhatsApp
+//     las trata aparte, y una foto pequeña es mejor que un «no se puede».
+function variantesMx(jid) {
+  const m = /^52(1?)(\d{10})@s\.whatsapp\.net$/.exec(bareJid(jid) || '');
+  if (!m) return [];
+  return [m[1] ? `52${m[2]}@s.whatsapp.net` : `521${m[2]}@s.whatsapp.net`];
+}
+
 async function fetchPfpUrl(sock, jid, tipo = 'image', intentos = 2) {
   const canon = canonicalJid(jid);
-  const formas = canon && canon !== bareJid(jid) ? [canon, jid] : [jid];
+  const base = canon && canon !== bareJid(jid) ? [canon, jid] : [jid];
+  const formas = [...base, ...base.flatMap(variantesMx).filter((f) => !base.includes(f))];
   let restringidaEnTodas = null;
   for (const forma of formas) {
     try {
@@ -758,6 +772,16 @@ async function fetchPfpUrl(sock, jid, tipo = 'image', intentos = 2) {
     } catch (err) {
       if (!err?.restringida) throw err;   // fallo de red: no lo tapa otra forma
       restringidaEnTodas = err;
+    }
+  }
+  if (tipo === 'image') {
+    for (const forma of formas) {
+      try {
+        const url = await intentarPfp(sock, forma, 'preview', 0);
+        if (url) return url;
+      } catch (err) {
+        if (!err?.restringida) break;
+      }
     }
   }
   throw restringidaEnTodas;

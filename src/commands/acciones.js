@@ -1017,6 +1017,9 @@ function hazAccion(nombre) {
     }
 
     if (nsfw && (sinResolver || isMainOwner(objetivo, false, groupMeta))) {
+      // En el log SI se dice por que, para poder distinguir este caso de la web
+      // caida sin adivinar: desde el grupo los dos se leen igual.
+      if (sinResolver) logger.warn(`accion ${nombre}: niego, la mencion es un @lid que no puedo traducir a telefono`);
       return sock.sendMessage(jid, {
         text: `No he podido traer el gif. No te he cobrado.`,
       }, { quoted: msg });

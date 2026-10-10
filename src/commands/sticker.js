@@ -48,8 +48,23 @@ function identifyMedia(messageObject, depth = 0) {
     messageObject.viewOnceMessage?.message ||
     messageObject.viewOnceMessageV2?.message ||
     messageObject.viewOnceMessageV2Extension?.message;
-  if (inner) return identifyMedia(inner, depth + 1);
+  if (inner) {
+    const r = identifyMedia(inner, depth + 1);
+    return r ? { ...r, verUnaVez: true } : null;
+  }
+  // Y si lo de dentro ya vino abierto por el manejador, la marca va en el medio.
   return null;
+}
+
+// LO DE VER UNA VEZ NO SIEMPRE SE PUEDE ABRIR. El bot es un dispositivo
+// vinculado, y WhatsApp no abre las fotos y videos de ver una vez fuera del
+// movil: a los vinculados les llegan sin la clave para descargarlos, y al
+// citarlos la cita tampoco la trae. Sin esto el bot cobraba, intentaba bajar,
+// fallaba y decia «prueba otra vez», que no va a funcionar nunca.
+const AVISO_VER_UNA_VEZ = 'Las fotos y vídeos de *ver una vez* no me llegan: WhatsApp no deja abrirlas fuera del móvil. '
+  + 'Mándala normal, sin ver una vez, con *!s* escrito en el texto: esa no se borra y sale el sticker.';
+function sinClave(m) {
+  return !m?.mediaKey || !(m.directPath || m.url);
 }
 
 async function cmdSticker(sock, msg, groupMeta) {
@@ -68,6 +83,10 @@ async function cmdSticker(sock, msg, groupMeta) {
     return sock.sendMessage(jid, {
       text: 'Envía o responde una imagen o video con *!s*',
     }, { quoted: msg });
+  }
+  const eraVerUnaVez = found.verUnaVez || found.msg?.viewOnce === true;
+  if (eraVerUnaVez && sinClave(found.msg)) {
+    return sock.sendMessage(jid, { text: AVISO_VER_UNA_VEZ }, { quoted: msg });
   }
 
   // Re-stamping an existing sticker rewrites its pack metadata with the bot's
@@ -99,9 +118,9 @@ async function cmdSticker(sock, msg, groupMeta) {
       throw new Error('No se pudo descargar el archivo');
     }
   } catch (err) {
-    logger.error(`Sticker download error: ${err.message}`);
+    logger.error(`Sticker download error${eraVerUnaVez ? ' (ver una vez)' : ''}: ${err.message}`);
     await reembolsar();
-    return sock.sendMessage(jid, { text: 'No pude descargar eso. Prueba otra vez.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: eraVerUnaVez ? AVISO_VER_UNA_VEZ : 'No pude descargar eso. Prueba otra vez.' }, { quoted: msg });
   }
 
   // Fire notice before encoding — videos/GIFs can take several seconds on Termux.
