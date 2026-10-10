@@ -20,7 +20,7 @@ const axios = require('axios');
 const { urlSegura, DestinoProhibido } = require('../utils/redSegura');
 const fs = require('fs-extra');
 const path = require('path');
-const { getSender, getTarget, sameUser, isOwner, isMainOwner, canonicalJid, indexGroupMeta } = require('../utils/wa');
+const { getSender, getTarget, sameUser, isOwner, isMainOwner, canonicalJid, indexGroupMeta, resolverLid } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { pickFresh, tempFile, cleanTemp, ffmpegSemaphore } = require('../utils/helpers');
 const { ffmpegPath } = require('../utils/ffmpeg');
@@ -329,7 +329,10 @@ function apuntarGif(clave, url) {
   if (gifsRecientes.size > 200) gifsRecientes.delete(gifsRecientes.keys().next().value);
 }
 
-const LISTOS_POR_CAT = 2;
+// Tres y no dos desde el 10 oct: dos explicitas seguidas vaciaban la cola y la
+// tercera esperaba web + descarga + ffmpeg en el unico core. Un mp4 de estos
+// pesa ~100 KB, asi que la tercera unidad no se acerca al tope de memoria.
+const LISTOS_POR_CAT = 3;
 const TOPE_DESPENSA = 24 * 1024 * 1024;
 const despensa = new Map();      // clave -> { cola: [], ts }
 const reponiendo = new Set();    // para no pedir dos veces lo mismo a la vez
@@ -1014,6 +1017,14 @@ function hazAccion(nombre) {
         indexGroupMeta(fresca);
         sinResolver = String(canonicalJid(objetivo) || objetivo).endsWith('@lid');
       }
+    }
+
+    // Y SI LA METADATA NO LO TRAE, SE LE PREGUNTA A LA SESION (resolverLid).
+    // Es el telefono de verdad, no una suposicion: con el, isMainOwner decide
+    // igual que con cualquier mencion por telefono. Si tampoco lo sabe, se
+    // niega como siempre.
+    if (nsfw && sinResolver && await resolverLid(sock, objetivo)) {
+      sinResolver = String(canonicalJid(objetivo) || objetivo).endsWith('@lid');
     }
 
     if (nsfw && (sinResolver || isMainOwner(objetivo, false, groupMeta))) {

@@ -231,6 +231,33 @@ function canonicalJid(jid) {
   return bare;
 }
 
+// UN @lid QUE EL MAPA NO SABE, SE LE PREGUNTA A LA SESION.
+//
+// Baileys guarda su propio libro de pares @lid -> telefono (Signal/lid-mapping)
+// con todo lo que ha visto al cifrar y descifrar: casi todo el que ha escrito en
+// un grupo con el bot dentro esta ahi. Es una lectura LOCAL —cache y disco de
+// la sesion, sin una sola peticion a WhatsApp—, asi que no cuesta nada.
+//
+// Lo usan las explicitas: negaban contra cualquiera cuyo @lid no viniera en la
+// metadata (los grupos que esconden el telefono no lo traen nunca), y desde el
+// grupo eso era «no he podido traer el gif» todo el rato. Con el telefono real
+// delante, el blindaje del dueño decide de verdad en vez de negar por las dudas.
+async function resolverLid(sock, jid) {
+  if (!jid) return null;
+  const bare = bareJid(jid);
+  if (!bare.endsWith('@lid')) return bare;
+  const ya = lidToPhone.get(bare);
+  if (ya) return ya;
+  try {
+    const pn = await withTimeout(sock?.signalRepository?.lidMapping?.getPNForLID?.(bare), 1500);
+    const tel = pn ? String(pn).split('@')[0].split(':')[0].replace(/\D/g, '') : '';
+    if (!tel) return null;
+    const phone = `${tel}@s.whatsapp.net`;
+    rememberMapping(bare, phone);
+    return phone;
+  } catch { return null; }
+}
+
 // El @lid de un telefono, si el bot lo sabe. null si no.
 function lidDe(jid) {
   if (!jid) return null;
@@ -838,6 +865,7 @@ function anotarRestriccionContacto(info) {
 }
 
 module.exports = {
+  resolverLid,
   anotarRestriccionContacto,
   isOwner,
   isMainOwner,

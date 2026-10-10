@@ -3684,7 +3684,45 @@ const di=async(quien,texto,extra)=>{
       message: { extendedTextMessage: { text: '!s', contextInfo: { quotedMessage: { viewOnceMessageV2: { message: { imageMessage: { mimetype: 'image/jpeg', viewOnce: true } } } } } } },
     }, { participants: [] });
     if (!/ver una vez/.test(dichos.join(' '))) { fallos++; console.log(rojo(`   ✗ !s sobre una foto de ver una vez sin clave no explica por qué no sale: "${dichos.join(' | ').slice(0, 80)}"`)); }
-    if (fallos === antes) console.log(verde('   ✓ !pfp prueba 52 y 521 y la miniatura antes de rendirse, y !s explica lo de ver una vez sin cobrar'));
+    // EL @lid QUE NO TRAE LA METADATA SE RESUELVE CON LA SESION, y si es el
+    // dueño, el blindaje lo reconoce: lo que importa es que traducir no abra
+    // el hueco que se queria cerrar. En una copia aparte: isMainOwner APRENDE
+    // y guarda en data/, y un @lid de mentira apuntado al dueño de verdad en la
+    // VPS seria peor que el fallo que se prueba.
+    {
+      const os12 = require('os');
+      const caja = fs.mkdtempSync(path.join(os12.tmpdir(), 'lid12e-'));
+      try {
+        fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+        fs.mkdirSync(path.join(caja, 'data'));
+        fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+        const guion = [
+          "const W = require('./src/utils/wa');",
+          "const LO = '777777777777777@lid', LX = '888888888888888@lid';",
+          "const sk = { signalRepository: { lidMapping: { getPNForLID: async (l) => (l === LO ? '33600000001:0@s.whatsapp.net' : l === LX ? '34600000555:0@s.whatsapp.net' : null) } } };",
+          '(async () => {',
+          '  const r = { own: await W.resolverLid(sk, LO), otro: await W.resolverLid(sk, LX), nada: await W.resolverLid(sk, "999999999999999@lid"),',
+          '    vacio: await W.resolverLid({}, "666666666666666@lid") };',
+          '  r.ownEsDueño = W.isMainOwner(LO, false, null); r.otroEsDueño = W.isMainOwner(LX, false, null);',
+          "  console.log('R12E' + JSON.stringify(r)); process.exit(0);",
+          '})();',
+        ].join('\n');
+        const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 30000,
+          env: { ...process.env, OWNER_NUMBER: '33600000001', CO_OWNERS: '' } });
+        const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R12E'));
+        const r = linea ? JSON.parse(linea.slice(4)) : {};
+        if (r.own !== '33600000001@s.whatsapp.net' || r.otro !== '34600000555@s.whatsapp.net' || r.nada !== null || r.vacio !== null) {
+          fallos++; console.log(rojo(`   ✗ resolverLid no traduce bien con la sesion: ${JSON.stringify(r).slice(0, 160)}`));
+        }
+        if (r.ownEsDueño !== true) { fallos++; console.log(rojo('   ✗ un @lid del dueño traducido por la sesion no se reconoce como dueño: el blindaje de las explicitas quedaria abierto')); }
+        if (r.otroEsDueño !== false) { fallos++; console.log(rojo('   ✗ un @lid cualquiera traducido por la sesion sale como dueño')); }
+      } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+      const accSrc = fs.readFileSync(path.join(R, 'src/commands/acciones.js'), 'utf8');
+      const iRes = accSrc.indexOf('await resolverLid(sock, objetivo)');
+      const iNiega = accSrc.indexOf('if (nsfw && (sinResolver || isMainOwner(objetivo, false, groupMeta)))');
+      if (iRes < 0 || iNiega < 0 || iRes > iNiega) { fallos++; console.log(rojo('   ✗ las explicitas ya no preguntan a la sesion antes de negar por un @lid sin traducir')); }
+    }
+    if (fallos === antes) console.log(verde('   ✓ !pfp prueba 52 y 521 y la miniatura antes de rendirse, !s explica lo de ver una vez sin cobrar, y un @lid se traduce con la sesion sin abrir el blindaje'));
   }
 
   // 12c. SIN PRECIO DOBLE EN TOPS, SHIP Y HERRAMIENTAS. Lo pidio el dueño: esos

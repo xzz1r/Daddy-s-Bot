@@ -2,7 +2,7 @@ const axios = require('axios');
 // Arma el freno de salidas a redes internas (ver src/utils/redSegura.js).
 require('../utils/redSegura');
 const logger = require('../utils/logger');
-const { getTarget, getSender, canonicalJid, fetchPfpUrl, isGroupAdmin } = require('../utils/wa');
+const { getTarget, getSender, canonicalJid, fetchPfpUrl, isGroupAdmin, resolverLid } = require('../utils/wa');
 const { SOLO_ADMINS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
@@ -136,6 +136,11 @@ async function cmdPfp(sock, msg, args, groupMeta) {
       return sock.sendMessage(jid, { text: error }, { quoted: msg });
     }
   }
+
+  // Un @lid sin traducir se traduce con la sesion antes de nada: la foto se
+  // pide primero por el telefono (ver fetchPfpUrl), y sin el solo queda la
+  // forma @lid, que WhatsApp contesta peor.
+  if (target.endsWith('@lid')) await resolverLid(sock, target);
 
   const num = target.split('@')[0];
   const isPhone = target.endsWith('@s.whatsapp.net');
