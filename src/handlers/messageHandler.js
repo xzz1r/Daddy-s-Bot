@@ -1860,7 +1860,8 @@ async function handleMessage(sock, msg, opciones = {}) {
   //
   // Y SOLO SE DA POR NO ESCRITO SI SE HA BORRADO DE VERDAD. Si el bot no es
   // admin, o si WhatsApp rechaza el borrado, el mensaje sigue en el grupo: se
-  // sigue el camino normal —cuenta, y el muteo frena los comandos como siempre—
+  // sigue el camino normal —el muteo frena los comandos como siempre, y desde
+  // el 10 oct no cuenta en !count aunque siga puesto—
   // en vez de fingir que no esta ahi. Anunciar un borrado que no ha ocurrido es
   // el fallo que ya se corrigio en las expulsiones y en el antilink.
   if (!msg.key.fromMe && jid.endsWith('@g.us') && sender && isMuted(jid, sender)) {
@@ -1947,8 +1948,11 @@ async function handleMessage(sock, msg, opciones = {}) {
   // No es cosa del camino rapido de las reacciones: pasaba igual antes, porque
   // el conteo va por delante de esa puerta. Se corta aqui, en el conteo, que es
   // donde esta el error. Un voto de encuesta y un SKDM entran por lo mismo.
+  // Y UN SILENCIADO NO CUENTA NUNCA, se haya podido borrar o no. Lo pidio el
+  // dueño el 10 oct: «cuando una persona este muteada, no le cuenten los
+  // mensajes en count». Antes contaba si el borrado fallaba (bot sin admin).
   if (!diferido && !msg.key.fromMe && jid.endsWith('@g.us') && sender && !senderIsMainOwner
-      && !esSobreSinContenido(msg.message)) {
+      && !esSobreSinContenido(msg.message) && !isMuted(jid, sender)) {
     // `senderPn` es la otra forma de quien escribe, sacada del propio mensaje.
     // Va aqui para que el conteo quede cruzable con la lista de miembros.
     incrementMsgCount(jid, sender, senderPn).catch((e) => logger.unaVez('contar mensaje', e));

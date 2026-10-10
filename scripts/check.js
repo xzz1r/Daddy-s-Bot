@@ -12928,7 +12928,8 @@ const borrados = (s) => s.enviados.filter((e) => e.c && e.c.delete);
         'el mute puesto sobre un @lid deja de valer en cuanto se aprende su telefono: en un grupo LID la mencion trae el @lid, asi que el primer mute despues de cada reinicio no silencia a nadie y no sale nada en el log');
     }
 
-    // 5. sin admin no se borra, y entonces el mensaje SI cuenta.
+    // 5. sin admin no se borra, y aun asi NO cuenta: el dueño lo pidio el 10
+    // oct, «cuando una persona este muteada, no le cuenten los mensajes».
     {
       const g = '120000705@g.us', v = '34600000705@s.whatsapp.net';
       const s = socket({ soyAdmin: false, participantes: [{ id: v }] });
@@ -12936,8 +12937,8 @@ const borrados = (s) => s.enviados.filter((e) => e.c && e.c.delete);
       mutear(g, v, 60000);
       await handleMessage(s, mensaje(g, v, 'hola'));
       exige(borrados(s).length === 0, 'se pidio un borrado sin ser admin del grupo');
-      exige(contados.length === 1,
-        'sin admin el mensaje se queda en el grupo y aun asi no ha contado: el ranking pierde un mensaje que todos estan viendo');
+      exige(contados.length === 0,
+        'un silenciado al que el bot no pudo borrar ha contado en !count: muteado no suma, se borre o no');
     }
 
     // 6. una reaccion no se manda a borrar.
