@@ -1,4 +1,5 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, bareJid, sameUser, canonicalJid } = require('../utils/wa');
+const { apel } = require('../utils/vocativo');
 const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
 const { getAura, transferAura } = require('../utils/auraStore');
 const { ownerGana } = require('../utils/rigOwner');
@@ -253,7 +254,7 @@ async function cmdDuel(sock, msg, args, groupMeta) {
   const existing = getPending(jid);
   if (existing) {
     return sock.sendMessage(jid, {
-      text: `Ya hay un duelo pendiente: @${existing.challenger.split('@')[0]} vs @${existing.target.split('@')[0]}. Espera a que se resuelva.`,
+      text: `Ya hay un duelo pendiente: @${existing.challenger.split('@')[0]} vs @${existing.target.split('@')[0]}. Espera a que se resuelva${apel('muñeca')}.`,
       mentions: [existing.challenger, existing.target],
     }, { quoted: msg });
   }
@@ -283,7 +284,7 @@ async function cmdDuel(sock, msg, args, groupMeta) {
 
   if (auraC < stake || auraT < stake) {
     return sock.sendMessage(jid, {
-      text: `Con ese saldo no te da para un duelo.`,
+      text: `Con ese saldo no te da para un duelo${apel('pequeña')}.`,
     }, { quoted: msg });
   }
 

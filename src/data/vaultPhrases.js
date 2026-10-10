@@ -30,7 +30,7 @@ const GUARDADO = [
   'Hecho. Lo sensato, que es justo por lo que das tanto coñazo.',
   'Cerrado. Ahora puedes cagarte de miedo con algo más de calma.',
   'Bajo llave. Casi a salvo: con *!robarbanco* todavía te lo pueden reventar.',
-  'Bajo llave y fuera de la mesa. Esa aura ya no juega y tú tampoco con ella.',
+  'Bajo llave y fuera de la mesa. Esa aura ya no juega y tú tampoco con ella, pequeña.',
   'Bajo llave. Sacarlo va a doler, y lo sabes.',
   'Cerrado. Muy prudente y muy inútil, todo a la vez.',
 ];
@@ -55,7 +55,7 @@ const SACADO = [
   'Fuera. El aura vuelve a la mesa, y la mesa está llena de gente con hambre.',
   'Sacado, y con la comisión cobrada. El miedo sale caro.',
   'Abierto. Parte de lo tuyo acaba en el bote, que es donde acaba todo lo que se mueve aquí.',
-  'En la mano. Fuera del banco dura lo que tardes en apostarlo.',
+  'En la mano. Fuera del banco dura lo que tardes en apostarlo, pequeña.',
   'Sacado. El banco pesa menos y tu saldo un poco más, que ya era hora.',
 ];
 
@@ -70,7 +70,7 @@ const ENFRIAMIENTO = [
   'Aún no. Esconderte a cada rato tiene un límite, y lo has tocado.',
   'Espera. Has cerrado el banco hace nada y ya vuelves a por la llave.',
   'No. Con tanta prisa por guardar, parece que te persigue alguien.',
-  'Espera tu turno con la llave, que el banco no es una puerta giratoria.',
+  'Espera tu turno con la llave, que el banco no es una puerta giratoria, princesa.',
   'No puedes todavía. El banco se ha cansado de verte.',
   'No. Lo cerraste hace un momento y la cerradura se acuerda.',
 ];
@@ -83,7 +83,7 @@ const LLENO = [
   'Está lleno. Tanto miedo no cabe en un solo cajón.',
   'Ni uno más. Lo demás sigue siendo robable, disfrútalo.',
   'Lleno hasta la tapa. A partir de aquí toca ser valiente.',
-  'Completo. Lo que queda fuera es lo que te va a doler.',
+  'Completo. Lo que queda fuera es lo que te va a doler, muñeca.',
   'No entra más. Y menos mal, que si no esto sería la reserva federal.',
   'No cabe más. El banco tiene tope, y tú acabas de encontrarlo.',
   'No cabe. Un banco por persona, y el tuyo ya no admite ni una moneda.',
@@ -110,7 +110,7 @@ const POCO = [
 // Mira su caja y está vacía.
 const VACIO = [
   'El banco está vacío. Ahorrar no está entre tus putas virtudes, y tienes pocas.',
-  'Nada. Todo tu aura está en la calle esperando a que pase alguien.',
+  'Nada. Todo tu aura está en la calle esperando a que pase alguien, reina.',
   'No hay nada ahí dentro. Ni polvo.',
   'Cero bajo llave. Todo tuyo y todo robable.',
   'El banco está limpio. Como tu instinto de conservación.',

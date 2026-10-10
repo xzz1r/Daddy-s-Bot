@@ -19,7 +19,7 @@ const HITO = [
   '%N encadena *%D días*. El día que falte, llamamos a emergencias, porque solo puede ser eso.',
   '%N lleva *%D días* seguidos, más de lo que aguanta mucha gente yendo al gimnasio. Se nota cuál de las dos cosas haces tú.',
   '*%D días* sin fallar, %N. El grupo te necesita, y tú lo necesitas más a él, que es lo jodido.',
-  '%N, *%D días*. Mientras otros desaparecen el fin de semana, tú sigues aquí, porque tu fin de semana es esto.',
+  '%N, *%D días*. Mientras otros desaparecen el fin de semana, tú sigues aquí, porque tu fin de semana es esto, pequeña.',
   '*%D días* de racha para %N. Esto no se consigue con suerte, se consigue sin planes.',
   '%N suma *%D días*. El resto del grupo que tome nota, o mejor que no, que tiene cosas que hacer.',
   '*%D días* seguidos, %N. Eso aquí se llama constancia, y en cualquier otro sitio, enganche.',

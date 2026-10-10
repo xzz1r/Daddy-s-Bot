@@ -28,6 +28,7 @@ const { maybeIndex } = require('../utils/pfpIndexer');
 const acciones = require('../commands/acciones');
 const { construirListas, cargarComando } = require('./comandos');
 const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, isBotJid, esBotCreador, extractText, getSender, getTarget, canonicalJid, sameUser, indexGroupMeta } = require('../utils/wa');
+const { sinApelativo } = require('../utils/vocativo');
 const logger = require('../utils/logger');
 const bitacoraEstados = require('../utils/bitacoraEstados');
 
@@ -2520,6 +2521,11 @@ async function handleMessage(sock, msg, opciones = {}) {
     if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) return;
   }
 
+  // Si escribe el tier dueño, nada de lo que conteste el bot desde aqui lleva
+  // apelativo: comando mal escrito, cooldowns, cobros. Lo de dentro de cada
+  // comando lo cubre tambien el reparto, que mira ademas a quien se apunta.
+  if (isOwner(sender, msg.key.fromMe, groupMeta)) sock = sinApelativo(sock);
+
   // Dinamica de aura en pausa (*!aura off*): los comandos que MUEVEN aura no se
   // ejecutan. La comprobacion vive aqui, en un solo sitio y sobre una lista, en
   // vez de repetida dentro de cada comando: asi un comando nuevo de la familia
@@ -2636,8 +2642,13 @@ async function handleMessage(sock, msg, opciones = {}) {
     // que es como llega SIN_SERVICIO al reembolso de abajo.
     const hace = EJECUTA.get(command);
     if (hace) {
+      // EL APELATIVO NO LE LLEGA AL TIER DUEÑO. Ni cuando escribe ni cuando le
+      // apuntan: se quita del texto por el camino (ver utils/vocativo.js).
+      const apuntado = getTarget(msg);
+      const tocaDueño = isOwner(sender, msg.key.fromMe, groupMeta)
+        || Boolean(apuntado && isOwner(apuntado, false, groupMeta));
       resultado = await hace({
-        de: cargarDe, sock, msg, args, meta: groupMeta, command, jid, sender, viaTriggerK,
+        de: cargarDe, sock: tocaDueño ? sinApelativo(sock) : sock, msg, args, meta: groupMeta, command, jid, sender, viaTriggerK,
       });
     } else if (!RESERVADOS.has(command)) {
       // ¿QUERIAS DECIR...? Antes un comando mal escrito no hacia NADA.

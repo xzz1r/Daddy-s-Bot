@@ -1,4 +1,5 @@
 const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameUser, soloMiembros } = require('../utils/wa');
+const { apel } = require('../utils/vocativo');
 const { pickFresh, fmt, parseCantidad, resolverCantidad, etiquetaRiesgo } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking, flushAura, resetAura } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
@@ -159,11 +160,11 @@ const AURA = {
     'Tu nombre y una cifra gorda en la misma línea. Milagros de un dado borracho.',
     'Nadie apostaba por ti, y la cifra es tuya. Que se lo coman.',
     'El aura te pone de portada. Por un día la noticia eres tú, y es buena.',
-    'Hoy el dado se ha puesto de tu parte. Aprovecha, que es veleta.',
+    'Hoy el dado se ha puesto de tu parte. Aprovecha, que es veleta, reina.',
     'Te has ganado el respeto que da una cifra así. Te dura hasta tu próxima cagada.',
     'Tirada alta. Ahora mismo hay alguien en el grupo deseando que te roben.',
     'Has ganado de verdad, y al grupo le jode más de lo que a ti te alegra.',
-    'Cifra gorda y tu nombre debajo. Hasta tu madre ha tenido que releerlo.',
+    'Cifra gorda y tu nombre debajo. Hasta tu madre ha tenido que releerlo, chiquitina.',
     'Te ha caído una buena y el grupo se ha quedado en «escribiendo…» sin mandar nada.',
     'No te lo ha regalado nadie: lo ha sacado el dado. Y el dado hoy te quiere.',
   ],
@@ -176,7 +177,7 @@ const AURA = {
     'Hoy cenas, muerto de hambre.',
     '¿Lo notas? Es lo más parecido a tener dinero que vas a sentir.',
     'Tu cuenta respira un poco. Sigue en la UCI, pero respira.',
-    'Para cualquiera sería calderilla. Para ti es el sueldo del mes.',
+    'Para cualquiera sería calderilla. Para ti es el sueldo del mes, cosita.',
     'Lo guardas o lo gastas en un sticker, que es lo que vas a hacer.',
     'Esto no te saca de pobre, pero te da para disimular un rato.',
     'Cobras. Tu cuenta no se lo cree ni ella.',
@@ -194,7 +195,7 @@ const AURA = {
     'Buena tirada para una cuenta sin nada. Ya tienes algo que perder en el próximo robo.',
     'Ganas, y aun así tu saldo cabe en una frase corta.',
     'Hoy la suerte se ha acercado a tu bolsillo, y ha salido tapándose la nariz.',
-    'Suma para ti. En tu cuenta, esto ya es un acontecimiento.',
+    'Suma para ti. En tu cuenta, esto ya es un acontecimiento, chiquitina.',
     'Ganas aura. Disfrútala antes de que te la quite alguien con más hambre que tú.',
     'Te entra aura y sigues muerto de hambre. La tirada no te llena.',
     'Aura nueva en tu cuenta vieja y vacía. Hasta hace eco.',
@@ -218,7 +219,7 @@ const AURA = {
     'Toda esa fortuna y fuera de aquí no te da ni para un café.',
     'Rico aquí dentro. Fuera, lo de siempre.',
     'Acumulas aura como si te fueran a dar algo por ella. No te van a dar nada.',
-    'Más aura. Rico en un bot de WhatsApp y sin un duro para tu parte de la cena.',
+    'Más aura. Rico en un bot de WhatsApp y sin un duro para tu parte de la cena, reina.',
     'Nuevo rico del bot. Lo más alto que vas a llegar en la vida.',
     'Rico en aura, en un bot. Tu mayor patrimonio se borra si cambias de móvil.',
     'Rico de chat. Si lo pones en el currículum, avisa.',
@@ -260,14 +261,14 @@ const AURA = {
     'Perdiste aura como quien pierde un botón: sin enterarte, pringado.',
     'Pierdes con la misma energía con la que vives: ninguna.',
     'Te baja el aura. A ti te duele y al grupo le da igual, como todo lo tuyo.',
-    'Ni la suerte te tiene respeto: te quita y ni se despide. Qué asco de trato.',
+    'Ni la suerte te tiene respeto: te quita y ni se despide. Qué asco de trato, muñeca.',
     'Has perdido lo justo para que nadie se entere y a ti te joda la tarde.',
     'Era lo que todos esperaban, y has cumplido. Cutre y puntual.',
     'Pierdes poco y lo lloras como si fuera mucho. Así eres con todo.',
     'El grupo te archivó en "recuerdos". Ahí no entra nadie a mirar, cabrón.',
     'Tiras para ganar y acabas pagando. Tu suerte trabaja para los demás.',
     'Tirada en rojo. Nadie lo comenta porque ya nadie comenta lo tuyo.',
-    'El ranking no se ha movido. Para moverse haría falta que importaras.',
+    'El ranking no se ha movido. Para moverse haría falta que importaras, princesa.',
     'Pierdes, sigues tirando, y nadie viene a salvarte. Ni va a venir.',
     'Te han quitado aura porque estabas ahí. Ni siquiera por algo.',
     'El aura te ha puesto un "ok" en rojo. Ni sticker. Ni pena. Ok, fracasado.',
@@ -281,7 +282,7 @@ const AURA = {
   ],
   spiral: [
     'Otro mínimo, pringado. Tu saldo ya no baja: se empadrona ahí abajo.',
-    'Llevas tanto abajo que el fondo te ha adoptado. Residencia permanente.',
+    'Llevas tanto abajo que el fondo te ha adoptado. Residencia permanente, muñequita.',
     'Tu saldo ya estaba bajo cero y esta tirada te hunde más. Sigue cavando.',
     'Sigues abajo y lo peor es que ahí encajas. Ese es tu puto sitio.',
     'Joder, tu historial parece un tobogán y tú sigues subiendo solo para tirarte.',
@@ -305,7 +306,7 @@ const AURA = {
     'Nadie te va a decir que pares. Es demasiado entretenido verte seguir.',
     'En negativo y bajando. Reírse de ti ya no hace falta: la cifra se basta sola.',
     'Joder, eres el motivo de que el aura tenga números negativos.',
-    'Desde el fondo has perdido otra y ya tienes el puto dedo en el botón otra vez.',
+    'Desde el fondo has perdido otra y ya tienes el puto dedo en el botón otra vez, reina.',
     'Ibas en rojo y has pedido otra. Te la han dejado en la barra sin mirarte.',
     'Otra hostia con las cuentas ya en rojo. Ni te has tapado.',
     'Bajabas de un saldo roto y has seguido. Ese fondo no tiene suelo para ti.',
@@ -323,7 +324,7 @@ const AURA = {
     'Perdiste con la elegancia de quien no sabe perder: ninguna.',
     'Sacaste un número que el puto grupo va a usar como unidad de medida del desastre.',
     'La tirada te ha dejado el saldo temblando. Se ve desde el otro lado del grupo.',
-    'Golpe de los grandes. Tu saldo acaba de envejecer diez años.',
+    'Golpe de los grandes. Tu saldo acaba de envejecer diez años, reina.',
     'Cuando ni el carroñero pica, has llegado al puto fondo.',
     'Un «joder» se queda corto para lo que acabas de perder.',
     'Pérdida gorda. De las que se recuerdan cada vez que miras el saldo.',
@@ -550,7 +551,7 @@ async function showRanking(sock, msg, groupMeta) {
       // dos veces el mismo mensaje. Lleva cabecera igual que el rechazo por
       // cooldown —es la misma pregunta desde fuera, "pedi el top y no salio"—
       // pero no dice "EN COOLDOWN", que seria mentira: el reloj ya corrio.
-      text: `*TOP SIN CAMBIOS*\nEl top no ha cambiado desde la última vez. Mueve algo y vuelve.`,
+      text: `*TOP SIN CAMBIOS*\nEl top no ha cambiado desde la última vez. Mueve algo y vuelve${apel(['princesa', 'muñeca', 'chiquitina'])}.`,
     }, { quoted: msg });
   }
   if (huellaRanking.size >= 500) huellaRanking.delete(huellaRanking.keys().next().value);
@@ -694,7 +695,7 @@ const APUESTA_POBRE = [
   'Joder, qué vergüenza ajena da tu saldo. Vuelve cuando no seas un puto pordiosero.',
   'Aquí se apuesta con cojones, no con las migajas que te quedan.',
   'Con ese agujero de saldo lo único que arriesgas es hacer el ridículo.',
-  'No hay mínimo que sobreviva a tu miseria. Larga de la mesa.',
+  'No hay mínimo que sobreviva a tu miseria. Larga de la mesa, muñeca.',
   'Con esa cuenta vienes a la mesa a mirar, no a jugar. Largo.',
   'Ni la ficha más pequeña te cabe en el bolsillo. Aquí no se juega fiado.',
   'Apuestas aire. Ni para pipas te llega, y aun así te sientas a la puta mesa.',
@@ -949,7 +950,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
     const quien = getSender(msg);
     const mio = await getAura(jid, quien);
     return sock.sendMessage(jid, {
-      text: `Tienes *${fmt(mio)}* de aura.`,
+      text: `Tienes *${fmt(mio)}* de aura${apel(['pequeña', 'gatita', 'muñequita', 'princesa', 'reina', 'cosita'])}.`,
     }, { quoted: msg });
   }
 

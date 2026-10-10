@@ -52,7 +52,7 @@ const PHRASES = {
       'Pleno con %M mensajes. Premio gordo, y ninguno de tus mensajes lo merecía.',
       'Premio máximo del tramo. Escribir %M mensajes tiene esto: a veces toca, aunque escribas mierda.',
       'Pleno con %M. Ya puedes presumir, que es lo que ibas a hacer igual.',
-      'El pleno del tramo, para ti. %M mensajes y la suerte el mismo día. No te acostumbres.',
+      'El pleno del tramo, para ti. %M mensajes y la suerte el mismo día. No te acostumbres, reina.',
       'Pleno. No se gana apareciendo una vez: se gana apareciendo %M, que es no tener nada que hacer.',
       'Premio gordo por %M mensajes. El aura te ha pagado más que cualquiera que te haya leído.',
     ],

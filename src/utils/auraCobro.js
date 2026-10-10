@@ -236,7 +236,7 @@ function esSinServicio(x) {
 // Están escritas para leerse DELANTE DEL GRUPO, porque ahí es donde salen. La
 // gracia no es que te digan que no tienes dinero, es que te lo digan en público.
 const MISERIA = [
-  'No te llega para esto. Este comando no sale, y el saldo va justo debajo.',
+  'No te llega para esto. Este comando no sale, y el saldo va justo debajo, muñeca.',
   'Mírate el saldo y luego mírate a ti. Encajáis.',
   'No te llega el aura para esto. Hay ganas, que es lo que tienen los pobres.',
   'Ese saldo no da para esto. Da para mirar cómo lo usan otros, que es lo tuyo.',
@@ -259,7 +259,7 @@ const MISERIA = [
   'Ese saldo no impresiona a nadie. Ni siquiera al contador, que ha visto miserias pero no como la tuya.',
   'Saldo insuficiente. La casa no hace descuentos a quien da pena.',
   'Con eso no pagas ni la propina del comando. Aparta.',
-  'Tu cuenta ha dicho que no antes que el bot. Hazle caso a tu cuenta.',
+  'Tu cuenta ha dicho que no antes que el bot. Hazle caso a tu cuenta, chiquitina.',
   'Pagar no puedes. Hacer el ridículo en público, por lo visto, sí.',
   'Precio fijo, saldo por debajo. Matemáticas de pobre.',
   'Pedir sin tener se nota desde lejos, y hoy se te ha visto desde la otra punta del grupo.',

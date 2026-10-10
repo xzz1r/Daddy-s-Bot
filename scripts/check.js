@@ -3624,6 +3624,39 @@ const di=async(quien,texto,extra)=>{
     if (fallos === antes) console.log(verde('   ✓ la cifra escrita llega entera al robo, con poco aura o con todo en el banco, pedir más es más difícil (salvo para el owner) y pedir muchas veces lo que tienes es casi imposible'));
   }
 
+  // 12d. EL APELATIVO DE DOMINANCIA. Grok lo borro entero el 8 oct (337
+  // frases y la pieza que lo ponia) y el dueño lo pidio de vuelta el 10 oct, a
+  // la mitad. Se vigilan las dos cosas que importan: que siga habiendo, y que
+  // al tier dueño no le llegue nunca, escriba el o le apunten a el.
+  {
+    console.log('\n12d. EL APELATIVO ESTÁ, Y AL DUEÑO NO LE LLEGA');
+    const antes = fallos;
+    const V = require(path.join(R, 'src/utils/vocativo'));
+    const re = new RegExp(`, (?:${V.APELATIVOS.join('|')})[.!?]'`, 'g');
+    let n = 0;
+    for (const dir of ['src/data', 'src/commands', 'src/utils']) {
+      for (const f of fs.readdirSync(path.join(R, dir)).filter((x) => x.endsWith('.js'))) {
+        n += (fs.readFileSync(path.join(R, dir, f), 'utf8').match(re) || []).length;
+      }
+    }
+    if (n < 140) { fallos++; console.log(rojo(`   ✗ solo quedan ${n} frases con apelativo de dominancia: el dueño las quiere (la mitad de las 337 de antes)`)); }
+    const enviados = [];
+    const falso = { sendMessage: async (j, c) => { enviados.push(c.text || c.caption); }, user: { id: 'x' } };
+    const envuelto = V.sinApelativo(falso);
+    await envuelto.sendMessage('g', { text: 'No llegas ni a eso, pequeña.' });
+    await envuelto.sendMessage('g', { text: '¿Otra vez aquí, mi niña?' });
+    await envuelto.sendMessage('g', { caption: 'Tienes cara de nada, princesa.' });
+    if (enviados.join('|') !== 'No llegas ni a eso.|¿Otra vez aquí?|Tienes cara de nada.') {
+      fallos++; console.log(rojo(`   ✗ el filtro del tier dueño deja pasar el apelativo: ${enviados.join(' | ')}`));
+    }
+    if (envuelto.user.id !== 'x') { fallos++; console.log(rojo('   ✗ el socket envuelto pierde lo que no es sendMessage')); }
+    const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+    if (!/sock: tocaDueño \? sinApelativo\(sock\) : sock/.test(mh)) {
+      fallos++; console.log(rojo('   ✗ los comandos ya no pasan por el filtro del apelativo cuando toca al tier dueño'));
+    }
+    if (fallos === antes) console.log(verde(`   ✓ ${n} frases con apelativo, y al tier dueño se le quita antes de mandarlo`));
+  }
+
   // 12c. SIN PRECIO DOBLE EN TOPS, SHIP Y HERRAMIENTAS. Lo pidio el dueño: esos
   // cuestan siempre lo mismo. El resto sigue con la rafaga.
   {

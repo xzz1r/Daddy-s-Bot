@@ -73,7 +73,7 @@ const SIN_PERMISO = [
   'No, gilipoyas. Eso está muy por encima de ti y no vas a subir ni un puto escalón.',
   'Ese permiso es para gente de fiar, y de ti no se fía ni tu puta madre.',
   'Pides un dedo y ya vas a por el brazo, sinvergüenza. Por eso no te dan ni la hora.',
-  'Ni con el grupo entero borracho te dejarían tocar eso.',
+  'Ni con el grupo entero borracho te dejarían tocar eso, pequeña.',
   'Te crees arriba porque hay gente abajo, gilipoyas, y sigues siendo una mierda.',
   'A un pedazo de mierda como tú no le fían ni el cambio del pan, y menos permisos.',
   'Hay gente por encima de ti, y el grupo entero sabe por qué: porque das puto asco.',
@@ -109,7 +109,7 @@ const SIN_PERMISO_ADMIN = [
   'Tu rango no te convierte en alguien, solo te da botones. Y ni esos sabes usar.',
   'Ni con el cargo puesto dejas de chupar del grupo. Esto no es para ti.',
   'Eres admin de recados. Esto está por encima de ti, y de tus recados.',
-  'Con rango o sin él, das la misma puta pena. Y esto no es para ti.',
+  'Con rango o sin él, das la misma puta pena. Y esto no es para ti, reina.',
 ];
 
 // UN MIEMBRO ACABA DE TOCAR UN COMANDO DE ADMIN, Y LO HA VISTO EL GRUPO.
@@ -130,7 +130,7 @@ const SIN_PERMISO_ADMIN = [
 const SOLO_ADMINS = [
   'Nadie te ha hecho admin en todo este tiempo porque eres un puto cero a la izquierda.',
   'Tú no mandas ni en tu puta casa, comemierda, y vienes a mandar aquí.',
-  '¿Tú admin? Antes le dan el rango a una rata con sarna que a ti.',
+  '¿Tú admin? Antes le dan el rango a una rata con sarna que a ti, pequeña.',
   'Te ha visto el grupo entero intentando mandar sin rango. Qué puto ridículo das.',
   'Tu único cargo aquí es el de chupapoyas oficial, y ese sí te lo ganaste.',
   'No eres admin, gilipoyas, y con esa cara de mierda no te lo van a dar nunca.',
@@ -174,7 +174,7 @@ const SOLO_ADMINS = [
 const A_TI_MISMO = [
   'Te eliges a ti, gilipoyas. Ni un puto enemigo tienes, y eso ya dice mucho.',
   'Contra ti no, pedazo de mierda. Que lo hayas intentado dice bastante de tu cabeza.',
-  'A ti no. Métete con alguien que te conteste, si es que alguien te habla.',
+  'A ti no. Métete con alguien que te conteste, si es que alguien te habla, pequeña.',
   'Elige a otra persona, si es que conoces a alguien que no te tenga bloqueado.',
   'Eso se hace con dos, y tú has traído uno y medio cerebro.',
   'No. Ni el bot quiere ver cómo te haces una paja delante del espejo.',
@@ -188,7 +188,7 @@ const A_TI_MISMO = [
   'Autolesión por comando. Para eso ya tienes tu cara, no hace falta el bot.',
   'No te lo vas a hacer a ti. Ni aunque te lo merezcas, que te lo mereces de cojones.',
   'Hay que ser muy torpe para apuntarse a uno mismo, y tú lo eres de sobra.',
-  'Contigo no se juega. Bastante te la juegas tú en cuanto hablas.',
+  'Contigo no se juega. Bastante te la juegas tú en cuanto hablas, mi niña.',
   'Ni enemigos tienes, pringado de mierda, y por eso te apuntas a ti de aburrimiento.',
   'Esto se le hace a otra persona, no al espejo, que bastante sufre ya contigo.',
   'Víctima y verdugo a la vez. Eres tan inútil que necesitas los dos papeles.',
@@ -224,7 +224,7 @@ const AL_BOT = [
   'El bot no se roba ni se insulta. Has apuntado a quien no era, y el ridículo es tuyo.',
   'Has respondido al bot. Ni leer quién escribe sabes.',
   'Mencionar a alguien es lo más fácil del grupo y a ti se te ha atragantado.',
-  'Me has mencionado a mí. A ver si miras a quién le das.',
+  'Me has mencionado a mí. A ver si miras a quién le das, pequeña.',
 ];
 
 // El objetivo es un admin y quien lo intenta no llega. Se lee en el grupo, y
@@ -398,7 +398,7 @@ const MAL_ESCRITO = [
   'Lo mínimo del mundo era escribirlo bien, comemierda, y ni a eso llegas.',
   'Ni teclearlo bien, y eso no se arregla. Naciste así y así te vas.',
   'Lo tuyo no lo arregla el autocorrector: corrige letras, no cretinos.',
-  'No te ha fallado el móvil. Te ha fallado la cabeza y esa no tiene repuesto.',
+  'No te ha fallado el móvil. Te ha fallado la cabeza y esa no tiene repuesto, pequeña.',
   'Lo tuyo no se arregla mirando el teclado. Tu fallo está más arriba.',
   'Escribirlo bien no lo vas a aprender en tu puta vida. Retraso de fábrica.',
   'Una puta palabra mal escrita y ya sabe el grupo hasta dónde das. Nada.',
@@ -408,7 +408,7 @@ const MAL_ESCRITO = [
   'Una orden de una palabra y te ha ganado. Ahí está el techo de esa cabeza.',
   'Esa cabeza tiene el techo tan bajo que escribir un comando ya le roza.',
   'Mal escrito, y era una palabra corta. Esa cabeza con las largas ni lo intenta.',
-  'Hasta un crío lo escribe bien a la primera. Tú no llegas a ese nivel.',
+  'Hasta un crío lo escribe bien a la primera. Tú no llegas a ese nivel, princesa.',
   'Escribirlo entero era lo único que se te pedía, y ya pasa de tu puto techo.',
   'Escribirlo bien era una tontería y lo has jodido. Hace falta una sesera de mierda.',
   'Vienes con defecto de fábrica, por eso hasta lo más simple te sale de puta pena.',
@@ -525,14 +525,14 @@ const VER_UNA_VEZ = [
   'Borrado, gilipoyas.',
   'Borrado.',
   'Borrado, anormal.',
-  'Borrado. Nadie te quiere en su galería.',
+  'Borrado. Nadie te quiere en su galería, mi niña.',
   'Borrado. Tu mierda no se queda en la galería de nadie.',
-  'Borrado. Guárdate tus fotos donde te quepan.',
+  'Borrado. Guárdate tus fotos donde te quepan, reina.',
   'Borrado. Lee las putas normas antes de mandar nada.',
-  'Borrado. ¿Tanto te cuesta darle al puto 1?',
+  'Borrado. ¿Tanto te cuesta darle al puto 1, princesa?',
   'Borrado. Lo tuyo dura aquí lo que tardo en quitarlo.',
   'Borrado. Ni regalado se queda en el móvil de nadie, imbécil.',
-  'Borrado. Las fotos de ver una vez te las metes por el culo.',
+  'Borrado. Las fotos de ver una vez te las metes por el culo, muñequita.',
   'Borrado. Mandas basura y encima a la vista de todos, subnormal.',
 ];
 
@@ -544,7 +544,7 @@ const VER_UNA_VEZ = [
 const PURGE_UNO = [
   'fuera. Las reglas estaban a la vista y no las has leído, como no lees nada.',
   'a la calle. Aquí se entra cumpliendo las reglas, y tú entraste a mirar.',
-  'fuera del grupo. Las normas no eran opcionales y te las has saltado.',
+  'fuera del grupo. Las normas no eran opcionales y te las has saltado, chiquitina.',
   'te vas por pasarte las putas reglas por el culo. Segunda oportunidad no hay.',
   'las reglas pedían poco, gilipoyas, y no has llegado ni a eso. Fuera.',
   'fuera. No cumples lo que pide el grupo, y el grupo no te va a echar de menos.',

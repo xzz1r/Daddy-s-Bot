@@ -48,6 +48,13 @@ otros dos, quedándose con las mejores. No se añaden frases: una nueva entra
 sacando otra. La regla vive en `src/commands/percent.js` (`TAMANO_TRAMO`,
 `tramoPrincipal`) y la capa 120 no deja pasar otro tamaño. Salen en baraja.
 
+## Apelativos de dominancia: se quedan
+
+«…, pequeña.», «…, mi niña.», «…, princesa.» y el resto al final de las
+frases los quiere el dueño. Se borraron todos el 8 oct y pidió recuperarlos a
+la mitad (10 oct). No se quitan ni se añaden más. Al tier dueño no le llegan:
+`src/utils/vocativo.js` los quita por el camino. La capa 12d lo vigila.
+
 ## Analogías: CERRADO
 
 El encargo de las analogías baratas está terminado: `npm run analogias` da
