@@ -142,6 +142,19 @@ const ACCIONES = {
   sleep:  { cat: 'sleep',  es: 'dormir',   pool: RX.SLEEP,  cmds: ['sleep', 'dormir', 'siesta'] },
   pout:   { cat: 'pout',   es: 'puchero',  pool: RX.POUT,   cmds: ['pout', 'puchero', 'morros'] },
   bleh:   { cat: 'bleh',   es: 'lengua',   pool: RX.BLEH,   cmds: ['bleh', 'lengua', 'mueca'] },
+  // ─── LA CUARTA TANDA (10 oct): LAS QUE PIDIO EL DUEÑO ─────────────────────
+  //
+  // Seis categorias que ya estaban en las webs conectadas y el bot no usaba.
+  // Comprobadas una a una antes de escribirlas (ver CATALOGO). `!destruir` no
+  // entro: el nombre es del roast.
+  facepalm:  { cat: 'facepalm',  es: 'vergüenza', pool: RX.FACEPALM,  cmds: ['facepalm', 'verguenza'] },
+  baka:      { cat: 'baka',      es: 'idiota',    pool: RX.BAKA,      cmds: ['baka', 'idiota', 'tonto'] },
+  // NI *!lick* NI *!babear*: estan a UNA letra de *!kick* y de *!banear*. Una
+  // errata ahi no manda un gif, echa o banea a alguien.
+  lick:      { cat: 'lick',      es: 'lamer',     pool: RX.LICK,      cmds: ['lamer', 'lametazo'] },
+  kabedon:   { cat: 'kabedon',   es: 'acorralar', pool: RX.KABEDON,   cmds: ['kabedon', 'acorralar'] },
+  smug:      { cat: 'smug',      es: 'chulear',   pool: RX.SMUG,      cmds: ['smug', 'chulear'] },
+  nosebleed: { cat: 'nosebleed', es: 'babas',     pool: RX.NOSEBLEED, cmds: ['nosebleed', 'babas', 'hemorragia'] },
   fuck:   { cat: 'kiss', catNsfw: 'fuck', es: 'follar', pool: RX.FUCK, cmds: ['fuck', 'follar', 'joder'], nsfw: true },
   // Lo mismo que *!fuck* y por los mismos motivos: cuesta el doble y la web SFW
   // no tiene nada que se le parezca, asi que sin fuente puesta cae en `kiss`
@@ -255,6 +268,12 @@ const CATALOGO = {
   sleep:    { 'nekos.best': 'sleep', otakugifs: 'sleep', 'kawaii.red': 'sleepy' },
   pout:     { 'nekos.best': 'pout', purrbot: 'pout', otakugifs: 'pout', 'kawaii.red': 'pout' },
   bleh:     { 'nekos.best': 'bleh', otakugifs: 'bleh' },
+  facepalm:  { 'nekos.best': 'facepalm', otakugifs: 'facepalm', 'kawaii.red': 'facepalm' },
+  baka:      { 'nekos.best': 'baka', 'kawaii.red': 'baka' },
+  lick:      { purrbot: 'lick', otakugifs: 'lick', 'kawaii.red': 'lick' },
+  kabedon:   { 'nekos.best': 'kabedon' },
+  smug:      { 'nekos.best': 'smug', otakugifs: 'smug', 'kawaii.red': 'smug' },
+  nosebleed: { otakugifs: ['nosebleed', 'drool'], 'kawaii.red': 'nosebleed' },
 };
 
 // LAS EXPLICITAS NO VIENEN PUESTAS, Y ES A PROPOSITO.

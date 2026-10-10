@@ -63,6 +63,12 @@ const MARCAS = {
   undress:  /ropa|camiset|pantal|sujetador|bragas|pelotas|cinturón|tela|prenda|calcetín|tirante|cremaller|botón|desnud|zapatos|falda|desabroch|quita/i,
   lickass:  /culo|lengua|lam|agujero|escupe|dedo|chup/i,
   grope:    /mano|toca|agarr|culo|muslo|tetas|cintura|pecho|sobar|meter/i,
+  facepalm:  /mano|cara|frente|palma|tapa|vergüenza|ajena/i,
+  baka:      /idiota|tont|baka|imbécil|gilipo|cabeza|colleja|grita|llama/i,
+  lick:      /lam|lengua|lame|chup|saliva|baba|babe/i,
+  kabedon:   /pared|acorral|arrincon|contra|brazo|mano|encierra|salida/i,
+  smug:      /sonris|sonríe|mira|encima|hombro|chul|sobrad|superior|ceja/i,
+  nosebleed: /nariz|sangr|baba|babe|pañuelo|chorr/i,
 };
 
 const VER = process.argv.includes('--ver');
