@@ -1432,7 +1432,10 @@ async function connectToWhatsApp() {
 function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0) {
   const ESPERAS = [5000, 30000];
   if (intento >= ESPERAS.length) {
-    logger.warn(`Anti-empresa: ${kickId} en ${groupJid} sigue sin poder comprobarse; queda para el primer mensaje`);
+    // INFO y no WARN: en un grupo con mucho alta pasa decenas de veces al dia y
+    // es lo previsto (lo recoge la guarda del primer mensaje). En WARN tapaba
+    // los avisos de verdad: el 10 oct eran 30 de las 40 ultimas lineas.
+    logger.info(`Anti-empresa: ${kickId} en ${groupJid} sigue sin poder comprobarse; queda para el primer mensaje`);
     return;
   }
   setTimeout(async () => {
@@ -1572,7 +1575,7 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
           // entra igual en la lista: la prueba observada (getMemberFacts) NO
           // necesita telefono, y solo la consulta de perfil lo pide.
           if (!phoneJid) {
-            logger.warn(`Anti-empresa: ${obj.id} sin telefono resoluble; se comprueba solo con lo ya observado`);
+            logger.info(`Anti-empresa: ${obj.id} sin telefono resoluble; se comprueba solo con lo ya observado`);
           }
           candidates.push({ kickId: obj.id, phoneJid, participante: obj });
         }

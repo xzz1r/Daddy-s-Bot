@@ -1529,6 +1529,9 @@ const TIPOS_CONOCIDOS = new Set([
   'buttonsResponseMessage', 'templateButtonReplyMessage', 'interactiveMessage',
   'interactiveResponseMessage', 'albumMessage', 'eventMessage', 'commentMessage',
   'keepInChatMessage', 'stickerSyncRmrMessage', 'encReactionMessage',
+  // FIJAR UN MENSAJE. Salio en el log del 10 oct como tipo nuevo: alguien fijo
+  // algo en el grupo. No trae contenido propio (ver SOBRE_SIN_CONTENIDO).
+  'pinInChatMessage',
   // UNA EDICION, NO UNA HISTORIA. Aparecio en *!diag* como sobre desconocido y
   // el propio aviso invita a anyadir a la lista vigilada lo que parezca un
   // estado. Este NO lo es: su proto solo admite tres variantes —UNKNOWN,
@@ -1586,6 +1589,9 @@ const SOBRE_SIN_CONTENIDO = new Set([
   'reactionMessage', 'encReactionMessage',
   'senderKeyDistributionMessage', 'pollUpdateMessage',
   'messageContextInfo',
+  // Fijar o desfijar un mensaje no es escribir: no cuenta en !count y no se
+  // le borra a un silenciado (no hay nada que quitar de la pantalla).
+  'pinInChatMessage',
 ]);
 function esSobreSinContenido(message) {
   if (!message) return true;
