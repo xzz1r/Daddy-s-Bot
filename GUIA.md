@@ -103,7 +103,7 @@ código que hay entre pools.**
 
 ## 3. El sistema de % (lo esencial)
 
-Veintiún comandos funcionan con el mismo motor: `!incel`, `!linda`, `!fea`,
+Veintidós comandos funcionan con el mismo motor: `!incel`, `!linda`, `!lindo`, `!fea`,
 `!sexy`, `!crack`, `!feminidad`, `!masculinidad`, `!gay`, `!simp`, `!rata`,
 `!maricon`, `!friki`, `!cerdo`, `!femboy`, `!inutil`, `!perdedor`, `!ganador`,
 `!puta`, `!guarra`, `!fiel`, `!infiel`.
@@ -143,7 +143,7 @@ Leído del código, comando por comando:
 
 | `goodIsHigh: false` (alto = paliza) | `goodIsHigh: true` (alto = halago) |
 |---|---|
-| incel, fea, gay, simp, rata, maricon, friki, cerdo, femboy, inutil, perdedor, puta, guarra, infiel | linda, sexy, crack, feminidad, masculinidad, ganador, fiel |
+| incel, fea, gay, simp, rata, maricon, friki, cerdo, femboy, inutil, perdedor, puta, guarra, infiel | linda, lindo, sexy, crack, feminidad, masculinidad, ganador, fiel |
 
 Cómo se traduce al escribir:
 
@@ -462,7 +462,7 @@ para un tío les llega con su nombre delante. Falla de tres formas:
 Un «cabrón» suelto al final no cuenta como género: es el registro del bot y se
 usa igual con cualquiera. Quedan fuera de la regla los comandos que van de
 género a propósito (`!masculinidad`, `!feminidad`, `!gay`, `!maricon`,
-`!femboy`, `!puta`, `!guarra`, `!linda`, `!fea`, `!incel` y `!mog`), los pools de `!fuck`, `!anal`,
+`!femboy`, `!puta`, `!guarra`, `!linda`, `!lindo`, `!fea`, `!incel` y `!mog`), los pools de `!fuck`, `!anal`,
 `!cum` y `!spank`, y los piropos de `!piropo`, que el dueño quiere así. La capa
 44 del check se queda corta: en las acciones mira
 «%V se queda quieto» y el «lo» que va por %V, pero no el «la», y en el resto

@@ -162,6 +162,7 @@ const FAMILIAS = [
   porcentaje(['feminidad'], 'cmdFeminidad'),
   porcentaje(['masculinidad'], 'cmdMasculinidad'),
   porcentaje(['linda'], 'cmdLinda'),
+  porcentaje(['lindo'], 'cmdLindo'),
   porcentaje(['hot', 'sexy'], 'cmdHot'),
   porcentaje(['fiel'], 'cmdFiel'),
   porcentaje(['crack'], 'cmdCrack'),

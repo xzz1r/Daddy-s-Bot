@@ -429,7 +429,7 @@ ${p}mog · ${p}moggear  ·  ${p}ship  ·  ${p}rizz · ${p}piropo · ${p}wingman
 ${p}top5 · ${p}top10
 ${p}puta ${p}guarra ${p}maricon ${p}incel ${p}gay ${p}femboy ${p}cerdo ${p}rata
 ${p}simp ${p}friki ${p}inutil ${p}perdedor · ${p}l  ·  ${p}fea ${p}infiel ${p}iq
-${p}feminidad ${p}masculinidad ${p}linda ${p}hot ${p}sexy ${p}fiel ${p}crack ${p}ganador
+${p}feminidad ${p}masculinidad ${p}linda ${p}lindo ${p}hot ${p}sexy ${p}fiel ${p}crack ${p}ganador
 
 *AURA*
 ${p}aura  ·  ${p}saldo · ${p}miaura  ·  ${p}top · ${p}ranking · ${p}auratop
@@ -571,7 +571,7 @@ _Sin @ va sobre ti, con @ sobre esa persona_
 _De una palabra, ${PRECIOS.percent} cada uno, de más crudo a más suave:_
 *${p}puta ${p}guarra ${p}maricon ${p}incel ${p}gay ${p}femboy ${p}cerdo ${p}rata*
 *${p}simp ${p}friki ${p}inutil ${p}perdedor ${p}fea ${p}infiel ${p}iq ${p}feminidad*
-*${p}masculinidad ${p}linda ${p}hot ${p}sexy ${p}fiel ${p}crack ${p}ganador*
+*${p}masculinidad ${p}linda ${p}lindo ${p}hot ${p}sexy ${p}fiel ${p}crack ${p}ganador*
 ${bloqueAcciones(p, c)}
 *AURA Y ROBO*
 *${p}robo* @user <cant.> · *${p}contrarobo* · *${p}buscados*

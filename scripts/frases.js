@@ -259,7 +259,7 @@ const PERSONA = new RegExp(
 // ─── familia: eco ──────────────────────────────────────────────────────────
 // Para los pools que llevan el nombre del comando (`rata.high`), mirar si la
 // frase abre repitiendo esa misma palabra.
-const RAIZ = { inutil: 'inutil', rata: 'rata', puta: 'put', guarra: 'guarr', simp: 'simp', incel: 'incel', friki: 'frik', cerdo: 'cerd', perdedor: 'perdedor', ganador: 'ganador', fea: 'fe', linda: 'lind', sexy: 'sexy', crack: 'crack', maricon: 'maric', femboy: 'femboy', feminidad: 'femenin', masculinidad: 'masculin', gay: 'gay', virgen: 'virgen', pobre: 'pobre' };
+const RAIZ = { inutil: 'inutil', rata: 'rata', puta: 'put', guarra: 'guarr', simp: 'simp', incel: 'incel', friki: 'frik', cerdo: 'cerd', perdedor: 'perdedor', ganador: 'ganador', fea: 'fe', linda: 'lind', lindo: 'lind', sexy: 'sexy', crack: 'crack', maricon: 'maric', femboy: 'femboy', feminidad: 'femenin', masculinidad: 'masculin', gay: 'gay', virgen: 'virgen', pobre: 'pobre' };
 
 // Una apertura solo cuenta como molde si la eligio quien escribio: ni
 // placeholder ni conectores sueltos.

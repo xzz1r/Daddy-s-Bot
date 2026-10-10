@@ -278,6 +278,7 @@ module.exports = {
   TAMANO_TRAMO, tramoPrincipal,
   cmdIncel:         makeCmd('incel'),
   cmdLinda:         makeCmd('linda'),
+  cmdLindo:         makeCmd('lindo'),
   cmdFea:           makeCmd('fea'),
   cmdGay:           makeCmd('gay'),
   cmdSimp:          makeCmd('simp'),

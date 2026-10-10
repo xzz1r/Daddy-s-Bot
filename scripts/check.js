@@ -8336,7 +8336,7 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       // feminidad, gay, maricon, femboy, puta, guarra—, donde decir "tio" es el
       // tema y no un descuido.
       {
-        const TEMATICOS = /^(masculinidad|feminidad|gay|maricon|femboy|puta|guarra|linda|zorra|virgen)\b/;
+        const TEMATICOS = /^(masculinidad|feminidad|gay|maricon|femboy|puta|guarra|linda|lindo|zorra|virgen)\b/;
         const ROTAS = [
           [/\beres\s+el\s+que\b/i, 'eres el que  →  eres quien'],
           [/\beres\s+(?:el|un|otro|ese|este)\s+(?:t[íi]o|tipo|chaval|pavo|colega)\s+que\b/i, 'eres el tipo que  →  eres de esa gente que'],
@@ -20120,7 +20120,7 @@ const manda = async (quien, tipo, opciones) => {
       exige(false, `la baraja de los tramos reventó: ${e.message}`);
     }
 
-    if (fallos === antes120) console.log(verde('   ✓ 25 en la paliza y 10 en los otros, en los 21 de % y en !rizz; y cada tramo sale entero antes de repetir'));
+    if (fallos === antes120) console.log(verde('   ✓ 25 en la paliza y 10 en los otros, en los 22 de % y en !rizz; y cada tramo sale entero antes de repetir'));
   }
 
   // ── 121. !INACTIVOS PURGE: SOLO EL DUEÑO, CON CONFIRMACION, SIN ADMINS ────
