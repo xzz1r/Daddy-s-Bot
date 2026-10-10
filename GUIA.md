@@ -994,7 +994,7 @@ Solo lo que cambia cómo se escriben sus frases. Lo demás está en `MOTOR.md`.
   `src/data/rencorPhrases.js`.
 - **Racha**: solo habla en hitos (7, 15, 30, 50, 100, 200, 365 días) y al romper
   una racha larga. El resto de días paga en silencio, a propósito.
-- **Acciones**: veinticinco, veintiuna normales y cuatro explícitas (`!fuck`,
+- **Acciones**: treinta y una, veintisiete normales y cuatro explícitas (`!fuck`,
   `!anal`, `!cum`, `!spank`). Mandan un gif de anime dirigido a alguien y llevan
   una frase con las dos menciones. Un pool de treinta por acción en
   `src/data/accionPhrases.js`, más `ROAST_USUARIO`. Hay otros cinco pools

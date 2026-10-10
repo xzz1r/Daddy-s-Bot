@@ -151,7 +151,7 @@ const ACCIONES = {
   baka:      { cat: 'baka',      es: 'idiota',    pool: RX.BAKA,      cmds: ['baka', 'idiota', 'tonto'] },
   // NI *!lick* NI *!babear*: estan a UNA letra de *!kick* y de *!banear*. Una
   // errata ahi no manda un gif, echa o banea a alguien.
-  lick:      { cat: 'lick',      es: 'lamer',     pool: RX.LICK,      cmds: ['lamer', 'lametazo'] },
+  lick:      { cat: 'lick',      es: 'lametazo',  pool: RX.LICK,      cmds: ['lamer', 'lametazo'] },
   kabedon:   { cat: 'kabedon',   es: 'acorralar', pool: RX.KABEDON,   cmds: ['kabedon', 'acorralar'] },
   smug:      { cat: 'smug',      es: 'chulear',   pool: RX.SMUG,      cmds: ['smug', 'chulear'] },
   nosebleed: { cat: 'nosebleed', es: 'babas',     pool: RX.NOSEBLEED, cmds: ['nosebleed', 'babas', 'hemorragia'] },

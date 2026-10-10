@@ -372,6 +372,7 @@ const COMO_SE_ESCRIBE = {
   reirse: 'reírse',
   musica: 'música',
   cancion: 'canción',
+  verguenza: 'vergüenza',
 };
 const comoSeEscribe = (x) => COMO_SE_ESCRIBE[x] || x;
 
