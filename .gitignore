@@ -75,7 +75,12 @@ temp/*
 .env.backup
 *.log
 
-# Nunca borrar la carpeta data/ con git clean
+# TODA data/ FUERA, salvo su .gitkeep. Las lineas de arriba, una por fichero,
+# se quedan como registro, pero ya no son las que mandan: la quinta vez que se
+# paro el despliegue fue data/auth-numero-nuevo/ (la sesion apartada del numero
+# que se fue a soporte), y la proxima seria otra cosa con otro nombre. data/
+# es estado del bot y nada de ahi va al repositorio. Capa 41.
+data/*
 !data/.gitkeep
 !temp/.gitkeep
 

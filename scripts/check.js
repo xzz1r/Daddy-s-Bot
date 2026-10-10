@@ -7775,6 +7775,24 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     exige(sinIgnorar.length === 0,
       `${sinIgnorar.join(', ')} no esta(n) en .gitignore: al primer uso el despliegue se para por "cambios locales", y el arreglo que imprime (git clean -fd) los BORRA`);
 
+    // Y LO QUE NO ESCRIBE EL BOT TAMBIEN. La quinta parada fue una carpeta que
+    // hizo una persona a mano (data/auth-numero-nuevo/, una sesion apartada):
+    // ningun codigo la nombra, asi que la lista de arriba no la podia ver.
+    {
+      const probe = path.join(R, 'data', 'cualquier-cosa-nueva-41');
+      fs.mkdirSync(probe, { recursive: true });
+      fs.writeFileSync(path.join(probe, 'x'), '');
+      const res = spawnSync('git', ['check-ignore', '-q', 'data/cualquier-cosa-nueva-41/x'], { cwd: R });
+      fs.rmSync(probe, { recursive: true, force: true });
+      exige(res.status === 0, 'una carpeta nueva dentro de data/ no queda ignorada: el despliegue se vuelve a parar con lo primero que alguien aparte ahi');
+      const keep = spawnSync('git', ['ls-files', '--error-unmatch', 'data/.gitkeep'], { cwd: R });
+      exige(keep.status === 0, 'data/.gitkeep ya no esta en el repo: un clon limpio llega sin data/');
+    }
+    // Y EL DESPLIEGUE NO RECOMIENDA BORRAR. git clean -fd se llevo por delante
+    // cuatro cosas distintas antes de esto.
+    const act41 = fs.readFileSync(path.join(R, 'scripts/actualizar.sh'), 'utf8');
+    exige(!/echo .*git clean/.test(act41), 'actualizar.sh vuelve a recomendar git clean, y eso borra sesiones y estado del bot');
+
     if (fallos === antes) console.log(verde(`   ✓ los ${deEstado.length} ficheros de estado de data/ estan fuera del repositorio`));
   }
 

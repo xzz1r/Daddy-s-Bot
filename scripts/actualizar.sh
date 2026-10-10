@@ -108,8 +108,15 @@ if [ -n "$(git status --porcelain)" ]; then
   echo "  Hay cambios locales sin guardar:"
   git status --porcelain | sed 's/^/    /'
   echo
-  echo "  Descártalos con:  git checkout -- . && git clean -fd"
-  echo "  o guárdalos con:  git stash"
+  # NUNCA `git clean -fd`. Lo imprimia aqui como arreglo, y cada vez que algo
+  # nuevo aparecia en data/ ese arreglo lo borraba: un contador, la sesion del
+  # guardian, un respaldo del .env, la sesion de un numero apartado. Lo que no
+  # es del repo se saca de la carpeta; lo que es del repo se devuelve a mano.
+  echo "  Si es un fichero o carpeta tuya que no es del bot, sácala de aquí:"
+  echo "      mv <ruta> ~/"
+  echo "  Si es un cambio a un fichero del repo que no quieres:"
+  echo "      git checkout -- <ruta>"
+  echo "  No limpies la carpeta con git: borra sesiones y datos del bot que no se recuperan."
   exit 1
 fi
 
