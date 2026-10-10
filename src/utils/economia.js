@@ -904,7 +904,8 @@ function exitoOwnerRobo(stake) {
 // produce rachas de seis con bastante frecuencia (0,62^6 ≈ 1 de cada 18), y es
 // justo lo que se estaba viendo.
 //
-// Asi que hay un techo duro: a la cuarta seguida, el dado no decide — pierde.
+// Asi que hay un techo duro: tras ROBO_OWNER_RACHA_MAX seguidas, el dado no
+// decide — pierde.
 // Cuesta muy poco valor esperado (recorta del 62 % al ~57 % efectivo) y elimina
 // por completo el sintoma que se nota.
 //
@@ -912,8 +913,12 @@ function exitoOwnerRobo(stake) {
 // las dos cosas en el mismo chat y no distingue de que comando venia cada
 // victoria. Contarlas por separado dejaria pasar rachas de seis mezcladas.
 // De 3 a 4 con la subida del 7 oct: con 0,76 cortar a la tercera se comia casi
-// toda la ventaja nueva.
-const ROBO_OWNER_RACHA_MAX = 4;
+// toda la ventaja nueva. Y de vuelta a 3 el 10 oct, por decision del dueño: tres
+// seguidas y la cuarta se pierde.
+const ROBO_OWNER_RACHA_MAX = 3;
+// La apuesta lleva su propio contador (canal 'apuesta' en rigOwner) y su propio
+// tope: el recorte del 10 oct era para robo, contrarobo, duelo y mog.
+const APUESTA_OWNER_RACHA_MAX = 4;
 
 // La cifra que se le ENSEÑA al owner cuando roba, que no es la suya.
 //
@@ -1173,8 +1178,8 @@ const CONTRA = {
   // cualquiera era casi el doble, y ademas el contraataque se resuelve en
   // caliente y delante del que acaba de robarte, o sea que se mira mas.
   //
-  // Y cuenta para la misma racha que el robo (ROBO_OWNER_RACHA_MAX): a la cuarta
-  // victoria seguida entre los dos comandos, esta se pierde.
+  // Y cuenta para la misma racha que el robo (ROBO_OWNER_RACHA_MAX): pasado el
+  // tope de victorias seguidas entre los dos comandos, la siguiente se pierde.
   owner: 0.74,   // subido de 0,66 el 7 oct con el resto del rig
 
   // ─── LA VELOCIDAD IMPORTA ──────────────────────────────────────────────────
@@ -1601,7 +1606,7 @@ module.exports = {
   pApuestaDe, pApuestaVisible, APUESTA_OWNER_VISIBLE,
   RACHA, BONOS, REDENCION,
   VETERANIA_MSGS, VETERANIA_PAGO, VETERANIA_TOPE, bonoVeterania,
-  ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_CURVA, castigoCifra, exitoOwnerRobo, ROBO_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, DUELO, REGALO_MIN,
+  ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_CURVA, castigoCifra, exitoOwnerRobo, ROBO_OWNER_RACHA_MAX, APUESTA_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, DUELO, REGALO_MIN,
   BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA,
   PRECIOS, SALDO_MINIMO, IMPUESTO, impuestoDe,
   rango, tirar,

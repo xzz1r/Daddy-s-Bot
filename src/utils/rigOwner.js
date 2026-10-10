@@ -1,4 +1,7 @@
-const { ROBO_OWNER_RACHA_MAX } = require('./economia');
+const { ROBO_OWNER_RACHA_MAX, APUESTA_OWNER_RACHA_MAX } = require('./economia');
+
+// Tope de victorias seguidas por canal. Sin canal, el del robo.
+const TOPE_CANAL = { apuesta: APUESTA_OWNER_RACHA_MAX };
 
 // EL AMAÑO DEL OWNER, EN UN SOLO SITIO.
 //
@@ -28,7 +31,8 @@ const racha = new Map();   // grupo -> victorias seguidas
 function ownerGana(grupo, probabilidad, canal = null) {
   const k = canal ? `${grupo}|${canal}` : grupo;
   const seguidas = racha.get(k) || 0;
-  const gana = seguidas >= ROBO_OWNER_RACHA_MAX ? false : Math.random() < probabilidad;
+  const tope = (canal && TOPE_CANAL[canal]) || ROBO_OWNER_RACHA_MAX;
+  const gana = seguidas >= tope ? false : Math.random() < probabilidad;
   if (racha.size >= 500) racha.delete(racha.keys().next().value);
   racha.set(k, gana ? seguidas + 1 : 0);
   return gana;

@@ -35,9 +35,12 @@ const RAFAGA = { gratis: 3, multiplicador: 2, triple: 6, multiplicadorTriple: 3 
 // herramientas cuestan siempre lo mismo, se usen las veces que se usen. Son los
 // que se piden por necesidad o en cadena (un sticker detras de otro, una
 // cancion detras de otra) y el doble ahi castigaba el uso normal, no el ruido.
+// El 10 oct se sumaron los rankings del grupo (!count, !vs, !fantasmas y
+// !relevancia), tambien a peticion del dueño.
 const SIN_RAFAGA = new Set([
   'top5', 'top10', 'ship',
   'play', 'redes', 'sticker', 'toimg', 'tovid', 'ttp', 'cachelist',
+  'count', 'vs', 'fantasmas', 'relevancia',
 ]);
 const usos = new Map();       // 'grupo|persona|concepto' -> veces
 let diaUsos = null;

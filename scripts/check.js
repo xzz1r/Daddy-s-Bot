@@ -3605,14 +3605,14 @@ const di=async(quien,texto,extra)=>{
   // 12c. SIN PRECIO DOBLE EN TOPS, SHIP Y HERRAMIENTAS. Lo pidio el dueño: esos
   // cuestan siempre lo mismo. El resto sigue con la rafaga.
   {
-    console.log('\n12c. TOPS, SHIP Y HERRAMIENTAS NO SUBEN DE PRECIO');
+    console.log('\n12c. TOPS, SHIP, RANKINGS Y HERRAMIENTAS NO SUBEN DE PRECIO');
     const antes = fallos;
     const { SIN_RAFAGA } = require(path.join(R, 'src/utils/auraCobro'));
-    for (const c of ['top5', 'top10', 'ship', 'play', 'redes', 'sticker', 'toimg', 'tovid', 'ttp', 'cachelist']) {
+    for (const c of ['top5', 'top10', 'ship', 'play', 'redes', 'sticker', 'toimg', 'tovid', 'ttp', 'cachelist', 'count', 'vs', 'fantasmas', 'relevancia']) {
       if (!SIN_RAFAGA || !SIN_RAFAGA.has(c)) { fallos++; console.log(rojo(`   ✗ *${c}* vuelve a cobrar el doble desde el cuarto uso`)); }
     }
     if (SIN_RAFAGA && SIN_RAFAGA.has('roast')) { fallos++; console.log(rojo('   ✗ el roast se ha quedado sin ráfaga, y esa no la pidió quitar nadie')); }
-    if (fallos === antes) console.log(verde('   ✓ precio fijo en tops, ship y herramientas; el resto sigue con la ráfaga'));
+    if (fallos === antes) console.log(verde('   ✓ precio fijo en tops, ship, rankings y herramientas; el resto sigue con la ráfaga'));
   }
 
   // ── LAS TRES PUERTAS NUEVAS, Y LA FACHADA DEL OWNER ───────────────────────
@@ -12883,11 +12883,14 @@ const borrados = (s) => s.enviados.filter((e) => e.c && e.c.delete);
       exige(contados.length === 1, 'con el mute caducado el mensaje sigue sin contar');
     }
 
-    // 8. UNA FORMA Y UNA SOLA: 60s / 60m / 60h / 7d.
+    // 8. LA FORMA CORTA (60s / 60m / 60h / 7d) Y LA ESCRITA («5 horas»).
     {
       const casos = [['', 600000], ['60s', 60000], ['60m', 3600000], ['60h', 216000000],
         ['7d', 604800000], ['45s', 45000], ['90m', 5400000], ['1d', 86400000],
-        ['60 m', 3600000], ['60S', 60000]];
+        ['60 m', 3600000], ['60S', 60000],
+        // Y escrito con palabras, que lo pidio el dueño el 10 oct.
+        ['5 horas', 18000000], ['2 horas', 7200000], ['30 minutos', 1800000],
+        ['media hora', 1800000], ['una hora', 3600000], ['90 min', 5400000], ['3 dias', 259200000]];
       for (const [txt, ms] of casos) {
         const d = G.parsearDuracionMute(txt);
         exige(!d.error && d.ms === ms, '"' + txt + '" se leyo como ' + (d.error ? 'error' : d.ms + ' ms') + ' y son ' + ms + ' ms');
@@ -12896,9 +12899,9 @@ const borrados = (s) => s.enviados.filter((e) => e.c && e.c.delete);
       // son sesenta segundos para quien lo escribe y sesenta minutos para quien
       // lo lee, y por eso se quito. Si vuelve a colarse, vuelve la adivinanza.
       for (const malo of ['30', '60', 'abc', 'mañana', '10 minutos porfa', '0', '0s',
-        'un rato', '2x', '1h30m', '90 min', '2 horas', '3 dias']) {
+        'un rato', '2x', '1h30m']) {
         exige(G.parsearDuracionMute(malo).error === true,
-          '"' + malo + '" se acepta como duracion: la forma es una sola (60s/60m/60h/7d) y cualquier otra cosa tiene que contestarse, no adivinarse');
+          '"' + malo + '" se acepta como duracion: vale 60s/60m/60h/7d o «5 horas», y cualquier otra cosa tiene que contestarse, no adivinarse');
       }
       exige(G.parsearDuracionMute('60').sinUnidad === true,
         'un numero sin unidad no se distingue del resto de errores: lo que le falta es una letra, y el aviso tiene que decir eso y no mandar a releer la sintaxis');

@@ -194,11 +194,9 @@ const UNIDADES_MUTE = { s: 1000, m: 60 * 1000, h: 60 * 60 * 1000, d: 24 * 60 * 6
 // cuenta que ya no cabe en un entero seguro antes de llegar al recorte.
 const FORMA_MUTE = /^(\d{1,6})\s*([smhd])$/;
 
-// LO QUE SE QUISO DECIR, para el aviso. La forma sigue siendo una sola (ver
-// arriba): esto no mutea con «5 horas», solo traduce lo que se escribio a la
-// forma buena para que el aviso diga «¿Querías *5h*?» en vez de un «no
-// entiendo» que obliga a adivinar. Lo pidio el dueño: el aviso estaba mal
-// explicado.
+// LO QUE SE QUISO DECIR. Traduce «5 horas» a *5h*. Primero solo servia para el
+// aviso («¿Querías *5h*?»); desde el 10 oct parsearDuracionMute lo usa para
+// mutear directamente, porque el dueño lo pidio asi.
 const PALABRAS_MUTE = [
   [/^seg(?:undo)?s?\.?$/, 's'],
   [/^min(?:uto)?s?\.?$/, 'm'],
@@ -222,7 +220,10 @@ function parsearDuracionMute(texto) {
   const t = String(texto || '').trim().toLowerCase();
   if (!t) return { ms: MUTE_DEFECTO_MS, porDefecto: true };
 
-  const m = FORMA_MUTE.exec(t);
+  // «5 horas», «30 minutos», «media hora»: desde el 10 oct se aceptan tal cual,
+  // por decision del dueño. Se traducen a la forma corta y siguen el mismo
+  // camino (tope, minimo). El numero pelado sigue sin valer.
+  const m = FORMA_MUTE.exec(t) || FORMA_MUTE.exec(sugerenciaMute(t) || '');
   if (!m) return /^\d+$/.test(t) ? { error: true, sinUnidad: true } : { error: true };
 
   const ms = parseInt(m[1], 10) * UNIDADES_MUTE[m[2]];
