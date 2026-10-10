@@ -28,7 +28,7 @@ const logger = require('./logger');
 // 6.ª del dia, el doble; de la 7.ª en adelante, el triple.
 // Comandos sin descuento de admin: solo los usan admins y el dueño fijo su
 // precio exacto. *!r* cuesta 150, no 128.
-const SIN_DESCUENTO_ADMIN = new Set(['presentarse']);
+const SIN_DESCUENTO_ADMIN = new Set(['presentarse', 'mute']);
 
 const RAFAGA = { gratis: 3, multiplicador: 2, triple: 6, multiplicadorTriple: 3 };
 // SIN RAFAGA, por decision del dueño (9 oct): los tops, el ship y todas las
@@ -41,6 +41,7 @@ const SIN_RAFAGA = new Set([
   'top5', 'top10', 'ship',
   'play', 'redes', 'sticker', 'toimg', 'tovid', 'ttp', 'cachelist',
   'count', 'vs', 'fantasmas', 'relevancia',
+  'mute',
 ]);
 const usos = new Map();       // 'grupo|persona|concepto' -> veces
 let diaUsos = null;

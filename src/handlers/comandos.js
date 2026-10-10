@@ -251,7 +251,7 @@ const FAMILIAS = [
     hace: (c) => c.de('group').cmdDel(c.sock, c.msg, c.meta) },
   { nombres: ['limpiar', 'wipe'], meta: true, lento: true,
     hace: (c) => c.de('limpiar').cmdLimpiar(c.sock, c.msg, c.args, c.meta) },
-  { nombres: ['mute', 'silenciar', 'callar'], meta: true,
+  { nombres: ['mute', 'silenciar', 'callar'], meta: true, cobraDentro: true, cobro: 'mute',
     hace: (c) => c.de('group').cmdMute(c.sock, c.msg, c.args, c.meta) },
   { nombres: ['unmute', 'desmute'], meta: true,
     hace: (c) => c.de('group').cmdUnmute(c.sock, c.msg, c.args, c.meta) },

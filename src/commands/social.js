@@ -588,7 +588,7 @@ ${bloqueAcciones(p, c)}
 ${esAdmin ? `
 *ADMINS*
 *${p}kick* · *${p}unmute* · *${p}del* · *${p}tagall* · *${p}allow*
-*${p}mute* @user <tiempo> — le borro todo lo que escriba (*60s* · *60m* · *60h* · *7d*)
+*${p}mute* ${c('mute')} @user <tiempo> — le borro todo lo que escriba (*60s* · *60m* · *60h* · *7d*)
 *${p}fkban* · *${p}fkunban* · *${p}marcarfake* · *${p}fklist* · *${p}scan*
 *${p}pfp* ${c('pfp')} @user — su foto de perfil · *${p}fk* ${c('fk')} @user — ¿cuenta falsa?
 *${p}close* · *${p}open* · *${p}promote* · *${p}count* ${c('count')} · *${p}inactivos* ${c('inactivos')}

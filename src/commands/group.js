@@ -18,7 +18,7 @@ const UNOS_KICK = AVISOS_KICK.map((a) => a.uno);
 const { A_TI_MISMO, CONTRA_UN_ADMIN, SOLO_ADMINS, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso, avisoPermiso } = require('../utils/helpers');
 const { HUMOR_NEGRO } = require('../data/humorNegroPhrases');
-const { SIN_SERVICIO } = require('../utils/auraCobro');
+const { SIN_SERVICIO, cobrar, textoSinSaldo } = require('../utils/auraCobro');
 
 // In-memory mute store: `groupJid|bareJid` -> expireTimestamp
 // Hard-capped: insertion-ordered Map evicts oldest entry past the cap so a
@@ -707,6 +707,13 @@ async function cmdMute(sock, msg, args, groupMeta) {
       text: `${que}\n@${num} sigue sin mutear.\n_El tiempo va con el número y una letra pegada: *s* segundos · *m* minutos · *h* horas · *d* días. Por ejemplo, *!mute @alguien 5h*._`,
       mentions: [target],
     }, { quoted: msg });
+  }
+
+  // 500 de aura (lo fijo el dueño). Se cobra aqui, con todo comprobado: sin
+  // permiso, sin objetivo o con un tiempo que no se entiende no se paga nada.
+  const pago = await cobrar(jid, sender, 'mute', { fromMe: msg.key.fromMe, groupMeta });
+  if (!pago.ok) {
+    return sock.sendMessage(jid, { text: textoSinSaldo('mute', pago, jid) }, { quoted: msg });
   }
 
   muteUser(jid, target, Date.now() + d.ms);

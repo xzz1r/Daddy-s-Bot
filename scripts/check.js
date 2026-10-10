@@ -13005,13 +13005,32 @@ const borrados = (s) => s.enviados.filter((e) => e.c && e.c.delete);
       const m = mensaje(g, adm, 'x');
       m.message = { extendedTextMessage: { text: 'x', contextInfo: { mentionedJid: [v] } } };
       puestos.push([g, v]);
+      // !mute cuesta 500 desde el 10 oct: sin saldo no mutea (ver 9b).
+      const AS = require(path.join(R, 'src/utils/auraStore'));
+      await AS.addAura(g, adm, 1000);
+      const antesMute = await AS.getAura(g, adm);
       await G.cmdMute(s, m, ['@' + v.split('@')[0], '2h'], meta);
+      const pagado = antesMute - await AS.getAura(g, adm);
+      exige(pagado === 500, '!mute no ha cobrado 500 justos al admin: ha cobrado ' + pagado);
       const queda = G.getMuteRemaining(g, v);
       exige(queda > 7100000 && queda <= 7200000,
         '!mute @x 2h dejo ' + Math.round(queda / 60000) + ' minutos: el tiempo que escribe el admin se esta tirando y se cae al defecto');
       const dicho = s.enviados.map((e) => (e.c && e.c.text) || '').join(' ');
       exige(/2 horas/.test(dicho), 'la respuesta no dice el tiempo de verdad: "' + dicho + '"');
       exige(/borra/.test(dicho), 'la respuesta del mute no avisa de que ahora se le borra lo que escriba');
+    }
+
+    // 9b. sin 500 de aura no se mutea, y se dice.
+    {
+      const g = '120000719@g.us', adm = '34600000719@s.whatsapp.net', v = '34600000819@s.whatsapp.net';
+      const s = socket({ participantes: [{ id: adm, admin: 'admin' }, { id: v }] });
+      const meta = await s.groupMetadata(g);
+      const m = mensaje(g, adm, 'x');
+      m.message = { extendedTextMessage: { text: 'x', contextInfo: { mentionedJid: [v] } } };
+      puestos.push([g, v]);
+      await G.cmdMute(s, m, ['@' + v.split('@')[0], '2h'], meta);
+      exige(G.getMuteRemaining(g, v) === 0, 'un admin sin los 500 de aura ha podido mutear igual');
+      exige(s.enviados.length === 1, 'sin saldo para el mute no se le dice nada al admin');
     }
 
     // 10. una duracion que no se entiende NO mutea.

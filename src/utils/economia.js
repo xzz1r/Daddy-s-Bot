@@ -1448,6 +1448,11 @@ const PRECIOS = {
   // descuento de admin (ver auraCobro.js): con el, nunca costaria lo que se
   // pidio.
   presentarse: 150,
+
+  // !mute: 500, por decision del dueño (10 oct). Solo de admins, asi que sin
+  // descuento de admin ni rafaga: cuesta 500 siempre. Se cobra DENTRO, despues
+  // de comprobar permiso, objetivo y tiempo: un mute que no se pone no se paga.
+  mute: 500,
 };
 
 // EL MINIMO DE !dar BAJA A 1, por peticion expresa.
