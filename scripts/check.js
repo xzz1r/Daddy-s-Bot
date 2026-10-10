@@ -12864,6 +12864,32 @@ const borrados = (s) => s.enviados.filter((e) => e.c && e.c.delete);
         'un mensaje que el bot borra para todo el grupo ha contado en el ranking: nadie llego a leerlo y la tabla de !count deja de cuadrar con lo que se ve');
     }
 
+    // 1b. Y LO MISMO CON FOTOS, VIDEOS, GIFS Y ALBUMES. Lo dijo el dueño: «el
+    // bot no borra fotos y quizás videos ni gifs con /mute». Por el camino de
+    // verdad se borran los nueve sobres; si alguno deja de borrarse, aqui sale.
+    {
+      const sobres = {
+        foto: { imageMessage: { mimetype: 'image/jpeg' } },
+        video: { videoMessage: { mimetype: 'video/mp4' } },
+        gif: { videoMessage: { mimetype: 'video/mp4', gifPlayback: true } },
+        sticker: { stickerMessage: { mimetype: 'image/webp' } },
+        album: { albumMessage: { expectedImageCount: 2 }, messageContextInfo: {} },
+        fotoDeAlbum: { associatedChildMessage: { message: { imageMessage: { mimetype: 'image/jpeg' } } }, messageContextInfo: {} },
+        verUnaVez: { viewOnceMessageV2: { message: { imageMessage: { mimetype: 'image/jpeg', viewOnce: true } } } },
+        temporal: { ephemeralMessage: { message: { videoMessage: { mimetype: 'video/mp4', gifPlayback: true } } } },
+        documento: { documentWithCaptionMessage: { message: { documentMessage: { mimetype: 'application/pdf' } } } },
+      };
+      let i = 0;
+      for (const [nombre, message] of Object.entries(sobres)) {
+        i++;
+        const g = '12000077' + i + '@g.us', v = '3460000077' + i + '@s.whatsapp.net';
+        const s = socket({ participantes: [{ id: v }] });
+        mutear(g, v, 60000);
+        await handleMessage(s, mensaje(g, v, '', { message }));
+        exige(borrados(s).length === 1, 'un silenciado manda ' + nombre + ' y no se borra: el mute solo calla el texto');
+      }
+    }
+
     // 2. control: sin mute, ni se borra ni se deja de contar.
     {
       const g = '120000702@g.us', v = '34600000702@s.whatsapp.net';
