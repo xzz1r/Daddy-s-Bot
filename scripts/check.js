@@ -2591,6 +2591,35 @@ const di=async(quien,texto,extra)=>{
     exige(timeline.filter((x) => x.t === 'kick').length === 1, '!kick no echo o echo de mas');
     exige(timeline.filter((x) => x.t === 'kick')[0].accion === 'remove', '!kick no esta expulsando');
 
+    // RESPONDER A ALGUIEN Y MENCIONAR A OTRO ECHA SOLO AL MENCIONADO. Paso de
+    // verdad: una chica subio la captura de su acosador con el @ de el, un admin
+    // le respondio con *!kick @acosador* y el bot los echo a los dos.
+    {
+      const VICT = '57300333444@s.whatsapp.net';
+      const echados = [];
+      const sockV = {
+        user: { id: BOT },
+        sendMessage: async () => ({}),
+        groupParticipantsUpdate: async (g, ids) => { echados.push(...ids); return ids.map((j) => ({ jid: j, status: '200' })); },
+      };
+      const metaV = { participants: [...metaK.participants, { id: VICT, admin: null }] };
+      await cmdKick(sockV, {
+        key: { remoteJid: 'g1@g.us', fromMe: false, id: 'K9', participant: ADMIN },
+        message: { extendedTextMessage: { text: '!kick @57300111222',
+          contextInfo: { mentionedJid: [T], participant: VICT, stanzaId: 'Q1', quotedMessage: { conversation: 'mira lo que me manda @57300111222' } } } },
+      }, [], metaV);
+      exige(echados.length === 1 && echados[0] === T,
+        `!kick respondiendo a alguien y mencionando a otro echa a: ${echados.join(', ') || 'nadie'} — tiene que echar SOLO al mencionado, no al autor del mensaje citado`);
+      // Y responder SIN mencionar sigue echando al autor.
+      const echados2 = [];
+      const sockV2 = { ...sockV, groupParticipantsUpdate: async (g, ids) => { echados2.push(...ids); return ids.map((j) => ({ jid: j, status: '200' })); } };
+      await cmdKick(sockV2, {
+        key: { remoteJid: 'g1@g.us', fromMe: false, id: 'K10', participant: ADMIN },
+        message: { extendedTextMessage: { text: '!kick', contextInfo: { participant: VICT, stanzaId: 'Q2', quotedMessage: { conversation: 'hola' } } } },
+      }, [], metaV);
+      exige(echados2.length === 1 && echados2[0] === VICT, `!kick respondiendo sin mencionar ya no echa al autor del mensaje: ${echados2.join(', ') || 'nadie'}`);
+    }
+
     const silenciosoKick = [];
     const sockM = {
       ...sockK,

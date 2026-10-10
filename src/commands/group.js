@@ -512,11 +512,20 @@ async function cmdKick(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
 
-  // Collect all candidates: every @mention + the quoted participant (if any).
-  // Dedup so `!kick @a @a` doesn't double-process.
+  // A QUIEN SE ECHA: LOS MENCIONADOS. EL AUTOR DEL MENSAJE CITADO, SOLO SI NO
+  // HAY NINGUNA MENCION.
+  //
+  // Antes se juntaban los dos, y paso lo peor que podia pasar: una chica subio
+  // la captura de quien la estaba acosando, con el @ de el encima; un admin le
+  // respondio con *!kick @acosador* y el bot echo AL ACOSADOR Y A ELLA, porque
+  // ella era la autora del mensaje citado. Responder y mencionar a la vez es
+  // señalar a quien se menciona: el mensaje citado es el contexto, no el
+  // objetivo. Responder sin mencionar a nadie sigue echando al autor.
   const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
   const quotedParticipant = msg.message?.extendedTextMessage?.contextInfo?.participant;
-  const all = [...new Set([...mentioned, ...(quotedParticipant ? [quotedParticipant] : [])])];
+  const all = mentioned.length
+    ? [...new Set(mentioned)]
+    : (quotedParticipant ? [quotedParticipant] : []);
 
   if (!all.length) {
     return sock.sendMessage(jid, { text: 'Menciona o responde al usuario que quieres expulsar.' }, { quoted: msg });
