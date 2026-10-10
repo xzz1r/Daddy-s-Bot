@@ -3599,7 +3599,29 @@ const di=async(quien,texto,extra)=>{
       // Y AL OWNER NO: lo dijo el dueño, «el owner queda exento de eso».
       if (!po.every((x) => x === po[0])) { fallos++; console.log(rojo(`   ✗ al owner la cifra le cambia el acierto, y está exento: ${po.map((x) => Math.round(x * 100)).join(' · ')}`)); }
     }
-    if (fallos === antes) console.log(verde('   ✓ la cifra escrita llega entera al robo, con poco aura o con todo en el banco, y pedir más es más difícil (salvo para el owner)'));
+    // SIN RESPALDO. Lo pidio el dueño el 10 oct: con poco aura y una cifra muy
+    // alta, la probabilidad es «extremadamente baja, por no decir nula». Y por
+    // el camino de verdad: 34 en la cuenta pidiendo 630 tiene que salir a 0 %.
+    {
+      const EC = require(path.join(R, 'src/utils/economia'));
+      const fr = EC.factorRespaldo;
+      if (!fr || fr(30, 34) !== 1 || fr(34, 34) !== 1 || !(fr(68, 34) < 0.2) || !(fr(630, 34) < 0.001)
+        || !(fr(630, 34) < fr(200, 34) && fr(200, 34) < fr(68, 34))) {
+        fallos++; console.log(rojo('   ✗ pedir mucho más de lo que tienes ya no hunde la probabilidad hasta casi cero'));
+      }
+      let outM = '', outO = '';
+      try {
+        outM = execSync(`node ${JSON.stringify(path.join(R, 'scripts/robo-cifra.js'))} miembro 34 0 5000 ${JSON.stringify('!robar 630 @V')}`,
+          { encoding: 'utf8', timeout: 60000, stdio: ['ignore', 'pipe', 'ignore'] });
+        outO = execSync(`node ${JSON.stringify(path.join(R, 'scripts/robo-cifra.js'))} owner 34 0 5000 ${JSON.stringify('!robar 630 @V')}`,
+          { encoding: 'utf8', timeout: 60000, stdio: ['ignore', 'pipe', 'ignore'] });
+      } catch (e) { outM = outM || `${e.stdout || ''}`; }
+      if (!/· 0% ·/.test(outM) || !/sin respaldo/.test(outM)) {
+        fallos++; console.log(rojo(`   ✗ un miembro con 34 que pide 630 no sale a 0 % sin respaldo: ${(outM.split('\n').find((l) => /tope/.test(l)) || outM.trim().slice(-120))}`));
+      }
+      if (/sin respaldo/.test(outO)) { fallos++; console.log(rojo('   ✗ al owner le cae el castigo sin respaldo, y está exento')); }
+    }
+    if (fallos === antes) console.log(verde('   ✓ la cifra escrita llega entera al robo, con poco aura o con todo en el banco, pedir más es más difícil (salvo para el owner) y pedir muchas veces lo que tienes es casi imposible'));
   }
 
   // 12c. SIN PRECIO DOBLE EN TOPS, SHIP Y HERRAMIENTAS. Lo pidio el dueño: esos

@@ -893,6 +893,18 @@ function castigoCifra(stake) {
   const n = Math.max(0, Number(stake) || 0);
   return Math.min(g.tope, g.factor * Math.log(1 + n / g.escala));
 }
+// SIN RESPALDO. Lo pidio el dueño el 10 oct: quien tiene poco aura y va a por
+// una cifra muy alta tiene que tenerlo «extremadamente bajo, por no decir
+// nulo». Se mira cuantas veces cabe lo que tiene (suelto + banco) en lo que
+// pide: hasta 1 vez no pasa nada; por encima, la probabilidad se multiplica
+// por (1/r)^exponente, y sin el suelo del robo, que aqui seria un regalo.
+//   2 veces lo que tienes → x0,18 · 5 veces → x0,018 · 18 veces → x0,0007
+// El owner queda fuera, como del resto de castigos por cifra.
+const SIN_RESPALDO = { exponente: 2.5 };
+function factorRespaldo(stake, fianza) {
+  const r = Math.max(0, Number(stake) || 0) / Math.max(1, Number(fianza) || 0);
+  return r <= 1 ? 1 : Math.pow(1 / r, SIN_RESPALDO.exponente);
+}
 function exitoOwnerRobo(stake) {
   const { techo, suelo, peso } = ROBO_OWNER_CURVA;
   return Math.min(techo, Math.max(suelo, techo - peso * castigoCifra(stake)));
@@ -1606,7 +1618,7 @@ module.exports = {
   pApuestaDe, pApuestaVisible, APUESTA_OWNER_VISIBLE,
   RACHA, BONOS, REDENCION,
   VETERANIA_MSGS, VETERANIA_PAGO, VETERANIA_TOPE, bonoVeterania,
-  ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_CURVA, castigoCifra, exitoOwnerRobo, ROBO_OWNER_RACHA_MAX, APUESTA_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, DUELO, REGALO_MIN,
+  ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_CURVA, castigoCifra, exitoOwnerRobo, SIN_RESPALDO, factorRespaldo, ROBO_OWNER_RACHA_MAX, APUESTA_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, DUELO, REGALO_MIN,
   BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA,
   PRECIOS, SALDO_MINIMO, IMPUESTO, impuestoDe,
   rango, tirar,

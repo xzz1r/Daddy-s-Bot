@@ -21,7 +21,7 @@ const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
 
 const { getAura, addAura, drainAura, drainConCaja, spendAura, flushAura, forzarCaja, verCaja: cajaDePersona } = require('../utils/auraStore');
 const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
-const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, castigoCifra, exitoOwnerRobo, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA, SALDO_MINIMO, CAJA, BUTRON } = require('../utils/economia');
+const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, castigoCifra, exitoOwnerRobo, factorRespaldo, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA, SALDO_MINIMO, CAJA, BUTRON } = require('../utils/economia');
 const { ownerGana } = require('../utils/rigOwner');
 const { fichaFalsaBuscado } = require('../utils/fachada');
 const tienda = require('../utils/roboStore');
@@ -1344,6 +1344,18 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     motivos.push(mom.tipo === 'caliente'
       ? `racha caliente (+${Math.round(MOMENTUM.caliente * 100)}%)`
       : `tilt (${Math.round(MOMENTUM.tilt * 100)}%)`);
+  }
+
+  // Sin respaldo: pedir muchas veces lo que tienes lo deja casi en nada. Va lo
+  // ultimo y multiplicando, para que ni la ganzua ni la diana lo levanten, y
+  // se salta el suelo a proposito (ver SIN_RESPALDO en economia.js).
+  if (!ladronEsOwner) {
+    const f = factorRespaldo(stake, fianzaA);
+    if (f < 0.98) {
+      chanceFinal *= f;
+      const veces = stake / Math.max(1, fianzaA);
+      motivos.push(`sin respaldo: pides ${veces >= 10 ? Math.round(veces) : veces.toFixed(1).replace('.', ',')} veces lo que tienes`);
+    }
   }
 
   anotarIntento(jid, canonicalJid(sender), canonicalJid(target));
