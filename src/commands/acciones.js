@@ -205,67 +205,110 @@ const ALIAS_ACTIVOS = ACTIVAS.flatMap((n) => ACCIONES[n].cmds);
 const ROAST_CADA = 5;
 const turnoRoast = new Map();
 
-const API = 'https://nekos.best/api/v2/';
+// ─── DE DONDE SALEN LOS GIFS: CINCO WEBS, TODAS DE ANIME ────────────────────
+//
+// Lo pidio el dueño el 10 oct: «se necesita mas variedad, y todo de anime».
+// Una sola web por categoria son diez o veinte gifs que el grupo se aprende en
+// una semana. Ahora cada accion tira de TODAS las webs que la tienen: se elige
+// una al azar en cada peticion, y si falla se prueba la siguiente. Eso da las
+// dos cosas a la vez: el catalogo es la suma de todos (variedad) y una web
+// caida ya no deja el comando cobrando y devolviendo (aguante).
+//
+// Las cinco son de gifs de anime y nada mas. Cada pareja accion-web de la
+// tabla de abajo se comprobo contra la web de verdad antes de escribirla (51
+// de 51 devolvian gif), y `npm run acciones` las vuelve a probar todas.
+//
+// `{cat}` es donde va el nombre de la categoria en cada web.
+const FUENTES = {
+  'nekos.best': 'https://nekos.best/api/v2/{cat}',
+  purrbot: 'https://api.purrbot.site/v2/img/sfw/{cat}/gif',
+  otakugifs: 'https://api.otakugifs.xyz/gif?reaction={cat}&format=gif',
+  'kawaii.red': 'https://kawaii.red/api/gif/{cat}/token=anonymous/',
+  'nekos.life': 'https://nekos.life/api/v2/img/{cat}',
+};
 
-// LA FUENTE NSFW NO VIENE PUESTA, Y ES A PROPOSITO.
+// Para cada accion (su `cat`), como la llama cada web. Una lista es varias
+// categorias de la misma web que valen para lo mismo (`slap` y `smack`): se
+// elige una al azar, y eso tambien es variedad.
 //
-// *!fuck* existe y funciona, pero de serie tira de la misma web SFW que el
-// resto. Para que traiga otra cosa hay que poner la direccion a mano en el
-// .env:
+// `kick` sale como `stomp` en kawaii.red (una patada, que es lo que hace el
+// gif) y `kill` tira tambien de `shoot`: las frases de *!kill* no nombran arma.
+const CATALOGO = {
+  hug:      { 'nekos.best': 'hug', purrbot: 'hug', otakugifs: 'hug', 'kawaii.red': 'hug', 'nekos.life': 'hug' },
+  kiss:     { 'nekos.best': 'kiss', purrbot: 'kiss', otakugifs: 'kiss', 'kawaii.red': 'kiss', 'nekos.life': 'kiss' },
+  cuddle:   { 'nekos.best': 'cuddle', purrbot: 'cuddle', otakugifs: ['cuddle', 'nuzzle'], 'kawaii.red': 'cuddle', 'nekos.life': 'cuddle' },
+  pat:      { 'nekos.best': 'pat', purrbot: 'pat', otakugifs: 'pat', 'kawaii.red': 'pat', 'nekos.life': 'pat' },
+  punch:    { 'nekos.best': 'punch', otakugifs: 'punch', 'kawaii.red': 'punch' },
+  slap:     { 'nekos.best': 'slap', purrbot: 'slap', otakugifs: ['slap', 'smack'], 'kawaii.red': 'slap', 'nekos.life': 'slap' },
+  bite:     { 'nekos.best': 'bite', purrbot: 'bite', otakugifs: 'bite', 'kawaii.red': 'bite' },
+  kick:     { 'nekos.best': 'kick', 'kawaii.red': 'stomp' },
+  bonk:     { 'nekos.best': 'bonk' },
+  tickle:   { 'nekos.best': 'tickle', purrbot: 'tickle', otakugifs: 'tickle', 'kawaii.red': 'tickle', 'nekos.life': 'tickle' },
+  nom:      { 'nekos.best': 'nom', otakugifs: 'nom', 'kawaii.red': 'nom' },
+  peck:     { 'nekos.best': 'peck' },
+  handhold: { 'nekos.best': 'handhold', otakugifs: 'handhold' },
+  stare:    { 'nekos.best': 'stare', otakugifs: ['stare', 'angrystare'], 'kawaii.red': 'stare' },
+  laugh:    { 'nekos.best': 'laugh', otakugifs: ['laugh', 'evillaugh'], 'kawaii.red': 'laugh' },
+  yeet:     { 'nekos.best': 'yeet', 'kawaii.red': 'yeet' },
+  kill:     { 'kawaii.red': ['kill', 'shoot'], 'nekos.best': 'shoot' },
+  feed:     { 'nekos.best': 'feed', 'nekos.life': 'feed' },
+  sleep:    { 'nekos.best': 'sleep', otakugifs: 'sleep', 'kawaii.red': 'sleepy' },
+  pout:     { 'nekos.best': 'pout', purrbot: 'pout', otakugifs: 'pout', 'kawaii.red': 'pout' },
+  bleh:     { 'nekos.best': 'bleh', otakugifs: 'bleh' },
+};
+
+// LAS EXPLICITAS NO VIENEN PUESTAS, Y ES A PROPOSITO.
 //
-//   ACCION_NSFW_API=https://loquesea/api/
+// Sus webs van en el .env, no aqui: este repositorio es publico y una URL de
+// porno dentro lo convierte en otra cosa a ojos de GitHub, y la eleccion de a
+// que web se conecta el bot para eso es del dueño. Desde el 10 oct admite
+// VARIAS, separadas por espacios o comas, con el mismo trato que las normales:
+// una al azar en cada peticion y la siguiente si falla.
 //
-// No va escrita en el codigo por dos motivos que no son pudor. Uno: este
-// repositorio es publico y una URL de porno dentro lo convierte en otra cosa a
-// ojos de GitHub. Dos: la eleccion de a que web se conecta el bot —y por tanto
-// que puede acabar mandando al grupo sin que nadie lo revise— es del dueño, no
-// de quien escribe el codigo. Con la variable puesta funciona igual; sin ella,
-// *!fuck* es un comando mas con las frases mas subidas.
+//   ACCION_NSFW_API=https://una/{cat}/gif https://otra/api/{cat}
+//
+// Sin la variable, las explicitas caen en su `cat` de la tabla de arriba.
 const API_NSFW = (process.env.ACCION_NSFW_API || '').trim();
+const FUENTES_NSFW = API_NSFW.split(/[\s,]+/).filter(Boolean);
 
-// ─── LA CATEGORIA QUE NO ESTA EN LA WEB DE SIEMPRE ──────────────────────────
-//
-// *!shoot* se cayo y en su sitio esta *!kill*. Lo pidio el dueño: «!shoot solo
-// muestra una mona china disparando». Y tenia razon en el fondo — la categoria
-// entera de nekos.best va de chicas de anime con pistola, siempre el mismo
-// registro, y en un grupo eso se agota a la tercera.
-//
-// El problema es que nekos.best NO tiene `kill`, y este fichero ya lo decia
-// unas lineas mas arriba. Tampoco la tienen otakugifs ni purrbot (comprobado,
-// no supuesto: sus dos listas de categorias no la traen), y waifu.pics, que si
-// la tiene, llevaba el dia entero devolviendo 502 en TODAS sus rutas.
-//
-// La que si la trae y responde es kawaii.red. Medido: 25 peticiones seguidas
-// sin un solo fallo, 447 ms de media, quince gifs distintos y todos de anime.
-//
-// Va en una tabla y no pegada a la accion porque quien decide la web es la
-// CATEGORIA: la clave de la despensa se calcula a partir de ella en tres sitios
-// distintos, y con la fuente colgando de la accion habria que pasarla por
-// parametro en los ocho. Aqui se resuelve en una funcion y no cambia ninguna
-// firma.
-//
-// La direccion es SFW y por eso puede estar escrita aqui. La de ACCION_NSFW_API
-// sigue sin estarlo, por los mismos dos motivos de siempre.
-const FUENTE_POR_CAT = {
-  kill: 'https://kawaii.red/api/gif/{cat}/token=anonymous/',
-};
+const hostDe = (u) => { try { return new URL(u.replace(/\{cat\}/g, 'x')).hostname; } catch { return 'nsfw'; } };
+const unoDe = (n) => (Array.isArray(n) ? n[Math.floor(Math.random() * n.length)] : n);
 
-// Y SI ESA WEB SE CAE, EL COMANDO NO SE MUERE.
-//
-// Una fuente de fuera se cae —waifu.pics lo estaba haciendo mientras escribia
-// esto— y un *!kill* que cobra, falla y devuelve el aura cada vez es un comando
-// roto aunque el aura vuelva. El respaldo es `shoot` de nekos.best: son gifs de
-// otra arma, pero las frases del pool no nombran ninguna a proposito, asi que
-// encajan igual.
-const RESPALDO_POR_CAT = {
-  kill: { base: 'https://nekos.best/api/v2/', cat: 'shoot' },
-};
+// Las webs de una accion, ya con la categoria puesta. La NSFW manda cuando esta
+// puesta; si no, la tabla; y una categoria que no este en la tabla va a
+// nekos.best, que es de donde venia todo antes.
+function fuentesDe(cat, nsfw, catNsfw) {
+  if (nsfw && FUENTES_NSFW.length) {
+    return FUENTES_NSFW.map((base) => ({ web: hostDe(base), url: direccionDe(base, catNsfw || cat) }));
+  }
+  const porWeb = CATALOGO[cat] || { 'nekos.best': cat };
+  return Object.entries(porWeb)
+    .filter(([web]) => FUENTES[web])
+    .map(([web, n]) => ({ web, url: direccionDe(FUENTES[web], unoDe(n)) }));
+}
 
-// La web de una categoria, en un solo sitio. La NSFW manda cuando esta puesta;
-// si no, la propia de la categoria; si no, la de siempre.
-function fuenteDe(cat, nsfw) {
-  if (nsfw && API_NSFW) return API_NSFW;
-  return FUENTE_POR_CAT[cat] || API;
+// UNA WEB QUE DICE QUE NO TIENE ESA CATEGORIA SE APARTA UN RATO. Sin esto, con
+// varias webs, cada peticion volveria a probar la que ya contesto 404 y el gif
+// tardaria un viaje de mas siempre. Seis horas, y nunca todas a la vez: si
+// apartarla dejaria la accion sin ninguna, se prueban todas igual.
+// Y media hora con un 500: nekos.life contesta asi a lo que no tiene, pero un
+// 500 tambien puede ser una caida de verdad, y esa no merece seis horas.
+const APARTADA_MS = 6 * 60 * 60 * 1000;
+const APARTADA_500_MS = 30 * 60 * 1000;
+const apartadas = new Map();   // url -> hasta cuando
+function apartar(url, ms = APARTADA_MS) {
+  apartadas.set(url, Date.now() + ms);
+  if (apartadas.size > 300) apartadas.delete(apartadas.keys().next().value);
+}
+const estaApartada = (url) => (apartadas.get(url) || 0) > Date.now();
+
+function barajar(xs) {
+  const a = xs.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 const TOPE_DESCARGA = 8 * 1024 * 1024;   // un gif de reacción pesa cientos de KB
 
@@ -312,7 +355,9 @@ const TOPE_DESCARGA = 8 * 1024 * 1024;   // un gif de reacción pesa cientos de 
 // Las ultimas direcciones servidas de cada categoria, para no repetir gif. Seis
 // es mas que las dos que caben en la despensa y menos que el catalogo de la
 // categoria mas pobre: bloquear mas seria quedarse sin de donde elegir.
-const RECIENTES_POR_CAT = 6;
+// Doce desde que hay varias webs por accion: el catalogo junto es de decenas o
+// cientos de gifs, y seis se quedaba corto para no ver repetidos en una tarde.
+const RECIENTES_POR_CAT = 12;
 const gifsRecientes = new Map();   // clave -> [direcciones]
 
 function yaSalio(clave, url) {
@@ -496,9 +541,12 @@ function enFondo(fn) {
 // se desincroniza el dia que alguien toque la fuente, y el sintoma seria que la
 // despensa se llena y nunca se usa: cada comando volveria a pagar el viaje
 // entero sin que nada pareciera roto.
+// La clave ya no lleva la web: desde que una accion tira de varias, su cola
+// mezcla gifs de todas a proposito. Lleva si es explicita con fuente puesta,
+// para que un cambio en el .env no sirva gifs de la otra mitad.
 function claveDespensa(cat, nsfw, catNsfw) {
-  const conFuente = nsfw && API_NSFW;
-  return `${fuenteDe(cat, nsfw)}|${conFuente ? (catNsfw || cat) : cat}`;
+  const conFuente = nsfw && FUENTES_NSFW.length > 0;
+  return `${conFuente ? 'nsfw' : 'sfw'}|${conFuente ? (catNsfw || cat) : cat}`;
 }
 
 const pesaDe = (m) => (m?.mp4?.length || m?.imagen?.length || 0);
@@ -806,8 +854,7 @@ function direccionDelGif(data) {
 async function traerAccion(cat, nsfw, catNsfw, deDespensa = false) {
   // La fuente y la categoria van JUNTAS: cambiar de web sin cambiar de
   // categoria es pedirle a una el nombre que usa la otra.
-  const conFuente = nsfw && API_NSFW;
-  const base = fuenteDe(cat, nsfw);
+  const conFuente = nsfw && FUENTES_NSFW.length > 0;
   const cual = conFuente ? (catNsfw || cat) : cat;
   const clave = claveDespensa(cat, nsfw, catNsfw);
   if (!deDespensa) {
@@ -820,18 +867,27 @@ async function traerAccion(cat, nsfw, catNsfw, deDespensa = false) {
   // otro. Con el reparto, la proxima vez que tarde ya dice cual fue.
   const t = { api: 0, bajar: 0, convertir: 0 };
   const marca = Date.now();
-  // Y SI LA WEB DE ESA CATEGORIA SE CAE, SE PRUEBA LA DE RESPALDO. Una fuente
-  // de fuera se cae, y sin esto el comando se queda cobrando y devolviendo el
-  // aura hasta que alguien mire el log.
+  // UNA WEB AL AZAR, Y SI FALLA LA SIGUIENTE. Ver FUENTES y CATALOGO arriba.
+  // Ocho segundos por web y no doce: con otras detras, esperar a una lenta es
+  // peor que pasar a la siguiente.
   const pedir = async () => {
-    try {
-      return (await axios.get(direccionDe(base, cual), { timeout: 12000 })).data;
-    } catch (e) {
-      const r = !conFuente && RESPALDO_POR_CAT[cual];
-      if (!r) throw e;
-      logger.warn(`accion ${cual}: la web falló (${e.response?.status || e.message}); tiro del respaldo`);
-      return (await axios.get(direccionDe(r.base, r.cat), { timeout: 12000 })).data;
+    const todas = barajar(fuentesDe(cat, nsfw, catNsfw));
+    const vivas = todas.filter((f) => !estaApartada(f.url));
+    let ultimo = null;
+    for (const f of (vivas.length ? vivas : todas)) {
+      try {
+        const data = (await axios.get(f.url, { timeout: 8000 })).data;
+        if (direccionDelGif(data)) return data;
+        ultimo = new Error(`${f.web} contesta sin gif`);
+      } catch (e) {
+        ultimo = e;
+        const st = e.response?.status;
+        if (st >= 400 && st < 500 && st !== 429) apartar(f.url);
+        else if (st >= 500) apartar(f.url, APARTADA_500_MS);
+        logger.warn(`accion ${cual}: ${f.web} falló (${st || e.message}); pruebo otra web`);
+      }
     }
+    throw ultimo || new Error('ninguna web tiene esa categoria');
   };
 
   // ─── QUE NO SALGA DOS VECES EL MISMO GIF ──────────────────────────────────
@@ -1153,4 +1209,4 @@ async function ejecutarAccion(tecleado, sock, msg, args, groupMeta) {
   return hacer ? hacer(sock, msg, args, groupMeta) : undefined;
 }
 
-module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, ejecutarAccion, calentarDespensa, _restaurarDespensa: restaurarDespensa, _guardarEnDespensa: guardarEnDespensa, _sacarDeDespensa: sacarDeDespensa, _DESPENSA_DIR: DESPENSA_DIR, _fondo: () => fondoEnCurso, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, _yaSalio: yaSalio, _apuntarGif: apuntarGif, _gifsRecientes: gifsRecientes, _fuenteDe: fuenteDe, _FUENTE_POR_CAT: FUENTE_POR_CAT, _RESPALDO_POR_CAT: RESPALDO_POR_CAT, _direccionDe: direccionDe, _direccionDelGif: direccionDelGif, ...comandos, _turnoRoast: turnoRoast };
+module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, ejecutarAccion, calentarDespensa, _restaurarDespensa: restaurarDespensa, _guardarEnDespensa: guardarEnDespensa, _sacarDeDespensa: sacarDeDespensa, _DESPENSA_DIR: DESPENSA_DIR, _fondo: () => fondoEnCurso, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, _yaSalio: yaSalio, _apuntarGif: apuntarGif, _gifsRecientes: gifsRecientes, _fuentesDe: fuentesDe, _FUENTES: FUENTES, _CATALOGO: CATALOGO, _apartadas: apartadas, _RECIENTES_POR_CAT: RECIENTES_POR_CAT, _direccionDe: direccionDe, _direccionDelGif: direccionDelGif, ...comandos, _turnoRoast: turnoRoast };

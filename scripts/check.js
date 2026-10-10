@@ -7161,47 +7161,36 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       exige(/text:\s*remate/.test(acc),
         'el roast de la accion no se manda como texto suelto: el grupo tiene que verlo en su propio globo');
     }
-    // 6. LA CATEGORIA QUE VIENE DE OTRA WEB.
+    // 6. CADA ACCION TIRA DE VARIAS WEBS DE ANIME. Lo pidio el dueño el 10 oct:
+    // mas variedad. Lo que se vigila es lo que se rompe sin verse:
     //
-    // *!kill* no esta en nekos.best. Viene de kawaii.red, y eso abre cuatro
-    // formas nuevas de romperlo sin que se note desde fuera:
-    //
-    //   · una clave mal escrita en FUENTE_POR_CAT manda la categoria a la web
-    //     de siempre, que contesta 404, y el comando cobra y devuelve el aura
-    //     para siempre;
-    //   · la despensa guarda por clave, y si la clave no lleva la web dentro,
-    //     los gifs de una acaban saliendo por la otra;
-    //   · kawaii.red llama `response` a lo que las demas llaman `url`, asi que
-    //     sin esa forma la web contesta bien y el bot dice que no trae nada;
-    //   · y el respaldo tiene que apuntar a una categoria que exista de verdad.
+    //   · una accion cuya categoria no esta en la tabla cae a una sola web;
+    //   · una web nombrada en la tabla que no esta en FUENTES no se usa nunca;
+    //   · una plantilla sin {cat} pide siempre lo mismo;
+    //   · y que fuentesDe devuelva de verdad todas las de la tabla.
     {
       const acc = require(path.join(R, 'src/commands/acciones'));
-      const cats = new Set(Object.values(acc.ACCIONES).flatMap((a) => [a.cat, a.catNsfw].filter(Boolean)));
-      for (const cat of Object.keys(acc._FUENTE_POR_CAT)) {
-        exige(cats.has(cat),
-          `FUENTE_POR_CAT tiene *${cat}*, que no es la categoria de ninguna accion: esa web no se usa y la accion que la necesitaba pide la de siempre`);
+      for (const [web, url] of Object.entries(acc._FUENTES)) {
+        exige(/^https:\/\//.test(url) && url.includes('{cat}'), `la web *${web}* no lleva {cat} o no es https: pediria siempre lo mismo`);
       }
-      for (const [cat, r] of Object.entries(acc._RESPALDO_POR_CAT)) {
-        exige(cats.has(cat), `RESPALDO_POR_CAT tiene *${cat}*, que no es la categoria de ninguna accion`);
-        exige(r && typeof r.base === 'string' && /^https?:\/\//.test(r.base) && typeof r.cat === 'string' && r.cat,
-          `el respaldo de *${cat}* no dice a que web ni a que categoria ir`);
+      for (const [nombre, a] of Object.entries(acc.ACCIONES)) {
+        if (a.nsfw) continue;
+        const tabla = acc._CATALOGO[a.cat];
+        exige(!!tabla, `*!${a.cmds[0]}* (${a.cat}) no esta en el catalogo de webs: sale de una sola y sin variedad`);
+        if (!tabla) continue;
+        for (const web of Object.keys(tabla)) exige(!!acc._FUENTES[web], `el catalogo de *${a.cat}* nombra la web *${web}*, que no esta en FUENTES`);
+        const f = acc._fuentesDe(a.cat, false, null);
+        exige(f.length === Object.keys(tabla).length && f.every((x) => /^https:\/\//.test(x.url) && !x.url.includes('{cat}')),
+          `fuentesDe no devuelve todas las webs de *${a.cat}*: la variedad de la tabla no llega al comando`);
       }
-      // La fuente de una categoria propia NO puede ser la de siempre: si lo es,
-      // la tabla no se esta leyendo y todo vuelve a nekos.best en silencio.
-      for (const cat of Object.keys(acc._FUENTE_POR_CAT)) {
-        exige(acc._fuenteDe(cat, false) === acc._FUENTE_POR_CAT[cat],
-          `*${cat}* deberia salir de su propia web y sale de la de siempre: la tabla esta puesta y no se lee`);
-      }
-      const unaNormal = Object.values(acc.ACCIONES).find((a) => !a.nsfw && !acc._FUENTE_POR_CAT[a.cat]);
-      exige(!!unaNormal && acc._fuenteDe(unaNormal.cat, false) === 'https://nekos.best/api/v2/',
-        'una accion normal ya no sale de nekos.best: la tabla de fuentes se esta comiendo a las demas');
+      const total = Object.values(acc._CATALOGO).reduce((n, t) => n + Object.keys(t).length, 0);
+      exige(total >= 50, `el catalogo tiene ${total} parejas accion-web: se ha perdido variedad`);
 
-      // La clave de la despensa lleva la web dentro. Sin eso, dos categorias
-      // que se llamen igual en dos webs comparten cola.
-      for (const cat of Object.keys(acc._FUENTE_POR_CAT)) {
-        exige(acc._claveDespensa(cat, false, null).startsWith(acc._FUENTE_POR_CAT[cat]),
-          `la clave de despensa de *${cat}* no lleva su web dentro: los gifs de una web saldrian por la otra`);
-      }
+      // La clave de la despensa NO lleva la web: la cola de una accion mezcla
+      // todas a proposito. Si la llevara, cada web tendria su cola y casi
+      // nunca habria una llena.
+      exige(acc._claveDespensa('hug', false, null) === acc._claveDespensa('hug', false, null) && !/https?:/.test(acc._claveDespensa('hug', false, null)),
+        'la clave de la despensa vuelve a llevar la web dentro: con varias webs por accion la cola no se llena nunca');
 
       // Y las formas de respuesta, que es lo que no se ve hasta que alguien
       // escribe el comando.
@@ -8174,7 +8163,7 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       const iT = src2.indexOf('async function traerAccion');
       const cuerpoT = iT < 0 ? '' : src2.slice(iT, src2.indexOf('\n}', iT));
       const iSacar = cuerpoT.indexOf('sacarDeDespensa(');
-      const iRed = cuerpoT.indexOf('await axios.get(direccionDe(');
+      const iRed = cuerpoT.indexOf('await axios.get(f.url');
       exige(iSacar >= 0 && iRed >= 0 && iSacar < iRed,
         'la despensa se mira despues de salir a la red, o ya no se mira dentro de traerAccion: entonces no sirve para nada');
     }
@@ -10837,11 +10826,11 @@ const di=async(quien,t)=>{out.length=0;
       exige(acc._yaSalio('k', 'https://a/1.gif'), 'la dirección que acaba de salir no se recuerda: el gif se repetirá');
       exige(!acc._yaSalio('otra', 'https://a/1.gif'),
         'la memoria no va por categoría: un gif de *!hug* bloquearía uno de *!kill*');
-      for (let i = 0; i < 10; i++) acc._apuntarGif('k', `https://a/n${i}.gif`);
-      exige(!acc._yaSalio('k', 'https://a/1.gif'),
+      for (let i = 0; i < acc._RECIENTES_POR_CAT + 5; i++) acc._apuntarGif('k', `https://a/n${i}.gif`);
+      exige(!acc._yaSalio('k', 'https://a/n0.gif'),
         'la memoria no caduca: con la categoría entera bloqueada no quedaría ningún gif que servir');
       const lista = g.get('k') || [];
-      exige(lista.length <= 6, `la memoria guarda ${lista.length} direcciones: sin tope se bloquea el catálogo entero`);
+      exige(lista.length <= acc._RECIENTES_POR_CAT, `la memoria guarda ${lista.length} direcciones: sin tope se bloquea el catálogo entero`);
       g.clear();
     }
 
@@ -10856,7 +10845,7 @@ const di=async(quien,t)=>{out.length=0;
       process.env.NO_PROXY = process.env.no_proxy = '127.0.0.1,localhost';
       const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gif57-'));
       let srv = null;
-      const antesFuente = acc._FUENTE_POR_CAT.kill;
+      const antesCat = acc._CATALOGO.kill;
       try {
         // Dos gifs de tamaños distintos, para poder decir cuál llegó.
         for (const [n, tam] of [['viejo.gif', '64x64'], ['nuevo.gif', '128x128']]) {
@@ -10880,7 +10869,8 @@ const di=async(quien,t)=>{out.length=0;
         });
         await new Promise((r) => srv.listen(0, '127.0.0.1', r));
         base = `http://127.0.0.1:${srv.address().port}`;
-        acc._FUENTE_POR_CAT.kill = `${base}/api/{cat}`;
+        acc._FUENTES.prueba = `${base}/api/{cat}`;
+        acc._CATALOGO.kill = { prueba: 'kill' };
         acc._gifsRecientes.clear();
 
         const uno = await acc._traerAccion('kill', false, null, true);
@@ -10892,8 +10882,65 @@ const di=async(quien,t)=>{out.length=0;
         exige(uno.mp4.length !== dos.mp4.length,
           'los dos gifs seguidos son el mismo: es exactamente lo que se vio en el grupo');
       } finally {
-        acc._FUENTE_POR_CAT.kill = antesFuente;
+        acc._CATALOGO.kill = antesCat;
+        delete acc._FUENTES.prueba;
         acc._gifsRecientes.clear();
+        if (srv) srv.close();
+        fs.rmSync(dir, { recursive: true, force: true });
+        if (sinProxy[0] === undefined) delete process.env.NO_PROXY; else process.env.NO_PROXY = sinProxy[0];
+        if (sinProxy[1] === undefined) delete process.env.no_proxy; else process.env.no_proxy = sinProxy[1];
+      }
+    }
+
+    // Y SI UNA WEB NO TIENE LA CATEGORIA, SE SALTA A LA SIGUIENTE Y SE APARTA.
+    // Con varias webs por accion (10 oct), una que contesta 404 no puede dejar
+    // el comando sin gif ni hacerle pagar un viaje de mas cada vez.
+    {
+      const http = require('http');
+      const { execFileSync } = require('child_process');
+      const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+      const sinProxy = [process.env.NO_PROXY, process.env.no_proxy];
+      process.env.NO_PROXY = process.env.no_proxy = '127.0.0.1,localhost';
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gifweb-'));
+      let srv = null;
+      const antesHug = acc._CATALOGO.hug;
+      try {
+        execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi',
+          '-i', 'testsrc=size=64x64:duration=1:rate=8', path.join(dir, 'g.gif')], { timeout: 60000 });
+        const pedidas = { mala: 0, buena: 0 };
+        let base = '';
+        let n = 0;
+        srv = http.createServer((req, res) => {
+          const ruta = req.url.split('?')[0];
+          if (ruta.startsWith('/mala')) { pedidas.mala++; res.writeHead(404); return res.end(); }
+          if (ruta.startsWith('/buena')) {
+            pedidas.buena++;
+            res.writeHead(200, { 'content-type': 'application/json' });
+            return res.end(JSON.stringify({ url: `${base}/g.gif?n=${++n}` }));
+          }
+          res.writeHead(200);
+          return fs.createReadStream(path.join(dir, 'g.gif')).pipe(res);
+        });
+        await new Promise((r) => srv.listen(0, '127.0.0.1', r));
+        base = `http://127.0.0.1:${srv.address().port}`;
+        acc._FUENTES.mala = `${base}/mala/{cat}`;
+        acc._FUENTES.buena = `${base}/buena/{cat}`;
+        acc._CATALOGO.hug = { mala: 'hug', buena: 'hug' };
+        acc._gifsRecientes.clear();
+        acc._apartadas.clear();
+        let traidos = 0;
+        for (let k = 0; k < 4; k++) {
+          const m = await acc._traerAccion('hug', false, null, true).catch(() => null);
+          if (m?.mp4) traidos++;
+        }
+        exige(traidos === 4, `con una web sin la categoria y otra buena, solo llegaron ${traidos} de 4 gifs: no se salta a la siguiente web`);
+        exige(pedidas.mala <= 1, `a la web que contesto 404 se le volvio a preguntar ${pedidas.mala} veces: no se aparta y cada gif paga un viaje de mas`);
+      } finally {
+        acc._CATALOGO.hug = antesHug;
+        delete acc._FUENTES.mala;
+        delete acc._FUENTES.buena;
+        acc._gifsRecientes.clear();
+        acc._apartadas.clear();
         if (srv) srv.close();
         fs.rmSync(dir, { recursive: true, force: true });
         if (sinProxy[0] === undefined) delete process.env.NO_PROXY; else process.env.NO_PROXY = sinProxy[0];

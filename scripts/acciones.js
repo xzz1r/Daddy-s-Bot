@@ -22,9 +22,13 @@ const axios = require('axios');
 // habria dicho que el comando esta roto estando perfecto. Una comprobacion que
 // mira un sitio distinto del que mira el bot no comprueba nada, que es
 // exactamente lo que ya costo una tarde con yt-dlp.
-const { ACCIONES, ACTIVAS, _fuenteDe: fuenteDe, _direccionDe: direccion } = require('../src/commands/acciones');
+const { ACCIONES, ACTIVAS, _FUENTES: FUENTES, _CATALOGO: CATALOGO, _direccionDe: direccion } = require('../src/commands/acciones');
 
+// Desde el 10 oct cada accion tira de varias webs, y las explicitas de todas
+// las que haya en ACCION_NSFW_API (separadas por espacios o comas). Se prueban
+// TODAS: una pareja accion-web rota es un viaje de mas en cada gif.
 const API_NSFW = (process.env.ACCION_NSFW_API || '').trim();
+const FUENTES_NSFW = API_NSFW.split(/[\s,]+/).filter(Boolean);
 
 // ─── MODO SONDEO: ¿COMO LLAMA ESTA WEB A ESO? ───────────────────────────────
 //
@@ -67,8 +71,8 @@ async function sondear(pedidos) {
   const buenos = [];
   for (const [concepto, nombres] of Object.entries(grupos)) {
     console.log(gris(`  ── ${concepto} ──`));
-    for (const cat of nombres) {
-      const url = direccion(API_NSFW, cat);
+    for (const cat of nombres) for (const base of FUENTES_NSFW) {
+      const url = direccion(base, cat);
       let estado;
       try {
         const { data } = await axios.get(url, { timeout: 12000 });
@@ -78,7 +82,7 @@ async function sondear(pedidos) {
       } catch (e) {
         estado = gris(`no (${e.response?.status || e.code || e.message})`);
       }
-      console.log(`     ${String(cat).padEnd(14)} ${estado}`);
+      console.log(`     ${String(cat).padEnd(14)} ${new URL(base.replace(/\{cat\}/g, 'x')).hostname.padEnd(22)} ${estado}`);
       await new Promise((r) => setTimeout(r, 1000));
     }
   }
@@ -106,30 +110,35 @@ async function sondear(pedidos) {
   if (!API_NSFW) console.log(gris('  (sin ACCION_NSFW_API puesta: las explícitas se prueban contra la web normal)\n'));
 
   for (const [nombre, a] of Object.entries(ACCIONES)) {
-    const nsfw = a.nsfw && API_NSFW;
-    const base = fuenteDe(a.cat, a.nsfw);
-    const cat = nsfw ? (a.catNsfw || a.cat) : a.cat;
-    const url = direccion(base, cat);
-    let estado;
-    try {
-      const { data } = await axios.get(url, { timeout: 12000 });
-      const hay = data?.results?.[0]?.url || data?.url || data?.link || data?.response || data?.images?.[0]?.url;
-      estado = hay ? verde('trae gif') : rojo('contesta pero SIN gif');
-      if (!hay) malas++;
-    } catch (e) {
-      estado = rojo(`FALLA (${e.response?.status || e.code || e.message})`);
-      malas++;
-    }
-    const etiqueta = `!${a.cmds[0]}`.padEnd(12);
-    const donde = nsfw ? 'nsfw' : '    ';
+    const nsfw = a.nsfw && FUENTES_NSFW.length;
+    // Las parejas a probar: [web, url]. Cada nombre de cada web, no uno al azar.
+    const parejas = nsfw
+      ? FUENTES_NSFW.map((base) => [new URL(base.replace(/\{cat\}/g, 'x')).hostname, direccion(base, a.catNsfw || a.cat)])
+      : Object.entries(CATALOGO[a.cat] || { 'nekos.best': a.cat })
+        .flatMap(([web, n]) => (Array.isArray(n) ? n : [n]).map((c) => [`${web} ${c}`, direccion(FUENTES[web], c)]));
     const viva = ACTIVAS.includes(nombre) ? '' : gris('  (apagada: sin frases)');
-    console.log(`  ${etiqueta} ${donde} ${String(cat).padEnd(12)} ${estado}${viva}`);
-    await new Promise((r) => setTimeout(r, 250));   // sin ráfagas: la web tambien tiene limites
+    let buenas = 0;
+    for (const [web, url] of parejas) {
+      let estado;
+      try {
+        const { data } = await axios.get(url, { timeout: 12000 });
+        const hay = data?.results?.[0]?.url || data?.url || data?.link || data?.response || data?.images?.[0]?.url;
+        estado = hay ? verde('trae gif') : rojo('contesta pero SIN gif');
+        if (hay) buenas++;
+      } catch (e) {
+        estado = rojo(`FALLA (${e.response?.status || e.code || e.message})`);
+      }
+      console.log(`  ${`!${a.cmds[0]}`.padEnd(12)} ${nsfw ? 'nsfw' : '    '} ${String(web).padEnd(26)} ${estado}${viva}`);
+      await new Promise((r) => setTimeout(r, 250));   // sin ráfagas: la web tambien tiene limites
+    }
+    // Una accion solo esta rota si NINGUNA de sus webs trae gif: con una viva,
+    // el comando funciona y las otras se apartan solas.
+    if (!buenas) malas++;
   }
 
   console.log('');
   if (malas) {
-    console.log(rojo(`  ${malas} categoría(s) no traen nada. Ese comando cobra, falla y devuelve el aura CADA vez.`));
+    console.log(rojo(`  ${malas} accion(es) sin ninguna web que traiga gif. Ese comando cobra, falla y devuelve el aura CADA vez.`));
     process.exit(1);
   }
   console.log(verde('  Todas traen gif.\n'));
