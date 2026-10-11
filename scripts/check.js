@@ -3906,6 +3906,24 @@ const di=async(quien,texto,extra)=>{
     if (fallos === antes) console.log(verde('   ✓ los monederos de cada grupo se juntan sin perder aura y con copia, el saldo y la caja son los mismos en todos, el !top enseña solo a los suyos, y las esperas y el reset son por persona'));
   }
 
+  // 12h. LAS RACHAS DEL TIER DUEÑO, A TRES (11 oct). Lo fijo el dueño: tres
+  // seguidas y la cuarta se pierde, en el robo y tambien en la apuesta. Cada
+  // una con su contador: ganar robos no le cuesta la siguiente apuesta.
+  {
+    console.log('\n12h. TRES SEGUIDAS DEL DUEÑO Y LA CUARTA SE PIERDE, EN ROBO Y EN APUESTA');
+    const antes = fallos;
+    const { ownerGana, _reiniciarRacha } = require(path.join(R, 'src/utils/rigOwner'));
+    _reiniciarRacha();
+    const tira = (canal) => Array.from({ length: 5 }, () => ownerGana('12h@g.us', 1, canal));
+    const robo = tira(null);
+    const apuesta = tira('apuesta');
+    _reiniciarRacha();
+    const esperado = 'true,true,true,false,true';
+    if (robo.join() !== esperado) { fallos++; console.log(rojo(`   ✗ robo con el dado siempre a favor: ${robo.join()} (tocaba ${esperado})`)); }
+    if (apuesta.join() !== esperado) { fallos++; console.log(rojo(`   ✗ apuesta con el dado siempre a favor: ${apuesta.join()} (tocaba ${esperado}): el tope de la apuesta es 3, la 4.ª se pierde`)); }
+    if (fallos === antes) console.log(verde('   ✓ robo y apuesta: tres seguidas, la cuarta se pierde, cada uno con su contador'));
+  }
+
   // 12c. SIN PRECIO DOBLE EN TOPS, SHIP Y HERRAMIENTAS. Lo pidio el dueño: esos
   // cuestan siempre lo mismo. El resto sigue con la rafaga.
   {

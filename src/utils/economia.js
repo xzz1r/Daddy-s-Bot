@@ -928,9 +928,11 @@ function exitoOwnerRobo(stake) {
 // toda la ventaja nueva. Y de vuelta a 3 el 10 oct, por decision del dueño: tres
 // seguidas y la cuarta se pierde.
 const ROBO_OWNER_RACHA_MAX = 3;
-// La apuesta lleva su propio contador (canal 'apuesta' en rigOwner) y su propio
-// tope: el recorte del 10 oct era para robo, contrarobo, duelo y mog.
-const APUESTA_OWNER_RACHA_MAX = 4;
+// La apuesta lleva su propio contador (canal 'apuesta' en rigOwner): cuatro mogs
+// ganados no le cuestan al dueño la siguiente apuesta. El tope es el mismo que
+// el del robo desde el 11 oct, por decision del dueño: tres apuestas ganadas
+// seguidas y la cuarta se pierde.
+const APUESTA_OWNER_RACHA_MAX = 3;
 
 // La cifra que se le ENSEÑA al owner cuando roba, que no es la suya.
 //
