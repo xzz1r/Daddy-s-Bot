@@ -211,6 +211,14 @@ Y cuando una acción tarda, el log ya dice **dónde**: `traer 15105 [web 400,
 bajar 260, ffmpeg 14400]`. Los tres pasos son tres problemas distintos con
 arreglos distintos, y un solo número no se puede arreglar.
 
+**De dónde salen los gifs.** Cada acción tiene varias webs de anime
+(`FUENTES` y `CATALOGO` en `commands/acciones.js`): se prueba una al azar entre
+las que tienen esa categoría y, si falla, la siguiente. Una web que contesta un
+4xx se aparta 6 h y una que da un 5xx, 30 min, para no insistir contra lo que
+está caído. Las explícitas salen de las webs que diga `ACCION_NSFW_API` en el
+`.env`, que admite varias separadas por espacio o coma; `npm run acciones`
+dice qué categorías tiene cada una.
+
 ---
 
 ## El cartel del día
@@ -248,6 +256,8 @@ que viene a romper.
 
 Vive en `utils/auraCobro.js`. Las tres primeras veces que
 usas un comando de pago valen su precio, y de la cuarta en adelante, el doble.
+Se cuenta por grupo. Los tops, el ship, los rankings y las herramientas
+(`SIN_RAFAGA`) no suben nunca, por decisión del dueño.
 El motivo es de economía, no de CPU: medida la curva de ingresos, el que
 escribe mil mensajes al día cobra 366 y el normal 49, así que con precio fijo
 el freno apretaba a quien no molestaba. Se cuenta lo que se **usa**, no lo que
@@ -257,11 +267,11 @@ fallo del bot.
 
 ---
 
-## Redes: `!tt`, `!ig`, `!pin`
+## Redes: `!tt`, `!ig`, `!pin`, `!x`
 
 El vídeo que alguien pega, sin marca de
-agua. Tres comandos y no uno, por decisión del dueño: son tres plataformas y
-se piden distinto. Lo que comparten (cobrar, bajar, mandar, borrar y devolver
+agua. Un comando por plataforma y no uno para todas, por decisión del dueño:
+se piden distinto. Son cuatro: `!tt`, `!ig`, `!pin` y `!x`, que llegó después. Lo que comparten (cobrar, bajar, mandar, borrar y devolver
 el aura si no llega nada) se escribe una vez en `commands/redes.js`, y el motor
 está en `utils/redes.js`.
 

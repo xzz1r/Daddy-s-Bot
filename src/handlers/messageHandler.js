@@ -1978,8 +1978,16 @@ async function handleMessage(sock, msg, opciones = {}) {
     // setImmediate y sin await por lo mismo que el visto — mirar el ranking es
     // una lectura de disco, y ponerla por delante deja la respuesta del comando
     // esperando detras de algo que no ha pedido nadie.
-    setImmediate(() => {
-      cartelDelDia(jid, peekGroupMeta(jid))
+    //
+    // Y CON LA LISTA DE MIEMBROS DE VERDAD. Desde que el aura es una sola, el
+    // ranking del que sale el objetivo es la bolsa de todos los grupos filtrada
+    // por los miembros de este, y sin lista no pasa nadie. Tras un reinicio la
+    // cache esta vacia, asi que mirar solo la cache dejaba al grupo sin cartel
+    // hasta que alguien usara un comando que la llenara. Se pide si falta: es
+    // una consulta por grupo y reinicio, y getGroupMeta ya junta las que vuelan.
+    setImmediate(async () => {
+      const metaCartel = peekGroupMeta(jid) || await getGroupMeta(sock, jid).catch(() => null);
+      cartelDelDia(jid, metaCartel)
         .then((objetivo) => {
           if (!objetivo) return;
           const canon = canonicalJid(objetivo) || objetivo;

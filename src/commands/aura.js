@@ -472,7 +472,7 @@ async function showRanking(sock, msg, groupMeta) {
     const quien = getSender(msg);
     let enTop = false;
     try {
-      const r = soloMiembros(await getAuraRanking(jid), groupMeta, true).slice(0, 10);
+      const r = soloMiembros(await getAuraRanking(), groupMeta, true).slice(0, 10);
       enTop = r.some((x) => sameUser(x.jid, quien));
     } catch { /* si falla la lectura, se usa el tono del que no sale */ }
 
@@ -539,7 +539,7 @@ async function showRanking(sock, msg, groupMeta) {
   // La lista entera se guarda: el objetivo del dia la necesita sin recortar y la
   // rehacia por su cuenta tres lineas mas abajo. Medido en un grupo de 250: 250
   // us de los 524 que costaba el comando, en construir dos veces lo mismo.
-  const rankingCompleto = soloMiembros(await getAuraRanking(jid), groupMeta, true);
+  const rankingCompleto = soloMiembros(await getAuraRanking(), groupMeta, true);
   const ranking = rankingCompleto.slice(0, 10);
   if (ranking.length === 0) {
     ultimoRanking.delete(jid);

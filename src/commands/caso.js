@@ -149,7 +149,7 @@ async function cmdCaso(sock, msg, args, groupMeta) {
     getActiveUsers(jid, 1),
     getAura(jid, persona),
     verCaja(jid, persona),
-    getAuraRanking(jid),
+    getAuraRanking(),
     rankingLadrones(jid),
     recompensaDe(jid, persona),
     verRacha(jid, persona),

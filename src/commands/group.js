@@ -778,7 +778,7 @@ async function cmdPromote(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: 'Menciona o responde al usuario que quieres ascender.' }, { quoted: msg });
   }
   if (isAdmin(groupMeta?.participants, target)) {
-    return sock.sendMessage(jid, { text: 'Ya es admin. Ascenderlo otra vez no lo hace más listo.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Ya es admin. Por ascenderle dos veces no va a tener más luces.' }, { quoted: msg });
   }
 
   try {

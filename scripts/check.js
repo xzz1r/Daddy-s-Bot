@@ -3917,6 +3917,32 @@ const di=async(quien,texto,extra)=>{
         if (!r.escudoFuera) mal('un escudo comprado en un grupo no protege en otro: se roba el mismo saldo desde el grupo de al lado');
         if (r.reset[0] !== SUELO_TODOS || r.reset[1] !== 0) mal(`*!resetaura* desde un grupo no deja al suelo a los de los demas: ${r.reset.join(' · ')}`);
       }
+      // EL CARTEL DEL DIA TRAS UN REINICIO. El objetivo sale de la bolsa filtrada
+      // por los miembros, y tras un reinicio la cache de miembros esta vacia:
+      // mirando solo la cache, el grupo se quedaba sin cartel. Se prueba por el
+      // camino real, con un mensaje normal y la cache sin estrenar.
+      const caja2 = fs.mkdtempSync(path.join(os12g.tmpdir(), 'cartel-'));
+      try {
+        fs.cpSync(path.join(R, 'src'), path.join(caja2, 'src'), { recursive: true });
+        fs.mkdirSync(path.join(caja2, 'data')); fs.mkdirSync(path.join(caja2, 'temp'));
+        fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja2, 'node_modules'), 'dir');
+        const guion2 = [
+          "const A = require('./src/utils/auraStore'); const { handleMessage } = require('./src/handlers/messageHandler');",
+          "const G = '120363000000888@g.us', BOT = '549199@s.whatsapp.net', P1 = '34600000881@s.whatsapp.net', P2 = '34600000882@s.whatsapp.net', P3 = '34600000883@s.whatsapp.net';",
+          "const out = []; const sock = { user: { id: BOT }, sendPresenceUpdate: async () => {}, readMessages: async () => {},",
+          "  groupMetadata: async () => ({ id: G, subject: 'G', participants: [{ id: BOT, admin: 'admin' }, { id: P1 }, { id: P2 }, { id: P3 }] }),",
+          "  sendMessage: async (j, c) => { out.push(c.text || ''); return { key: { id: 'r' } }; } };",
+          "(async () => { await A.addAura(G, P1, 4000); await A.addAura(G, P2, 2500); await A.addAura(G, P3, 1500);",
+          "  await handleMessage(sock, { key: { remoteJid: G, participant: P3, fromMe: false, id: 'M1' }, message: { conversation: 'buenos días' }, pushName: 'x', messageTimestamp: Math.floor(Date.now() / 1000) });",
+          "  await new Promise((r) => setTimeout(r, 1500));",
+          "  console.log('RCARTEL' + JSON.stringify(out)); process.exit(0); })();",
+        ].join('\n');
+        const sal2 = spawnSync('node', ['-e', guion2], { cwd: caja2, encoding: 'utf8', timeout: 60000 });
+        const l2 = (sal2.stdout || '').split('\n').find((l) => l.startsWith('RCARTEL'));
+        const outs2 = l2 ? JSON.parse(l2.slice(7)) : null;
+        if (!outs2) mal(`la prueba del cartel no llegó al final: ${((sal2.stderr || '') + (sal2.stdout || '')).trim().split('\n').slice(-2).join(' | ').slice(0, 200)}`);
+        else if (!outs2.some((t) => /@3460000088[123]/.test(t))) mal('tras un reinicio el grupo se queda sin cartel del día: sin la lista de miembros en caché, el objetivo no sale');
+      } finally { fs.rmSync(caja2, { recursive: true, force: true }); }
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     // Los relojes que frenan el monedero, con la llave de la bolsa. Un reloj
     // por grupo era tirar, apostar y robar el doble estando en dos grupos.
