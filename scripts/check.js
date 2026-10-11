@@ -3884,6 +3884,9 @@ const di=async(quien,texto,extra)=>{
         "  await Promise.all([compra(G1), compra(G2)]);",
         "  r.ganzuas = ((await T.objetosDe(G1, C)).ganzua || 0) + ((await T.objetosDe(G2, C)).ganzua || 0);",
         "  await T.darObjeto(G1, C, 'escudo', Date.now() + 3600000); r.escudoFuera = await T.tieneEscudo(G2, C);",
+        "  const AT = '34600000779@s.whatsapp.net'; await A.addAura(G1, AT, 3000); await T.aportarACaja(G1, 5000);",
+        "  const atraco = () => Rb.cmdRobo(sk, { key: { remoteJid: G1, participant: AT, fromMe: false, id: 'AT' + Math.random() }, message: { conversation: '!atraco' }, pushName: 'x' }, ['atraco'], { id: G1, participants: [{ id: AT }] });",
+        "  const nAt = out.length; await Promise.all([atraco(), atraco()]); r.atracos = out.length - nAt;",
         "  await A.resetAura(G1); r.reset = [await A.getAura(G2, Q), await A.verCaja(G3, P)];",
         "  console.log('R12G' + JSON.stringify({ ...r, ST: A.STARTING_AURA }));",
         "  process.exit(0); })();",
@@ -3913,6 +3916,7 @@ const di=async(quien,texto,extra)=>{
           mal(`dos *!robo* del mismo ladrón a la vez, uno en cada grupo: ${enEspera} rebotan por la espera (tiene que ser 1, o roba dos veces): ${(r.robos || []).map((t) => t.slice(0, 30)).join(' | ')}`);
         }
         if (r.pagadas !== 1) mal(`la tirada hecha en un grupo no cuenta en otro (${r.pagadas}): las tiradas que pagan se multiplican por el número de grupos`);
+        if (r.atracos !== 1) mal(`dos *!atraco* a la vez de la misma persona dan ${r.atracos} respuestas: los dos tiran con la seguridad baja`);
         if (r.ganzuas !== 1) mal(`dos *!comprar ganzua* a la vez, uno en cada grupo, dan ${r.ganzuas}: el límite de un objeto de ventaja cada 12 h es de la persona`);
         if (!r.escudoFuera) mal('un escudo comprado en un grupo no protege en otro: se roba el mismo saldo desde el grupo de al lado');
         if (r.reset[0] !== SUELO_TODOS || r.reset[1] !== 0) mal(`*!resetaura* desde un grupo no deja al suelo a los de los demas: ${r.reset.join(' · ')}`);

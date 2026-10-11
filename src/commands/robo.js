@@ -816,7 +816,25 @@ async function verLaCaja(sock, msg, jid) {
 // fija. Aqui la caja es un recurso que se agota y se regenera, asi que hay algo
 // que decidir: entrar ahora con la tienda caliente, o esperar a que se enfrie
 // sabiendo que cualquiera puede entrar antes.
+// UN ATRACO A LA VEZ POR PERSONA. El atraco no tiene espera: lo frena que la
+// seguridad de la tienda sube con cada intento. Pero se lee con un await y se
+// apunta despues, asi que dos *!atraco* a la vez calculaban los dos la
+// seguridad baja y los dos tiraban con ventaja. El segundo se ignora: el
+// primero ya contesta.
+const atracoEnCurso = new Set();
+
 async function atracarTienda(sock, msg, jid, sender, groupMeta) {
+  const k = canonicalJid(sender);
+  if (atracoEnCurso.has(k)) return;
+  atracoEnCurso.add(k);
+  try {
+    return await atracarTiendaYa(sock, msg, jid, sender, groupMeta);
+  } finally {
+    atracoEnCurso.delete(k);
+  }
+}
+
+async function atracarTiendaYa(sock, msg, jid, sender, groupMeta) {
   const yo = tag(sender);
 
   // El veto primero: si no puede ni entrar, lo demas sobra.

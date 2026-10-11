@@ -9,7 +9,7 @@ const { contarTirada } = require('../utils/casinoStore');
 const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, bonoVeterania, VETERANIA_TOPE, APUESTA, pApuestaDe, pApuestaVisible, PRECIOS, ARRANQUE, MILLONARIO, tirar, MOMENTUM } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { fraseCooldown, AURA_TIRADA, AURA_APOSTAR, AURA_TOP_ANSIAS, AURA_TOP_POBRE } = require('../data/cooldownPhrases');
-const { bloqueCooldown, lineaAura, tiempoRestante } = require('../utils/formatoJuego');
+const { bloqueCooldown, lineaAura } = require('../utils/formatoJuego');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
 const { BOTE, ATRACO, CONTRA, RACHA, RIESGO, OBJETOS, VENTAJA, RECOMPENSA, IMPUESTO, REGALO_MIN, SUELO_TODOS } = require('../utils/economia');
 const { aportarAlBote } = require('../utils/roboStore');
@@ -40,15 +40,6 @@ const ROLL_COOLDOWN_MS = 10 * 60 * 1000;
 // estuviera en dos tiraba el doble sobre el mismo saldo.
 const lastRoll = new Map(); // `${BOLSA}|${canonicalJid}` -> timestamp
 const anuncioObjetivo = new Map(); // grupo -> diaClave, para no pinguear al cazado en cada tirada
-
-// Duracion en texto. Existe porque redondear a minutos miente con los tiempos
-// cortos: minuto y medio salia como "2min" y una espera de 20 segundos tambien.
-// Por debajo del minuto se dan segundos, y si hay minutos y sobran segundos se
-// dicen los dos.
-// Una de las tres copias que habia del mismo reloj, cada una con su salida.
-// Ahora la forma vive en utils/formatoJuego.js y el nombre se queda porque lo
-// usan varios sitios de este fichero.
-const duracion = tiempoRestante;
 
 // Tirada de aura.
 //
