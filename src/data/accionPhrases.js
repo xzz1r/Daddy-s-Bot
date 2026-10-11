@@ -837,9 +837,9 @@ const NOM = [
   '%V se queja del mordisquito de %A y luego pone la otra mejilla.',
   '%A le mordisquea la nariz a %V y %V pone cara de gato ofendido.',
   '%A le pega un mordisquito a %V en el brazo y %V lo enseña al grupo como si fuera un tatuaje.',
-  '%V intenta morder de vuelta y le muerde la manga a %A.',
+  'Tras el mordisquito de %A, %V intenta devolverlo y solo pilla la manga de %A.',
   '%A le mordisquea el dedo a %V y %V se lo mira como si le hubieran puesto un anillo.',
-  '%A le mordisquea la muñeca a %V mientras %V sigue hablando. %V pierde el hilo a la segunda frase.',
+  '%A le mordisquea la muñeca a %V a media frase. %V pierde el hilo a la segunda palabra.',
 ];
 
 // EL PIQUITO. Lo mas corto de la lista y por eso funciona: medio segundo de

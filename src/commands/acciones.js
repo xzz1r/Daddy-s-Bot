@@ -108,7 +108,8 @@ const ACCIONES = {
   // `kill` estuvo en esa lista y ya no: no esta en nekos.best, pero SI en otra
   // web, y por eso existe FUENTE_POR_CAT. Ver alli.
   tickle:   { cat: 'tickle',   es: 'cosquillas', pool: RX.TICKLE,   cmds: ['tickle', 'cosquillas'] },
-  nom:      { cat: 'nom',      es: 'mordisquear', pool: RX.NOM,     cmds: ['nom', 'mordisquear'] },
+  // `cat` NO es 'nom', y es a proposito: ver CATALOGO.mordisquito.
+  nom:      { cat: 'mordisquito', es: 'mordisquear', pool: RX.NOM,  cmds: ['nom', 'mordisquear'] },
   peck:     { cat: 'peck',     es: 'piquito',    pool: RX.PECK,     cmds: ['peck', 'piquito', 'besito'] },
   handhold: { cat: 'handhold', es: 'de la mano', pool: RX.HANDHOLD, cmds: ['handhold', 'mano', 'manos'] },
   stare:    { cat: 'stare',    es: 'mirar',      pool: RX.STARE,    cmds: ['stare', 'mirar', 'mirada'] },
@@ -257,7 +258,17 @@ const CATALOGO = {
   kick:     { 'nekos.best': 'kick', 'kawaii.red': 'stomp' },
   bonk:     { 'nekos.best': 'bonk' },
   tickle:   { 'nekos.best': 'tickle', purrbot: 'tickle', otakugifs: 'tickle', 'kawaii.red': 'tickle', 'nekos.life': 'tickle' },
-  nom:      { 'nekos.best': 'nom', otakugifs: 'nom', 'kawaii.red': 'nom' },
+  // *!nom* ES MORDISQUEAR A ALGUIEN, Y LA CATEGORIA `nom` DE LAS WEBS ES OTRA
+  // COSA: alguien comiendo solo (una mazorca, palillos, galletas). Lo vio el
+  // dueño (11 oct): «le mordisquea la muñeca» debajo de una empanadilla. Las
+  // cuatro webs lo llaman igual y ninguna tiene una categoria de mordisquito,
+  // asi que sale de `bite`, que si es una persona mordiendo a otra (la mejilla,
+  // un dedo, el brazo). Comparte gifs con *!morder*; las frases no se parecen.
+  //
+  // La categoria se llama distinto para que la despensa no siga sirviendo los
+  // gifs de comer que tenia guardados: al arrancar borra lo que no case con
+  // ninguna categoria viva.
+  mordisquito: { 'nekos.best': 'bite', purrbot: 'bite', otakugifs: 'bite', 'kawaii.red': 'bite' },
   peck:     { 'nekos.best': 'peck' },
   handhold: { 'nekos.best': 'handhold', otakugifs: 'handhold' },
   stare:    { 'nekos.best': 'stare', otakugifs: ['stare', 'angrystare'], 'kawaii.red': 'stare' },

@@ -7411,6 +7411,17 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       const total = Object.values(acc._CATALOGO).reduce((n, t) => n + Object.keys(t).length, 0);
       exige(total >= 50, `el catalogo tiene ${total} parejas accion-web: se ha perdido variedad`);
 
+      // *!nom* ES MORDISQUEAR A ALGUIEN, y la categoria `nom` de las webs son
+      // gifs de alguien comiendo solo. Lo vio el dueño: «le mordisquea la
+      // muñeca» debajo de una empanadilla. Ni con el nombre de la accion ni con
+      // la clave de la despensa puede volver a tirar de ahi.
+      {
+        const catNom = acc.ACCIONES.nom && acc.ACCIONES.nom.cat;
+        const webs = Object.values(acc._CATALOGO[catNom] || {}).flat();
+        exige(catNom !== 'nom' && webs.length > 0 && webs.every((w) => w === 'bite'),
+          `*!nom* vuelve a sacar gifs de la categoría «${webs.join(', ')}»: tiene que ser «bite» (alguien mordiendo a alguien), no «nom» (alguien comiendo)`);
+      }
+
       // La clave de la despensa NO lleva la web: la cola de una accion mezcla
       // todas a proposito. Si la llevara, cada web tendria su cola y casi
       // nunca habria una llena.
