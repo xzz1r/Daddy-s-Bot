@@ -600,8 +600,12 @@ function esMiembroActual(groupMeta, jid) {
 // objetos con `.jid` (lo que devuelve getActiveUsers). Va en O(n) gracias al
 // índice: cruzar cada conteo contra cada participante era cuadrático y en un
 // grupo grande se notaba en cada ranking.
-function soloMiembros(users, groupMeta) {
-  if (!groupMeta?.participants?.length) return users;
+//
+// `estricto`: sin lista de miembros no pasa nadie. Lo usa el aura, que es una
+// sola para todos los grupos: sin esto, un fallo al pedir los miembros pintaba
+// en un grupo el ranking con la gente de los demas, menciones incluidas.
+function soloMiembros(users, groupMeta, estricto = false) {
+  if (!groupMeta?.participants?.length) return estricto ? [] : users;
   return users.filter(u => esMiembroActual(groupMeta, u?.jid));
 }
 

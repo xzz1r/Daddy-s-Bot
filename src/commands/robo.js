@@ -20,7 +20,7 @@ const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
 //
 // Cuesta 0,44 ms medidos por robo.
 
-const { getAura, addAura, drainAura, drainConCaja, spendAura, flushAura, forzarCaja, verCaja: cajaDePersona } = require('../utils/auraStore');
+const { getAura, addAura, drainAura, drainConCaja, spendAura, flushAura, forzarCaja, verCaja: cajaDePersona, BOLSA } = require('../utils/auraStore');
 const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
 const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, castigoCifra, exitoOwnerRobo, factorRespaldo, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA, SALDO_MINIMO, CAJA, BUTRON } = require('../utils/economia');
 const { ownerGana } = require('../utils/rigOwner');
@@ -72,7 +72,14 @@ function topeRobo(auraLadron, auraVictima) {
 // El remate del robo fallido. Era UNA linea fija —"y le salio al reves"— que
 // ademas de sosa se leia igual las mil veces. Ahora rota, y se rie del que lo
 // intento en vez de describir lo que paso.
-const lastRob = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
+//
+// LOS RELOJES QUE FRENAN EL MONEDERO SON POR PERSONA, NO POR GRUPO: la espera
+// del robo, el escudo de quien acaba de ser robado y los dos del butron. Desde
+// que el aura es la misma en todos los grupos (auraStore, CLAVE_TODOS), un
+// reloj por grupo era robar el doble estando en dos, y a la victima se le podia
+// vaciar el mismo saldo una vez en cada grupo sin escudo. Van con la llave de
+// la bolsa (BOLSA) en vez de la del grupo.
+const lastRob = new Map(); // `${BOLSA}|${canonicalJid}` -> timestamp
 // QUÉ gastó el reloj: el robo o el asalto al bote. Los dos comparten cooldown
 // —a propósito, o asaltar seria la via para saltarselo— pero no comparten
 // mensaje: al que acaba de robar hay que decirle que espera por el robo, no
@@ -85,7 +92,7 @@ const ultimoFueAsalto = new Set();
 // que empezo con el @lid sigue contando. La marca de «fue un asalto» viaja con
 // el reloj mas reciente, que es el que manda.
 function llaveRobo(jid, sender) {
-  const claves = clavesMapa(`${jid}|`, sender);
+  const claves = clavesMapa(`${BOLSA}|`, sender);
   let masNueva = null;
   for (const k of claves) {
     if (lastRob.has(k) && (masNueva === null || lastRob.get(k) > lastRob.get(masNueva))) masNueva = k;
@@ -184,7 +191,7 @@ const VENGANZA_MS = 30 * 60 * 1000; // ventana para devolver el golpe con plus
 
 const FAMA_MS = 75 * 60 * 1000;     // cuanto se te recuerda un robo que salio bien
 
-const robadoHasta = new Map();  // `${grupo}|${victima}` -> ts en que se le puede volver a robar
+const robadoHasta = new Map();  // `${BOLSA}|${victima}` -> ts en que se le puede volver a robar (en cualquier grupo)
 const ultimoAtaque = new Map(); // `${grupo}|${ladron}|${victima}` -> { ts, veces }
 const ultimoRobado = new Map(); // `${grupo}|${victima}` -> { por, ts }
 const fama = new Map();         // `${grupo}|${ladron}` -> [ts, ts, ...] robos con exito
@@ -305,7 +312,7 @@ function ajustarProbabilidad(base, { grupo, ladron, victima, stake, maxStake, es
 // quedan, o 0 si se le puede robar. La víctima llega tal cual, sin canonizar:
 // asi se encuentra tambien el escudo que se le puso con su otra forma.
 function escudoRestante(grupo, victima) {
-  const hasta = juntarEnMapa(robadoHasta, clavesMapa(`${grupo}|`, victima)).valor || 0;
+  const hasta = juntarEnMapa(robadoHasta, clavesMapa(`${BOLSA}|`, victima)).valor || 0;
   const queda = hasta - Date.now();
   return queda > 0 ? Math.ceil(queda / 60000) : 0;
 }
@@ -320,7 +327,7 @@ function anotarIntento(grupo, ladron, victima) {
 
 function anotarRoboExitoso(grupo, ladron, victima) {
   limpiaMapa(robadoHasta);
-  robadoHasta.set(`${grupo}|${victima}`, Date.now() + ESCUDO_MS);
+  robadoHasta.set(`${BOLSA}|${victima}`, Date.now() + ESCUDO_MS);
   limpiaMapa(ultimoRobado);
   ultimoRobado.set(`${grupo}|${victima}`, { por: ladron, ts: Date.now() });
 }
@@ -882,8 +889,8 @@ async function atracarTienda(sock, msg, jid, sender, groupMeta) {
 // podia tocar— y pidio otra forma de ir a por ella. Es esta: solo contra lo
 // guardado, a todo o nada, con multa que cobra la victima si sale mal y un
 // blindaje de unas horas si sale bien, para que no se vacie una caja en una tarde.
-const ultimoButron = new Map();   // `${grupo}|${atacante}` -> ts del ultimo intento
-const blindadaHasta = new Map();  // `${grupo}|${victima}`  -> ts hasta el que no se toca
+const ultimoButron = new Map();   // `${BOLSA}|${atacante}` -> ts del ultimo intento
+const blindadaHasta = new Map();  // `${BOLSA}|${victima}`  -> ts hasta el que no se toca (la caja es una)
 
 function limpiaViejos(mapa, ahora) {
   if (mapa.size < 1000) return;
@@ -904,14 +911,14 @@ async function butron(sock, msg, jid, sender, groupMeta) {
   const el = tag(target);
   const ahora = Date.now();
 
-  const kYo = juntarEnMapa(ultimoButron, clavesMapa(`${jid}|`, sender));
+  const kYo = juntarEnMapa(ultimoButron, clavesMapa(`${BOLSA}|`, sender));
   const espera = (kYo.valor || 0) + BUTRON.esperaMin * 60000 - ahora;
   if (espera > 0) {
     return sock.sendMessage(jid, {
       text: bloqueCooldown({ que: 'robo al banco', frase: 'Todavía tienes tierra en las uñas del último túnel.', queda: espera }),
     }, { quoted: msg });
   }
-  const kEl = juntarEnMapa(blindadaHasta, clavesMapa(`${jid}|`, target));
+  const kEl = juntarEnMapa(blindadaHasta, clavesMapa(`${BOLSA}|`, target));
   if ((kEl.valor || 0) > ahora) {
     return sock.sendMessage(jid, {
       text: bloqueCooldown({ titulo: `CAJA DE ${el} BLINDADA`, frase: 'Se la acaban de reventar y la han tapiado. Busca otra pared.', queda: kEl.valor - ahora }),

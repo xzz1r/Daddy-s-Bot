@@ -158,7 +158,7 @@ async function cmdCaso(sock, msg, args, groupMeta) {
 
   const porMensajes = rankedUsers(activos, groupMeta);
   const iM = porMensajes.findIndex((u) => sameUser(u.jid, persona));
-  const porAura = soloMiembros(ranking, groupMeta);
+  const porAura = soloMiembros(ranking, groupMeta, true);
   const iA = porAura.findIndex((u) => sameUser(u.jid, persona));
   const ladron = ladrones.find((l) => sameUser(l.jid, persona));
   const golpes = ladron ? ladron.golpes : 0;

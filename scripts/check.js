@@ -1076,13 +1076,17 @@ async function capaStores() {
       //
       //    Va en un grupo propio: el de arriba ya tiene el reloj en marcha y
       //    las dos caerían en cooldown, que no prueba la carrera.
+      //
+      //    Y CON GENTE PROPIA. El aura es una sola para todos los grupos, asi
+      //    que tocar aqui a A y B les movia el saldo tambien en el grupo de
+      //    arriba, y un reset ya no es de un grupo: es de todos.
       {
         const GT2 = '000000002@g.us';
-        const mt2 = { id: GT2, participants: [A, B, C].map(id => ({ id })) };
-        await st.resetAura(GT2);
-        const s2 = await st.getAura(GT2, A);
-        await st.addAura(GT2, A, 900 - s2);
-        await st.addAura(GT2, B, 800 - s2);
+        const D = '34600000014@s.whatsapp.net';
+        const E = '34600000015@s.whatsapp.net';
+        const mt2 = { id: GT2, participants: [D, E].map(id => ({ id })) };
+        await st.addAura(GT2, D, 900 - await st.getAura(GT2, D));
+        await st.addAura(GT2, E, 800 - await st.getAura(GT2, E));
         const top2 = async (q) => {
           const mine = [];
           const sk2 = { sendMessage: async (_j, c) => { mine.push(c); return {}; } };
@@ -1090,11 +1094,10 @@ async function capaStores() {
                           message: { conversation: '!auratop' }, pushName: 'x' }, ['auratop'], mt2);
           return mine.at(-1) || {};
         };
-        const [x, y] = await Promise.all([top2(A), top2(B)]);
+        const [x, y] = await Promise.all([top2(D), top2(E)]);
         const nPub = [x, y].filter(publica).length;
         comprueba(nPub === 1,
           `aura top: dos peticiones a la vez publican ${nPub} rankings (tiene que ser 1: si son 2, el cooldown se reclama despues del await)`);
-        await st.resetAura(GT2);
       }
 
       // 2. La copia va SIN menciones. Es lo unico que separa enseñar la tabla de
@@ -1185,7 +1188,8 @@ async function capaStores() {
   const saldo = await aura.getAura(G, U);
   await aura.flushAura();
   const disco = JSON.parse(fs.readFileSync(path.join(R, 'data/aura.json'), 'utf8'));
-  const fila = disco[G] && Object.values(disco[G]).includes(saldo);
+  // En la bolsa de todos, no bajo el grupo: el aura es una por persona.
+  const fila = disco[aura.BOLSA] && Object.values(disco[aura.BOLSA]).includes(saldo);
   comprueba(!!fila, 'persistencia: el saldo guardado coincide con el de memoria');
 
   // Vaciar los guardados pendientes ANTES de restaurar. Cada store guarda con un
@@ -3779,7 +3783,9 @@ const di=async(quien,texto,extra)=>{
         "  await D.cmdPremiar(sk, msg(M, '!premiar @x 999'), ['@x', '999'], meta); const v3 = await A.getAura(G, V);",
         "  await D.cmdPremiar(sk, msg(OWN, '!premiar @x 5000000'), ['@x', '5000000'], meta); const v4 = await A.getAura(G, V);",
         "  await D.cmdPremiar(sk, msg(OWN, '!premiar @x'), ['@x'], meta); const v5 = await A.getAura(G, V);",
-        "  console.log('R12F' + JSON.stringify({ d1: v1 - v0, d2: v2 - v1, d3: v3 - v2, d4: v4 - v3, d5: v5 - v4, out }));",
+        "  const yo0 = await A.getAura(G, CO); await D.cmdPremiarYo(sk, msg(CO, '!premiaryo 300'), ['300'], meta); const yo1 = await A.getAura(G, CO);",
+        "  const m0 = await A.getAura(G, M); await D.cmdPremiarYo(sk, msg(M, '!premiaryo 300'), ['300'], meta); const m1 = await A.getAura(G, M);",
+        "  console.log('R12F' + JSON.stringify({ d1: v1 - v0, d2: v2 - v1, d3: v3 - v2, d4: v4 - v3, d5: v5 - v4, yo: yo1 - yo0, yoM: m1 - m0, out }));",
         "  process.exit(0); })();",
       ].join('\n');
       const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 30000,
@@ -3790,6 +3796,8 @@ const di=async(quien,texto,extra)=>{
       if (r.d2 !== 250) { fallos++; console.log(rojo(`   ✗ un co-dueño premia 250 y llegan ${r.d2}: el comando tiene que ser de los dos`)); }
       if (r.d3 !== 0) { fallos++; console.log(rojo(`   ✗ un miembro ha podido premiar ${r.d3} de aura`)); }
       if (r.d4 !== 0 || r.d5 !== 0) { fallos++; console.log(rojo(`   ✗ se premia por encima del tope o sin cantidad: ${r.d4} · ${r.d5}`)); }
+      if (r.yo !== 300) { fallos++; console.log(rojo(`   ✗ *!premiaryo 300* del tier dueño da ${r.yo} a quien lo escribe`)); }
+      if (r.yoM !== 0) { fallos++; console.log(rojo(`   ✗ un miembro se ha dado ${r.yoM} de aura con *!premiaryo*`)); }
       const textos = r.out || [];
       if (!textos[0] || !/REGALO DE AURA/.test(textos[0]) || !/@33600000001/.test(textos[0])) {
         fallos++; console.log(rojo(`   ✗ el regalo no dice quién lo da, y el dueño lo quiere a la vista: ${(textos[0] || '').slice(0, 80)}`));
@@ -3799,7 +3807,88 @@ const di=async(quien,texto,extra)=>{
     if ((menu.match(/premiar\*? @user|\$\{p\}premiar/g) || []).length < 2) {
       fallos++; console.log(rojo('   ✗ !premiar no sale en los dos menús: el dueño quiere que se sepa quién puede regalar aura'));
     }
-    if (fallos === antes) console.log(verde('   ✓ el dueño y los co-dueños regalan la cifra exacta, un miembro no puede, y sale en el menú de todos'));
+    if (!/premiaryo/.test(menu)) { fallos++; console.log(rojo('   ✗ !premiaryo no sale en el menú')); }
+    if (fallos === antes) console.log(verde('   ✓ el dueño y los co-dueños regalan la cifra exacta (también a sí, con !premiaryo), un miembro no puede, y sale en el menú de todos'));
+  }
+
+  // 12g. EL AURA ES LA MISMA EN TODOS LOS GRUPOS (11 oct). Lo pidio el dueño:
+  // «siempre debe estar la misma cantidad». Se prueba lo que puede romperse:
+  // que los monederos viejos de cada grupo se junten sin perder ni regalar
+  // aura (y dejando copia), que el saldo y la caja se lean igual desde
+  // cualquier grupo, que el !top de un grupo no enseñe a los de otro, que la
+  // espera de la tirada no se salte cambiando de grupo, y que el reset sea de
+  // todos. En una copia aparte, que esto escribe aura.
+  {
+    console.log('\n12g. UN SALDO POR PERSONA, EL MISMO EN TODOS LOS GRUPOS');
+    const antes = fallos;
+    const mal = (q) => { fallos++; console.log(rojo(`   ✗ ${q}`)); };
+    const os12g = require('os');
+    const caja = fs.mkdtempSync(path.join(os12g.tmpdir(), 'aura-una-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const fs = require('fs');",
+        "const G1 = '120000771@g.us', G2 = '120000772@g.us', G3 = '120000773@g.us';",
+        "const P = '34600000771@s.whatsapp.net', Q = '34600000772@s.whatsapp.net', S = '34600000773@s.whatsapp.net', M = '34600000774@s.whatsapp.net';",
+        "fs.writeFileSync('data/aura.json', JSON.stringify({ __escala: 3, __suelo: 1,",
+        "  [G1]: { [P]: 3000, [Q]: 250, [S]: 100 }, [G2]: { [P]: 250, [Q]: 1250, [S]: 100 },",
+        "  __caja: { [G1]: { [P]: 400 }, [G2]: { [P]: 300, [Q]: 50 } }, __cajats: { [G1]: { [P]: 1000 }, [G2]: { [P]: 2000 } } }));",
+        "const A = require('./src/utils/auraStore');",
+        "(async () => { const r = {};",
+        "  r.p = [await A.getAura(G1, P), await A.getAura(G2, P), await A.getAura(G3, P)];",
+        "  r.q = await A.getAura(G1, Q); r.s = await A.getAura(G2, S);",
+        "  r.cajaP = [await A.verCaja(G1, P), await A.verCaja(G2, P)]; r.cajaQ = await A.verCaja(G3, Q);",
+        "  await A.addAura(G1, P, 100); r.tras = await A.getAura(G2, P);",
+        "  await A.flushAura(); const disco = JSON.parse(fs.readFileSync('data/aura.json', 'utf8'));",
+        "  r.claves = Object.keys(disco).filter((k) => !k.startsWith('__'));",
+        "  r.copia = fs.existsSync('data/aura.porgrupo.json') && Boolean(JSON.parse(fs.readFileSync('data/aura.porgrupo.json', 'utf8'))[G1]);",
+        "  const { soloMiembros } = require('./src/utils/wa');",
+        "  r.sinMeta = soloMiembros(await A.getAuraRanking(G1), null, true).length;",
+        "  r.conMeta = soloMiembros(await A.getAuraRanking(G1), { participants: [{ id: Q }] }, true).map((x) => x.jid);",
+        "  const out = []; const sk = { user: { id: '549199@s.whatsapp.net' }, sendMessage: async (j, c) => { out.push(c.text || ''); return {}; } };",
+        "  const { cmdAura } = require('./src/commands/aura');",
+        "  const tira = (g) => cmdAura(sk, { key: { remoteJid: g, participant: M, fromMe: false, id: 'T' + g }, message: { conversation: '!aura' }, pushName: 'x' }, [], { id: g, participants: [{ id: M }, { id: P }] });",
+        "  await tira(G1); await tira(G2); r.tiradas = out.slice(-2);",
+        "  await A.resetAura(G1); r.reset = [await A.getAura(G2, Q), await A.verCaja(G3, P)];",
+        "  console.log('R12G' + JSON.stringify({ ...r, ST: A.STARTING_AURA }));",
+        "  process.exit(0); })();",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 60000 });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R12G'));
+      const r = linea ? JSON.parse(linea.slice(4)) : null;
+      if (!r) {
+        mal(`la prueba no llego al final: ${((out.stderr || '') + (out.stdout || '')).trim().split('\n').slice(-3).join(' | ').slice(0, 300)}`);
+      } else {
+        const { SUELO_TODOS } = require(path.join(R, 'src/utils/economia'));
+        const p = 3000 + 250 - r.ST;
+        if (r.p.some((x) => x !== p)) mal(`3.000 en un grupo y el arranque en otro tienen que dar ${p} en los tres grupos, y dan ${r.p.join(' · ')}`);
+        if (r.q !== 250 + 1250 - r.ST) mal(`lo ganado en cada grupo se suma y el arranque cuenta una vez: tocaba ${250 + 1250 - r.ST} y da ${r.q}`);
+        if (r.s !== Math.max(200 - r.ST, 100)) mal(`dos saldos bajos no pueden juntarse por debajo del menor: da ${r.s}`);
+        if (r.cajaP.some((x) => x !== 700) || r.cajaQ !== 50) mal(`la caja de cada grupo se suma y se ve desde todos: ${r.cajaP.join(' · ')} y ${r.cajaQ}`);
+        if (r.tras !== p + 100) mal(`lo que se gana en un grupo no sale en el otro: ${r.tras} en vez de ${p + 100}`);
+        if (r.claves.length) mal(`quedan monederos de grupo en aura.json: ${r.claves.join(' ')}`);
+        if (!r.copia) mal('se juntaron los monederos sin dejar aura.porgrupo.json: si el dueño quiere otro reparto, no hay de donde rehacerlo');
+        if (r.sinMeta !== 0) mal(`sin lista de miembros el !top enseña ${r.sinMeta} personas de otros grupos`);
+        if (r.conMeta.length !== 1 || !r.conMeta[0].startsWith('34600000772')) mal(`el !top de un grupo tiene que enseñar solo a sus miembros: ${r.conMeta.join(' ')}`);
+        if (/EN COOLDOWN/.test(r.tiradas[0] || '') || !/TIRADA EN COOLDOWN/.test(r.tiradas[1] || '')) {
+          mal(`la espera de la tirada se salta cambiando de grupo: ${(r.tiradas[1] || '').slice(0, 60)}`);
+        }
+        if (r.reset[0] !== SUELO_TODOS || r.reset[1] !== 0) mal(`*!resetaura* desde un grupo no deja al suelo a los de los demas: ${r.reset.join(' · ')}`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    // Los relojes que frenan el monedero, con la llave de la bolsa. Un reloj
+    // por grupo era tirar, apostar y robar el doble estando en dos grupos.
+    const roboSrc = fs.readFileSync(path.join(R, 'src/commands/robo.js'), 'utf8');
+    const auraSrc = fs.readFileSync(path.join(R, 'src/commands/aura.js'), 'utf8');
+    const porGrupo = [
+      ...(roboSrc.match(/(robadoHasta|ultimoButron|blindadaHasta)\b[^\n]*\$\{(jid|grupo)\}\|/g) || []),
+      ...(auraSrc.match(/(lastRoll|ultimaApuesta)\b[^\n]*\$\{(jid|grupo)\}\|/g) || []),
+    ];
+    if (porGrupo.length) mal(`hay esperas del monedero que vuelven a ir por grupo: ${porGrupo.join(' · ').slice(0, 200)}`);
+    if (!/function llaveRobo[\s\S]{0,120}clavesMapa\(`\$\{BOLSA\}\|`/.test(roboSrc)) mal('la espera del robo vuelve a ir por grupo: se roba el doble estando en dos');
+    if (fallos === antes) console.log(verde('   ✓ los monederos de cada grupo se juntan sin perder aura y con copia, el saldo y la caja son los mismos en todos, el !top enseña solo a los suyos, y las esperas y el reset son por persona'));
   }
 
   // 12c. SIN PRECIO DOBLE EN TOPS, SHIP Y HERRAMIENTAS. Lo pidio el dueño: esos

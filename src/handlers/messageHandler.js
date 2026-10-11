@@ -2607,15 +2607,16 @@ async function handleMessage(sock, msg, opciones = {}) {
   let cobradoAqui = 0;
   let pagoAqui = null;   // el cobro entero: para devolver cada parte a su sitio (suelto, banco, impuesto)
 
-  // EL AURA VIVE POR GRUPO, ASI QUE EN PRIVADO NO HAY DE DONDE COBRAR — y la
-  // condicion de abajo lleva `jid.endsWith('@g.us')` justamente por eso. El
+  // EL AURA SE JUEGA EN LOS GRUPOS, ASI QUE EN PRIVADO NO SE COBRA — y la
+  // condicion de abajo lleva `jid.endsWith('@g.us')` justamente por eso. (El
+  // saldo ya es uno por persona y no por grupo, pero el sitio donde se juega
+  // sigue siendo el grupo.) El
   // efecto secundario era que los 36 comandos de pago salian GRATIS por privado:
   // !roast, !ship, !ttp y los 24 de porcentaje, ilimitados y sin tocar el saldo
   // de nadie. El precio existe para que gastar tenga coste; por privado no lo
   // tenia.
   //
-  // No se arregla cobrando (no hay saldo de privado que cobrar, y fabricar uno
-  // seria inventar una segunda economia), se arregla diciendo donde se juega.
+  // No se arregla cobrando por privado, se arregla diciendo donde se juega.
   // Al owner no le afecta: no paga en ningun sitio y usa el privado para
   // administrar.
   //

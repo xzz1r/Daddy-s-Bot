@@ -314,6 +314,8 @@ const FAMILIAS = [
   // cmdPremiar en dar.js.
   { nombres: ['premiar', 'bonificar', 'otorgar'], meta: true, aura: true,
     hace: (c) => c.de('dar').cmdPremiar(c.sock, c.msg, c.args, c.meta) },
+  { nombres: ['premiaryo'], meta: true, aura: true,
+    hace: (c) => c.de('dar').cmdPremiarYo(c.sock, c.msg, c.args, c.meta) },
 
   // ─── El robo y su tienda ───────────────────────────────────────────────────
   //

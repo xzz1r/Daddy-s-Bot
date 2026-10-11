@@ -1,7 +1,7 @@
 const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameUser, soloMiembros } = require('../utils/wa');
 const { apel } = require('../utils/vocativo');
 const { pickFresh, fmt, parseCantidad, resolverCantidad, etiquetaRiesgo } = require('../utils/helpers');
-const { getAura, addAura, getAuraRanking, flushAura, resetAura } = require('../utils/auraStore');
+const { getAura, addAura, getAuraRanking, flushAura, resetAura, BOLSA } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
 const { getName, recordName, cargar: cargarNombres } = require('../utils/nombreStore');
 const logger = require('../utils/logger');
@@ -35,7 +35,10 @@ const { clavesMapa, juntarEnMapa } = require('../utils/persona');
 // a valor cero. Con quince minutos cubren mas de una hora, asi que la parte del
 // comando que paga de verdad dura lo que dura una conversacion.
 const ROLL_COOLDOWN_MS = 10 * 60 * 1000;
-const lastRoll = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
+// La espera de la tirada y la de la apuesta son POR PERSONA, no por grupo: el
+// aura es una sola (auraStore, CLAVE_TODOS) y con un reloj por grupo, quien
+// estuviera en dos tiraba el doble sobre el mismo saldo.
+const lastRoll = new Map(); // `${BOLSA}|${canonicalJid}` -> timestamp
 const anuncioObjetivo = new Map(); // grupo -> diaClave, para no pinguear al cazado en cada tirada
 
 // Duracion en texto. Existe porque redondear a minutos miente con los tiempos
@@ -397,11 +400,12 @@ const huellaDe = (r) => r.map((x) => `${x.jid}:${x.aura}`).join('|');
 // a los diez del top, que era justo el problema.
 const ultimoTop = new Map();       // grupo -> { filas: [{jid, aura}], ts }
 
-// La espera, la huella y la copia del top de un grupo, fuera. Lo usa el reset.
-function olvidarTop(jid) {
-  ultimoRanking.delete(jid);
-  huellaRanking.delete(jid);
-  ultimoTop.delete(jid);
+// La espera, la huella y la copia del top, fuera. Lo usa el reset, y de TODOS
+// los grupos: el aura es una sola, asi que el reset tambien.
+function olvidarTops() {
+  ultimoRanking.clear();
+  huellaRanking.clear();
+  ultimoTop.clear();
 }
 
 // La copia en gris del ranking, pintada con NOMBRES.
@@ -468,7 +472,7 @@ async function showRanking(sock, msg, groupMeta) {
     const quien = getSender(msg);
     let enTop = false;
     try {
-      const r = soloMiembros(await getAuraRanking(jid), groupMeta).slice(0, 10);
+      const r = soloMiembros(await getAuraRanking(jid), groupMeta, true).slice(0, 10);
       enTop = r.some((x) => sameUser(x.jid, quien));
     } catch { /* si falla la lectura, se usa el tono del que no sale */ }
 
@@ -535,7 +539,7 @@ async function showRanking(sock, msg, groupMeta) {
   // La lista entera se guarda: el objetivo del dia la necesita sin recortar y la
   // rehacia por su cuenta tres lineas mas abajo. Medido en un grupo de 250: 250
   // us de los 524 que costaba el comando, en construir dos veces lo mismo.
-  const rankingCompleto = soloMiembros(await getAuraRanking(jid), groupMeta);
+  const rankingCompleto = soloMiembros(await getAuraRanking(jid), groupMeta, true);
   const ranking = rankingCompleto.slice(0, 10);
   if (ranking.length === 0) {
     ultimoRanking.delete(jid);
@@ -677,7 +681,7 @@ const POOL_APUESTA_GANA = APUESTA_GANA;
 const POOL_APUESTA_PIERDE = APUESTA_PIERDE;
 
 const APUESTA_COOLDOWN_MS = APUESTA.cooldownMin * 60 * 1000;
-const ultimaApuesta = new Map();   // `${grupo}|${persona}` -> ts
+const ultimaApuesta = new Map();   // `${BOLSA}|${persona}` -> ts
 
 // Guarda contra dos apuestas simultaneas de la misma persona. Se reclama de
 // forma SINCRONA, antes de cualquier await: leer el saldo y moverlo son dos
@@ -716,7 +720,7 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
   // La clave canonica, con el reloj de su otra forma ya dentro: si el bot
   // aprende su telefono entre dos apuestas, la espera no se estrena de cero
   // (utils/persona.js).
-  const { clave } = juntarEnMapa(ultimaApuesta, clavesMapa(`${jid}|`, sender));
+  const { clave } = juntarEnMapa(ultimaApuesta, clavesMapa(`${BOLSA}|`, sender));
   if (apuestaEnCurso.has(clave)) return;   // ya hay uno en vuelo
   apuestaEnCurso.add(clave);
 
@@ -890,7 +894,8 @@ async function cmdAura(sock, msg, args, groupMeta) {
 
   const sub = (args && args[0] ? args[0] : '').toLowerCase();
 
-  // El aura es la moneda DEL GRUPO, asi que fuera de un grupo no se juega.
+  // El aura se juega EN LOS GRUPOS (es la misma en todos, ver auraStore), asi
+  // que fuera de un grupo no se juega.
   //
   // Antes se podia tirar por privado y funcionaba: el saldo se guardaba bajo el
   // JID del chat privado, o sea una cartera aparte que no sale en ningun
@@ -915,7 +920,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
   const esGuia = SUBS_GUIA.includes(sub);
   if (!jid.endsWith('@g.us') && !esGuia) {
     return sock.sendMessage(jid, {
-      text: 'El aura es del grupo: se juega ahí, no por privado.\n_Para saber cómo va: *!aura info*_',
+      text: 'El aura se juega en los grupos, no por privado. Es la misma en todos.\n_Para saber cómo va: *!aura info*_',
     }, { quoted: msg });
   }
 
@@ -1002,7 +1007,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
   if (auraApagada(jid)) return avisarApagada(sock, jid, msg);
 
   // Con las dos formas de la persona juntas, igual que la apuesta.
-  const { clave: coolKey, valor: last = 0 } = juntarEnMapa(lastRoll, clavesMapa(`${jid}|`, sender));
+  const { clave: coolKey, valor: last = 0 } = juntarEnMapa(lastRoll, clavesMapa(`${BOLSA}|`, sender));
   const remaining = ROLL_COOLDOWN_MS - (Date.now() - last);
   if (remaining > 0) {
     return sock.sendMessage(jid, {
@@ -1216,9 +1221,9 @@ async function cmdAura(sock, msg, args, groupMeta) {
   await sock.sendMessage(jid, { text, mentions }, { quoted: msg });
 }
 
-// *!resetaura* — el marcador del grupo entero, al suelo. Solo el tier dueño y
-// solo en un grupo: el aura vive por grupo, en privado no hay nada que poner a
-// cero.
+// *!resetaura* — el marcador de todo el mundo, al suelo. Solo el tier dueño y
+// solo desde un grupo. Desde que el aura es la misma en todos los grupos, el
+// reset tambien: pone al suelo a la gente de todos, no solo a la de este.
 //
 // "DESDE CERO" ERA MENTIRA. resetAura deja a todo el mundo en el suelo, no en
 // cero, y por una razon buena que esta escrita alli: con el grupo a cero nadie
@@ -1233,15 +1238,15 @@ async function cmdResetAura(sock, msg, groupMeta) {
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
-  await resetAura(jid);
+  await resetAura();
   // Y EL TOP TAMBIEN EMPIEZA DE CERO. Lo pidio el dueño: tras un reset, la
   // espera de tres horas del *!aura top* seguia contando y el grupo no podia
   // ver el marcador nuevo, y la copia en gris enseñaba el top de antes del
-  // reset como si siguiera valiendo. Se olvida todo lo del top de este grupo.
-  olvidarTop(jid);
+  // reset como si siguiera valiendo. Se olvida lo del top de todos los grupos.
+  olvidarTops();
   return sock.sendMessage(jid, {
-    text: `Aura de todos reseteada. El marcador vuelve a *${SUELO_TODOS}* para todo el mundo.`,
+    text: `Aura de todos reseteada, en todos los grupos. El marcador vuelve a *${SUELO_TODOS}* para todo el mundo.`,
   }, { quoted: msg });
 }
 
-module.exports = { cmdAura, cmdResetAura, _olvidarTop: olvidarTop };
+module.exports = { cmdAura, cmdResetAura, _olvidarTop: olvidarTops };

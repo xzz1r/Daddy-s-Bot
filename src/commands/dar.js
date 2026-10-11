@@ -101,7 +101,10 @@ async function cmdDar(sock, msg, args) {
 // golpe: un millón por vez sobra para cualquier premio.
 const PREMIO_MAX = 1000000;
 
-async function cmdPremiar(sock, msg, args, groupMeta) {
+// *!premiaryo* es lo mismo, para uno mismo y sin mencionar a nadie. Lo pidio el
+// dueño (11 oct). Misma puerta, mismo tope y el mismo mensaje a la vista: que
+// se sepa quien puede darse aura tambien es saber quien puede regalarla.
+async function cmdPremiar(sock, msg, args, groupMeta, { aMiMismo = false } = {}) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
@@ -110,16 +113,17 @@ async function cmdPremiar(sock, msg, args, groupMeta) {
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
     return sock.sendMessage(jid, { text: avisoPermiso(jid, sender, groupMeta) }, { quoted: msg });
   }
-  const target = getTarget(msg);
+  const uso = aMiMismo ? '*!premiaryo 500*' : '*!premiar @alguien 500*';
+  const target = aMiMismo ? sender : getTarget(msg);
   if (!target) {
-    return sock.sendMessage(jid, { text: 'Menciona a quién le das el aura: *!premiar @alguien 500*' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: `Menciona a quién le das el aura: ${uso}` }, { quoted: msg });
   }
   if (isBotJid(sock, target)) {
     return sock.sendMessage(jid, { text: 'Al bot no le hace falta aura.' }, { quoted: msg });
   }
   const amount = parseCantidad(args).valor;
   if (!amount || amount < 1) {
-    return sock.sendMessage(jid, { text: 'Indica cuánta: *!premiar @alguien 500*' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: `Indica cuánta: ${uso}` }, { quoted: msg });
   }
   if (amount > PREMIO_MAX) {
     return sock.sendMessage(jid, { text: `Como mucho *${fmt(PREMIO_MAX)}* de una vez.` }, { quoted: msg });
@@ -132,11 +136,17 @@ async function cmdPremiar(sock, msg, args, groupMeta) {
   return sock.sendMessage(jid, {
     text:
       `*REGALO DE AURA*\n\n` +
-      `${sTag} le regala *${fmt(amount)} de aura* a ${tTag}\n\n` +
+      (aMiMismo
+        ? `${sTag} se regala *${fmt(amount)} de aura*\n\n`
+        : `${sTag} le regala *${fmt(amount)} de aura* a ${tTag}\n\n`) +
       `${lineaAura(tTag, amount, current)}\n\n` +
       `_Aura nueva: no sale del saldo de nadie. Solo la pueden dar el dueño y los co-dueños._`,
     mentions: [...new Set([sender, target])],
   }, { quoted: msg });
 }
 
-module.exports = { cmdDar, cmdPremiar, PREMIO_MAX };
+function cmdPremiarYo(sock, msg, args, groupMeta) {
+  return cmdPremiar(sock, msg, args, groupMeta, { aMiMismo: true });
+}
+
+module.exports = { cmdDar, cmdPremiar, cmdPremiarYo, PREMIO_MAX };

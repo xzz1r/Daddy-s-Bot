@@ -1,6 +1,7 @@
+const fs = require('fs');
 const path = require('path');
 const { canonicalJid } = require('./wa');
-const { juntarPersona, agruparPorPersona, sumar, elMayor } = require('./persona');
+const { juntarPersona, agruparPorPersona, sumar, elMayor, esObjeto } = require('./persona');
 const { readJsonOrEnoent, createDebouncedSaver } = require('./helpers');
 const logger = require('./logger');
 
@@ -42,7 +43,22 @@ const ESCALAS = {
 const CLAVE_ESCALA = '__escala';
 const ESCALA_ACTUAL = 3;
 
-let store = null;          // { [groupJid]: { [bareJid]: number } }
+// UN SALDO POR PERSONA, EL MISMO EN TODOS LOS GRUPOS. Lo pidio el dueño (11
+// oct): «que los integrantes tengan el mismo aura independientemente del grupo
+// donde este el bot. Siempre debe estar la misma cantidad».
+//
+// Hasta entonces cada grupo llevaba su monedero: la misma persona tenia 3.000
+// en un grupo y 250 en otro, y el !top de cada uno contaba una economia
+// distinta. Ahora todo vive bajo esta clave, y la caja tambien (ver cajaDe).
+//
+// Las funciones siguen recibiendo el grupo, y es a proposito: lo usan quienes
+// llaman para el resto de cosas (avisos, bote, ranking de miembros), y quitarlo
+// de cuarenta llamadas solo habria movido el riesgo de sitio. Aqui dentro el
+// grupo NO elige monedero. El ranking de un grupo es la bolsa entera filtrada
+// por sus miembros, y eso lo hacen los que lo piden (soloMiembros).
+const CLAVE_TODOS = '__todos';
+
+let store = null;          // { __todos: { [persona]: number }, __caja: { __todos: {...} }, ... }
 let loadPromise = null;
 const saver = createDebouncedSaver(
   () => store,
@@ -51,9 +67,9 @@ const saver = createDebouncedSaver(
   (e) => logger.error(`auraStore: fallo al guardar: ${e.message}`),
 );
 
-// Per-(group,user) write queue: serializes concurrent addAura / transferAura
-// calls so two simultaneous !dar / casino / !aura commands don't clobber each
-// other. Node.js is single-threaded but async — two callers can both read
+// Per-user write queue (one wallet per person since the aura stopped being
+// per group): serializes concurrent addAura / transferAura calls so two
+// simultaneous !dar / casino / !aura commands don't clobber each other. Node.js is single-threaded but async — two callers can both read
 // `previous` before either has written back, causing deltas to be lost.
 const writeQueue = new Map();
 
@@ -64,7 +80,7 @@ function serialized(key, fn) {
   const tracked = next.catch(() => {});
   writeQueue.set(key, tracked);
   // Prune the key once this settles, UNLESS something newer was already chained
-  // behind it. Without this, the map keeps one entry per (group,user) forever —
+  // behind it. Without this, the map keeps one entry per user forever —
   // a slow but real memory leak across cumulative unique participants on a 24/7
   // process. The read-modify-write inside fn is synchronous, so removing a
   // settled tail can't drop a pending update.
@@ -213,11 +229,68 @@ function aplicarSuelo() {
   scheduleSave();
 }
 
+// LOS MONEDEROS DE CADA GRUPO, A LA BOLSA UNICA. Una vez, al cargar.
+//
+// Se junta con las mismas reglas que las dos formas (@lid y telefono) de una
+// persona, porque es el mismo problema: dos saldos que son de la misma gente.
+//
+//   · el SALDO con combinarSaldo: se suma lo ganado y lo perdido en cada grupo
+//     y el arranque cuenta UNA vez. 3.000 en un grupo y el arranque en otro dan
+//     3.000, no 3.250. Nadie pierde lo que gano ni cobra un arranque por grupo.
+//   · la CAJA se suma a secas: lo guardado es aura de verdad, en los dos.
+//   · el ultimo cierre de la caja se queda con el mas reciente.
+//
+// Las claves de grupo se borran al juntarlas, asi que no se repite. Y si algun
+// dia vuelve a aparecer una (una version vieja del bot escribiendo un rato), se
+// junta igual: lo que tenga por encima del arranque se suma a la bolsa.
+//
+// Antes de tocar nada se deja una copia del fichero tal cual estaba, por si el
+// dueño prefiere otro reparto: con ella se puede rehacer.
+const COPIA_POR_GRUPO = path.join(path.dirname(AURA_FILE), 'aura.porgrupo.json');
+
+function unirGrupos() {
+  if (!store) return;
+  const grupos = Object.keys(store).filter((k) => !k.startsWith('__') && esObjeto(store[k]));
+  const sueltasDe = (clave) => Object.keys(store[clave] || {}).filter((g) => g !== CLAVE_TODOS);
+  const cajas = sueltasDe(CLAVE_CAJA);
+  const cierres = sueltasDe(CLAVE_CAJA_TS);
+  if (!grupos.length && !cajas.length && !cierres.length) return;
+
+  try {
+    if (!fs.existsSync(COPIA_POR_GRUPO)) fs.writeFileSync(COPIA_POR_GRUPO, JSON.stringify(store));
+  } catch (e) {
+    logger.warn(`auraStore: no se pudo dejar la copia por grupo (${e.message}); se junta igual`);
+  }
+
+  const juntar = (destino, origenes, combinar) => {
+    const partes = {};
+    for (const o of [destino, ...origenes]) {
+      for (const k in o || {}) {
+        if (typeof o[k] === 'number') (partes[k] || (partes[k] = [])).push(o[k]);
+      }
+    }
+    const fuera = {};
+    for (const k in partes) fuera[k] = partes[k].length === 1 ? partes[k][0] : combinar(partes[k]);
+    return fuera;
+  };
+
+  store[CLAVE_TODOS] = juntar(store[CLAVE_TODOS], grupos.map((g) => store[g]), combinarSaldo);
+  for (const g of grupos) delete store[g];
+  if (cajas.length) {
+    store[CLAVE_CAJA] = { [CLAVE_TODOS]: juntar(store[CLAVE_CAJA][CLAVE_TODOS], cajas.map((g) => store[CLAVE_CAJA][g]), sumar) };
+  }
+  if (cierres.length) {
+    store[CLAVE_CAJA_TS] = { [CLAVE_TODOS]: juntar(store[CLAVE_CAJA_TS][CLAVE_TODOS], cierres.map((g) => store[CLAVE_CAJA_TS][g]), elMayor) };
+  }
+  logger.info(`auraStore: ${grupos.length} monedero(s) de grupo juntados en uno por persona; copia en ${path.basename(COPIA_POR_GRUPO)}.`);
+  scheduleSave();
+}
+
 async function load() {
   if (store) return;
   if (!loadPromise) {
     loadPromise = readJsonOrEnoent(AURA_FILE, {})
-      .then((d) => { store = d; migrarNombreCaja(); migrarEscala(); aplicarSuelo(); })
+      .then((d) => { store = d; migrarNombreCaja(); migrarEscala(); aplicarSuelo(); unirGrupos(); })
       .catch((e) => {
         loadPromise = null;
         logger.warn(`auraStore: lectura falló (${e.message}); no se toca el archivo`);
@@ -228,6 +301,12 @@ async function load() {
 }
 
 function scheduleSave() { saver.schedule(); }
+
+// El monedero de todos (ver CLAVE_TODOS).
+function bolsa() {
+  if (!store[CLAVE_TODOS]) store[CLAVE_TODOS] = {};
+  return store[CLAVE_TODOS];
+}
 
 // Junta en una sola clave las entradas que son de la MISMA persona.
 //
@@ -275,21 +354,20 @@ function foldCierre(ts, userJid) {
 
 async function getAura(groupJid, userJid) {
   await load();
-  const g = store[groupJid];
-  if (!g) return STARTING_AURA;
+  const g = bolsa();
   const key = foldPerson(g, userJid);
   return g[key] === undefined ? STARTING_AURA : g[key];
 }
 
 async function addAura(groupJid, userJid, delta) {
   await load();
-  const qKey = `${groupJid}|${canonicalJid(userJid)}`;
+  const qKey = canonicalJid(userJid);
   return serialized(qKey, () => {
-    if (!store[groupJid]) store[groupJid] = {};
-    const key = foldPerson(store[groupJid], userJid);
-    const previous = store[groupJid][key] === undefined ? STARTING_AURA : store[groupJid][key];
+    const g = bolsa();
+    const key = foldPerson(g, userJid);
+    const previous = g[key] === undefined ? STARTING_AURA : g[key];
     const current = previous + delta;
-    store[groupJid][key] = current;
+    g[key] = current;
     scheduleSave();
     return { previous, current };
   });
@@ -315,10 +393,9 @@ async function transferAura(groupJid, fromJid, toJid, amount, credita = amount) 
   // Las dos cuentas, en orden estable: dos !dar al mismo destino (o un duelo
   // cruzado) se pisaban el abono si solo se bloqueaba al emisor.
   const keys = [fromKey, toKey].sort();
-  const qKey = `${groupJid}|${keys[0]}|${keys[1]}`;
+  const qKey = `${keys[0]}|${keys[1]}`;
   return serialized(qKey, () => {
-    if (!store[groupJid]) store[groupJid] = {};
-    const g = store[groupJid];
+    const g = bolsa();
     foldPerson(g, fromJid);
     foldPerson(g, toJid);
     const fromCurrent = g[fromKey] === undefined ? STARTING_AURA : g[fromKey];
@@ -355,15 +432,15 @@ async function transferAura(groupJid, fromJid, toJid, amount, credita = amount) 
 // con transferAura, aplicado al caso "cobrale lo que tenga".
 async function drainAura(groupJid, userJid, amount) {
   await load();
-  const qKey = `${groupJid}|${canonicalJid(userJid)}`;
+  const qKey = canonicalJid(userJid);
   return serialized(qKey, () => {
-    if (!store[groupJid]) store[groupJid] = {};
-    const key = foldPerson(store[groupJid], userJid);
-    const saldo = store[groupJid][key] === undefined ? STARTING_AURA : store[groupJid][key];
+    const g = bolsa();
+    const key = foldPerson(g, userJid);
+    const saldo = g[key] === undefined ? STARTING_AURA : g[key];
     const cobrado = Math.max(0, Math.min(amount, saldo));
-    store[groupJid][key] = saldo - cobrado;
+    g[key] = saldo - cobrado;
     scheduleSave();
-    return { cobrado, current: store[groupJid][key] };
+    return { cobrado, current: g[key] };
   });
 }
 
@@ -379,15 +456,15 @@ async function drainAura(groupJid, userJid, amount) {
 // Devuelve { ok: true, cobrado, current } o { ok: false, saldo } si no llega.
 async function spendAura(groupJid, userJid, amount, minimo = 0) {
   await load();
-  const qKey = `${groupJid}|${canonicalJid(userJid)}`;
+  const qKey = canonicalJid(userJid);
   return serialized(qKey, () => {
-    if (!store[groupJid]) store[groupJid] = {};
-    const key = foldPerson(store[groupJid], userJid);
-    const saldo = store[groupJid][key] === undefined ? STARTING_AURA : store[groupJid][key];
+    const g = bolsa();
+    const key = foldPerson(g, userJid);
+    const saldo = g[key] === undefined ? STARTING_AURA : g[key];
     if (saldo - amount < minimo) return { ok: false, saldo };
-    store[groupJid][key] = saldo - amount;
+    g[key] = saldo - amount;
     scheduleSave();
-    return { ok: true, cobrado: amount, current: store[groupJid][key] };
+    return { ok: true, cobrado: amount, current: g[key] };
   });
 }
 
@@ -400,22 +477,26 @@ async function spendAura(groupJid, userJid, amount, minimo = 0) {
 // arreglo del LID: quien acumulo bajo su @lid y luego se supo su telefono no
 // acaba con dos cajas.
 
-function cajaDe(groupJid) {
+//
+// UNA CAJA POR PERSONA, como el saldo: lo guardado en un grupo se ve y se saca
+// en cualquier otro. Las dos funciones aceptan el grupo y no lo usan, igual que
+// el resto (ver CLAVE_TODOS).
+function cajaDe() {
   if (!store[CLAVE_CAJA]) store[CLAVE_CAJA] = {};
-  if (!store[CLAVE_CAJA][groupJid]) store[CLAVE_CAJA][groupJid] = {};
-  return store[CLAVE_CAJA][groupJid];
+  if (!store[CLAVE_CAJA][CLAVE_TODOS]) store[CLAVE_CAJA][CLAVE_TODOS] = {};
+  return store[CLAVE_CAJA][CLAVE_TODOS];
 }
 
-function tsDe(groupJid) {
+function tsDe() {
   if (!store[CLAVE_CAJA_TS]) store[CLAVE_CAJA_TS] = {};
-  if (!store[CLAVE_CAJA_TS][groupJid]) store[CLAVE_CAJA_TS][groupJid] = {};
-  return store[CLAVE_CAJA_TS][groupJid];
+  if (!store[CLAVE_CAJA_TS][CLAVE_TODOS]) store[CLAVE_CAJA_TS][CLAVE_TODOS] = {};
+  return store[CLAVE_CAJA_TS][CLAVE_TODOS];
 }
 
 // Cuanto tiene dentro. Colapsa las formas por si quedo algo bajo un @lid.
 async function verCaja(groupJid, userJid) {
   await load();
-  const z = cajaDe(groupJid);
+  const z = cajaDe();
   const key = foldCaja(z, userJid);
   return z[key] || 0;
 }
@@ -423,7 +504,7 @@ async function verCaja(groupJid, userJid) {
 // Cuanto falta para poder volver a guardar. 0 = ya puede.
 async function esperaCaja(groupJid, userJid) {
   await load();
-  const ts = tsDe(groupJid);
+  const ts = tsDe();
   const t = ts[foldCierre(ts, userJid)] || 0;
   return Math.max(0, CAJA.enfriamientoMs - (Date.now() - t));
 }
@@ -432,25 +513,25 @@ async function esperaCaja(groupJid, userJid) {
 // serializado, porque un corte entre ellas duplicaria o evaporaria aura.
 async function meterEnCaja(groupJid, userJid, cuanto) {
   await load();
-  const qKey = `${groupJid}|${canonicalJid(userJid)}`;
+  const qKey = canonicalJid(userJid);
   return serialized(qKey, () => {
     const n = Math.floor(cuanto);
     if (!(n >= CAJA.minimoGuardar)) return { ok: false, motivo: 'minimo' };
 
-    const ts = tsDe(groupJid);
+    const ts = tsDe();
     const kTs = foldCierre(ts, userJid);
     const espera = CAJA.enfriamientoMs - (Date.now() - (ts[kTs] || 0));
     if (espera > 0) return { ok: false, motivo: 'enfriamiento', espera };
 
-    const z = cajaDe(groupJid);
+    const z = cajaDe();
     const kZ = foldCaja(z, userJid);
     const dentro = z[kZ] || 0;
     const hueco = CAJA.capacidad - dentro;
     if (hueco <= 0) return { ok: false, motivo: 'lleno', dentro };
 
-    if (!store[groupJid]) store[groupJid] = {};
-    const kA = foldPerson(store[groupJid], userJid);
-    const saldo = store[groupJid][kA] === undefined ? STARTING_AURA : store[groupJid][kA];
+    const g = bolsa();
+    const kA = foldPerson(g, userJid);
+    const saldo = g[kA] === undefined ? STARTING_AURA : g[kA];
 
     // Lo que de verdad entra: ni mas de lo que cabe, ni mas de lo que hay.
     const real = Math.min(n, hueco, saldo);
@@ -460,20 +541,20 @@ async function meterEnCaja(groupJid, userJid, cuanto) {
         : { ok: false, motivo: 'lleno', dentro };
     }
 
-    store[groupJid][kA] = saldo - real;
+    g[kA] = saldo - real;
     z[kZ] = dentro + real;
     ts[kTs] = Date.now();
     scheduleSave();
-    return { ok: true, guardado: real, dentro: z[kZ], saldo: store[groupJid][kA], hueco: CAJA.capacidad - z[kZ] };
+    return { ok: true, guardado: real, dentro: z[kZ], saldo: g[kA], hueco: CAJA.capacidad - z[kZ] };
   });
 }
 
 // SACAR. Caja -> saldo, menos comision. Igual de atomico.
 async function sacarDeCaja(groupJid, userJid, cuanto) {
   await load();
-  const qKey = `${groupJid}|${canonicalJid(userJid)}`;
+  const qKey = canonicalJid(userJid);
   return serialized(qKey, () => {
-    const z = cajaDe(groupJid);
+    const z = cajaDe();
     const kZ = foldCaja(z, userJid);
     const dentro = z[kZ] || 0;
     if (dentro <= 0) return { ok: false, motivo: 'vacio' };
@@ -488,15 +569,15 @@ async function sacarDeCaja(groupJid, userJid, cuanto) {
     const neto = sacado - comision;
     if (neto <= 0) return { ok: false, motivo: 'migaja', sacado, comision };
 
-    if (!store[groupJid]) store[groupJid] = {};
-    const kA = foldPerson(store[groupJid], userJid);
-    const saldo = store[groupJid][kA] === undefined ? STARTING_AURA : store[groupJid][kA];
+    const g = bolsa();
+    const kA = foldPerson(g, userJid);
+    const saldo = g[kA] === undefined ? STARTING_AURA : g[kA];
 
     z[kZ] = dentro - sacado;
     if (z[kZ] === 0) delete z[kZ];
-    store[groupJid][kA] = saldo + neto;
+    g[kA] = saldo + neto;
     scheduleSave();
-    return { ok: true, sacado, comision, neto, dentro: z[kZ] || 0, saldo: store[groupJid][kA] };
+    return { ok: true, sacado, comision, neto, dentro: z[kZ] || 0, saldo: g[kA] };
   });
 }
 
@@ -508,9 +589,9 @@ async function sacarDeCaja(groupJid, userJid, cuanto) {
 // comando— y para que la cifra que se anuncia sea la que de verdad se movio.
 async function forzarCaja(groupJid, victimaJid, fraccion) {
   await load();
-  const qKey = `${groupJid}|${canonicalJid(victimaJid)}`;
+  const qKey = canonicalJid(victimaJid);
   return serialized(qKey, () => {
-    const z = cajaDe(groupJid);
+    const z = cajaDe();
     const kZ = foldCaja(z, victimaJid);
     const dentro = z[kZ] || 0;
     if (dentro <= 0) return { ok: false, sacado: 0, dentro: 0 };
@@ -529,15 +610,15 @@ async function forzarCaja(groupJid, victimaJid, fraccion) {
 // Las dos restas en el mismo bloque serializado, igual que pagarConCaja.
 async function drainConCaja(groupJid, userJid, amount) {
   await load();
-  const qKey = `${groupJid}|${canonicalJid(userJid)}`;
+  const qKey = canonicalJid(userJid);
   return serialized(qKey, () => {
-    if (!store[groupJid]) store[groupJid] = {};
-    const key = foldPerson(store[groupJid], userJid);
-    const saldo = store[groupJid][key] === undefined ? STARTING_AURA : store[groupJid][key];
+    const g = bolsa();
+    const key = foldPerson(g, userJid);
+    const saldo = g[key] === undefined ? STARTING_AURA : g[key];
     const pedido = Math.max(0, Math.floor(amount));
     const delSuelto = Math.min(pedido, Math.max(0, saldo));
-    store[groupJid][key] = saldo - delSuelto;
-    const z = cajaDe(groupJid);
+    g[key] = saldo - delSuelto;
+    const z = cajaDe();
     const kZ = foldCaja(z, userJid);
     const dentro = z[kZ] || 0;
     const delBanco = Math.min(pedido - delSuelto, dentro);
@@ -546,7 +627,7 @@ async function drainConCaja(groupJid, userJid, amount) {
       if (z[kZ] === 0) delete z[kZ];
     }
     scheduleSave();
-    return { cobrado: delSuelto + delBanco, delBanco, current: store[groupJid][key] };
+    return { cobrado: delSuelto + delBanco, delBanco, current: g[key] };
   });
 }
 
@@ -556,9 +637,9 @@ async function devolverACaja(groupJid, userJid, cantidad) {
   const n = Math.floor(cantidad);
   if (!(n > 0)) return 0;
   await load();
-  const qKey = `${groupJid}|${canonicalJid(userJid)}`;
+  const qKey = canonicalJid(userJid);
   return serialized(qKey, () => {
-    const z = cajaDe(groupJid);
+    const z = cajaDe();
     const kZ = foldCaja(z, userJid);
     z[kZ] = (z[kZ] || 0) + n;
     scheduleSave();
@@ -586,25 +667,25 @@ async function devolverACaja(groupJid, userJid, cantidad) {
 // cobro.
 async function pagarConCaja(groupJid, userJid, precio, impuesto, minimo = 0) {
   await load();
-  const qKey = `${groupJid}|${canonicalJid(userJid)}`;
+  const qKey = canonicalJid(userJid);
   return serialized(qKey, () => {
     const n = Math.ceil(precio);
     if (!(n > 0)) return { ok: false, motivo: 'cantidad' };
-    if (!store[groupJid]) store[groupJid] = {};
-    const kA = foldPerson(store[groupJid], userJid);
-    const saldo = store[groupJid][kA] === undefined ? STARTING_AURA : store[groupJid][kA];
+    const g = bolsa();
+    const kA = foldPerson(g, userJid);
+    const saldo = g[kA] === undefined ? STARTING_AURA : g[kA];
     const suelto = Math.max(0, Math.min(n, saldo - minimo));
     const faltan = n - suelto;
     // Si entre el primer intento y este le ha entrado aura y el suelto ya
     // llega, se cobra de ahi y ya: contestar «no te llega» seria mentira.
     if (faltan <= 0) {
-      store[groupJid][kA] = saldo - n;
+      g[kA] = saldo - n;
       scheduleSave();
       return { ok: true, suelto: n, bruto: 0, cubierto: 0, impuestoPagado: 0,
-        dentro: cajaDe(groupJid)[foldCaja(cajaDe(groupJid), userJid)] || 0, current: store[groupJid][kA] };
+        dentro: cajaDe()[foldCaja(cajaDe(), userJid)] || 0, current: g[kA] };
     }
 
-    const z = cajaDe(groupJid);
+    const z = cajaDe();
     const kZ = foldCaja(z, userJid);
     const dentro = z[kZ] || 0;
     if (dentro <= 0) return { ok: false, motivo: 'vacio', dentro: 0, saldo };
@@ -613,19 +694,21 @@ async function pagarConCaja(groupJid, userJid, precio, impuesto, minimo = 0) {
 
     z[kZ] = dentro - bruto;
     if (z[kZ] === 0) delete z[kZ];
-    store[groupJid][kA] = saldo - suelto;
+    g[kA] = saldo - suelto;
     scheduleSave();
     // `suelto + cubierto` es el precio; `impuestoPagado` es lo que se queda por
     // el camino y quien llama lo manda al bote para que no se evapore.
     return { ok: true, suelto, bruto, cubierto: faltan, impuestoPagado: bruto - faltan,
-      dentro: z[kZ] || 0, current: store[groupJid][kA] };
+      dentro: z[kZ] || 0, current: g[kA] };
   });
 }
 
-async function getAuraRanking(groupJid) {
+// LA BOLSA ENTERA, gente de todos los grupos. Quien la pinte en un grupo la
+// filtra por sus miembros (soloMiembros con `estricto`): el grupo no se pasa
+// aqui porque el aura ya no sabe de grupos.
+async function getAuraRanking() {
   await load();
-  const g = store[groupJid];
-  if (!g) return [];
+  const g = bolsa();
   // Une las formas de cada persona antes de ordenar: si no, el mismo miembro
   // sale dos veces y la fila del @lid pinta un número interno que WhatsApp no
   // resuelve como mención.
@@ -653,7 +736,7 @@ async function getAuraRanking(groupJid) {
   // Contandolo, la caja protege tu DINERO y no tu reputacion: sigues siendo el
   // mas rico del grupo, con una diana igual de grande, solo que lo que tienes
   // guardado no te lo pueden tocar.
-  const escondido = store[CLAVE_CAJA]?.[groupJid] || {};
+  const escondido = cajaDe();
   for (const [id, { rep, claves }] of agruparPorPersona(Object.keys(escondido))) {
     const guardado = sumar(claves.map((c) => escondido[c]));
     const prev = por.get(id);
@@ -688,17 +771,21 @@ async function getAuraRanking(groupJid) {
 // completo. Es asumible mientras el arranque sea poco más que un par de
 // compras; si algún día sube mucho más, habrá que dar el arranque también a
 // los reseteados o el reset premiará a los recién llegados.
-async function resetAura(groupJid) {
+//
+// Y DESDE QUE EL AURA ES UNA SOLA, EL RESET ES DE TODOS LOS GRUPOS. Dejar a
+// cero a los de un grupo bajaria tambien su saldo en los demas, y dejar fuera
+// a los otros grupos haria que el !top de cada uno mezclara gente reseteada con
+// gente que no. Un marcador, un reset.
+async function resetAura() {
   await load();
-  const g = store[groupJid];
-  if (!g) return;
+  const g = bolsa();
   // AL SUELO, NO A CERO. Dejarlo en cero contradice el suelo de SUELO_TODOS:
   // con SALDO_MINIMO en 0 no se puede gastar estando a cero, asi que un
   // !resetaura dejaba al grupo entero sin poder tocar el bot hasta que cada uno
   // volviera a tirar. Reiniciar es empezar de nuevo, no castigar a todos.
   const alSuelo = {};
   for (const k in g) alSuelo[canonicalJid(k)] = SUELO_TODOS;
-  store[groupJid] = alSuelo;
+  store[CLAVE_TODOS] = alSuelo;
   // LA CAJA TAMBIEN SE VACIA, y no hacerlo dejaba el reset a medias.
   //
   // El aviso dice que el marcador vuelve al suelo para todo el mundo. Sin esto
@@ -706,8 +793,8 @@ async function resetAura(groupJid) {
   // (ver getAuraRanking), asi que esa persona seguia arriba del todo con dos
   // mil intocables mientras al resto se le ponia a 150. Y encima premiaba
   // esconder justo antes de un reset.
-  if (store[CLAVE_CAJA]) delete store[CLAVE_CAJA][groupJid];
-  if (store[CLAVE_CAJA_TS]) delete store[CLAVE_CAJA_TS][groupJid];
+  delete store[CLAVE_CAJA];
+  delete store[CLAVE_CAJA_TS];
   scheduleSave();
 }
 
@@ -716,4 +803,5 @@ async function flushAura() {
 }
 
 module.exports = { getAura, addAura, spendAura, drainAura, transferAura, getAuraRanking, resetAura, flushAura, STARTING_AURA,
+  BOLSA: CLAVE_TODOS,
   verCaja, esperaCaja, meterEnCaja, sacarDeCaja, forzarCaja, pagarConCaja, devolverACaja, drainConCaja };

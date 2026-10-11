@@ -92,7 +92,7 @@ async function flushObjetivoDia() {
 // dejaria de encontrarse en cuanto cayera al puesto once.
 async function objetivoDelDia(grupo, groupMeta, rankingYaHecho = null) {
   await load();
-  const base = rankingYaHecho || soloMiembros(await getAuraRanking(grupo), groupMeta);
+  const base = rankingYaHecho || soloMiembros(await getAuraRanking(grupo), groupMeta, true);
   const ranking = base.filter((r) => r.aura >= ROBO.minVictima);
   if (ranking.length < 2) return null;
 

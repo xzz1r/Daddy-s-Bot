@@ -41,6 +41,16 @@ suma, una caducidad se queda con la más lejana). La capa 111 pasa cada almacén
 por «apunta con el @lid, aprende el teléfono, lee» y falla si alguien se hace
 su propia copia.
 
+## El aura es una sola, en todos los grupos
+
+Lo pidió el dueño (11 oct). El saldo y la caja de cada persona son los mismos
+en cualquier grupo: viven en la bolsa `__todos` de `src/utils/auraStore.js`, y
+las funciones reciben el grupo pero no lo usan para elegir monedero. Las
+esperas que frenan el monedero (tirada, apuesta, robo, escudo, butrón) van con
+la llave `BOLSA`, no con la del grupo. El `!top` de un grupo es la bolsa
+filtrada por sus miembros (`soloMiembros(…, true)`) y `!resetaura` es de
+todos. La capa 12g lo vigila.
+
 ## Frases de porcentaje y de !rizz: 25 · 10 · 10
 
 Lo fijó el dueño: 25 frases en el tramo de la paliza y 10 en cada uno de los
