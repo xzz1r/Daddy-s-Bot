@@ -54,7 +54,7 @@ async function avisarApagada(sock, jid, msg) {
     // que no mueven un aura. Corregido eso, decirlo aqui es lo que hace que se
     // note, porque nadie prueba un comando que el bot acaba de negarle.
     text: 'La dinámica de aura está apagada. Nadie roba, apuesta ni transfiere hasta que se vuelva a encender.\n'
-      + 'El saldo de cada uno sigue intacto, y siguen abiertos *!aura top*, *!bote*, *!caja*, *!buscados* y la tienda.',
+      + 'El saldo de cada uno sigue intacto, y siguen abiertos *!ranking*, *!bote*, *!caja*, *!buscados* y la tienda.',
   }, { quoted: msg }).catch(() => {});
 }
 

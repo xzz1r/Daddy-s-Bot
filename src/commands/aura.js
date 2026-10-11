@@ -504,7 +504,7 @@ async function showRanking(sock, msg, groupMeta) {
       // deducia del "Vuelve en" de la segunda linea, y no se deducia: la gente
       // volvia a pedirlo. Se dice en la primera linea y en una palabra.
       text: bloqueCooldown({
-        que: 'top',
+        que: 'ranking',
         frase: fraseCooldown(pool, `${jid}|top|${enTop ? 'ansias' : 'pobre'}`, 0),
         queda: restaTop,
         cola: copia,
@@ -662,7 +662,7 @@ La moneda del bot, igual en todos los grupos. Empiezas con *${fmt(ARRANQUE)}* y 
 *!dar* @alguien — le regalas
 
 *!saldo* — lo que tienes
-*!aura top* — quién va ganando
+*!ranking* — quién va ganando
 
 _Cada comando te explica sus reglas cuando lo usas. No hay que aprenderse nada._`;
 }
@@ -887,7 +887,7 @@ async function interruptor(sock, msg, sub, groupMeta) {
     text: encender
       ? 'Dinámica de aura *reanudada*. Se puede volver a tirar, apostar, robar y batirse en duelo.'
       : 'Dinámica de aura *en pausa*. Nadie puede tirar, apostar, robar, batirse en duelo ni dar aura.\n\n' +
-        '_Los saldos no se tocan y se siguen ganando escribiendo. *!aura top* y *!aura @user* siguen funcionando._',
+        '_Los saldos no se tocan y se siguen ganando escribiendo. *!ranking* y *!aura @user* siguen funcionando._',
   }, { quoted: msg });
 }
 

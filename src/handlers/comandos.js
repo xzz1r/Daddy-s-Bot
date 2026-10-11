@@ -287,7 +287,9 @@ const FAMILIAS = [
   // asunto —cmdTopRandom se calla sin tema— sino la forma natural de pedir el
   // ranking de aura, asi que eso se queda como estaba. Y *!auratop*, en una
   // palabra, es el ranking: no silencio.
-  { nombres: ['top', 'ranking', 'auratop'], meta: true,
+  // En el menu sale como *!ranking*: *!top* a secas se confundia con *!top5* y
+  // *!top10* (lo dijo el dueño, 11 oct). Sigue valiendo por costumbre.
+  { nombres: ['ranking', 'top', 'auratop'], meta: true,
     hace: (c) => (c.command === 'top' && ['5', '10'].includes(c.args[0]) && c.args.length > 1
       ? c.de('topsRandom').cmdTopRandom(c.sock, c.msg, Number(c.args[0]), c.args.slice(1), c.meta)
       : aura('top')(c)) },

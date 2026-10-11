@@ -433,7 +433,7 @@ ${p}simp ${p}friki ${p}inutil ${p}perdedor · ${p}l  ·  ${p}fea ${p}infiel ${p}
 ${p}feminidad ${p}masculinidad ${p}linda ${p}lindo ${p}hot ${p}sexy ${p}fiel ${p}crack ${p}ganador
 
 *AURA*
-${p}aura  ·  ${p}saldo · ${p}miaura  ·  ${p}top · ${p}ranking · ${p}auratop
+${p}aura  ·  ${p}saldo · ${p}miaura  ·  ${p}ranking · ${p}auratop · ${p}top
 ${p}hoy  ·  ${p}casino  ·  ${p}apostar · ${p}apuesta · ${p}apuestas
 ${p}duel · ${p}duelo · ${p}1v1
 ${p}dar · ${p}regalar · ${p}transferir · ${p}pagar · ${p}donar
@@ -582,7 +582,7 @@ ${bloqueAcciones(p, c)}
 *${p}banco* · *${p}lock* <cant.> · *${p}unlock* <cant.> — a salvo del *${p}robo*, no del *${p}robarbanco*
 *${p}apostar* mitad/todo/2k · *${p}duel* @user · *${p}dar* @user <cant.>
 *${p}tienda* · *${p}comprar* <objeto> · *${p}bote* · *${p}caja*
-*${p}aura* la tirada · *${p}saldo* · *${p}top* · *${p}hoy* · *${p}guia*
+*${p}aura* la tirada · *${p}saldo* · *${p}ranking* · *${p}hoy* · *${p}guia*
 
 *ACTIVIDAD*
 *${p}fantasmas* ${c('fantasmas')} · *${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b
