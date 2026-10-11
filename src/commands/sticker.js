@@ -2,7 +2,7 @@ const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, detectExt, MAX_STICKER_BYTES } = require('../utils/sticker');
 const fs = require('fs-extra');
 const { streamToBuffer, tempFile, cleanTemp, MAX_MEDIA_BYTES } = require('../utils/helpers');
-const { getSender, isOwner } = require('../utils/wa');
+const { getSender, isOwner, sameUser } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { incrementStat } = require('../utils/state');
 const logger = require('../utils/logger');
@@ -52,19 +52,76 @@ function identifyMedia(messageObject, depth = 0) {
     const r = identifyMedia(inner, depth + 1);
     return r ? { ...r, verUnaVez: true } : null;
   }
-  // Y si lo de dentro ya vino abierto por el manejador, la marca va en el medio.
   return null;
 }
 
-// LO DE VER UNA VEZ NO SIEMPRE SE PUEDE ABRIR. El bot es un dispositivo
-// vinculado, y WhatsApp no abre las fotos y videos de ver una vez fuera del
-// movil: a los vinculados les llegan sin la clave para descargarlos, y al
-// citarlos la cita tampoco la trae. Sin esto el bot cobraba, intentaba bajar,
-// fallaba y decia «prueba otra vez», que no va a funcionar nunca.
-const AVISO_VER_UNA_VEZ = 'Las fotos y vídeos de *ver una vez* no me llegan: WhatsApp no deja abrirlas fuera del móvil. '
-  + 'Mándala normal, sin ver una vez, con *!s* escrito en el texto: esa no se borra y sale el sticker.';
-function sinClave(m) {
-  return !m?.mediaKey || !(m.directPath || m.url);
+// ─── BAJAR EL MEDIO, Y SI NO SALE, PEDIRLO OTRA VEZ ─────────────────────────
+//
+// LO DE VER UNA VEZ SE INTENTA SIEMPRE. El 10 oct se le puso a *!s* una
+// negativa —«las fotos de ver una vez no me llegan, mandala normal»— que
+// saltaba antes de intentarlo, y el dueño la tumbo al dia siguiente: antes se
+// podia. Se quito entera, y el fallo vuelve a decir lo de siempre.
+//
+// Lo que si es verdad, y conviene saberlo leyendo esto: al bot, que es un
+// dispositivo vinculado, WhatsApp le manda la foto de ver una vez VACIA
+// (Baileys: `view_once_unavailable_fanout`). Lo que funciona es responderla
+// con *!s*: la foto viene dentro de la cita, con su clave, y de ahi se baja.
+//
+// Y SI LA DESCARGA FALLA, SE PIDE OTRA VEZ. Un enlace de WhatsApp caduca, y una
+// cita a veces trae la clave pero no la ruta. Con la clave, Baileys puede
+// pedirle al movil que mando la foto que la vuelva a subir
+// (`updateMediaMessage`), que es lo que hace WhatsApp con una foto vieja que
+// sale borrosa. Solo si eso tampoco sale se devuelve el aura.
+const ESPERA_RESUBIDA_MS = 20000;
+
+async function bajarDirecto(medio, tipo) {
+  const stream = await downloadContentFromMessage(medio, tipo);
+  const buffer = await streamToBuffer(stream, MAX_MEDIA_BYTES);
+  if (!buffer || buffer.length < 100) throw new Error('No se pudo descargar el archivo');
+  return buffer;
+}
+
+// El mensaje entero al que pertenece el medio, que es lo que pide la resubida:
+// el propio si el !s iba en el texto de la foto, o el citado (su id y quien lo
+// mando salen de la cita).
+function mensajeDelMedio(sock, msg, origen) {
+  if (origen === 'propio') return { key: msg.key, message: msg.message };
+  const ctx = msg.message?.extendedTextMessage?.contextInfo;
+  if (!ctx?.stanzaId || !ctx.quotedMessage) return null;
+  return {
+    key: {
+      remoteJid: msg.key.remoteJid,
+      id: ctx.stanzaId,
+      participant: ctx.participant,
+      fromMe: Boolean(ctx.participant && sock.user?.id && sameUser(ctx.participant, sock.user.id)),
+    },
+    message: ctx.quotedMessage,
+  };
+}
+
+async function bajarMedio(sock, msg, found, origen) {
+  const tipo = found.dl || found.type;
+  try {
+    return await bajarDirecto(found.msg, tipo);
+  } catch (primero) {
+    const original = mensajeDelMedio(sock, msg, origen);
+    if (!original || !found.msg?.mediaKey || typeof sock.updateMediaMessage !== 'function') throw primero;
+    logger.info(`sticker: la descarga directa falló (${primero.message}); pido que lo vuelvan a subir`);
+    let espera;
+    const tope = new Promise((_, no) => { espera = setTimeout(() => no(new Error('el móvil no contestó a la resubida')), ESPERA_RESUBIDA_MS); });
+    try {
+      const nuevo = await Promise.race([sock.updateMediaMessage(original), tope]);
+      const otraVez = identifyMedia(nuevo?.message) || found;
+      return await bajarDirecto(otraVez.msg, tipo);
+    } finally {
+      clearTimeout(espera);
+    }
+  }
+}
+
+// Para el log: con esto se sabe si el fallo es de la cita (sin clave) o de la red.
+function pistaClave(m) {
+  return `clave ${m?.mediaKey ? 'sí' : 'no'}, ruta ${m?.directPath || m?.url ? 'sí' : 'no'}`;
 }
 
 async function cmdSticker(sock, msg, groupMeta) {
@@ -77,7 +134,8 @@ async function cmdSticker(sock, msg, groupMeta) {
 
   // Find media in current message or quoted message
   let found = identifyMedia(msg.message);
-  if (!found && quoted) found = identifyMedia(quoted);
+  let origen = 'propio';
+  if (!found && quoted) { found = identifyMedia(quoted); origen = 'cita'; }
 
   if (!found) {
     return sock.sendMessage(jid, {
@@ -85,9 +143,6 @@ async function cmdSticker(sock, msg, groupMeta) {
     }, { quoted: msg });
   }
   const eraVerUnaVez = found.verUnaVez || found.msg?.viewOnce === true;
-  if (eraVerUnaVez && sinClave(found.msg)) {
-    return sock.sendMessage(jid, { text: AVISO_VER_UNA_VEZ }, { quoted: msg });
-  }
 
   // Re-stamping an existing sticker rewrites its pack metadata with the bot's
   // author tag — only the owner may do that, so members can't hijack/rebrand
@@ -111,16 +166,11 @@ async function cmdSticker(sock, msg, groupMeta) {
 
   let buffer;
   try {
-    const stream = await downloadContentFromMessage(found.msg, found.dl || found.type);
-    buffer = await streamToBuffer(stream, MAX_MEDIA_BYTES);
-
-    if (!buffer || buffer.length < 100) {
-      throw new Error('No se pudo descargar el archivo');
-    }
+    buffer = await bajarMedio(sock, msg, found, origen);
   } catch (err) {
-    logger.error(`Sticker download error${eraVerUnaVez ? ' (ver una vez)' : ''}: ${err.message}`);
+    logger.error(`Sticker download error${eraVerUnaVez ? ' (ver una vez)' : ''} [${origen}, ${pistaClave(found.msg)}]: ${err.message}`);
     await reembolsar();
-    return sock.sendMessage(jid, { text: eraVerUnaVez ? AVISO_VER_UNA_VEZ : 'No pude descargar eso. Prueba otra vez.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No pude descargar eso. Prueba otra vez.' }, { quoted: msg });
   }
 
   // Fire notice before encoding — videos/GIFs can take several seconds on Termux.

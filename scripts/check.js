@@ -3701,9 +3701,10 @@ const di=async(quien,texto,extra)=>{
   // 12e. !pfp Y !s CON LO QUE FALLABA EL 10 OCT. Un numero de Mexico que
   // onWhatsApp devuelve con el 1 de movil y que solo contesta sin el (o al
   // reves), la miniatura cuando la grande se deniega, y un !s sobre una foto de
-  // ver una vez, que al bot le llega sin clave y no se puede bajar nunca.
+  // ver una vez: se intenta SIEMPRE (el dueño tumbo la negativa del 10 oct, «antes
+  // se podia»), y si la descarga falla se pide la resubida a quien la mando.
   {
-    console.log('\n12e. !pfp PRUEBA LAS DOS FORMAS DE MEXICO Y LA MINIATURA, Y !s AVISA CON VER UNA VEZ');
+    console.log('\n12e. !pfp PRUEBA LAS DOS FORMAS DE MEXICO Y LA MINIATURA, Y !s INTENTA LO DE VER UNA VEZ');
     const antes = fallos;
     const W = require(path.join(R, 'src/utils/wa'));
     const no = () => { const e = new Error('not-authorized'); e.data = 401; return e; };
@@ -3717,14 +3718,41 @@ const di=async(quien,texto,extra)=>{
     const u3 = await W.fetchPfpUrl(sockNada, '34600000001@s.whatsapp.net').catch((e) => (e.restringida ? 'RESTRINGIDA' : 'ERR'));
     if (u3 !== 'RESTRINGIDA') { fallos++; console.log(rojo(`   ✗ una foto denegada en todas las formas ya no se da por restringida: ${u3}`)); }
 
-    const ST = require(path.join(R, 'src/commands/sticker'));
-    const dichos = [];
-    const sockS = { sendMessage: async (j, c) => { dichos.push(c.text || ''); return {}; } };
-    await ST.cmdSticker(sockS, {
-      key: { remoteJid: '120000999@g.us', participant: '34600000099@s.whatsapp.net', fromMe: false, id: 'S1' },
-      message: { extendedTextMessage: { text: '!s', contextInfo: { quotedMessage: { viewOnceMessageV2: { message: { imageMessage: { mimetype: 'image/jpeg', viewOnce: true } } } } } } },
-    }, { participants: [] });
-    if (!/ver una vez/.test(dichos.join(' '))) { fallos++; console.log(rojo(`   ✗ !s sobre una foto de ver una vez sin clave no explica por qué no sale: "${dichos.join(' | ').slice(0, 80)}"`)); }
+    // !s SOBRE UNA CITA DE VER UNA VEZ. En una copia aparte: ahora cobra y
+    // devuelve, y eso escribe aura.
+    {
+      const os12s = require('os');
+      const cajaS = fs.mkdtempSync(path.join(os12s.tmpdir(), 'vv12e-'));
+      try {
+        fs.cpSync(path.join(R, 'src'), path.join(cajaS, 'src'), { recursive: true });
+        fs.mkdirSync(path.join(cajaS, 'data')); fs.mkdirSync(path.join(cajaS, 'temp'));
+        fs.symlinkSync(path.join(R, 'node_modules'), path.join(cajaS, 'node_modules'), 'dir');
+        const guionS = [
+          "const ST = require('./src/commands/sticker'); const A = require('./src/utils/auraStore');",
+          "const G = '120000999@g.us', P = '34600000099@s.whatsapp.net', Q = '34600000098@s.whatsapp.net';",
+          "const pedidas = []; const dichos = [];",
+          "const sk = { user: { id: '549199@s.whatsapp.net' }, sendMessage: async (j, c) => { dichos.push(c.text || ''); return {}; },",
+          "  updateMediaMessage: async (m) => { pedidas.push(m.key); throw new Error('sin respuesta'); } };",
+          "const cita = (media) => ({ key: { remoteJid: G, participant: P, fromMe: false, id: 'S' + Math.random() }, pushName: 'x',",
+          "  message: { extendedTextMessage: { text: '!s', contextInfo: { stanzaId: 'ORIG1', participant: Q, quotedMessage: { viewOnceMessageV2: { message: { imageMessage: media } } } } } } });",
+          "(async () => { const antes = await A.getAura(G, P);",
+          "  await ST.cmdSticker(sk, cita({ mimetype: 'image/jpeg', viewOnce: true }), { participants: [] });",
+          "  await ST.cmdSticker(sk, cita({ mimetype: 'image/jpeg', viewOnce: true, mediaKey: Buffer.alloc(32, 1) }), { participants: [] });",
+          "  console.log('RVV' + JSON.stringify({ dichos, pedidas, antes, despues: await A.getAura(G, P) })); process.exit(0); })();",
+        ].join('\n');
+        const salS = spawnSync('node', ['-e', guionS], { cwd: cajaS, encoding: 'utf8', timeout: 60000 });
+        const lS = (salS.stdout || '').split('\n').find((l) => l.startsWith('RVV'));
+        const r = lS ? JSON.parse(lS.slice(3)) : null;
+        if (!r) { fallos++; console.log(rojo(`   ✗ la prueba de !s con ver una vez no llegó al final: ${((salS.stderr || '') + (salS.stdout || '')).trim().split('\n').slice(-2).join(' | ').slice(0, 200)}`)); }
+        else {
+          if (r.dichos.some((t) => /ver una vez/i.test(t))) { fallos++; console.log(rojo('   ✗ !s vuelve a negarse con lo de «ver una vez» en vez de intentarlo: el dueño lo tumbó, antes se podía')); }
+          if (r.dichos.length !== 2 || !r.dichos.every((t) => /No pude descargar eso/.test(t))) { fallos++; console.log(rojo(`   ✗ cuando no sale, !s no dice lo de siempre: ${r.dichos.join(' | ').slice(0, 120)}`)); }
+          const k = r.pedidas[0] || {};
+          if (r.pedidas.length !== 1 || k.id !== 'ORIG1' || !String(k.participant).startsWith('34600000098')) { fallos++; console.log(rojo(`   ✗ con la clave en la cita y sin ruta, !s no pide la resubida a quien mandó la foto: ${JSON.stringify(r.pedidas).slice(0, 120)}`)); }
+          if (r.antes !== r.despues) { fallos++; console.log(rojo(`   ✗ un !s que no sale no devuelve el aura: ${r.antes} → ${r.despues}`)); }
+        }
+      } finally { fs.rmSync(cajaS, { recursive: true, force: true }); }
+    }
     // EL @lid QUE NO TRAE LA METADATA SE RESUELVE CON LA SESION, y si es el
     // dueño, el blindaje lo reconoce: lo que importa es que traducir no abra
     // el hueco que se queria cerrar. En una copia aparte: isMainOwner APRENDE
@@ -3763,7 +3791,7 @@ const di=async(quien,texto,extra)=>{
       const iNiega = accSrc.indexOf('if (nsfw && (sinResolver || isMainOwner(objetivo, false, groupMeta)))');
       if (iRes < 0 || iNiega < 0 || iRes > iNiega) { fallos++; console.log(rojo('   ✗ las explicitas ya no preguntan a la sesion antes de negar por un @lid sin traducir')); }
     }
-    if (fallos === antes) console.log(verde('   ✓ !pfp prueba 52 y 521 y la miniatura antes de rendirse, !s explica lo de ver una vez sin cobrar, y un @lid se traduce con la sesion sin abrir el blindaje'));
+    if (fallos === antes) console.log(verde('   ✓ !pfp prueba 52 y 521 y la miniatura antes de rendirse, !s intenta lo de ver una vez y pide la resubida si falla, y un @lid se traduce con la sesion sin abrir el blindaje'));
   }
 
   // 12f. !premiar: AURA NUEVA, SOLO DEL DUEÑO Y LOS CO-DUEÑOS (11 oct). Que el
