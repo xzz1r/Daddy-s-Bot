@@ -965,7 +965,9 @@ Solo lo que cambia cómo se escriben sus frases. Lo demás está en `MOTOR.md`.
 - **Aura** (`!aura`): economía con saldo, apuestas (cooldown 3 h), robos y
   rachas diarias. El saldo y la caja son uno por persona, los mismos en todos
   los grupos; los bonos por escribir y la racha son de cada grupo. Una frase
-  no puede decir «tu aura en este grupo». Tono de las apuestas: crónica de sucesos, no roast. Ganar
+  no puede decir «tu aura en este grupo». `!resetaura` se lleva toda la
+  economía (saldos, banco, tienda, bote, buscados, diana), así que una frase
+  tampoco puede prometer que algo «sobrevive al reset». Tono de las apuestas: crónica de sucesos, no roast. Ganar
   suena a hazaña y perder a velatorio con sorna. El bot no consuela.
 - **Robo** (`!robo`): tiene los pools más grandes del bot (`ROB_FAIL`, 268
   frases).

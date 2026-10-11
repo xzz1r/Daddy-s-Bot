@@ -36,4 +36,4 @@ function consumir(grupo, persona, para) {
 
 function _reset() { estados.clear(); }
 
-module.exports = { anotar, consumir, _reset };
+module.exports = { anotar, consumir, _reset, olvidarTodo: _reset };

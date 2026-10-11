@@ -1798,4 +1798,13 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   return sock.sendMessage(jid, { text, mentions: [sender, target] });
 }
 
-module.exports = { cmdRobo, chanceVisibleDe, pistaCifra, DESENLACES, elegirDesenlace, ajustarProbabilidad, castigoPorCifra, fraccionPedida, escudoRestante, anotarIntento, anotarRoboExitoso, anotarFama, rachaDe };
+// El reset del aura (utils/reinicioEconomia.js): fuera las esperas, el escudo
+// de quien acaba de ser robado, la fama, las venganzas, los contraataques
+// pendientes y las pistas del dia. Los candados de «uno a la vez»
+// (compraEnCurso, atracoEnCurso) NO: protegen lo que este en vuelo ahora mismo.
+function olvidarRobos() {
+  for (const m of [lastRob, robadoHasta, ultimoAtaque, ultimoRobado, fama, pendienteContra, ultimoButron, blindadaHasta, pistaVista]) m.clear();
+  ultimoFueAsalto.clear();
+}
+
+module.exports = { cmdRobo, olvidarRobos, chanceVisibleDe, pistaCifra, DESENLACES, elegirDesenlace, ajustarProbabilidad, castigoPorCifra, fraccionPedida, escudoRestante, anotarIntento, anotarRoboExitoso, anotarFama, rachaDe };

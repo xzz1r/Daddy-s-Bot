@@ -81,6 +81,17 @@ async function flushObjetivoDia() {
   await saver.flush();
 }
 
+// El reset del aura (utils/reinicioEconomia.js): la diana de hoy salio de un
+// ranking que ya no existe. Se olvida en todos los grupos, y el siguiente
+// cartel sale del ranking nuevo cuando haya alguien que lo merezca.
+async function olvidarObjetivos() {
+  await load().catch(() => {});
+  decidido.clear();
+  sinObjetivo.clear();
+  saver.schedule();
+  await saver.flush();
+}
+
 // `rankingYaHecho` es la lista COMPLETA de miembros con aura, sin recortar, para
 // quien ya la tenga en la mano. *!top* la acaba de construir tres lineas antes y
 // aqui se rehacia entera: medido en un grupo de 250, el comando costaba 524 us
@@ -293,4 +304,4 @@ async function cartelDelDia(grupo, groupMeta) {
   }
 }
 
-module.exports = { objetivoDelDia, esObjetivoDelDia, diaClave, flushObjetivoDia, cartelDelDia, _decidido: decidido, _franjaDe: franjaDe, _sinObjetivo: sinObjetivo, HORAS_CARTEL };
+module.exports = { objetivoDelDia, esObjetivoDelDia, diaClave, flushObjetivoDia, olvidarObjetivos, cartelDelDia, _decidido: decidido, _franjaDe: franjaDe, _sinObjetivo: sinObjetivo, HORAS_CARTEL };

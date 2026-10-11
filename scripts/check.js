@@ -3979,6 +3979,78 @@ const di=async(quien,texto,extra)=>{
     if (fallos === antes) console.log(verde('   ✓ robo y apuesta: tres seguidas, la cuarta se pierde, cada uno con su contador'));
   }
 
+  // 12i. *!resetaura* RESETEA TODA LA ECONOMIA (11 oct). Lo pidio el dueño:
+  // «se debe resetear todo lo relacionado a ella: la tienda, el top de aura,
+  // el de los mas buscados, etc.». Se siembra de todo —saldo, banco, objetos,
+  // bote, caja de la tienda, un robo con recompensa, la tirada del dia, la
+  // diana, las esperas y un duelo pendiente—, se resetea, y no puede quedar
+  // nada. En una copia aparte: el reset es de todos.
+  {
+    console.log('\n12i. *!resetaura* SE LLEVA TODA LA ECONOMÍA');
+    const antes = fallos;
+    const mal = (q) => { fallos++; console.log(rojo(`   ✗ ${q}`)); };
+    const os12i = require('os');
+    const caja = fs.mkdtempSync(path.join(os12i.tmpdir(), 'reset-todo-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data')); fs.mkdirSync(path.join(caja, 'temp'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const A = require('./src/utils/auraStore'), T = require('./src/utils/roboStore'), CS = require('./src/utils/casinoStore'), O = require('./src/utils/objetivoDia');",
+        "const { cmdAura, cmdResetAura } = require('./src/commands/aura'); const { cmdRobo } = require('./src/commands/robo'); const { cmdDuel } = require('./src/commands/duel');",
+        "const G1 = '120000901@g.us', G2 = '120000902@g.us', BOT = '549199@s.whatsapp.net';",
+        "const P = '34600000901@s.whatsapp.net', L = '34600000902@s.whatsapp.net', V = '34600000903@s.whatsapp.net';",
+        "const meta = { id: G1, participants: [{ id: BOT, admin: 'admin' }, { id: P }, { id: L }, { id: V }] };",
+        "const out = []; const sk = { user: { id: BOT }, sendMessage: async (j, c) => { out.push(c.text || ''); return { key: { id: 'x' } }; } };",
+        "const m = (quien, texto, menciones = []) => ({ key: { remoteJid: G1, participant: quien, fromMe: false, id: 'I' + Math.random() }, message: { extendedTextMessage: { text: texto, contextInfo: { mentionedJid: menciones } } }, pushName: 'x' });",
+        "(async () => { const r = {};",
+        "  for (const p of [P, L, V]) await A.addAura(G1, p, 3000);",
+        "  await A.devolverACaja(G1, P, 800);",
+        "  await T.darObjeto(G1, P, 'escudo', Date.now() + 3600000); await T.darObjeto(G2, P, 'ganzua', 2); await T.darObjeto(G1, P, 'indulto', Date.now() + 3600000);",
+        "  await T.aportarAlBote(G1, 700); await T.aportarACaja(G1, 900); await T.anotarGolpe(G1, L, 300, 120, V); await T.anotarAtraco(G1);",
+        "  await CS.contarTirada(G1, P);",
+        "  O._decidido.set(G1, { dia: O.diaClave(), jid: P, franja: 'x' });",
+        "  await cmdRobo(sk, m(L, '!robo 100 @v', [V]), ['100'], meta);",
+        "  await cmdAura(sk, m(P, '!aura'), [], meta);",
+        "  await cmdDuel(sk, m(L, '!duel @v 100', [V]), ['100'], meta);",
+        "  out.length = 0;",
+        "  await cmdResetAura(sk, { key: { remoteJid: G1, participant: BOT, fromMe: true, id: 'RS' } }, meta);",
+        "  r.aviso = out.join(' ');",
+        "  r.saldo = await A.getAura(G2, P); r.banco = await A.verCaja(G2, P);",
+        "  r.objetos = { ...(await T.objetosDe(G1, P)), ...(await T.objetosDe(G2, P)) };",
+        "  r.bote = await T.verBote(G1); r.cajaTienda = await T.verCaja(G1);",
+        "  r.buscados = (await T.rankingLadrones(G1)).length; r.recompensa = await T.recompensaDe(G1, L); r.meRobaron = (await T.robosContra(G1, V)).length;",
+        "  r.tiradas = await CS.tiradasDeHoy(G1, P); r.diana = O._decidido.size;",
+        "  const antesDuelo = [await A.getAura(G1, L), await A.getAura(G1, V)];",
+        "  await cmdDuel(sk, m(V, '!duel aceptar'), ['aceptar'], meta);",
+        "  r.duelo = [await A.getAura(G1, L), await A.getAura(G1, V)].join() === antesDuelo.join();",
+        "  out.length = 0; await cmdRobo(sk, m(L, '!robo 100 @v', [V]), ['100'], meta); r.robo = out.join(' ');",
+        "  out.length = 0; await cmdAura(sk, m(P, '!aura'), [], meta); r.tirada = out.join(' ');",
+        "  console.log('R12I' + JSON.stringify(r)); process.exit(0); })();",
+      ].join('\n');
+      const sal = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 60000 });
+      const linea = (sal.stdout || '').split('\n').find((l) => l.startsWith('R12I'));
+      const r = linea ? JSON.parse(linea.slice(4)) : null;
+      if (!r) {
+        mal(`la prueba no llegó al final: ${((sal.stderr || '') + (sal.stdout || '')).trim().split('\n').slice(-3).join(' | ').slice(0, 300)}`);
+      } else {
+        const { SUELO_TODOS } = require(path.join(R, 'src/utils/economia'));
+        if (r.saldo !== SUELO_TODOS || r.banco !== 0) mal(`el saldo o el banco sobreviven al reset: ${r.saldo} · ${r.banco}`);
+        const quedan = ['escudo', 'ganzua', 'indulto', 'ultimaVentaja', 'vetoTienda'].filter((k) => r.objetos[k]);
+        if (quedan.length) mal(`la tienda sobrevive al reset: sigue habiendo ${quedan.join(', ')}`);
+        if (r.bote !== 0 || r.cajaTienda !== 0) mal(`el bote (${r.bote}) o la caja de la tienda (${r.cajaTienda}) sobreviven al reset`);
+        if (r.buscados || r.recompensa || r.meRobaron) mal(`*!buscados*, las recompensas o *!quienmerobo* sobreviven al reset: ${r.buscados} · ${r.recompensa} · ${r.meRobaron}`);
+        if (r.tiradas !== 0) mal(`las tiradas que pagan de hoy no vuelven tras el reset (van ${r.tiradas})`);
+        if (r.diana !== 0) mal('la diana del día sobrevive al reset: apunta al rico de una economía que ya no existe');
+        if (!r.duelo) mal('un duelo lanzado antes del reset se juega después, con saldos que ya no existen');
+        if (/EN COOLDOWN/.test(r.robo)) mal('la espera del robo sobrevive al reset');
+        if (/EN COOLDOWN/.test(r.tirada)) mal('la espera de la tirada sobrevive al reset');
+        if (!/tienda/.test(r.aviso) || !/buscados/.test(r.aviso)) mal(`el aviso del reset no dice que se lleva la tienda y los buscados: ${r.aviso.slice(0, 120)}`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes) console.log(verde('   ✓ con el aura se van el banco, la tienda (objetos, caja, vetos), el bote, los buscados y sus recompensas, las tiradas del día, la diana, las esperas y los duelos pendientes'));
+  }
+
   // 12c. SIN PRECIO DOBLE EN TOPS, SHIP Y HERRAMIENTAS. Lo pidio el dueño: esos
   // cuestan siempre lo mismo. El resto sigue con la rafaga.
   {

@@ -41,4 +41,4 @@ function ownerGana(grupo, probabilidad, canal = null) {
 // Solo para las pruebas: deja el contador como recien arrancado.
 function _reiniciarRacha() { racha.clear(); }
 
-module.exports = { ownerGana, _reiniciarRacha };
+module.exports = { ownerGana, _reiniciarRacha, olvidarRachas: _reiniciarRacha };

@@ -1,7 +1,8 @@
 const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameUser, soloMiembros } = require('../utils/wa');
 const { apel } = require('../utils/vocativo');
 const { pickFresh, fmt, parseCantidad, resolverCantidad, etiquetaRiesgo } = require('../utils/helpers');
-const { getAura, addAura, getAuraRanking, flushAura, resetAura, BOLSA } = require('../utils/auraStore');
+const { getAura, addAura, getAuraRanking, flushAura, BOLSA } = require('../utils/auraStore');
+const { resetearEconomia } = require('../utils/reinicioEconomia');
 const { getUserCount } = require('../utils/messageCounter');
 const { getName, recordName, cargar: cargarNombres } = require('../utils/nombreStore');
 const logger = require('../utils/logger');
@@ -397,6 +398,16 @@ function olvidarTops() {
   ultimoRanking.clear();
   huellaRanking.clear();
   ultimoTop.clear();
+}
+
+// Lo que el reset del aura limpia de este fichero (utils/reinicioEconomia.js):
+// los tops, las esperas de la tirada y de la apuesta, y el aviso del objetivo.
+// apuestaEnCurso NO: protege la apuesta que este en vuelo ahora mismo.
+function olvidarAura() {
+  olvidarTops();
+  lastRoll.clear();
+  ultimaApuesta.clear();
+  anuncioObjetivo.clear();
 }
 
 // La copia en gris del ranking, pintada con NOMBRES.
@@ -1229,15 +1240,18 @@ async function cmdResetAura(sock, msg, groupMeta) {
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
-  await resetAura();
-  // Y EL TOP TAMBIEN EMPIEZA DE CERO. Lo pidio el dueño: tras un reset, la
-  // espera de tres horas del *!aura top* seguia contando y el grupo no podia
-  // ver el marcador nuevo, y la copia en gris enseñaba el top de antes del
-  // reset como si siguiera valiendo. Se olvida lo del top de todos los grupos.
-  olvidarTops();
+  // TODA LA ECONOMIA, NO SOLO LOS SALDOS. Lo pidio el dueño: la tienda, el
+  // bote, los buscados, los tops, la diana del dia y las esperas se van con el
+  // aura. La lista entera vive en utils/reinicioEconomia.js.
+  //
+  // Y el top tambien empieza de cero, que ya lo pidio antes: tras un reset, la
+  // espera de tres horas del *!aura top* seguia contando y la copia en gris
+  // enseñaba el top de antes como si siguiera valiendo.
+  await resetearEconomia();
   return sock.sendMessage(jid, {
-    text: `Aura de todos reseteada, en todos los grupos. El marcador vuelve a *${SUELO_TODOS}* para todo el mundo.`,
+    text: `Aura de todos reseteada, en todos los grupos. El marcador vuelve a *${SUELO_TODOS}* para todo el mundo.\n` +
+      '_Con ella se van la tienda (objetos, caja y bote), los buscados y sus recompensas, los tops, la diana del día y las esperas._',
   }, { quoted: msg });
 }
 
-module.exports = { cmdAura, cmdResetAura, _olvidarTop: olvidarTops };
+module.exports = { cmdAura, cmdResetAura, olvidarAura, _olvidarTop: olvidarTops };

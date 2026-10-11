@@ -317,4 +317,8 @@ async function cmdDuel(sock, msg, args, groupMeta) {
 }
 
 
-module.exports = { cmdDuel };
+// El reset del aura (utils/reinicioEconomia.js): un duelo lanzado antes se
+// jugaba con saldos que ya no existen.
+function olvidarDuelos() { pending.clear(); }
+
+module.exports = { cmdDuel, olvidarDuelos };

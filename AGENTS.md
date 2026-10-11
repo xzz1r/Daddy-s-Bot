@@ -48,8 +48,13 @@ en cualquier grupo: viven en la bolsa `__todos` de `src/utils/auraStore.js`, y
 las funciones reciben el grupo pero no lo usan para elegir monedero. Las
 esperas que frenan el monedero (tirada, apuesta, robo, escudo, butrón) van con
 la llave `BOLSA`, no con la del grupo. El `!top` de un grupo es la bolsa
-filtrada por sus miembros (`soloMiembros(…, true)`) y `!resetaura` es de
-todos. La capa 12g lo vigila.
+filtrada por sus miembros (`soloMiembros(…, true)`). La capa 12g lo vigila.
+
+`!resetaura` es de todos los grupos y se lleva **toda la economía**, no solo
+los saldos: banco, tienda (objetos, caja, vetos), bote, buscados y sus
+recompensas, tiradas del día, diana, esperas y duelos pendientes. La lista
+entera vive en `src/utils/reinicioEconomia.js`: un almacén o un reloj nuevo
+del aura se apunta ahí, o el reset lo deja vivo. La capa 12i lo comprueba.
 
 ## Frases de porcentaje y de !rizz: 25 · 10 · 10
 

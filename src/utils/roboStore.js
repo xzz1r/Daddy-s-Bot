@@ -418,6 +418,30 @@ async function tieneCebo(g, persona) {
   return Boolean(o.cebo && o.cebo > Date.now());
 }
 
+// ─── El reset del aura ───────────────────────────────────────────────────────
+//
+// EL RESET DEL AURA VACIA TAMBIEN TODO ESTO, en todos los grupos (ver
+// utils/reinicioEconomia.js). El bote y la caja de la tienda son aura; los
+// objetos —escudo, ganzua, cebo, amuleto, seguro, socio, pase, indulto— se
+// pagaron con aura, y con ellos se van el veto y el limite de ventaja; y los
+// golpes son el ranking de los buscados, las recompensas por cada cabeza y el
+// «quien me robo» de una economia que ya no existe. La seguridad de la tienda
+// sale de los atracos recientes, asi que tambien vuelve a cero.
+async function vaciarTodo() {
+  await load();
+  for (const g of Object.keys(store)) {
+    const x = store[g];
+    if (!esObjeto(x)) continue;
+    x.bote = 0;
+    x.caja = 0;
+    x.objetos = {};
+    x.golpes = [];
+    x.atracos = [];
+  }
+  scheduleSave();
+  await flushRobo();
+}
+
 // ─── Golpes y ranking ────────────────────────────────────────────────────────
 
 // `victima` solo va en los golpes a una persona (robo y contrarobo). El bote y
@@ -520,6 +544,7 @@ async function masBuscado(g) {
 }
 
 module.exports = {
+  vaciarTodo,
   tieneSocio, gastarUso, tieneUso,
   tienePase, tieneIndulto, gastarIndulto,
   verBote, aportarAlBote, retirarDelBote, vaciarBote,

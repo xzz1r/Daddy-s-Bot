@@ -137,6 +137,19 @@ async function contarTirada(_groupJid, userJid) {
   return n;
 }
 
+// El reset del aura (utils/reinicioEconomia.js): las tiradas que pagan vuelven
+// a estar todas. Los mensajes del dia y los hitos cobrados NO se tocan: son
+// actividad, y los bonos por escribir son de cada grupo.
+async function olvidarTiradas() {
+  await load();
+  const g = store[TIRADAS];
+  if (g && g.tiradas && Object.keys(g.tiradas).length) {
+    g.tiradas = {};
+    scheduleSave();
+  }
+  await saver.flush();
+}
+
 // Cuántas lleva hoy, sin sumar ninguna (para poder enseñarlo en !aura hoy).
 async function tiradasDeHoy(_groupJid, userJid) {
   await load();
@@ -235,5 +248,5 @@ async function flushCasino() {
   await saver.flush();
 }
 
-module.exports = { incrementCasinoCount, getCasinoCount, contarTirada, tiradasDeHoy,
+module.exports = { incrementCasinoCount, getCasinoCount, contarTirada, tiradasDeHoy, olvidarTiradas,
   hitosCobrados, apuntarHito, msUntilReset, flushCasino, diaDe, msHastaCorte };
