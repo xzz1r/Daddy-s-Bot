@@ -191,11 +191,9 @@ async function anotarAtraco(g) {
 // del estado con caducidad de cada persona. Es lo que sostiene que esos objetos
 // puedan ser positivos sin convertirse en una imprenta: ver VENTAJA en
 // economia.js.
-async function ultimaVentaja(g, quien) {
+async function ultimaVentaja(_g, quien) {
   await load();
-  const x = grupo(g);
-  const k = foldObjetos(x.objetos, quien);
-  return x.objetos[k]?.ultimaVentaja || 0;
+  return deTodosLosGrupos(quien).ultimaVentaja || 0;
 }
 
 async function anotarVentaja(g, quien) {
@@ -276,11 +274,41 @@ async function vaciarBote(g) {
 // guardan por persona canónica, así que comprar desde el @lid y usarlo desde el
 // teléfono es la misma cuenta.
 
+// LO QUE PROTEGE O FRENA EL MONEDERO VALE EN TODOS LOS GRUPOS.
+//
+// El aura es una sola (auraStore, CLAVE_TODOS), y con estos tres por grupo no
+// cuadraba: un escudo comprado en un grupo dejaba robar el mismo saldo desde
+// otro, el cebo solo engañaba en el grupo donde se compro, y el limite de un
+// objeto de ventaja cada 12 h se multiplicaba por el numero de grupos — que es
+// justo el freno que deja que esos objetos sean positivos (VENTAJA).
+//
+// Se siguen escribiendo en el grupo donde se compran y se leen del que mas
+// lejos llegue: no hay nada que migrar. El resto del cajon sigue siendo del
+// grupo, y a proposito: el pase y el indulto son moderacion de ese grupo, el
+// veto es de esa tienda, y los usos se gastan en la mesa donde se compraron.
+const DE_LA_PERSONA = ['escudo', 'cebo', 'ultimaVentaja'];
+
+function deTodosLosGrupos(persona) {
+  const fuera = {};
+  for (const g of Object.keys(store)) {
+    const x = store[g];
+    if (!esObjeto(x) || !esObjeto(x.objetos)) continue;
+    const o = x.objetos[foldObjetos(x.objetos, persona)];
+    if (!o) continue;
+    for (const c of DE_LA_PERSONA) {
+      if (typeof o[c] === 'number' && o[c] > (fuera[c] || 0)) fuera[c] = o[c];
+    }
+  }
+  return fuera;
+}
+
+// Una COPIA, con lo de la persona ya mirado en todos los grupos. Para escribir
+// estan darObjeto y compañia.
 async function objetosDe(g, persona) {
   await load();
   const x = grupo(g);
   const k = foldObjetos(x.objetos, persona);
-  return x.objetos[k] || {};
+  return { ...(x.objetos[k] || {}), ...deTodosLosGrupos(persona) };
 }
 
 async function darObjeto(g, persona, objeto, valor) {
@@ -310,8 +338,23 @@ async function tieneEscudo(g, persona) {
   const o = await objetosDe(g, persona);
   if (!o.escudo) return false;
   if (o.escudo > Date.now()) return true;
-  await darObjeto(g, persona, 'escudo', undefined);
+  olvidarCaducado(persona, 'escudo');
   return false;
+}
+
+// Lo caducado, fuera de todos los grupos donde este: el escudo se lee de todos
+// (DE_LA_PERSONA), asi que limpiarlo solo en uno dejaba los demas engordando.
+function olvidarCaducado(persona, campo) {
+  const ahora = Date.now();
+  for (const g of Object.keys(store)) {
+    const x = store[g];
+    if (!esObjeto(x) || !esObjeto(x.objetos)) continue;
+    const o = x.objetos[foldObjetos(x.objetos, persona)];
+    if (o && typeof o[campo] === 'number' && o[campo] <= ahora) {
+      delete o[campo];
+      scheduleSave();
+    }
+  }
 }
 
 // ¿Tiene el pase de redes activo? Mismo criterio que el escudo: se mira la

@@ -1032,6 +1032,14 @@ async function capaStores() {
       return outs.at(-1) || {};
     };
     const publica = (c) => /^\*RANKING DE AURA\*/.test(c.text || '');
+    // AL SUELO SOLO LOS TRES DE LA PRUEBA, NUNCA CON resetAura. Desde que el
+    // aura es una sola, resetAura deja al suelo a TODO el mundo, y esta capa
+    // corre contra data/ de verdad cuando el bot esta parado: un corte entre el
+    // reset y la restauracion del final dejaba a la gente real sin su aura.
+    const { SUELO_TODOS: SUELO_T } = require(path.join(R, 'src/utils/economia'));
+    const alSuelo = async () => {
+      for (const p of [A, B, C]) await st.addAura(GT, p, SUELO_T - await st.getAura(GT, p));
+    };
 
     // *!saldo* Y *!miaura* TIENEN QUE ENSEÑAR EL SALDO Y NO JUGARLO.
     //
@@ -1040,7 +1048,7 @@ async function capaStores() {
     // riesgo del arreglo es el contrario — que la consulta acabe cayendo en la
     // TIRADA, porque *!aura* a secas se juega el aura. Se comprueban las dos.
     try {
-      await st.resetAura(GT);
+      await alSuelo();
       await st.addAura(GT, A, 777);
       const antes = await st.getAura(GT, A);
       for (const sub of ['saldo', 'miaura']) {
@@ -1056,7 +1064,7 @@ async function capaStores() {
     } catch (e) { fallos++; console.log(rojo(`   ✗ !saldo revento: ${e.message}`)); }
 
     try {
-      await st.resetAura(GT);
+      await alSuelo();
       const suelo = await st.getAura(GT, A);
       await st.addAura(GT, A, 900 - suelo);
       await st.addAura(GT, B, 800 - suelo);
@@ -1129,7 +1137,7 @@ async function capaStores() {
         'aura top: un "no ha cambiado" no reinicia las 3 h (si las reinicia, el top se puede esconder indefinidamente)');
     } finally {
       Date.now = ahoraReal;
-      await st.resetAura(GT);
+      await alSuelo();
     }
   }
 
@@ -3866,6 +3874,16 @@ const di=async(quien,texto,extra)=>{
         "  const { cmdAura } = require('./src/commands/aura');",
         "  const tira = (g) => cmdAura(sk, { key: { remoteJid: g, participant: M, fromMe: false, id: 'T' + g }, message: { conversation: '!aura' }, pushName: 'x' }, [], { id: g, participants: [{ id: M }, { id: P }] });",
         "  await tira(G1); await tira(G2); r.tiradas = out.slice(-2);",
+        "  r.pagadas = await require('./src/utils/casinoStore').tiradasDeHoy(G3, M);",
+        "  const Rb = require('./src/commands/robo'); const L = '34600000775@s.whatsapp.net', V1 = '34600000776@s.whatsapp.net', V2 = '34600000777@s.whatsapp.net';",
+        "  for (const p of [L, V1, V2]) await A.addAura(G1, p, 3000);",
+        "  const rob = (g, v) => Rb.cmdRobo(sk, { key: { remoteJid: g, participant: L, fromMe: false, id: 'R' + g }, message: { extendedTextMessage: { text: '!robo 200', contextInfo: { mentionedJid: [v] } } }, pushName: 'x' }, ['200'], { id: g, participants: [{ id: L }, { id: v }] });",
+        "  const n0 = out.length; await Promise.all([rob(G1, V1), rob(G2, V2)]); r.robos = out.slice(n0);",
+        "  const T = require('./src/utils/roboStore'); const C = '34600000778@s.whatsapp.net'; await A.addAura(G1, C, 3000);",
+        "  const compra = (g) => Rb.cmdRobo(sk, { key: { remoteJid: g, participant: C, fromMe: false, id: 'C' + g }, message: { conversation: '!comprar ganzua' }, pushName: 'x' }, ['comprar', 'ganzua'], { id: g, participants: [{ id: C }] });",
+        "  await Promise.all([compra(G1), compra(G2)]);",
+        "  r.ganzuas = ((await T.objetosDe(G1, C)).ganzua || 0) + ((await T.objetosDe(G2, C)).ganzua || 0);",
+        "  await T.darObjeto(G1, C, 'escudo', Date.now() + 3600000); r.escudoFuera = await T.tieneEscudo(G2, C);",
         "  await A.resetAura(G1); r.reset = [await A.getAura(G2, Q), await A.verCaja(G3, P)];",
         "  console.log('R12G' + JSON.stringify({ ...r, ST: A.STARTING_AURA }));",
         "  process.exit(0); })();",
@@ -3890,6 +3908,13 @@ const di=async(quien,texto,extra)=>{
         if (/EN COOLDOWN/.test(r.tiradas[0] || '') || !/TIRADA EN COOLDOWN/.test(r.tiradas[1] || '')) {
           mal(`la espera de la tirada se salta cambiando de grupo: ${(r.tiradas[1] || '').slice(0, 60)}`);
         }
+        const enEspera = (r.robos || []).filter((t) => /ROBO EN COOLDOWN/.test(t)).length;
+        if (enEspera !== 1 || (r.robos || []).length < 2) {
+          mal(`dos *!robo* del mismo ladrón a la vez, uno en cada grupo: ${enEspera} rebotan por la espera (tiene que ser 1, o roba dos veces): ${(r.robos || []).map((t) => t.slice(0, 30)).join(' | ')}`);
+        }
+        if (r.pagadas !== 1) mal(`la tirada hecha en un grupo no cuenta en otro (${r.pagadas}): las tiradas que pagan se multiplican por el número de grupos`);
+        if (r.ganzuas !== 1) mal(`dos *!comprar ganzua* a la vez, uno en cada grupo, dan ${r.ganzuas}: el límite de un objeto de ventaja cada 12 h es de la persona`);
+        if (!r.escudoFuera) mal('un escudo comprado en un grupo no protege en otro: se roba el mismo saldo desde el grupo de al lado');
         if (r.reset[0] !== SUELO_TODOS || r.reset[1] !== 0) mal(`*!resetaura* desde un grupo no deja al suelo a los de los demas: ${r.reset.join(' · ')}`);
       }
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
@@ -3903,7 +3928,7 @@ const di=async(quien,texto,extra)=>{
     ];
     if (porGrupo.length) mal(`hay esperas del monedero que vuelven a ir por grupo: ${porGrupo.join(' · ').slice(0, 200)}`);
     if (!/function llaveRobo[\s\S]{0,120}clavesMapa\(`\$\{BOLSA\}\|`/.test(roboSrc)) mal('la espera del robo vuelve a ir por grupo: se roba el doble estando en dos');
-    if (fallos === antes) console.log(verde('   ✓ los monederos de cada grupo se juntan sin perder aura y con copia, el saldo y la caja son los mismos en todos, el !top enseña solo a los suyos, y las esperas y el reset son por persona'));
+    if (fallos === antes) console.log(verde('   ✓ los monederos de cada grupo se juntan sin perder aura y con copia, el saldo y la caja son los mismos en todos, el !top enseña solo a los suyos, las esperas, el escudo, el límite de la tienda y el reset son por persona, y dos robos o dos compras a la vez no pasan los dos'));
   }
 
   // 12h. LAS RACHAS DEL TIER DUEÑO, A TRES (11 oct). Lo fijo el dueño: tres
@@ -20126,26 +20151,50 @@ const manda = async (quien, tipo, opciones) => {
         'alguna frase para quien apunta al bot no le dice que ha apuntado mal: el ataque es a que no sabe mencionar');
     }
     // El reset limpia la espera del top.
+    //
+    // EN UNA COPIA APARTE. Desde que el aura es una sola, *!resetaura* deja al
+    // suelo a todo el mundo, y esta capa no esta detras de botEnMarcha(): corria
+    // contra data/ de verdad. Un `npm run check` entero en la VPS habria puesto
+    // a cero el aura de todo el grupo.
     {
-      const cfg = require(path.join(R, 'src/config'));
-      const OWN = `${String(cfg.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
-      const A = require(path.join(R, 'src/utils/auraStore'));
-      const { cmdAura, cmdResetAura } = require(path.join(R, 'src/commands/aura'));
-      const G = `120363116${`${Date.now()}`.slice(-6)}@g.us`;
-      const U1 = '34600001164@s.whatsapp.net', U2 = '34600001165@s.whatsapp.net';
-      const meta = { id: G, participants: [{ id: BOT, admin: 'admin' }, { id: OWN, admin: 'superadmin' }, { id: U1 }, { id: U2 }] };
-      await A.addAura(G, U1, 500); await A.addAura(G, U2, 300);
-      const out = [];
-      const s116 = { user: { id: BOT }, sendMessage: async (j, c) => { out.push(c); return { key: { id: 'x' } }; } };
-      const top = async () => {
-        out.length = 0;
-        await cmdAura(s116, { key: { remoteJid: G, participant: U1, fromMe: false, id: `T${Math.random()}` } }, ['top'], meta);
-        return out.some((c) => (c.mentions || []).length > 0);
-      };
-      exige(await top(), 'el top de prueba no ha salido: esta comprobacion no mira nada');
-      exige(!(await top()), 'el top sale dos veces seguidas: la espera no esta puesta y esto no prueba nada');
-      await cmdResetAura(s116, { key: { remoteJid: G, participant: OWN, fromMe: true, id: 'RS116' } }, meta);
-      exige(await top(), 'tras *!resetaura* el top sigue en espera: el grupo no puede ver el marcador nuevo');
+      const os116 = require('os');
+      const caja = fs.mkdtempSync(path.join(os116.tmpdir(), 'reset116-'));
+      try {
+        fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+        fs.mkdirSync(path.join(caja, 'data'));
+        fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+        const guion = [
+          "const A = require('./src/utils/auraStore'); const { cmdAura, cmdResetAura } = require('./src/commands/aura');",
+          "const BOT = '34600000116@s.whatsapp.net', OWN = '33600001160@s.whatsapp.net', G = '120363116000116@g.us';",
+          "const U1 = '34600001164@s.whatsapp.net', U2 = '34600001165@s.whatsapp.net';",
+          "const meta = { id: G, participants: [{ id: BOT, admin: 'admin' }, { id: OWN, admin: 'superadmin' }, { id: U1 }, { id: U2 }] };",
+          "const out = []; const sk = { user: { id: BOT }, sendMessage: async (j, c) => { out.push(c); return { key: { id: 'x' } }; } };",
+          "const top = async () => { out.length = 0; await cmdAura(sk, { key: { remoteJid: G, participant: U1, fromMe: false, id: 'T' + Math.random() } }, ['top'], meta); return out.some((c) => (c.mentions || []).length > 0); };",
+          "(async () => { await A.addAura(G, U1, 500); await A.addAura(G, U2, 300);",
+          "  const r = { primero: await top(), segundo: await top() };",
+          "  await cmdResetAura(sk, { key: { remoteJid: G, participant: OWN, fromMe: true, id: 'RS116' } }, meta);",
+          "  r.tras = await top();",
+          "  console.log('R116' + JSON.stringify(r)); process.exit(0); })();",
+        ].join('\n');
+        const sal = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 30000,
+          env: { ...process.env, OWNER_NUMBER: '33600001160' } });
+        const linea = (sal.stdout || '').split('\n').find((l) => l.startsWith('R116'));
+        const r = linea ? JSON.parse(linea.slice(4)) : null;
+        exige(!!r, `la prueba del reset no llegó al final: ${((sal.stderr || '') + (sal.stdout || '')).trim().split('\n').slice(-2).join(' | ').slice(0, 200)}`);
+        if (r) {
+          exige(r.primero, 'el top de prueba no ha salido: esta comprobacion no mira nada');
+          exige(!r.segundo, 'el top sale dos veces seguidas: la espera no esta puesta y esto no prueba nada');
+          exige(r.tras, 'tras *!resetaura* el top sigue en espera: el grupo no puede ver el marcador nuevo');
+        }
+      } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    }
+    // Y que ninguna capa vuelva a resetear el aura de verdad: el reset es de
+    // todos, asi que solo se prueba dentro de una copia.
+    {
+      const yo = fs.readFileSync(__filename, 'utf8');
+      const fuera = yo.split('\n').filter((l) => /\b(resetAura|cmdResetAura)\(/.test(l)
+        && !/^\s*"/.test(l) && !/^\s*\/\//.test(l) && !/test\(l\)/.test(l));
+      exige(fuera.length === 0, `hay capas que resetean el aura de data/ de verdad: ${fuera.map((l) => l.trim()).join(' · ').slice(0, 200)}`);
     }
     if (fallos === antes116) console.log(verde('   ✓ el bot no se aplica comandos a si mismo, y el reset deja pedir el top al momento'));
   }

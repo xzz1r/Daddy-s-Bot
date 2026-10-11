@@ -645,7 +645,7 @@ function textoAuraInfo() {
   // escala de todo lo demas.
   return `*LA GUÍA DEL AURA*
 
-La moneda del grupo. Empiezas con *${fmt(ARRANQUE)}* y casi todo cuesta.
+La moneda del bot, igual en todos los grupos. Empiezas con *${fmt(ARRANQUE)}* y casi todo cuesta.
 
 *Para tener más: escribe, y no faltes ningún día.* Es lo único que suma de verdad. Lo demás es jugártela.
 

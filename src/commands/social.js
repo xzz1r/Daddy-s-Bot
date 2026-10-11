@@ -314,7 +314,7 @@ async function cmdCasino(sock, msg, groupMeta) {
   const text =
     `*AURA — HOY*\n\n` +
     `Mensajes hoy: *${fmt(count)}*\n` +
-    `Tiradas que pagan: *${fmt(quedan)}* de ${TIRADAS_PAGADAS}\n` +
+    `Tiradas que pagan: *${fmt(quedan)}* de ${TIRADAS_PAGADAS}, entre todos los grupos\n` +
     `${lineaRacha}\n` +
     `${lineaBono}\n` +
     `${pickFresh(AURA_LINES, `${jid}|auralines`)}\n\n` +

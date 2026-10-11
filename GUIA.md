@@ -963,7 +963,9 @@ Un cambio que toca 62 pools para arreglar 6 va a romper algo siempre.
 Solo lo que cambia cómo se escriben sus frases. Lo demás está en `MOTOR.md`.
 
 - **Aura** (`!aura`): economía con saldo, apuestas (cooldown 3 h), robos y
-  rachas diarias. Tono de las apuestas: crónica de sucesos, no roast. Ganar
+  rachas diarias. El saldo y la caja son uno por persona, los mismos en todos
+  los grupos; los bonos por escribir y la racha son de cada grupo. Una frase
+  no puede decir «tu aura en este grupo». Tono de las apuestas: crónica de sucesos, no roast. Ganar
   suena a hazaña y perder a velatorio con sorna. El bot no consuela.
 - **Robo** (`!robo`): tiene los pools más grandes del bot (`ROB_FAIL`, 268
   frases).
@@ -1006,18 +1008,22 @@ Solo lo que cambia cómo se escriben sus frases. Lo demás está en `MOTOR.md`.
 
   | Registro | Cuáles | Dónde está el chiste |
   |---|---|---|
-  | Sumisión | `!hug` `!kiss` `!cuddle` `!pat` `!handhold` `!feed` `!nom` `!peck` `!tickle` `!sleep` `!pout` | en que **quien recibe cede**: hace sitio sin que se lo pidan, agacha la cabeza, abre la boca, ve la trampa y pasa por ella igual. Su decisión, no el gesto |
+  | Sumisión | `!hug` `!kiss` `!cuddle` `!pat` `!handhold` `!feed` `!nom` `!peck` `!tickle` `!sleep` `!pout` `!lamer` `!kabedon` | en que **quien recibe cede**: hace sitio sin que se lo pidan, agacha la cabeza, abre la boca, ve la trampa y pasa por ella igual. Su decisión, no el gesto |
   | Violencia | `!punch` `!slap` `!stomp` `!bonk` `!chomp` `!yeet` `!kill` | física: dónde pega, qué se rompe, cómo suena. No se arregla con un taco al final |
-  | Incomodidad | `!stare` `!laugh` `!bleh` | no se toca a nadie y marca igual. `!laugh` es el único donde el chiste no es quien lo recibe, sino que no lo era. En `!bleh`, quien recibe se queda sin respuesta |
+  | Incomodidad | `!stare` `!laugh` `!bleh` `!facepalm` `!baka` `!smug` `!nosebleed` | no se toca a nadie y marca igual. `!laugh` es el único donde el chiste no es quien lo recibe, sino que no lo era. En `!bleh` y `!smug`, quien recibe se queda sin respuesta. En `!facepalm` y `!baka` el chiste es lo que ha dicho o hecho quien lo recibe, y en `!nosebleed`, lo que provoca: es un piropo bestia en forma de reacción |
   | Explícito | `!fuck` `!anal` `!cum` `!spank` | crudo de verdad, no insinuado, y a tres tiempos: acto, reacción y el complemento que remata. `!cum` cuenta el después: cómo queda quien lo recibe |
 
-  Y tres reglas que valen para todas: **la frase no describe la acción, la
+  Y cuatro reglas que valen para todas: **la frase no describe la acción, la
   comenta** (el gif ya se ve, y contar otra vez lo que pasa es escribir el pie
-  de una foto), **el chiste apunta a quien la recibe, nunca a quien la manda**, y
+  de una foto), **el chiste apunta a quien la recibe, nunca a quien la manda**,
   **ni %A ni %V tienen género**: cualquiera del grupo cae en cualquiera de las
   dos menciones, así que una frase que dice «él» o cierra en -o falla el día que
-  le toca a ellas, con su nombre delante. La excepción es `!fuck`, que el dueño
-  quiere así.
+  le toca a ellas, con su nombre delante (la excepción es `!fuck`, que el dueño
+  quiere así), y **todo tiene que tener sentido** (lo pidió el dueño, 11 oct):
+  la escena es la del gif entre esos dos, y el chat cuando sume — lo que alguien
+  ha escrito, el grupo mirando. Nada de inventarse otra escena que no pega con
+  el gif (el kebab, el ascensor y la vecina, la abuela, el coche) ni de gags
+  cutres de relleno (el eructo, el pedo, los mocos).
 
   `ROAST_USUARIO` va **en otro mensaje**, en cursiva, y se ríe de quien ha pagado
   aura por mandar un gesto animado a alguien que tiene a dos metros. **Sale una

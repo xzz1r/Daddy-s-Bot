@@ -118,9 +118,16 @@ function freshBucket(groupJid) {
 //
 // Comparte la ventana de 24 h con el contador de mensajes, así que se reinicia
 // solo y sin ningún temporizador.
-async function contarTirada(groupJid, userJid) {
+//
+// Y ES POR PERSONA, NO POR GRUPO, desde que el aura es una sola (auraStore,
+// CLAVE_TODOS). Contadas por grupo, quien estuviera en dos cobraba el doble de
+// tiradas de pago sobre el mismo saldo. Viven en un cajón propio con el mismo
+// corte de día; las funciones siguen recibiendo el grupo y no lo usan.
+const TIRADAS = '__todos';
+
+async function contarTirada(_groupJid, userJid) {
   await load();
-  const g = freshBucket(groupJid);
+  const g = freshBucket(TIRADAS);
   // Misma persona, mismas tiradas: si no se juntan, un @lid y un teléfono
   // dan hasta el doble de tiradas de pago al día.
   const { clave } = juntarPersona(g.tiradas, userJid, sumar);
@@ -131,9 +138,9 @@ async function contarTirada(groupJid, userJid) {
 }
 
 // Cuántas lleva hoy, sin sumar ninguna (para poder enseñarlo en !aura hoy).
-async function tiradasDeHoy(groupJid, userJid) {
+async function tiradasDeHoy(_groupJid, userJid) {
   await load();
-  const g = store[groupJid];
+  const g = store[TIRADAS];
   if (!g || typeof g.dia !== 'string' || !g.tiradas) return 0;
   if (g.dia !== diaDe(Date.now())) return 0;
   return sumaPersona(g.tiradas, userJid);

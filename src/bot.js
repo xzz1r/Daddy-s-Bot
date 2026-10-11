@@ -913,15 +913,18 @@ async function connectToWhatsApp() {
 
   sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr, reachoutTimeLock }) => {
     // WhatsApp restringe a las cuentas nuevas o marcadas para que no contacten
-    // desconocidos. Mientras esta activo, !add falla con
-    // `account_reachout_restricted` y el error parece del numero al que se
-    // intenta añadir, cuando en realidad es del bot. Se anota para poder
-    // explicarlo y decir hasta cuando.
+    // desconocidos. Se anota y, sobre todo, se AVISA en el log: es la señal
+    // temprana de que la cuenta esta en el punto de mira (ver wa.js).
+    //
+    // El aviso decia que *!add* no podria añadir a nadie, y *!add* ya no
+    // existe: un log que nombra un comando quitado manda a buscar un fallo
+    // donde no lo hay. Lo que la restriccion corta de verdad es escribir a
+    // desconocidos o meterlos en grupos.
     if (reachoutTimeLock) {
       anotarRestriccionContacto(reachoutTimeLock);
       logger.warn(reachoutTimeLock.isActive
-        ? `WhatsApp ha restringido a esta cuenta para contactar desconocidos${reachoutTimeLock.timeEnforcementEnds ?` hasta ${new Date(reachoutTimeLock.timeEnforcementEnds).toLocaleString('es-ES')}`: ''}. !add no podra añadir a gente nueva hasta entonces.`
-        : 'WhatsApp ha levantado la restriccion de contacto. !add vuelve a funcionar con normalidad.');
+        ? `WhatsApp ha restringido a esta cuenta para contactar desconocidos${reachoutTimeLock.timeEnforcementEnds ?` hasta ${new Date(reachoutTimeLock.timeEnforcementEnds).toLocaleString('es-ES')}`: ''}. No puede escribir a gente nueva ni meterla en grupos hasta entonces.`
+        : 'WhatsApp ha levantado la restriccion de contacto: la cuenta vuelve a poder escribir a gente nueva.');
     }
 
     if (qr) {

@@ -560,6 +560,24 @@ async function laTienda(sock, msg, jid, sender, args, groupMeta) {
   // se sabe cual de las dos cosas esta pasando.
   if (auraApagada(jid)) return avisarApagada(sock, jid, msg);
 
+  // UNA COMPRA A LA VEZ POR PERSONA. El limite de un objeto de ventaja cada
+  // 12 h se lee con un await y se apunta despues de cobrar, asi que dos
+  // *!comprar ganzua* a la vez —o uno en cada grupo, desde que el limite es de
+  // la persona— pasaban los dos y se llevaban dos. La segunda se ignora: la
+  // primera ya contesta.
+  const kCompra = canonicalJid(sender);
+  if (compraEnCurso.has(kCompra)) return;
+  compraEnCurso.add(kCompra);
+  try {
+    return await comprarObjeto(sock, msg, jid, sender, que, nombre);
+  } finally {
+    compraEnCurso.delete(kCompra);
+  }
+}
+
+const compraEnCurso = new Set();
+
+async function comprarObjeto(sock, msg, jid, sender, que, nombre) {
   const obj = OBJETOS[que];
   // Quien intento atracar la tienda no compra en ella hasta que se le pase. Va
   // ANTES de mirar el saldo: el motivo por el que no puede comprar es el veto,
@@ -926,22 +944,33 @@ async function butron(sock, msg, jid, sender, groupMeta) {
     }, { quoted: msg });
   }
 
+  // El intento gasta el reloj salga como salga: si no, se tira hasta acertar.
+  //
+  // Y SE RECLAMA AQUI, ANTES DEL PRIMER await. Estaba debajo de la lectura de
+  // los saldos, y en ese hueco cabia otro *!robarbanco* del mismo: los dos
+  // pasaban la espera y los dos cavaban. Si no se llega a cavar (no le llega,
+  // o la caja no tiene lo minimo), el reloj se devuelve como estaba.
+  limpiaViejos(ultimoButron, ahora);
+  ultimoButron.set(kYo.clave, ahora);
+  const devolverReloj = () => {
+    if (kYo.valor) ultimoButron.set(kYo.clave, kYo.valor);
+    else ultimoButron.delete(kYo.clave);
+  };
+
   const [suelto, guardado] = await Promise.all([getAura(jid, sender), cajaDePersona(jid, target)]);
   if (suelto < BUTRON.minimoAtacante) {
+    devolverReloj();
     return sock.sendMessage(jid, {
       text: `Para cavar hace falta tener *${fmt(BUTRON.minimoAtacante)}* de aura suelta, por si toca pagar la multa.`,
     }, { quoted: msg });
   }
   if (guardado < BUTRON.minimoCaja) {
+    devolverReloj();
     return sock.sendMessage(jid, {
       text: `${el} tiene *${fmt(guardado)}* en el banco. Por eso no se cava: hace falta que haya *${fmt(BUTRON.minimoCaja)}*.`,
       mentions: [target],
     }, { quoted: msg });
   }
-
-  // El intento gasta el reloj salga como salga: si no, se tira hasta acertar.
-  limpiaViejos(ultimoButron, ahora);
-  ultimoButron.set(kYo.clave, ahora);
 
   const vO = isOwner(target, false, groupMeta);
   const chance = Math.max(0.10, BUTRON.base - (vO ? BUTRON.contraOwner : 0));
@@ -1175,7 +1204,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: aviso(A_TI_MISMO, jid, 'yo') }, { quoted: msg });
   }
 
-  // Cooldown por atacante y grupo. La cifra es ROB_COOLDOWN_MS.
+  // Cooldown por atacante, el mismo en todos los grupos. La cifra es ROB_COOLDOWN_MS.
   const coolKey = llaveRobo(jid, sender);
   const last = lastRob.get(coolKey) || 0;
   const remaining = ROB_COOLDOWN_MS - (Date.now() - last);
@@ -1196,12 +1225,25 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     }, { quoted: msg });
   }
 
-  // Escudo de la víctima: si acaban de robarle, está protegida un rato. Esto va
-  // ANTES de reclamar el cooldown para que intentarlo contra alguien protegido
-  // no te queme tus 10 minutos.
+  // Claim the cooldown synchronously, BEFORE any await, so two concurrent !robo
+  // can't both pass the check above and steal twice. Refunded on the paths below
+  // where no robbery actually happens, so a failed attempt doesn't burn 10 min.
+  //
+  // ESTABA DEBAJO DEL ESCUDO, y el escudo se mira con un await: entre la
+  // comprobacion de arriba y esta linea cabia otro *!robo* del mismo ladron,
+  // y los dos robaban. Desde que la espera es una para todos los grupos, basta
+  // con escribirlo a la vez en dos grupos. Ahora se reclama aqui y el escudo la
+  // DEVUELVE, que es lo que el escudo queria: no quemar los 10 minutos.
+  if (lastRob.size >= 2000) lastRob.delete(lastRob.keys().next().value);
+  lastRob.set(coolKey, Date.now());
+  ultimoFueAsalto.delete(coolKey);
+
+  // Escudo de la víctima: si acaban de robarle, está protegida un rato.
+  // Intentarlo contra alguien protegido no te quema tus 10 minutos.
   // Escudo COMPRADO: va antes que el natural porque es el que alguien ha pagado
   // y merece un mensaje propio. Tampoco quema el cooldown del que lo intenta.
   if (await tienda.tieneEscudo(jid, target)) {
+    lastRob.delete(coolKey); // no robó: devuelve el cooldown
     return sock.sendMessage(jid, {
       text: fraseCon(RX.ESCUDO_SALVA, `${jid}|escudo`, { '%A': tag(sender), '%V': tag(target) }),
       mentions: [sender, target],
@@ -1210,6 +1252,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
 
   const escudo = escudoRestante(jid, target);
   if (escudo > 0) {
+    lastRob.delete(coolKey); // no robó: devuelve el cooldown
     return sock.sendMessage(jid, {
       text: bloqueCooldown({
         titulo: `@${target.split('@')[0]} EN GUARDIA`,
@@ -1219,13 +1262,6 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       mentions: [target],
     }, { quoted: msg });
   }
-
-  // Claim the cooldown synchronously, BEFORE any await, so two concurrent !robo
-  // can't both pass the check above and steal twice. Refunded on the paths below
-  // where no robbery actually happens, so a failed attempt doesn't burn 10 min.
-  if (lastRob.size >= 2000) lastRob.delete(lastRob.keys().next().value);
-  lastRob.set(coolKey, Date.now());
-  ultimoFueAsalto.delete(coolKey);
 
   const [auraA, auraV] = await Promise.all([
     getAura(jid, sender),

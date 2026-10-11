@@ -2546,7 +2546,12 @@ async function porYtDlpFotos(url, cancion = null, yaNoHaceFaltaLaRed = null) {
   return montarPase(fotos, null, cancion, yaNoHaceFaltaLaRed);
 }
 
-async function porYtDlp(url, plataforma) {
+// `soltarHueco` llega de `traer`, que es quien tiene cogido el hueco de
+// descarga: el pase de fotos lo suelta en cuanto ya no hace falta la red. Aqui
+// se usaba sin recibirlo, y un carrusel de fotos de Instagram o TikTok que
+// yt-dlp no veia como video reventaba con «soltarHueco is not defined» en vez
+// de montar el pase.
+async function porYtDlp(url, plataforma, soltarHueco = null) {
   const base = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}`);
   const args = [
     '-f', PLATAFORMAS[plataforma].formato,
@@ -2714,7 +2719,7 @@ async function traer(url, plataforma) {
     // servidor» cuando lo que habia pasado era otra cosa, y mandaba a arreglar
     // donde no era.
     try {
-      if (!fichero) fichero = await porYtDlp(url, plataforma);
+      if (!fichero) fichero = await porYtDlp(url, plataforma, soltarHueco);
     } catch (e) {
       // UN TUIT DE FOTOS NO ES UN FALLO. yt-dlp contesta «No video formats
       // found» y hasta aqui eso moria como error, asi que *!x* con un tuit de

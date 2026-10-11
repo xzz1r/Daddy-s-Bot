@@ -85,10 +85,6 @@ async function cargarMutes() {
 }
 cargarMutes();
 
-function muteKey(groupJid, userJid) {
-  return `${groupJid}|${canonicalJid(userJid)}`;
-}
-
 // UN MUTEO SE GUARDA BAJO LAS DOS FORMAS DE LA PERSONA, y hasta ahora bajo una.
 //
 // canonicalJid() colapsa @lid y telefono a la misma clave SOLO CUANDO YA CONOCE
@@ -1096,32 +1092,6 @@ async function purgeBusinesses(sock, msg, groupJid, groupMeta) {
   }
 
   return sock.sendMessage(groupJid, purgeReport('Anti-empresa', r));
-}
-
-// !add <numero> — add a user by phone number (owner only)
-// Extrae un número de teléfono de lo que sea que haya escrito el owner.
-//
-// Esta función es el motivo por el que *!add* fallaba tanto. La versión anterior
-// hacía `args[0].replace(/[^\d]/g,'')`, o sea: miraba SOLO la primera palabra.
-// Con eso, de las cinco formas normales de escribir un número, tres se caían:
-//
-//   !add +34600111222        -> funcionaba
-//   !add wa.me/34600111222   -> funcionaba
-//   !add +34 600 11 12 22    -> leía "+34" y contestaba "!add <número>"
-//   !add 34 600 111 222      -> igual
-//   !add (34) 600-111-222    -> igual
-//
-// Y un número copiado de la agenda o de un contacto SIEMPRE lleva espacios. Por
-// eso "no funciona muchas veces": el bot ni llegaba a intentarlo.
-function numeroDeArgs(args) {
-  const todo = (args || []).join(' ');
-  // Un enlace wa.me / api.whatsapp.com trae el número en un parámetro o al final.
-  const enlace = todo.match(/(?:wa\.me\/|phone=)(\d{6,15})/i);
-  const digitos = enlace ? enlace[1] : todo.replace(/\D/g, '');
-  // Un JID pegado entero ("34600111222@s.whatsapp.net") deja basura detrás al
-  // quitar lo que no son dígitos; se corta a un largo de teléfono plausible.
-  if (digitos.length > 15) return digitos.slice(0, 15);
-  return digitos;
 }
 
 // !antilink on/off — solo owner. Se borra CUALQUIER enlace:
