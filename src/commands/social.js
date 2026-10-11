@@ -437,6 +437,7 @@ ${p}aura  ·  ${p}saldo · ${p}miaura  ·  ${p}top · ${p}ranking · ${p}auratop
 ${p}hoy  ·  ${p}casino  ·  ${p}apostar · ${p}apuesta · ${p}apuestas
 ${p}duel · ${p}duelo · ${p}1v1
 ${p}dar · ${p}regalar · ${p}transferir · ${p}pagar · ${p}donar
+${p}premiar · ${p}bonificar · ${p}otorgar — solo el dueño y los co-dueños
 ${p}guia · ${p}aurahelp · ${p}guiaaura
 ${bloqueAccionesTodo(p)}
 *ROBO*
@@ -582,6 +583,7 @@ ${bloqueAcciones(p, c)}
 *${p}apostar* mitad/todo/2k · *${p}duel* @user · *${p}dar* @user <cant.>
 *${p}tienda* · *${p}comprar* <objeto> · *${p}bote* · *${p}caja*
 *${p}aura* la tirada · *${p}saldo* · *${p}top* · *${p}hoy* · *${p}guia*
+*${p}premiar* @user <cant.> — aura nueva, solo la dan el dueño y los co-dueños
 
 *ACTIVIDAD*
 *${p}fantasmas* ${c('fantasmas')} · *${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b

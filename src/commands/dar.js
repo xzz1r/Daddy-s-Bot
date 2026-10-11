@@ -1,6 +1,6 @@
-const { getSender, getTarget, sameUser } = require('../utils/wa');
-const { transferAura, flushAura } = require('../utils/auraStore');
-const { fmt, parseCantidad } = require('../utils/helpers');
+const { getSender, getTarget, sameUser, isOwner, isBotJid } = require('../utils/wa');
+const { transferAura, flushAura, addAura } = require('../utils/auraStore');
+const { fmt, parseCantidad, avisoPermiso } = require('../utils/helpers');
 const { aportarAlBote } = require('../utils/roboStore');
 const logger = require('../utils/logger');
 const { lineaAura } = require('../utils/formatoJuego');
@@ -88,4 +88,55 @@ async function cmdDar(sock, msg, args) {
   }, { quoted: msg });
 }
 
-module.exports = { cmdDar };
+// ─── !premiar: AURA NUEVA, DE LOS DUEÑOS ─────────────────────────────────────
+//
+// Lo pidio el dueño (11 oct), a peticion del co-dueño: un comando que da el
+// aura que se pida. No es *!dar*: no sale del saldo de nadie, se crea. Por eso
+// solo lo usan el dueño y los co-dueños (isOwner).
+//
+// Y NO ES SECRETO, a proposito: «la idea es que las personas sepan quien puede
+// regalarle aura». Sale en el menu de todos, y el mensaje dice quien la da.
+//
+// El tope esta para que un cero de mas al escribir no rompa la economia de un
+// golpe: un millón por vez sobra para cualquier premio.
+const PREMIO_MAX = 1000000;
+
+async function cmdPremiar(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
+  }
+  const sender = getSender(msg);
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: avisoPermiso(jid, sender, groupMeta) }, { quoted: msg });
+  }
+  const target = getTarget(msg);
+  if (!target) {
+    return sock.sendMessage(jid, { text: 'Menciona a quién le das el aura: *!premiar @alguien 500*' }, { quoted: msg });
+  }
+  if (isBotJid(sock, target)) {
+    return sock.sendMessage(jid, { text: 'Al bot no le hace falta aura.' }, { quoted: msg });
+  }
+  const amount = parseCantidad(args).valor;
+  if (!amount || amount < 1) {
+    return sock.sendMessage(jid, { text: 'Indica cuánta: *!premiar @alguien 500*' }, { quoted: msg });
+  }
+  if (amount > PREMIO_MAX) {
+    return sock.sendMessage(jid, { text: `Como mucho *${fmt(PREMIO_MAX)}* de una vez.` }, { quoted: msg });
+  }
+
+  const { current } = await addAura(jid, target, amount);
+  const sTag = `@${sender.split('@')[0]}`;
+  const tTag = `@${target.split('@')[0]}`;
+  logger.info(`premiar: ${sender} da ${amount} de aura a ${target} en ${jid}`);
+  return sock.sendMessage(jid, {
+    text:
+      `*REGALO DE AURA*\n\n` +
+      `${sTag} le regala *${fmt(amount)} de aura* a ${tTag}\n\n` +
+      `${lineaAura(tTag, amount, current)}\n\n` +
+      `_Aura nueva: no sale del saldo de nadie. Solo la pueden dar el dueño y los co-dueños._`,
+    mentions: [...new Set([sender, target])],
+  }, { quoted: msg });
+}
+
+module.exports = { cmdDar, cmdPremiar, PREMIO_MAX };

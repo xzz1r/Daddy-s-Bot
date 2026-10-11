@@ -3754,6 +3754,54 @@ const di=async(quien,texto,extra)=>{
     if (fallos === antes) console.log(verde('   ✓ !pfp prueba 52 y 521 y la miniatura antes de rendirse, !s explica lo de ver una vez sin cobrar, y un @lid se traduce con la sesion sin abrir el blindaje'));
   }
 
+  // 12f. !premiar: AURA NUEVA, SOLO DEL DUEÑO Y LOS CO-DUEÑOS (11 oct). Que el
+  // dueño la da y llega entera, que un miembro no puede, que el tope corta, y
+  // que sale en el menu de todos (no es secreto: lo pidio asi). En una copia
+  // aparte, que esto escribe aura.
+  {
+    console.log('\n12f. !premiar DA AURA NUEVA, Y SOLO DESDE EL TIER DUEÑO');
+    const antes = fallos;
+    const os12f = require('os');
+    const caja = fs.mkdtempSync(path.join(os12f.tmpdir(), 'premiar-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const D = require('./src/commands/dar'); const A = require('./src/utils/auraStore');",
+        "const G = '120000912@g.us', OWN = '33600000001@s.whatsapp.net', CO = '34600000123@s.whatsapp.net', M = '34600000555@s.whatsapp.net', V = '34600000666@s.whatsapp.net';",
+        "const meta = { participants: [{ id: OWN, admin: 'superadmin' }, { id: CO }, { id: M }, { id: V }] };",
+        "const msg = (quien, txt) => ({ key: { remoteJid: G, participant: quien, fromMe: false, id: 'P' + Math.random() }, message: { extendedTextMessage: { text: txt, contextInfo: { mentionedJid: [V] } } } });",
+        "(async () => { const out = []; const sk = { user: { id: '549199@s.whatsapp.net' }, sendMessage: async (j, c) => { out.push(c.text || ''); return {}; } };",
+        "  const v0 = await A.getAura(G, V);",
+        "  await D.cmdPremiar(sk, msg(OWN, '!premiar @x 500'), ['@x', '500'], meta); const v1 = await A.getAura(G, V);",
+        "  await D.cmdPremiar(sk, msg(CO, '!premiar @x 250'), ['@x', '250'], meta); const v2 = await A.getAura(G, V);",
+        "  await D.cmdPremiar(sk, msg(M, '!premiar @x 999'), ['@x', '999'], meta); const v3 = await A.getAura(G, V);",
+        "  await D.cmdPremiar(sk, msg(OWN, '!premiar @x 5000000'), ['@x', '5000000'], meta); const v4 = await A.getAura(G, V);",
+        "  await D.cmdPremiar(sk, msg(OWN, '!premiar @x'), ['@x'], meta); const v5 = await A.getAura(G, V);",
+        "  console.log('R12F' + JSON.stringify({ d1: v1 - v0, d2: v2 - v1, d3: v3 - v2, d4: v4 - v3, d5: v5 - v4, out }));",
+        "  process.exit(0); })();",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 30000,
+        env: { ...process.env, OWNER_NUMBER: '33600000001', CO_OWNERS: '34600000123' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R12F'));
+      const r = linea ? JSON.parse(linea.slice(4)) : {};
+      if (r.d1 !== 500) { fallos++; console.log(rojo(`   ✗ el dueño premia 500 y llegan ${r.d1}`)); }
+      if (r.d2 !== 250) { fallos++; console.log(rojo(`   ✗ un co-dueño premia 250 y llegan ${r.d2}: el comando tiene que ser de los dos`)); }
+      if (r.d3 !== 0) { fallos++; console.log(rojo(`   ✗ un miembro ha podido premiar ${r.d3} de aura`)); }
+      if (r.d4 !== 0 || r.d5 !== 0) { fallos++; console.log(rojo(`   ✗ se premia por encima del tope o sin cantidad: ${r.d4} · ${r.d5}`)); }
+      const textos = r.out || [];
+      if (!textos[0] || !/REGALO DE AURA/.test(textos[0]) || !/@33600000001/.test(textos[0])) {
+        fallos++; console.log(rojo(`   ✗ el regalo no dice quién lo da, y el dueño lo quiere a la vista: ${(textos[0] || '').slice(0, 80)}`));
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    const menu = fs.readFileSync(path.join(R, 'src/commands/social.js'), 'utf8');
+    if ((menu.match(/premiar\*? @user|\$\{p\}premiar/g) || []).length < 2) {
+      fallos++; console.log(rojo('   ✗ !premiar no sale en los dos menús: el dueño quiere que se sepa quién puede regalar aura'));
+    }
+    if (fallos === antes) console.log(verde('   ✓ el dueño y los co-dueños regalan la cifra exacta, un miembro no puede, y sale en el menú de todos'));
+  }
+
   // 12c. SIN PRECIO DOBLE EN TOPS, SHIP Y HERRAMIENTAS. Lo pidio el dueño: esos
   // cuestan siempre lo mismo. El resto sigue con la rafaga.
   {
