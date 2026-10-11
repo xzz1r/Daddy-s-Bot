@@ -101,10 +101,11 @@ async function cmdDar(sock, msg, args) {
 // golpe: un millón por vez sobra para cualquier premio.
 const PREMIO_MAX = 1000000;
 
-// *!premiaryo* es lo mismo, para uno mismo y sin mencionar a nadie. Lo pidio el
-// dueño (11 oct). Misma puerta, mismo tope y el mismo mensaje a la vista: que
-// se sepa quien puede darse aura tambien es saber quien puede regalarla.
-async function cmdPremiar(sock, msg, args, groupMeta, { aMiMismo = false } = {}) {
+//
+// En el menu va bajo *ADMINS PREMIUM*, que es como el dueño quiere que se llame
+// el tier (11 oct). Y asi se le nombra tambien en el mensaje: «el dueño» no sale
+// por WhatsApp (capa 27).
+async function cmdPremiar(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
@@ -113,17 +114,16 @@ async function cmdPremiar(sock, msg, args, groupMeta, { aMiMismo = false } = {})
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
     return sock.sendMessage(jid, { text: avisoPermiso(jid, sender, groupMeta) }, { quoted: msg });
   }
-  const uso = aMiMismo ? '*!premiaryo 500*' : '*!premiar @alguien 500*';
-  const target = aMiMismo ? sender : getTarget(msg);
+  const target = getTarget(msg);
   if (!target) {
-    return sock.sendMessage(jid, { text: `Menciona a quién le das el aura: ${uso}` }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Menciona a quién le das el aura: *!premiar @alguien 500*' }, { quoted: msg });
   }
   if (isBotJid(sock, target)) {
     return sock.sendMessage(jid, { text: 'Al bot no le hace falta aura.' }, { quoted: msg });
   }
   const amount = parseCantidad(args).valor;
   if (!amount || amount < 1) {
-    return sock.sendMessage(jid, { text: `Indica cuánta: ${uso}` }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Indica cuánta: *!premiar @alguien 500*' }, { quoted: msg });
   }
   if (amount > PREMIO_MAX) {
     return sock.sendMessage(jid, { text: `Como mucho *${fmt(PREMIO_MAX)}* de una vez.` }, { quoted: msg });
@@ -136,17 +136,33 @@ async function cmdPremiar(sock, msg, args, groupMeta, { aMiMismo = false } = {})
   return sock.sendMessage(jid, {
     text:
       `*REGALO DE AURA*\n\n` +
-      (aMiMismo
-        ? `${sTag} se regala *${fmt(amount)} de aura*\n\n`
-        : `${sTag} le regala *${fmt(amount)} de aura* a ${tTag}\n\n`) +
+      `${sTag} le regala *${fmt(amount)} de aura* a ${tTag}\n\n` +
       `${lineaAura(tTag, amount, current)}\n\n` +
-      `_Aura nueva: no sale del saldo de nadie. Solo la pueden dar el dueño y los co-dueños._`,
+      `_Aura nueva: no sale del saldo de nadie. Solo la pueden dar los admins premium._`,
     mentions: [...new Set([sender, target])],
   }, { quoted: msg });
 }
 
-function cmdPremiarYo(sock, msg, args, groupMeta) {
-  return cmdPremiar(sock, msg, args, groupMeta, { aMiMismo: true });
+// *!premiaryo* <cant.>: el tier dueño se da aura a si mismo, sin mencionarse.
+//
+// OCULTO, lo pidio el dueño (11 oct). No sale en el menu ni en el «¿querias
+// decir?» (COMANDOS_OCULTOS), a quien no es del tier no le contesta NADA —un
+// «no tienes permiso» confirmaria que existe— y la respuesta es una linea sin
+// cabecera ni mencion, que no llama la atencion.
+//
+// Vale tambien por privado. El aura es la misma en todos los grupos, asi que
+// darsela ahi la da en todos, y no lo ve nadie.
+async function cmdPremiarYo(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  const sender = getSender(msg);
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) return;
+  const amount = parseCantidad(args).valor;
+  if (!amount || amount < 1 || amount > PREMIO_MAX) {
+    return sock.sendMessage(jid, { text: `Indica cuánta, hasta *${fmt(PREMIO_MAX)}*: *!premiaryo 500*` }, { quoted: msg });
+  }
+  const { current } = await addAura(jid, sender, amount);
+  logger.info(`premiaryo: ${sender} se da ${amount} de aura`);
+  return sock.sendMessage(jid, { text: lineaAura('', amount, current) }, { quoted: msg });
 }
 
 module.exports = { cmdDar, cmdPremiar, cmdPremiarYo, PREMIO_MAX };

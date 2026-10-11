@@ -314,7 +314,10 @@ const FAMILIAS = [
   // cmdPremiar en dar.js.
   { nombres: ['premiar', 'bonificar', 'otorgar'], meta: true, aura: true,
     hace: (c) => c.de('dar').cmdPremiar(c.sock, c.msg, c.args, c.meta) },
-  { nombres: ['premiaryo'], meta: true, aura: true,
+  // La misma aura para uno mismo, OCULTA (COMANDOS_OCULTOS). Sin `aura`: con el
+  // aura apagada, el aviso de «apagada» le contestaria a cualquiera y
+  // delataria que el comando existe.
+  { nombres: ['premiaryo'], meta: true,
     hace: (c) => c.de('dar').cmdPremiarYo(c.sock, c.msg, c.args, c.meta) },
 
   // ─── El robo y su tienda ───────────────────────────────────────────────────

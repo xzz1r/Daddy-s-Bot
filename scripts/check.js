@@ -3783,9 +3783,13 @@ const di=async(quien,texto,extra)=>{
         "  await D.cmdPremiar(sk, msg(M, '!premiar @x 999'), ['@x', '999'], meta); const v3 = await A.getAura(G, V);",
         "  await D.cmdPremiar(sk, msg(OWN, '!premiar @x 5000000'), ['@x', '5000000'], meta); const v4 = await A.getAura(G, V);",
         "  await D.cmdPremiar(sk, msg(OWN, '!premiar @x'), ['@x'], meta); const v5 = await A.getAura(G, V);",
-        "  const yo0 = await A.getAura(G, CO); await D.cmdPremiarYo(sk, msg(CO, '!premiaryo 300'), ['300'], meta); const yo1 = await A.getAura(G, CO);",
-        "  const m0 = await A.getAura(G, M); await D.cmdPremiarYo(sk, msg(M, '!premiaryo 300'), ['300'], meta); const m1 = await A.getAura(G, M);",
-        "  console.log('R12F' + JSON.stringify({ d1: v1 - v0, d2: v2 - v1, d3: v3 - v2, d4: v4 - v3, d5: v5 - v4, yo: yo1 - yo0, yoM: m1 - m0, out }));",
+        "  const n0 = out.length; const yo0 = await A.getAura(G, CO); await D.cmdPremiarYo(sk, msg(CO, '!premiaryo 300'), ['300'], meta); const yo1 = await A.getAura(G, CO);",
+        "  const yoTxt = out.slice(n0).join(' '); const n1 = out.length;",
+        "  const m0 = await A.getAura(G, M); await D.cmdPremiarYo(sk, msg(M, '!premiaryo 300'), ['300'], meta); const m1 = await A.getAura(G, M); const yoMTxt = out.slice(n1).join(' ');",
+        "  await D.cmdPremiarYo(sk, { key: { remoteJid: CO, fromMe: false, id: 'DM1' }, message: { conversation: '!premiaryo 200' } }, ['200'], null); const yo2 = await A.getAura(G, CO);",
+        "  const S = require('./src/commands/social'); const menus = []; const skM = { user: sk.user, sendMessage: async (j, c) => { menus.push(c.text || ''); return {}; } };",
+        "  await S.cmdHelp(skM, msg(M, '!menu'), meta, []); await S.cmdHelp(skM, msg(M, '!menu todo'), meta, ['todo']); await S.cmdHelp(skM, msg(CO, '!menu'), meta, []); await S.cmdHelp(skM, msg(CO, '!menu todo'), meta, ['todo']);",
+        "  console.log('R12F' + JSON.stringify({ d1: v1 - v0, d2: v2 - v1, d3: v3 - v2, d4: v4 - v3, d5: v5 - v4, yo: yo1 - yo0, yoDm: yo2 - yo1, yoTxt, yoM: m1 - m0, yoMTxt, menus, out }));",
         "  process.exit(0); })();",
       ].join('\n');
       const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 30000,
@@ -3797,7 +3801,19 @@ const di=async(quien,texto,extra)=>{
       if (r.d3 !== 0) { fallos++; console.log(rojo(`   ✗ un miembro ha podido premiar ${r.d3} de aura`)); }
       if (r.d4 !== 0 || r.d5 !== 0) { fallos++; console.log(rojo(`   ✗ se premia por encima del tope o sin cantidad: ${r.d4} · ${r.d5}`)); }
       if (r.yo !== 300) { fallos++; console.log(rojo(`   ✗ *!premiaryo 300* del tier dueño da ${r.yo} a quien lo escribe`)); }
+      if (r.yoDm !== 200) { fallos++; console.log(rojo(`   ✗ *!premiaryo* por privado da ${r.yoDm}: tiene que valer ahí, que es donde no lo ve nadie`)); }
+      if (/REGALO|@\d/.test(r.yoTxt || '')) { fallos++; console.log(rojo(`   ✗ *!premiaryo* es oculto y contesta con cabecera o mención: ${(r.yoTxt || '').slice(0, 80)}`)); }
       if (r.yoM !== 0) { fallos++; console.log(rojo(`   ✗ un miembro se ha dado ${r.yoM} de aura con *!premiaryo*`)); }
+      if (r.yoMTxt) { fallos++; console.log(rojo(`   ✗ *!premiaryo* le contesta a un miembro, y eso confirma que existe: ${r.yoMTxt.slice(0, 60)}`)); }
+      const [mM, mMtodo, mCo, mCoTodo] = r.menus || [];
+      for (const [quien, m] of [['un miembro', mM], ['un miembro (lista entera)', mMtodo], ['el tier dueño', mCo], ['el tier dueño (lista entera)', mCoTodo]]) {
+        if (!/\*ADMINS PREMIUM\*[\s\S]*premiar/.test(m || '')) { fallos++; console.log(rojo(`   ✗ el menú de ${quien} no pone *!premiar* bajo ADMINS PREMIUM`)); }
+        if (/premiaryo/.test(m || '')) { fallos++; console.log(rojo(`   ✗ *!premiaryo* sale en el menú de ${quien}, y es oculto`)); }
+        if (/SUPERIORES/.test(m || '')) { fallos++; console.log(rojo(`   ✗ el menú de ${quien} sigue diciendo ADMINS SUPERIORES: ahora se llaman ADMINS PREMIUM`)); }
+      }
+      if (/resetaura/.test(mM || '') || /resetaura/.test(mMtodo || '')) { fallos++; console.log(rojo('   ✗ a un miembro le salen los comandos del tier dueño junto a !premiar')); }
+      if (!/resetaura/.test(mCo || '')) { fallos++; console.log(rojo('   ✗ al tier dueño se le han perdido sus comandos de ADMINS PREMIUM')); }
+      if (/dueñ/i.test((r.out || [])[0] || '')) { fallos++; console.log(rojo('   ✗ el regalo nombra al «dueño»: el tier se llama ADMINS PREMIUM')); }
       const textos = r.out || [];
       if (!textos[0] || !/REGALO DE AURA/.test(textos[0]) || !/@33600000001/.test(textos[0])) {
         fallos++; console.log(rojo(`   ✗ el regalo no dice quién lo da, y el dueño lo quiere a la vista: ${(textos[0] || '').slice(0, 80)}`));
@@ -3807,8 +3823,7 @@ const di=async(quien,texto,extra)=>{
     if ((menu.match(/premiar\*? @user|\$\{p\}premiar/g) || []).length < 2) {
       fallos++; console.log(rojo('   ✗ !premiar no sale en los dos menús: el dueño quiere que se sepa quién puede regalar aura'));
     }
-    if (!/premiaryo/.test(menu)) { fallos++; console.log(rojo('   ✗ !premiaryo no sale en el menú')); }
-    if (fallos === antes) console.log(verde('   ✓ el dueño y los co-dueños regalan la cifra exacta (también a sí, con !premiaryo), un miembro no puede, y sale en el menú de todos'));
+    if (fallos === antes) console.log(verde('   ✓ el dueño y los co-dueños regalan la cifra exacta, un miembro no puede, !premiar sale bajo ADMINS PREMIUM en el menú de todos y !premiaryo es oculto (silencio a los demás, vale por privado)'));
   }
 
   // 12g. EL AURA ES LA MISMA EN TODOS LOS GRUPOS (11 oct). Lo pidio el dueño:
@@ -4501,7 +4516,7 @@ const di=async(quien,texto,extra)=>{
       exige(!!cab && /admin/i.test(cab),
         `${nombre} se quedo sin cabecera: el aviso insulta pero ya no dice de quien es el comando`);
       // Y NO PUEDE NOMBRAR AL DUEÑO. Este aviso lo lee el grupo entero; el menu
-      // llama a ese tier "ADMINS SUPERIORES" justo por eso.
+      // llama a ese tier "ADMINS PREMIUM" justo por eso.
       exige(!/\b(dueñ[oa]|owner|creador|jefe)\b/i.test(cab || ''),
         `la cabecera de ${nombre} nombra al dueño: "${cab}"`);
       // Y LA FRASE NO LA REPITE. Si vuelve a empezar por "De admins." se gasta
@@ -5212,7 +5227,7 @@ const di=async(quien,texto,extra)=>{
   //
   // El dueño no quiere que en el grupo se sepa que el bot es suyo, y eso ya
   // costo una pasada: se le quito el nombre a los stickers, se renombro el
-  // bloque OWNER del menu a ADMINS SUPERIORES y se comprobo que el menu no le
+  // bloque OWNER del menu a ADMINS SUPERIORES (hoy ADMINS PREMIUM) y se comprobo que el menu no le
   // nombra ni una vez.
   //
   // Y aun asi habia cuatro sitios mas, porque el menu no es lo unico que sale
@@ -6039,7 +6054,7 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     // ese es un falso positivo barato comparado con no ver nada.
     const menu = fs.readFileSync(path.join(R, 'src/commands/social.js'), 'utf8');
 
-    for (const oculto of ['p', 'purge', 'visto', 'limpiar', 'wipe', 'z']) {
+    for (const oculto of ['p', 'purge', 'visto', 'limpiar', 'wipe', 'z', 'premiaryo']) {
       // 1) fuera del menu
       exige(!new RegExp(`\\$\\{p\\}${oculto}\\b`).test(menu),
         `*!${oculto}* ha aparecido en el menu: es un comando que no puede saber nadie que existe`);

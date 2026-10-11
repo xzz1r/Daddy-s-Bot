@@ -437,7 +437,6 @@ ${p}aura  ·  ${p}saldo · ${p}miaura  ·  ${p}top · ${p}ranking · ${p}auratop
 ${p}hoy  ·  ${p}casino  ·  ${p}apostar · ${p}apuesta · ${p}apuestas
 ${p}duel · ${p}duelo · ${p}1v1
 ${p}dar · ${p}regalar · ${p}transferir · ${p}pagar · ${p}donar
-${p}premiar · ${p}bonificar · ${p}otorgar · ${p}premiaryo — solo el dueño y los co-dueños
 ${p}guia · ${p}aurahelp · ${p}guiaaura
 ${bloqueAccionesTodo(p)}
 *ROBO*
@@ -466,9 +465,10 @@ ${p}fkban · ${p}banear · ${p}ban  ·  ${p}fkunban · ${p}desbanear · ${p}unba
 ${p}fklist  ·  ${p}antifake · ${p}antifk
 ${p}pfp · ${p}foto  ·  ${p}fk · ${p}verificar · ${p}verify · ${p}check
 ${p}notifadmin  ·  ${p}autoaccept · ${p}autoaceptar · ${p}autoapprove · ${p}autoaprobar
-` : ''}${esOwner ? `
-*ADMINS SUPERIORES*
-${p}on · ${p}off  ·  ${p}demote · ${p}degradar
+` : ''}
+*ADMINS PREMIUM*
+${p}premiar · ${p}bonificar · ${p}otorgar — regalan aura nueva
+${esOwner ? `${p}on · ${p}off  ·  ${p}demote · ${p}degradar
 ${p}listanegra  ·  ${p}inactivos purge
 ${p}antilink · ${p}antifoto · ${p}antiempresa · ${p}antibusiness · ${p}antiadmin
 ${p}adminmode · ${p}soloadmins · ${p}soloadmin  ·  ${p}aura on/off
@@ -583,8 +583,6 @@ ${bloqueAcciones(p, c)}
 *${p}apostar* mitad/todo/2k · *${p}duel* @user · *${p}dar* @user <cant.>
 *${p}tienda* · *${p}comprar* <objeto> · *${p}bote* · *${p}caja*
 *${p}aura* la tirada · *${p}saldo* · *${p}top* · *${p}hoy* · *${p}guia*
-*${p}premiar* @user <cant.> — aura nueva, solo la dan el dueño y los co-dueños
-*${p}premiaryo* <cant.> — lo mismo, para quien lo escribe
 
 *ACTIVIDAD*
 *${p}fantasmas* ${c('fantasmas')} · *${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b
@@ -599,9 +597,10 @@ ${esAdmin ? `
 *${p}r* ${c('presentarse')} — pide a los nuevos que se presenten, sin un @ a la vista
 *${p}antifake* · *${p}notifadmin* · *${p}autoaccept* — on/off
 _Y todo te cuesta un *${Math.round(ADMIN.descuento * 100)} %* menos que al resto, menos *${p}r*. Por ser admin._
-` : ''}${esOwner ? `
-*ADMINS SUPERIORES*
-*${p}demote* · *${p}resetaura* · *${p}resetcount* · *${p}on*/*${p}off* · *${p}clearcache* · *${p}diag*
+` : ''}
+*ADMINS PREMIUM*
+*${p}premiar* @user <cant.> — regalan aura nueva, que no sale del saldo de nadie
+${esOwner ? `*${p}demote* · *${p}resetaura* · *${p}resetcount* · *${p}on*/*${p}off* · *${p}clearcache* · *${p}diag*
 *${p}listanegra* — la lista negra global: ver, meter números y sacarlos
 *${p}inactivos purge* — echa a los de la lista de *${p}inactivos* (pide confirmar)
 _on/off:_ *${p}antiadmin* *${p}antilink* *${p}antiempresa* *${p}antifoto* *${p}adminmode* *${p}aura*
