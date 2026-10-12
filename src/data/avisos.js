@@ -532,7 +532,7 @@ const VER_UNA_VEZ = [
   'Borrado. ¿Tanto te cuesta darle al puto 1, princesa?',
   'Borrado. Lo tuyo dura aquí lo que tardo en quitarlo.',
   'Borrado. Ni regalado se queda en el móvil de nadie, imbécil.',
-  'Borrado. Las fotos de ver una vez te las metes por el culo, muñequita.',
+  'Borrado. Las fotos sin ver una vez te las metes por el culo, muñequita.',
   'Borrado. Mandas basura y encima a la vista de todos, subnormal.',
 ];
 
