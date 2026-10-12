@@ -33,7 +33,7 @@ const HUMOR_NEGRO = [
   'Humor que duele y se dice a la cara. El audio de «eso no tiene gracia» es de pringado, y aquí se nota al segundo.',
   'Se ríe rápido y se piensa rápido. Quien tarde tres mensajes en pillar una ironía sobra, y el grupo lo va a dejar en ridículo sin avisar.',
   'Ni dios, ni la muerte, ni la comunidad de nadie se salva del chiste. Si venías a que te cuidaran el escudo, te han pasado un enlace de mierda.',
-  'Gente seria, de la que explica un chiste en un audio: basura de chat. Se busca quien devuelva otro peor, no quien llore en el teclado.',
+  'Gente seria, de la que explica un chiste en un audio: basura de chat. Se busca quien devuelva otro peor, no quien llore por privado.',
   'Si alguien hace un chiste de tu madre en la UCI, se contesta preguntando la hora del entierro. Quien pida que lo borren, a la puta calle.',
   'Entra quien aguanta que le digan a la cara lo que el espejo ya dijo. Quien solo sepa ofenderse, que se ofenda en otro sitio: aquí estorba.',
   'Si hay que explicar el chiste, ya se ha perdido. Aquí no se explica una mierda, y se va a notar igual.',

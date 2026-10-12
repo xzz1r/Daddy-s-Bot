@@ -284,7 +284,7 @@ let codigosPedidos = 0;
 // ─── HAY UN CODIGO VIVO AHI FUERA ──────────────────────────────────────────
 //
 // Esto existe porque la limpieza de «credenciales a medias» de mas abajo estaba
-// MATANDO el emparejamiento mientras se tecleaba.
+// MATANDO el emparejamiento mientras se escribia.
 //
 // `requestPairingCode` escribe `creds.me` y la clave efimera del emparejamiento
 // ANTES de devolver el codigo, y eso deja unas credenciales con `me` y sin
@@ -294,7 +294,7 @@ let codigosPedidos = 0;
 // cierre una vez —Baileys agota sus refs de QR y cierra— para que la
 // reconexion entre en connectToWhatsApp, borre data/auth y se lleve por delante
 // la clave a la que estaba atado el codigo que la persona tiene en la pantalla.
-// Desde fuera: «tecleo el codigo y no funciona».
+// Desde fuera: «escribo el codigo y no funciona».
 //
 // Y encima se pedia otro distinto acto seguido, asi que en pantalla quedaban
 // dos codigos y el bueno era el ultimo.
@@ -525,7 +525,7 @@ let _baileysVersion = null;
 // mejor que no arrancar.
 const ESPERA_VERSION_MS = 10000;
 
-// EL NUMERO DE --codigo, COMO LO TECLEE EL DUEÑO. Lo pidio el: el +57 lo pone
+// EL NUMERO DE --codigo, COMO LO ESCRIBA EL DUEÑO. Lo pidio el: el +57 lo pone
 // el bot. Vale «3001234567», «+57 300 123 4567» o «57 300-123-4567»: se juntan
 // los trozos hasta el siguiente --algo (la shell parte el numero en los
 // espacios) y, si queda un movil colombiano sin prefijo (diez digitos
@@ -655,11 +655,11 @@ async function connectToWhatsApp() {
   //     ev.emit('creds.update', ...)   -> saveCreds -> se escribe en disco
   //
   // O sea que pedir un codigo YA deja `me` guardado. Si la vinculacion no se
-  // completa —el codigo caduca, se teclea tarde, se cae la conexion— el
+  // completa —el codigo caduca, se escribe tarde, se cae la conexion— el
   // arranque siguiente encuentra ese `me`, intenta INICIAR SESION con unas
   // credenciales que nunca llegaron a registrarse, y WhatsApp responde 401.
   //
-  // A partir de ahi ya da igual lo rapido que se teclee: todos los intentos
+  // A partir de ahi ya da igual lo rapido que se escriba: todos los intentos
   // salen 401 hasta que alguien borra data/auth a mano. Se vio en produccion,
   // cinco intentos seguidos.
   //
@@ -811,7 +811,7 @@ async function connectToWhatsApp() {
   //
   // Saca ocho caracteres por pantalla. En el movil:
   //   WhatsApp → Dispositivos vinculados → Vincular un dispositivo →
-  //   "Vincular con el número de teléfono" → se teclea el codigo.
+  //   "Vincular con el número de teléfono" → se escribe el codigo.
   //
   // El numero va con prefijo de pais y SOLO digitos: nada de +, espacios ni
   // guiones. Es el numero de la cuenta que va a SER el bot.
@@ -837,7 +837,7 @@ async function connectToWhatsApp() {
   // Asi que ahora se cuenta. Un numero con prefijo de pais son entre 8 y 15
   // digitos (el tope de E.164); lo que quede por debajo casi siempre es esto
   // mismo, asi que se dice con el nombre y medio puesto en vez de dejar que la
-  // persona lo descubra tecleando codigos muertos.
+  // persona lo descubra escribiendo codigos muertos.
   const MIN_DIGITOS_NUMERO = 8;
   const MAX_DIGITOS_NUMERO = 15;
   const argCodigo = process.argv.indexOf('--codigo');
@@ -889,7 +889,7 @@ async function connectToWhatsApp() {
         }
         console.log(`\n  CODIGO DE VINCULACION: ${bonito}\n`);
         console.log('  WhatsApp → Dispositivos vinculados → Vincular un dispositivo');
-        console.log('  → "Vincular con el número de teléfono" → teclea el codigo.');
+        console.log('  → "Vincular con el número de teléfono" → escribe el codigo.');
         console.log('  Caduca en un par de minutos; si expira, vuelve a lanzar el comando.\n');
       } catch (e) {
         logger.error(`no pude pedir el codigo de vinculacion: ${e.message}`);
@@ -1071,7 +1071,7 @@ async function connectToWhatsApp() {
       // en el .env es pedir un numero de dieciseis digitos a un humano: un
       // digito mal y el guardian mira la degradacion sin reconocer al bot, el
       // dia que hacia falta y sin dar un solo error. Aqui sale de la sesion, que
-      // es la fuente de verdad, y no lo teclea nadie.
+      // es la fuente de verdad, y no lo escribe nadie.
       //
       // Y va en SU PROPIO fichero, no se le manda a leer data/auth/creds.json.
       // Ahi dentro estan las claves de la sesion: que otro proceso las abra para

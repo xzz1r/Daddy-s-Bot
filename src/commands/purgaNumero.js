@@ -4,7 +4,7 @@
 // ES EL COMANDO MÁS DESTRUCTIVO DEL BOT y por eso lleva las guardas que lleva.
 // Todo lo demás actúa sobre el grupo donde se escribe; esto barre la cuenta de
 // todos los grupos a la vez y la mete en la lista negra, así que un número mal
-// tecleado echa a alguien de cinco sitios sin forma cómoda de deshacerlo. De
+// escrito echa a alguien de cinco sitios sin forma cómoda de deshacerlo. De
 // ahí que:
 //
 //   · solo lo pueda usar el owner principal, no el tier owner entero;
@@ -199,7 +199,7 @@ function sinFragmentos(nums) {
 
 // Todas las formas conocidas de una misma persona dentro de un grupo. Hace
 // falta porque en los grupos LID el participante llega como @lid y el número
-// que se teclea es un @s.whatsapp.net: comparar solo una de las dos no
+// que se escribe es un @s.whatsapp.net: comparar solo una de las dos no
 // encuentra a nadie.
 function formasEnGrupo(meta, formas) {
   for (const p of (meta?.participants || [])) {

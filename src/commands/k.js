@@ -18,7 +18,7 @@ const config = require('../config');
 // al owner tier y no contesta nada en el grupo (ni siquiera un error: todo va
 // al privado).
 //
-// El disparador tecleado a pelo ("!k") se borra del grupo al ejecutarse: es
+// El disparador escrito a pelo ("!k") se borra del grupo al ejecutarse: es
 // corto y raro, y dejarlo puesto delata que se usó un comando. Los disparadores
 // de palabra suelta ("Welcome", "diría algo" — ver esTriggerK en
 // messageHandler.js) NO se borran: son conversación normal y borrar un mensaje
@@ -176,7 +176,7 @@ function autorDelCitado(ctx, jid) {
 
 // `borrar` decide si el mensaje que disparó esto se borra del grupo.
 //
-// Con "!k" tecleado a pelo, sí: es corto y raro, cantaba antes de que
+// Con "!k" escrito a pelo, sí: es corto y raro, cantaba antes de que
 // existieran los disparadores de palabra suelta. Con "Welcome" o "diría algo"
 // (ver esTriggerK en messageHandler.js), no hace falta — son palabras
 // corrientes de una conversación cualquiera, no delatan nada por quedarse

@@ -653,7 +653,7 @@ async function cmdDel(sock, msg, groupMeta) {
   }
 }
 
-const MOTES_MUTE = ['esa puta', 'esa guarra', 'esa perra', 'esa cachorrita', 'esa zorra', 'esa cerda', 'esa rata', 'esa furcia'];
+const MOTES_MUTE = ['esa puta', 'esa guarra', 'esa perra', 'esa cachorrita', 'esa zorra', 'esa cerda', 'esa rata', 'esa tóxica'];
 
 // !mute @user [minutos] — silencia comandos de un usuario (admin only)
 async function cmdMute(sock, msg, args, groupMeta) {
@@ -1450,7 +1450,7 @@ const REMATES = [
   '«paso de estas chorradas» lo dice quien le está dando vueltas. Manda la foto.',
   'Foto sin edad, o edad sin foto, no cuenta. Las dos cosas.',
   '«no me gusta exponerme», dice quien entró en un grupo por su cuenta. Da la cara.',
-  '«espero la foto buena». No existe. Manda una del carrete y la edad, y deja de rebuscar.',
+  '«espero la foto buena». No existe. Manda una de la galería y la edad, y deja de rebuscar.',
   'No hace falta esperar a que se presente otro para copiarle el tono, que no hay tono. Sal tú.',
   'Un «hola» no es una presentación. Foto y edad, o vuelve a tu agujero.',
 ];

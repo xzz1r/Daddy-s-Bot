@@ -5,7 +5,7 @@
 const ROBO_FALLO_REMATE = [
   'y le salió como el puto culo',
   'y no le dio tiempo ni a que la víctima levantara la vista',
-  'y demostró por qué no le dejan ni el mando de la tele',
+  'y demostró por qué no le dejan ni la contraseña del wifi',
   'y hasta la víctima sintió vergüenza ajena',
   'y el grupo vio el intento y cambió de tema, por asco',
   'y lo único que robó fue un rato de la paciencia del grupo',

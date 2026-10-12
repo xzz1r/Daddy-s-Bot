@@ -115,7 +115,7 @@ pm2 start ecosystem.config.js --only guardian
 pm2 logs guardian
 ```
 
-Pide **un** código y borra el fichero. Si nadie lo teclea, el siguiente arranque
+Pide **un** código y borra el fichero. Si nadie lo escribe, el siguiente arranque
 no manda otro: hay que volver a pedirlo. Sin el fichero, dice qué falta y sale
 con 78, o sea que pm2 lo deja parado. Un bucle ya no puede spamear a nadie,
 porque un bucle no crea ficheros. La capa 51 lo comprueba.

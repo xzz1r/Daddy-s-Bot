@@ -162,7 +162,7 @@ const NAME_ONLY = [
   '%N, tu nombre suena a disculpa. A «perdón, ¿quién eras?».',
   'Aparece %N y el grupo hace lo que hace con la publicidad: pasar de largo.',
   '%N. Tu nombre solo sirve para abrir roasts como este.',
-  '%N, tu nombre se teclea con desgana y se lee con la misma cara de asco.',
+  '%N, tu nombre se escribe con desgana y se lee con la misma cara de asco.',
   '%N. Si tu nombre fuera un comando, nadie lo usaría dos veces.',
   '%N, te llamas así y encima te comportas así. Doble condena.',
 ];

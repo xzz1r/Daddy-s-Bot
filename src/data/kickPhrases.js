@@ -142,8 +142,8 @@ const AVISOS_KICK = [
     varios: '%M os creísteis protagonistas de un chat donde nadie os habría puesto ni de extras, maricones.\nHablabais poco y pensabais mucho en vosotros. El grupo funcionaba mejor cuando no aparecíais. Hoy se corta el papel. Fuera.'
   },
   {
-    uno: '%M esta expulsión llega tarde, gilipoyas, y se nota.\nHace semanas que el grupo te tenía sentenciado. Solo faltaba que alguien pulsara. Hoy pulsan. El resto ya lo había decidido. Tú te enteras ahora. Lárgate.',
-    varios: '%M esta expulsión llega tarde, gilipoyas, y se nota.\nHace semanas que el grupo os tenía sentenciados. Solo faltaba que alguien pulsara. Hoy pulsan. El resto ya lo había decidido. Vosotros os enteráis ahora. Os echan. Largaos.'
+    uno: '%M esta expulsión llega tarde, gilipoyas, y se nota.\nHace semanas que el grupo te tenía sentenciado. Solo faltaba que alguien le diera al botón. Hoy le dan. El resto ya lo había decidido. Tú te enteras ahora. Lárgate.',
+    varios: '%M esta expulsión llega tarde, gilipoyas, y se nota.\nHace semanas que el grupo os tenía sentenciados. Solo faltaba que alguien le diera al botón. Hoy le dan. El resto ya lo había decidido. Vosotros os enteráis ahora. Os echan. Largaos.'
   },
   {
     uno: '%M lo más memorable que has hecho aquí es que te echen, retrasado.\nHasta hoy no había un momento tuyo que alguien pudiera contar. Ahora sí: el final. Un fracaso tan limpio que no deja ni anécdota. Fuera.',

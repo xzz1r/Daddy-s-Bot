@@ -20273,13 +20273,13 @@ const manda = async (quien, tipo, opciones) => {
     if (fallos === antes113) console.log(verde('   ✓ el enlace de Instagram llega sin la cola de rastreo, y un perfil sigue siendo un perfil'));
   }
 
-  // ── 114. NI UN «BARDEAR» EN TODO EL BOT ─────────────────────────────────
+  // ── 114. NI UN «BARDEAR» NI UN «TECLEAR» EN TODO EL BOT ─────────────────
   //
   // Lo pidio el dueño con esas palabras: fuera de todo el bot. Se mira cada
   // fichero de src/ por la palabra y sus formas (bardear, bardea, bardean,
   // bardeo…), sin tocar las que solo la contienen: cobarde, bombardeo.
   {
-    console.log('\n114. NI UN «BARDEAR» EN TODO EL BOT');
+    console.log('\n114. NI UN «BARDEAR» NI UN «TECLEAR» EN TODO EL BOT');
     const antes114 = fallos;
     const hallados = [];
     const recorre = (d) => {
@@ -20298,7 +20298,29 @@ const manda = async (quien, tipo, opciones) => {
       try { if (/(?<![a-záéíóúñ])bard[eé]/i.test(fs.readFileSync(path.join(R, f), 'utf8'))) hallados.push(f); } catch {}
     }
     if (hallados.length) { fallos++; console.log(rojo(`   ✗ vuelve a salir «bardear», que el dueño mando quitar: ${hallados.join(', ')}`)); }
-    if (fallos === antes114) console.log(verde('   ✓ ni rastro de «bardear»'));
+
+    // Y «TECLEAR», que tampoco (12 oct): «¿Esto es 1980? Pon "escribir", en
+    // todo el bot». En el grupo se escribe en una pantalla, no se aporrea un
+    // teclado. Se busca en todo src/ y en MOTOR.md, comentarios incluidos,
+    // para que nadie lo vuelva a copiar de un sitio donde parecia valer. La
+    // GUIA no: es la que lo prohibe, y para eso tiene que nombrarlo.
+    const tecleos = [];
+    const recorreT = (d) => {
+      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const f = path.join(d, e.name);
+        if (e.isDirectory()) recorreT(f);
+        else if (/\.(js|json|md)$/.test(e.name)) {
+          const m = fs.readFileSync(f, 'utf8').match(/(?<![a-záéíóúñ])tecle[a-záéíóúñ]*/i);
+          if (m) tecleos.push(`${path.relative(R, f)} («${m[0]}»)`);
+        }
+      }
+    };
+    recorreT(path.join(R, 'src'));
+    for (const f of ['MOTOR.md']) {
+      try { const m = fs.readFileSync(path.join(R, f), 'utf8').match(/(?<![a-záéíóúñ])tecle[a-záéíóúñ]*/i); if (m) tecleos.push(`${f} («${m[0]}»)`); } catch {}
+    }
+    if (tecleos.length) { fallos++; console.log(rojo(`   ✗ vuelve a salir «teclear», que el dueño mando cambiar por «escribir»: ${tecleos.join(', ')}`)); }
+    if (fallos === antes114) console.log(verde('   ✓ ni rastro de «bardear» ni de «teclear»'));
   }
 
   // ── 115. LOS AUDIOS SE MARCAN ESCUCHADOS Y LO DE «VER UNA VEZ», ABIERTO ──

@@ -353,7 +353,7 @@ function filas(items, porFila, junta) {
   return out;
 }
 
-// ─── COMO SE TECLEA UN COMANDO Y COMO SE ESCRIBE NO SON LO MISMO ────────────
+// ─── LO QUE ENTIENDE EL BOT Y LO QUE ENSEÑA EL MENU NO SON LO MISMO ─────────
 //
 // El dispatcher quita tildes y eñes antes de comparar (normalizarComando), asi
 // que un `case` con eñe no se alcanza jamas y el alias tiene que guardarse como
@@ -364,14 +364,14 @@ function filas(items, porFila, junta) {
 // *!musica* y *!cancion*. Cinco faltas de ortografia en la pantalla que explica
 // como se le habla, y en un bot cuya regla numero uno es no parecer una maquina.
 //
-// Las dos formas funcionan al teclear, asi que ensenyar la buena no rompe nada:
+// Las dos formas funcionan al escribirlas, asi que ensenyar la buena no rompe nada:
 // solo deja de dar la impresion de que el bot no sabe escribir.
 //
 // El menu CORTO de las acciones ya lo resolvia por su cuenta con el campo `es`
 // de la tabla de acciones. Esta tabla es para todo lo demas, y `npm run check`
 // comprueba las dos cosas: que cada clave sea un comando de verdad, y que al
 // normalizar el valor salga exactamente la clave — o sea, que lo que se enseña
-// se pueda teclear.
+// se pueda escribir.
 const COMO_SE_ESCRIBE = {
   punetazo: 'puñetazo',
   coscorron: 'coscorrón',

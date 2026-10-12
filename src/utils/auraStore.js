@@ -563,7 +563,7 @@ async function sacarDeCaja(groupJid, userJid, cuanto) {
     if (!(pedido > 0)) return { ok: false, motivo: 'cantidad' };
 
     // Se saca lo que se pida o lo que haya, lo que sea menor: pedir de mas no
-    // es un error del que teclea, es que ya no se acuerda de cuanto guardo.
+    // es un error del que escribe, es que ya no se acuerda de cuanto guardo.
     const sacado = Math.min(pedido, dentro);
     const comision = Math.max(CAJA.comisionMinima, Math.round(sacado * CAJA.comision));
     const neto = sacado - comision;

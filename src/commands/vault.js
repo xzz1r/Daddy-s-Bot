@@ -71,7 +71,7 @@ async function cmdVault(sock, msg, args, groupMeta) {
   if (METER.includes(sub)) {
     const saldo = await getAura(jid, sender);
     // Entiende "todo", "mitad", "50%" y la cifra a secas, igual que las
-    // apuestas: obligar a teclear el número exacto era la mitad de los errores
+    // apuestas: obligar a escribir el número exacto era la mitad de los errores
     // de !dar antes de que existiera este ayudante.
     //
     // Sin cantidad, por defecto se guarda la mitad: es lo que hace alguien que

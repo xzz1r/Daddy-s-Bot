@@ -336,7 +336,7 @@ const LABELS = {
     high: [
       'Te piden ayuda con cualquier cosa y la arreglas en dos minutos mientras comes. Nadie da las gracias, por vergüenza, mi niña.',
       'Cuando mandas un audio explicando algo, la gente lo escucha entero. Aquí eso no le pasa a nadie más.',
-      'Te llamarían para montar muebles, para el ordenador y para la renta. Útil de cojones, y te lo cobrarían en favores.',
+      'Te llamarían para montar muebles, para el wifi y para la renta. Útil de cojones, y te lo cobrarían en favores.',
       'Aprendes lo que te pongan delante en un fin de semana. Ojalá aprendieras también a callarte cuando aciertas.',
       'Das con la respuesta antes de que acaben la pregunta, y luego pones cara de paciencia. Esa cara la conoce todo el grupo.',
       'Tienes buenas ideas y encima las haces. El grupo sigue en la fase de mandar audios diciendo que habría que hacer algo.',
@@ -447,7 +447,7 @@ const LABELS = {
       'Lo delicado te queda de talla. Lo borde también y sabes cuándo sacarlo, pequeña.',
       'Cuando te vas, se quedan hablando de ti. Tú ya ni te acuerdas de ellos.',
       'Entras tú y a la de al lado se le queda cara de mueble.',
-      'Cuando hablas, bajan la voz para no perderse nada. Ni que fueras el telediario.',
+      'Cuando hablas, bajan la voz para no perderse nada. Ni que fueras a soltar el salseo del año.',
       'Tienes un no que no hace falta gritar. Lo dices una vez y se acabó la conversación.',
       'Eres dulce hasta que alguien se pasa. Entonces muerdes.',
       'Ni levantas la vista del móvil y la mesa ya sabe quién manda. Lo disfrutas como una cabrona.',
@@ -769,7 +769,7 @@ const LABELS = {
     mid: [
       'A [nombre] se le cierran las piernas y a mitad se acuerda de abrirlas. El grupo lo ve, aparta la vista, y el gesto se queda colgando.',
       'Se le va la mano al cuello a [nombre] cuando entra un tío, y busca un collar que no lleva. El dedo se queda en la piel, y no hay collar.',
-      '[nombre] dice una cosa en el grupo y la contraria en el privado. El privado se le escapa en un pantallazo, se le pone la cara blanca y borra tarde.',
+      '[nombre] dice una cosa en el grupo y la contraria en el privado. El privado se le escapa en una captura, se le pone la cara blanca y borra tarde.',
       'Si [nombre] fuera tan macho como dice, no necesitaría decirlo cada tres mensajes. La insistencia es la peor publicidad.',
       '[nombre] cree que nadie se ha dado cuenta. Se ha dado cuenta hasta la persona que acaba de entrar al grupo hace diez minutos.',
       'Lo de [nombre] no está confirmado oficialmente, pero si fuera una apuesta, la casa ya habría cerrado las cuotas por lo bajo.',

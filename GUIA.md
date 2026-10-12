@@ -519,12 +519,19 @@ que el texto se redactó, no se soltó.
 
 **Lo que NO significa esta regla:** no significa escribir mal. El bot tiene las
 tildes puestas y la sintaxis correcta a propósito: es un narrador, no un miembro
-más del grupo tecleando con prisa. Un bot que escribe "q" y "xq" no parece más
+más del grupo escribiendo con prisa. Un bot que escribe "q" y "xq" no parece más
 humano: parece un bot imitando a un humano, que es peor.
 
-Y dos palabras van como las quiere el dueño: la familia de «gilipoyas» se
-escribe con y, y hay otra que mandó quitar de todo el bot. Las vigilan las capas
-117 y 114 del check.
+Y tres palabras van como las quiere el dueño: la familia de «gilipoyas» se
+escribe con y, hay otra que mandó quitar de todo el bot, y **«teclear» no se
+usa**: en el grupo se escribe. Las vigilan las capas 117 y 114 del check.
+
+**Que suene a hoy.** El dueño (12 oct): «¿Esto es 1980?». Nada de teclados que
+se aporrean, teclas que se pulsan, teles viejas, mandos de la tele, telediarios
+ni pantallazos: el grupo vive en el móvil, y lo de hoy es el wifi, la captura,
+el chat, spamear, stalkear, el salseo, el modo avión, un NPC. Lo mismo con los
+insultos de abuelo (cretino, mindundi, tontaina, furcia, sesera, mollera): hay
+de sobra con los de ahora.
 
 ### A quién pega el bot y a quién no
 

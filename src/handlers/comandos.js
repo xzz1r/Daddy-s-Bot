@@ -15,7 +15,7 @@
 // de aqui, y la puerta vigilaba que los dos sitios dijeran lo mismo leyendo el
 // switch como texto, con expresiones que se rompian a cada cambio de formato.
 // Ahora cada fila lleva `hace` y el manejador solo busca la fila del nombre
-// tecleado y la ejecuta. Un comando nuevo es UNA fila; un alias nuevo, un
+// escrito y la ejecuta. Un comando nuevo es UNA fila; un alias nuevo, un
 // nombre mas en su fila. Si falta el `hace` o un nombre esta en dos filas, el
 // bot no arranca: mejor eso que un comando que calla sin que nadie lo sepa.
 //
@@ -46,7 +46,7 @@
 // que alguien lo usa: el arranque no parsea los 343 KB de percentLabels.js ni
 // los 184 de robo.js por un comando que a lo mejor nadie pide en todo el dia.
 // Lo poco que vive en el propio manejador (*!diag*, que lee sus guardas por
-// dentro) se pide como `de('manejador')`. `command` es el nombre tecleado ya
+// dentro) se pide como `de('manejador')`. `command` es el nombre escrito ya
 // normalizado, para las filas que reparten por nombre.
 //
 // EL PRIMER NOMBRE DE CADA FILA ES EL QUE ENSEÑA EL MENU. El corrector lo usa:
@@ -54,7 +54,7 @@
 // no, a *!relevanc* le ofrecia *!relevance*, que es el alias ingles, y a *!pla*
 // *!playsong*. La capa 108 compara cada fila con el menu corto.
 //
-// SIN TILDES NI EÑES en los nombres: el manejador normaliza lo tecleado antes
+// SIN TILDES NI EÑES en los nombres: el manejador normaliza lo escrito antes
 // de buscarlo, asi que un nombre con eñe no se alcanzaria jamas. Por eso es
 // *!punetazo*; el menu lo enseña bien escrito (COMO_SE_ESCRIBE en social.js).
 //
@@ -119,7 +119,7 @@ const FAMILIAS = [
   // el grupo (ni siquiera un error) y no sale en el menu: es una herramienta de
   // verificacion del owner, no una funcion del grupo.
   //
-  // Solo se borra el mensaje del grupo cuando se tecleo "!k" a pelo: eso si
+  // Solo se borra el mensaje del grupo cuando se escribio "!k" a pelo: eso si
   // canta. Si se llego por un disparador de palabra suelta (viaTriggerK), el
   // mensaje que lo disparo es una palabra corriente y NO se toca —borrarlo
   // llamaria mas la atencion que dejarlo, por el aviso de "se elimino este
@@ -348,14 +348,14 @@ const FAMILIAS = [
     hace: (c) => c.de('group').cmdVisto(c.sock, c.msg, c.args, c.meta) },
   // LA CAJA. Los verbos tienen nombre propio porque nadie escribe "!vault lock"
   // cuando lo que piensa es "lock". Nombres cortos y en ingles porque es lo que
-  // se teclea con prisa, y las dos opciones castellanas obvias estaban pilladas
+  // se escribe con prisa, y las dos opciones castellanas obvias estaban pilladas
   // de antes: *!sacar* es alias de expulsar y *!abrir* abre el grupo.
   { nombres: ['banco', 'vault', 'safe'], meta: true, consulta: true,
     hace: (c) => c.de('vault').cmdVault(c.sock, c.msg, c.args, c.meta) },
   { nombres: ['lock', 'stash'], meta: true, aura: true, hace: vault('lock') },
   { nombres: ['unlock'], meta: true, aura: true, hace: vault('unlock') },
   // LAS ACCIONES. Un solo destino para todos sus nombres: el modulo sabe cual
-  // le toca por el nombre tecleado.
+  // le toca por el nombre escrito.
   { grupo: 'ALIAS_ACCION', meta: true, lento: true, cobraDentro: true, aOtro: true,
     hace: (c) => c.de('acciones').ejecutarAccion(c.command, c.sock, c.msg, c.args, c.meta) },
   { nombres: ['asalto', 'asaltar'], meta: true, aura: true, hace: robo('asalto') },

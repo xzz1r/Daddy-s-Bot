@@ -38,7 +38,7 @@ const logger = require('../utils/logger');
 // ACCION_NSFW_API: ahí sí vive, igual que `fuck`, `anal` y `cum`. Entra con el
 // mismo trato que esas tres y con la misma condición: `npm run acciones` es
 // quien dice si la categoría existe de verdad en la fuente puesta.
-// `cat` es la categoria de la web; `cmds` son los nombres que se teclean. Son
+// `cat` es la categoria de la web; `cmds` son los nombres que se escriben. Son
 // dos cosas distintas y aqui hay dos casos donde no coinciden:
 //
 //   · KICK no puede llamarse *!kick*: ese comando YA existe y EXPULSA del
@@ -60,7 +60,7 @@ const logger = require('../utils/logger');
 // *mimo* por *acurrucar*, y *porculo* fuera, que *!culo* ya vale.
 //
 // Y EL MENU LOS ESCRIBE BIEN, con su eñe y su tilde: `es` es la forma que se
-// LEE, y `cmds` las que se TECLEAN. Son dos cosas distintas y hacian falta las
+// LEE, y `cmds` las que se ESCRIBEN. Son dos cosas distintas y hacian falta las
 // dos.
 //
 // El dispatcher normaliza antes de comparar —quita tildes y eñes— asi que un
@@ -189,7 +189,7 @@ const ACCIONES = {
 //
 // Las frases son de Grok y viven en accionPhrases.js. Mientras un pool no
 // exista, la accion entera esta APAGADA: no sale en el menu, no se puede
-// teclear, no cobra y no contesta nada. No es un caso raro que haya que
+// escribir, no cobra y no contesta nada. No es un caso raro que haya que
 // recordar: es el estado en el que nacio esto.
 //
 // Se apaga sola, mirando el pool. Nada de una lista de "activas" escrita a
@@ -1224,7 +1224,7 @@ function hazAccion(nombre) {
 const comandos = {};
 for (const nombre of ACTIVAS) comandos[nombre] = hazAccion(nombre);
 
-// Del nombre TECLEADO a su accion: *!follar* y *!joder* son *!fuck*. Los alias
+// Del nombre ESCRITO a su accion: *!follar* y *!joder* son *!fuck*. Los alias
 // no pueden colgar de una lista a mano que llame al canonico: se olvida uno y
 // ese alias sale gratis o revienta.
 //
@@ -1235,8 +1235,8 @@ for (const nombre of ACTIVAS) comandos[nombre] = hazAccion(nombre);
 const ACCION_DE = {};
 for (const n of ACTIVAS) for (const c of ACCIONES[n].cmds) ACCION_DE[c] = comandos[n];
 
-async function ejecutarAccion(tecleado, sock, msg, args, groupMeta) {
-  const hacer = ACCION_DE[tecleado];
+async function ejecutarAccion(escrito, sock, msg, args, groupMeta) {
+  const hacer = ACCION_DE[escrito];
   return hacer ? hacer(sock, msg, args, groupMeta) : undefined;
 }
 

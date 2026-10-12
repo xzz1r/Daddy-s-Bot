@@ -44,7 +44,7 @@ let VS_AJUSTADO = [
   'Perder por tan poco jode, %L. Y a %W ganar por tan poco tampoco le deja presumir.',
   '%W por delante, %L pegado a la espalda. Dos que sostienen el grupo, y uno un poco más.',
   'Ajustado. %W gana, pero %L le ha hecho sudar cada mensaje.',
-  '%L pierde de un pelo contra %W. Tanto darle al teclado para acabar de puto segundo.',
+  '%L pierde de un pelo contra %W. Tanto darle al móvil para acabar de puto segundo.',
   'Foto finish. %W saca la nariz y %L se queda mordiéndose los labios.',
   '%W manda hoy por poco. %L se va a pasar la noche escribiendo mierda para darle la vuelta.',
   'Por la mínima. %W gana y %L no tiene excusa: le ha faltado nada.',
@@ -148,7 +148,7 @@ async function cmdVs(sock, msg, args, groupMeta) {
 
 let GHOST_ROASTS = [
   'Se traga el chat entero y no escupe ni una puta coma. Lurker con doctorado y cero publicaciones.',
-  'Su teclado debe estar nuevo de fábrica. Lo único que hace es bajar y bajar el hilo, cotilleando sin soltar prenda.',
+  'Su móvil no sabe ni que tiene teclado. Lo único que hace es bajar y bajar el chat, stalkeando sin soltar ni un audio.',
   'Aporta lo mismo que un "este mensaje fue eliminado": ves que pasó algo, pero nada que mereciera la pena leer. Fantasma sin sustancia.',
   'Vive en visto. Campeón de dejar a todo el mundo esperando una respuesta que no llega.',
   'El grupo es su Netflix: lo abre, consume lo que otros se curran y nunca deja reseña. Parásito de entretenimiento ajeno, fantasma.',
@@ -304,7 +304,7 @@ let AMENAZAS = [
   'Cada día que pasa sin que escribáis es una firma más en vuestra propia expulsión, y ya lleváis el documento casi lleno.',
   'Lo grave no es que el bot os eche. Es que el grupo va a seguir exactamente igual de bien, y eso lo sabéis vosotros mejor que nadie.',
   'Escribid o fuera. Y si os echa, tampoco vais a escribir para quejaros, que ya nos conocemos.',
-  'El bot ya tiene vuestros números en la lista de expulsión. Solo le falta pulsar, y no tiene ninguna prisa porque vosotros tampoco la habéis tenido nunca.',
+  'El bot ya tiene vuestros números en la lista de expulsión. Solo le falta darle al botón, y no tiene ninguna prisa porque vosotros tampoco la habéis tenido nunca.',
   'El grupo tiene hilos, audios y discusiones. De vosotros tiene un nombre en una lista y poco más.',
   'Escribid. Si el grupo tuviera que enseñar algo vuestro, enseñaría el hueco donde debería estar el mensaje.',
   'Quedáis avisados: el bot expulsa solo, no pregunta y no guarda copia de nadie.',

@@ -164,7 +164,7 @@ const NEEDS_META = LISTAS.NEEDS_META;
 //
 // Los de esta tabla se cobran ANTES de ejecutar nada. Si no llega el saldo, el
 // comando ni se lanza.
-// LOS ALIAS TAMBIEN COBRAN. El cobro mira el nombre TECLEADO, asi que un alias
+// LOS ALIAS TAMBIEN COBRAN. El cobro mira el nombre ESCRITO, asi que un alias
 // que falte aqui sale gratis mientras su canonico cobra: !quemar era gratis y
 // !roast costaba 35, por el mismo comando y el mismo trabajo. Cinco estaban
 // asi. Ahora el precio va en la fila del registro y el alias lo hereda.
@@ -1016,7 +1016,7 @@ const COMANDOS_CONOCIDOS = [...LISTAS.FAMILIA.keys()]
 // Esto era Levenshtein a secas, donde cambiar dos letras de sitio cuesta DOS
 // —una por sacarla y otra por meterla— y el margen de un comando de cuatro
 // letras es UNO. Resultado: *!anla* no se corregia. Ni *!pign*, ni *!duel*.
-// Y la transposicion es el error de tecleo mas comun que hay: el dedo llega
+// Y la transposicion es la errata mas comun que hay: el dedo llega
 // antes que el otro.
 //
 // Medido antes de tocarlo, por si acercar los comandos los volvia
@@ -1287,7 +1287,7 @@ function metaParaBaileys(jid) {
 // pipeline para que crea que se escribió "!k" es prácticamente todo lo que
 // hace este bloque.
 //
-// LO ÚNICO QUE NO COMPARTEN es el borrado del mensaje disparador: "!k" tecleado
+// LO ÚNICO QUE NO COMPARTEN es el borrado del mensaje disparador: "!k" escrito
 // a pelo se borra (canta si se queda puesto), pero "Welcome"/"diría algo" NO —
 // son palabras corrientes y borrarlas llamaría más la atención que dejarlas.
 // Por eso el switch (case 'k') recibe `viaTriggerK` y decide con eso; ver

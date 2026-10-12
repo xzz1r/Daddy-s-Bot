@@ -109,7 +109,7 @@ const RELEVANTE = [
   'Con %MSG mensajes, %N, no hay conversación en la que no aparezcas, ni una en la que te haya llamado alguien.',
   '%MSG mensajes, %N. Cuando tú hablas el resto responde, y eso, cabrón, es tener el mando.',
   '%N con %MSG mensajes. Sigues escribiendo aunque nadie te haya preguntado nada, y aun así funciona. Ese descaro mantiene esto vivo, mi niña.',
-  '%MSG mensajes, %N. Tu teclado debe de estar hecho polvo. Con ese desgaste nadie discute tu puto peso en el grupo.',
+  '%MSG mensajes, %N. Tu pantalla debe de estar rayada de tanto dedo. Con ese desgaste nadie discute tu puto peso en el grupo.',
   '%N con %MSG mensajes. El grupo te necesita, y tú lo necesitas más, porque fuera no te espera nadie.',
   '%N con %MSG mensajes. El resto del grupo reacciona a lo que sueltas tú, casi siempre con un «jaja» de compromiso.',
   'Con %MSG mensajes, %N, si un día te callas se va a notar. Lo raro es que no te callas nunca.',

@@ -261,7 +261,7 @@ if (require.main === module) {
 // ─── A QUIÉN PROTEGE ────────────────────────────────────────────────────────
 //
 // NO HACE FALTA ESCRIBIRLO EN NINGÚN SITIO. El bot anota su propio número al
-// conectarse, y el guardián lo lee de ahí. Pedirle a una persona que teclee
+// conectarse, y el guardián lo lee de ahí. Pedirle a una persona que escriba
 // dieciséis dígitos en un .env es pedir el fallo: un dígito mal y el guardián
 // mira la degradación sin reconocer al bot —el día que hacía falta, y sin dar
 // un solo error, porque para él simplemente degradaron a otro.
@@ -875,11 +875,11 @@ async function conectar() {
   //
   // Es la misma trampa que ya costó cinco intentos en el bot, y aquí habría
   // costado otros cinco. Pedir un código de vinculación deja escrito `creds.me`
-  // ANTES de que nadie lo teclee. Si la vinculación no se completa —el código
-  // caduca, se teclea tarde, se cae la conexión— el arranque siguiente encuentra
+  // ANTES de que nadie lo escriba. Si la vinculación no se completa —el código
+  // caduca, se escribe tarde, se cae la conexión— el arranque siguiente encuentra
   // ese `me`, intenta INICIAR SESIÓN con unas credenciales que nunca llegaron a
   // registrarse, y WhatsApp contesta 401. A partir de ahí da igual lo rápido que
-  // se teclee: todos los intentos salen 401 hasta que alguien borra la carpeta a
+  // se escriba: todos los intentos salen 401 hasta que alguien borra la carpeta a
   // mano.
   //
   // Lo que distingue una sesión de verdad de ese muñón es `account`, que solo se
@@ -949,7 +949,7 @@ async function conectar() {
   // Sin QR y sin cámara. El guardián ya sabe su propio número —es el GUARDIAN
   // del .env— así que pide el código él solo la primera vez y lo saca por
   // pantalla. Ocho caracteres que se le pasan al co-owner por donde sea, y este
-  // los teclea en:
+  // los escribe en:
   //
   //   WhatsApp → Dispositivos vinculados → Vincular un dispositivo
   //   → "Vincular con el número de teléfono"
@@ -987,7 +987,7 @@ async function conectar() {
       try {
         if (miSock !== sock) return;
         const codigo = await miSock.requestPairingCode(miNumero());
-        // SE DESARMA EN CUANTO SALE UNO. Si nadie lo teclea, el siguiente
+        // SE DESARMA EN CUANTO SALE UNO. Si nadie lo escribe, el siguiente
         // arranque no manda otro: hay que volver a pedirlo a mano. Es la
         // diferencia entre un código y una ráfaga de códigos.
         desarmarVinculacion();
@@ -995,7 +995,7 @@ async function conectar() {
         console.log(`\n  CÓDIGO DE VINCULACIÓN DEL GUARDIÁN: ${bonito}\n`);
         console.log(`  En el móvil de +${miNumero()}:`);
         console.log('  WhatsApp → Dispositivos vinculados → Vincular un dispositivo');
-        console.log('  → "Vincular con el número de teléfono" → teclea el código.');
+        console.log('  → "Vincular con el número de teléfono" → escribe el código.');
         console.log('  Caduca en un par de minutos.\n');
       } catch (e) {
         logger.error(`guardián: no pude pedir el código (${e.message}). Comprueba que GUARDIAN lleva prefijo de país y solo dígitos.`);
