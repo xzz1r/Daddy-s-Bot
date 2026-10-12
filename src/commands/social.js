@@ -76,7 +76,7 @@ async function cmdOff(sock, msg, groupMeta) {
 async function cmdPing(sock, msg) {
   const jid = msg.key.remoteJid;
 
-  // TRES MEDIDAS, NO UNA.
+  // VARIAS MEDIDAS, NO UNA.
   //
   // Antes se mandaba un solo paquete y se cantaba ese numero. Una muestra suelta
   // no dice cual es la latencia: dice lo que tardo ESE paquete, y basta con que
@@ -90,21 +90,27 @@ async function cmdPing(sock, msg) {
   const medidas = [];
   if (typeof sock.query === 'function') {
     const pingOnce = async () => {
-      const start = Date.now();
+      const start = process.hrtime.bigint();
       await sock.query({
         tag: 'iq',
         attrs: { to: 's.whatsapp.net', type: 'get', xmlns: 'w:p' },
         content: [{ tag: 'ping', attrs: {} }],
-      });
-      return Date.now() - start;
+      }, 5000);
+      return Math.round(Number(process.hrtime.bigint() - start) / 1e6);
     };
-    const r = await Promise.allSettled([pingOnce(), pingOnce(), pingOnce()]);
-    for (const x of r) if (x.status === 'fulfilled') medidas.push(x.value);
+    // UNA DETRAS DE OTRA, NO LAS TRES A LA VEZ. Lanzadas juntas compartian
+    // conexion: la segunda y la tercera esperaban a que se atendiera la
+    // primera, y lo que median era la cola. Seguidas, cada una mide la linea
+    // sola, y con cinco hay mas opciones de pillar el suelo de verdad, que es
+    // lo que se enseña. Un ping que se cae a la mitad no tumba los demas.
+    for (let i = 0; i < 5; i++) {
+      try { medidas.push(await pingOnce()); } catch { /* esa se perdio: van las otras */ }
+    }
   }
 
   // LA CIFRA Y NADA MAS.
   //
-  // Se siguen tomando tres medidas y se enseña la mejor, porque una sola puede
+  // Se toman cinco medidas y se enseña la mejor, porque una sola puede
   // salir mal por un hipo y dar un numero que no representa nada. Pero eso es
   // cocina: el "_(peor de 3: 118ms)_" que salia al lado no le sirve a nadie —
   // quien escribe *!ping* quiere saber si el bot va rapido, no la dispersion de

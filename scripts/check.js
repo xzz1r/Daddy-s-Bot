@@ -4079,6 +4079,43 @@ const di=async(quien,texto,extra)=>{
     if (fallos === antes) console.log(verde('   ✓ con el aura se van el banco, la tienda (objetos, caja, vetos), el bote, los buscados y sus recompensas, las tiradas del día, la diana, las esperas y los duelos pendientes'));
   }
 
+  // 12j. EL BOT POR DELANTE DE SUS PROCESOS PESADOS (12 oct). El dueño vio el
+  // *!ping* saltar de 121 a 230: ffmpeg y yt-dlp competian por la CPU con el
+  // bot. Nacen con la prioridad mas baja, ninguno se lanza sin ella, y *!ping*
+  // mide de una en una en vez de tres a la vez estorbandose.
+  {
+    console.log('\n12j. FFMPEG Y YT-DLP POR DETRÁS DEL BOT, Y EL PING SIN ESTORBARSE');
+    const antes = fallos;
+    const mal = (q) => { fallos++; console.log(rojo(`   ✗ ${q}`)); };
+    const H = require(path.join(R, 'src/utils/hijos'));
+    const hijo = H.spawnSuave(process.execPath, ['-e', 'setTimeout(() => {}, 1500)']);
+    try {
+      const prio = require('os').getPriority(hijo.pid);
+      if (prio !== H.PRIORIDAD_FONDO) mal(`un proceso de fondo nace con prioridad ${prio}, no ${H.PRIORIDAD_FONDO}: compite con el bot por la CPU`);
+    } finally { try { hijo.kill(); } catch {} }
+    const crudos = [];
+    const todos = [];
+    (function andar(d) { for (const n of fs.readdirSync(d)) { const q = path.join(d, n); if (fs.statSync(q).isDirectory()) andar(q); else if (q.endsWith('.js')) todos.push(q); } })(path.join(R, 'src'));
+    for (const f of todos) {
+      const txt = fs.readFileSync(f, 'utf8');
+      if (/\bspawn\((ffmpegPath|ffprobePath|YT_DLP)\b/.test(txt)) crudos.push(path.relative(R, f));
+      if (/=\s*ffmpeg\((?!.*renice)/.test(txt.replace(/\n\s*\./g, '.'))) crudos.push(`${path.relative(R, f)} (fluent-ffmpeg sin renice)`);
+    }
+    if (crudos.length) mal(`ffmpeg o yt-dlp lanzados a la misma prioridad que el bot: ${crudos.join(', ')}`);
+    if (typeof H.retrasoBucle !== 'function' || !/retrasoBucle\(\)/.test(fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8'))) {
+      mal('*!diag* ya no dice cuánto se retrasa el bot: sin eso no se sabe si un ping alto es la red o el bot');
+    }
+    const S = require(path.join(R, 'src/commands/social'));
+    let enVuelo = 0, maxVuelo = 0, sondas = 0;
+    const sockP = {
+      query: async () => { sondas++; enVuelo++; maxVuelo = Math.max(maxVuelo, enVuelo); await new Promise((r) => setTimeout(r, 5)); enVuelo--; },
+      sendMessage: async () => ({}),
+    };
+    await S.cmdPing(sockP, { key: { remoteJid: '120000990@g.us', id: 'P' } });
+    if (maxVuelo !== 1 || sondas < 3) mal(`*!ping* manda ${sondas} sondas con ${maxVuelo} a la vez: se estorban y mide la cola, no la línea`);
+    if (fallos === antes) console.log(verde('   ✓ ffmpeg y yt-dlp nacen con la prioridad más baja, !diag dice cuánto se retrasa el bot, y !ping mide de una en una'));
+  }
+
   // 12c. SIN PRECIO DOBLE EN TOPS, SHIP Y HERRAMIENTAS. Lo pidio el dueño: esos
   // cuestan siempre lo mismo. El resto sigue con la rafaga.
   {

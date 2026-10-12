@@ -1,3 +1,4 @@
+const { spawnSuave } = require('./hijos');
 const fs = require('fs-extra');
 const path = require('path');
 const { spawn } = require('child_process');
@@ -499,7 +500,7 @@ async function ffmpegToBuffer(args, input = null, timeoutMs = 10000, { sinEspera
   }
   try {
     return await new Promise((resolve, reject) => {
-      const ff = spawn(ffmpegPath, args);
+      const ff = spawnSuave(ffmpegPath, args);
       const chunks = [];
       let settled = false;
       const done = (fn, val) => { if (settled) return; settled = true; clearTimeout(timer); fn(val); };

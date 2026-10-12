@@ -14,6 +14,7 @@
 // escribir esto, la otra fuente conocida llevaba horas dando 502. Cobrar por un
 // comando que no ha traído nada es exactamente lo que el resto del bot ya
 // aprendió a no hacer.
+const { spawnSuave } = require('../utils/hijos');
 const axios = require('axios');
 // Arma el freno de salidas (ver src/utils/redSegura.js): sin esto, una URL
 // que devuelva una API de fuera puede apuntar al metadata del VPS.
@@ -799,7 +800,7 @@ async function gifAMp4(gif, fondo = false) {
       // `min(400,iw)` solo ENCOGE — un gif pequeño no se estira, que quedaria
       // peor que dejarlo como estaba. El -2 mantiene la altura par, que es
       // obligatorio para H.264 y ya costo un fallo aqui.
-      const ff = spawn(ffmpegPath, ['-y', '-i', entrada,
+      const ff = spawnSuave(ffmpegPath, ['-y', '-i', entrada,
         '-movflags', 'faststart', '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
         '-vf', "scale='min(400,iw)':-2", '-crf', '28',
         '-preset', 'veryfast', '-an', salida]);
@@ -827,7 +828,7 @@ async function gifAMp4(gif, fondo = false) {
       const jpg = tempFile('jpg');
       try {
         await new Promise((resolve, reject) => {
-          const ff2 = spawn(ffmpegPath, ['-y', '-i', salida, '-frames:v', '1',
+          const ff2 = spawnSuave(ffmpegPath, ['-y', '-i', salida, '-frames:v', '1',
             '-vf', "scale='min(64,iw)':-2", '-q:v', '8', jpg]);
           const mata2 = setTimeout(() => { try { ff2.kill('SIGKILL'); } catch {} reject(new Error('thumb')); }, 8000);
           ff2.on('error', (e) => { clearTimeout(mata2); reject(e); });

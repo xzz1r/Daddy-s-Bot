@@ -57,6 +57,7 @@
 // selector descarta explícitamente cualquier formato cuyo id hable de marca de
 // agua, y solo si no queda ninguno cae al mejor a secas.
 
+const { spawnSuave } = require('./hijos');
 const fs = require('fs-extra');
 const fsp = require('fs').promises;
 const path = require('path');
@@ -492,7 +493,7 @@ function musicaDe(d) {
 // garantizado en la VPS y esto ya se hace así en analizarMedio.
 function medirFichero(fichero) {
   return new Promise((resolve) => {
-    const proc = spawn(ffmpegPath, ['-hide_banner', '-i', fichero, '-t', '0', '-f', 'null', '-']);
+    const proc = spawnSuave(ffmpegPath, ['-hide_banner', '-i', fichero, '-t', '0', '-f', 'null', '-']);
     let texto = '';
     const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 20000);
     proc.stderr?.on('data', (t) => { texto += t.toString(); });
@@ -563,7 +564,7 @@ function montarConFfmpeg(fotos, musica, porFoto, ancho, alto, crf, salida) {
   );
 
   return new Promise((resolve) => {
-    const proc = spawn(ffmpegPath, args);
+    const proc = spawnSuave(ffmpegPath, args);
     let error = '';
     const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 180000);
     proc.stderr?.on('data', (t) => { error += t.toString(); });
@@ -1130,7 +1131,7 @@ const GIF_FIEL = ["scale='min(720,iw)':-2", '-crf', '23', '-preset', 'medium'];
 
 function rehacerGif(entrada, salida, [escala, ...resto]) {
   return new Promise((resolve, reject) => {
-    const ff = spawn(ffmpegPath, ['-y', '-i', entrada,
+    const ff = spawnSuave(ffmpegPath, ['-y', '-i', entrada,
       '-movflags', 'faststart', '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
       '-vf', escala, ...resto, '-an', salida]);
     const mata = setTimeout(() => { try { ff.kill('SIGKILL'); } catch {} reject(new Error('tiempo agotado')); }, 60000);
@@ -1171,7 +1172,7 @@ async function datosDeGif(fichero) {
   const jpg = path.join(TEMP_DIR, `thumb_${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`);
   try {
     await new Promise((resolve, reject) => {
-      const ff = spawn(ffmpegPath, ['-y', '-i', fichero, '-frames:v', '1',
+      const ff = spawnSuave(ffmpegPath, ['-y', '-i', fichero, '-frames:v', '1',
         '-vf', "scale='min(64,iw)':-2", '-q:v', '8', jpg]);
       const mata = setTimeout(() => { try { ff.kill('SIGKILL'); } catch {} reject(new Error('miniatura')); }, 8000);
       ff.on('error', (e) => { clearTimeout(mata); reject(e); });
@@ -1209,7 +1210,7 @@ function esAnimado(medio) {
 
 function analizarMedio(fichero) {
   return new Promise((resolve) => {
-    const proc = spawn(ffmpegPath, ['-hide_banner', '-i', fichero, '-t', '0', '-f', 'null', '-']);
+    const proc = spawnSuave(ffmpegPath, ['-hide_banner', '-i', fichero, '-t', '0', '-f', 'null', '-']);
     let texto = '';
     const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 20000);
     proc.stderr?.on('data', (d) => { texto += d.toString(); });
@@ -1248,7 +1249,7 @@ const REPRODUCE_BIEN = (codec) => ACEPTA_HEVC || !codec || !['hevc', 'h265', 'av
 // barato: sin eso decodifica el video entero para no mirarlo.
 function medirAudio(fichero) {
   return new Promise((resolve) => {
-    const proc = spawn(ffmpegPath, ['-hide_banner', '-i', fichero, '-vn',
+    const proc = spawnSuave(ffmpegPath, ['-hide_banner', '-i', fichero, '-vn',
       '-af', `loudnorm=I=${OBJETIVO_LUFS}:TP=-${MARGEN_DB}:print_format=json`, '-f', 'null', '-']);
     let texto = '';
     const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 60000);
@@ -1273,7 +1274,7 @@ function medirAudio(fichero) {
 function subirAudio(entrada, ganancia, conLimitador = false) {
   const salida = entrada.replace(/\.mp4$/i, '') + `_n${Math.random().toString(36).slice(2, 6)}.mp4`;
   return new Promise((resolve) => {
-    const proc = spawn(ffmpegPath, [
+    const proc = spawnSuave(ffmpegPath, [
       '-hide_banner', '-loglevel', 'error', '-y',
       '-i', entrada,
       '-c:v', 'copy',
@@ -1377,7 +1378,7 @@ async function ajustarParaWhatsApp(fichero) {
   await ffmpegSemaphore.acquire();
   try {
     const hecho = await new Promise((resolve) => {
-      const proc = spawn(ffmpegPath, [
+      const proc = spawnSuave(ffmpegPath, [
         '-hide_banner', '-loglevel', 'error', '-y',
         '-i', fichero,
         '-c:v', 'libx264',

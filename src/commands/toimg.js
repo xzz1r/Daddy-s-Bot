@@ -12,6 +12,7 @@
 // Con `null` no se genera nada. `acciones.js` y `utils/redes.js` ya lo hacen
 // asi; aqui faltaba en los cuatro envios.
 
+const { spawnSuave, PRIORIDAD_FONDO } = require('../utils/hijos');
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
@@ -115,7 +116,7 @@ async function runFfmpegConvert(inputFile, outputFile, opts) {
     return await new Promise((resolve, reject) => {
       let stderrBuf = '';
       let timer = null;
-      const cmd = ffmpeg(inputFile)
+      const cmd = ffmpeg(inputFile).renice(PRIORIDAD_FONDO)
         .setFfmpegPath(ffmpegPath)
         .outputOptions(opts.outputOptions)
         .toFormat(opts.format)
@@ -185,7 +186,7 @@ async function mp4DeCuadros(desmontado) {
     await ffmpegSemaphore.acquire();
     try {
       await new Promise((resolve, reject) => {
-        const proc = spawn(ffmpegPath, args);
+        const proc = spawnSuave(ffmpegPath, args);
         let err = '';
         const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} reject(new Error('timeout')); }, 90000);
         proc.stderr?.on('data', (d) => { err += d.toString(); });

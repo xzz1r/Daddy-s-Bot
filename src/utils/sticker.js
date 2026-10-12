@@ -1,3 +1,4 @@
+const { spawnSuave, PRIORIDAD_FONDO } = require('./hijos');
 const zlib = require('zlib');
 const path = require('path');
 const { ffmpegPath, ffprobePath } = require('./ffmpeg');
@@ -320,7 +321,7 @@ async function runFfmpeg(inputFile, outputFile, options, format = 'webp') {
     return await new Promise((resolve, reject) => {
       let stderrBuf = '';
       let timer = null;
-      const cmd = ffmpeg(inputFile)
+      const cmd = ffmpeg(inputFile).renice(PRIORIDAD_FONDO)
         .setFfmpegPath(ffmpegPath)
         .outputOptions(options)
         .toFormat(format)
@@ -660,7 +661,7 @@ function porFfmpeg(inputFile) {
   return new Promise((resolve) => {
     let texto = '';
     let proc;
-    try { proc = spawn(ffmpegPath, ['-hide_banner', '-i', inputFile, '-t', '0', '-f', 'null', '-']); }
+    try { proc = spawnSuave(ffmpegPath, ['-hide_banner', '-i', inputFile, '-t', '0', '-f', 'null', '-']); }
     catch { return resolve({ segundos: 0, fps: 0 }); }
     const t = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} resolve({ segundos: 0, fps: 0 }); }, 8000);
     proc.stderr?.on('data', (d) => { texto += d.toString(); });
@@ -694,7 +695,7 @@ function getVideoDurationS(inputFile) {
     const finish = (v) => { if (settled) return; settled = true; clearTimeout(t); resolve(v); };
     let proc;
     try {
-      proc = spawn(ffprobePath, [
+      proc = spawnSuave(ffprobePath, [
         '-v', 'error',
         '-show_entries', 'stream=duration:format=duration',
         '-of', 'json', inputFile,
@@ -744,7 +745,7 @@ async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512, f
     return await new Promise((resolve, reject) => {
       let stderrBuf = '';
       let timer = null;
-      const cmd = ffmpeg(inputFile)
+      const cmd = ffmpeg(inputFile).renice(PRIORIDAD_FONDO)
         .setFfmpegPath(ffmpegPath)
         // ─── EL TOPE DE DURACION, Y VA COMO OPCION DE ENTRADA ────────────────
         //

@@ -1,3 +1,4 @@
+const { spawnSuave } = require('./hijos');
 const { spawn, execSync } = require('child_process');
 const fs = require('fs-extra');
 const path = require('path');
@@ -72,10 +73,19 @@ function detectYtDlp() {
 // ¿EXISTE DE VERDAD, o solo es un nombre que se pasa a spawn con la esperanza de
 // que el PATH lo resuelva? `detectYtDlp` devuelve 'yt-dlp' a secas cuando no
 // encontro nada, y eso desde fuera se lee igual que haberlo encontrado.
+//
+// LA RESPUESTA SE GUARDA DIEZ MINUTOS. Sin encontrarlo en ninguna ruta, esto
+// lanzaba `yt-dlp --version` EN SINCRONO en cada *!tt*, *!ig* o *!x*: medio
+// segundo largo con el bot parado entero —ni mensajes ni comandos— mientras
+// arrancaba Python. Se nota en el *!ping* y en todo lo demas.
+let hayYtDlpCache = null;
 function hayYtDlp() {
   if (YT_DLP !== 'yt-dlp') return fs.existsSync(YT_DLP);
-  try { execSync('yt-dlp --version', { stdio: 'ignore', timeout: 8000 }); return true; }
-  catch { return false; }
+  if (hayYtDlpCache && Date.now() - hayYtDlpCache.ts < 10 * 60 * 1000) return hayYtDlpCache.hay;
+  let hay = false;
+  try { execSync('yt-dlp --version', { stdio: 'ignore', timeout: 8000 }); hay = true; } catch { hay = false; }
+  hayYtDlpCache = { hay, ts: Date.now() };
+  return hay;
 }
 
 const YT_DLP = detectYtDlp();
@@ -175,7 +185,7 @@ function audioDuration(file) {
       // siempre, y su `-i` escupe la duracion igual. Sin ese respaldo, el filtro
       // de las previews de 30 segundos se queda muerto sin avisar, y el grupo
       // recibe recortes en vez de canciones.
-      proc = spawn(ffprobePath, ['-v', 'error', '-show_entries', 'format=duration',
+      proc = spawnSuave(ffprobePath, ['-v', 'error', '-show_entries', 'format=duration',
         '-of', 'default=noprint_wrappers=1:nokey=1', file]);
     } catch { return duracionPorFfmpeg(file).then(resolve); }
     // El respaldo va en los TRES finales, no solo en el `close`. El caso real
@@ -200,7 +210,7 @@ function duracionPorFfmpeg(file) {
   return new Promise((resolve) => {
     let texto = '';
     let proc;
-    try { proc = spawn(ffmpegPath, ['-hide_banner', '-i', file, '-t', '0', '-f', 'null', '-']); }
+    try { proc = spawnSuave(ffmpegPath, ['-hide_banner', '-i', file, '-t', '0', '-f', 'null', '-']); }
     catch { return resolve(null); }
     const timer = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} resolve(null); }, 15000);
     proc.stderr?.on('data', (d) => { texto += d.toString(); });
@@ -458,7 +468,7 @@ async function tryRapidApi(query) {
 
 function ytdlp(args, timeoutMs = 180000) {
   return new Promise((resolve, reject) => {
-    const proc = spawn(YT_DLP, args, { detached: true });
+    const proc = spawnSuave(YT_DLP, args, { detached: true });
     proc.unref?.();
     let stdout = '';
     let stderr = '';

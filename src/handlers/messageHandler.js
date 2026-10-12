@@ -849,6 +849,11 @@ async function cmdDiag(sock, msg, groupMeta) {
   text += `Anti-empresa: *${si(isAntiBusinessEnabled(jid))}*\n`;
   text += `Modo admin: *${si(isSoloAdminsEnabled(jid))}*\n\n`;
   text += `Sobres de estado vigilados: *${SOBRES_ESTADO.length}*\n`;
+  // De donde sale un *!ping* alto: si esto va en 0 y el ping sube, es la red.
+  {
+    const r = require('../utils/hijos').retrasoBucle();
+    text += `Retraso del bot (${r.minutos} min): *${r.p50} ms* normal · *${r.p99} ms* en el peor 1 % · *${r.max} ms* máx.\n`;
+  }
 
   // LA FUENTE DEL GIF EXPLICITO, VISTA DESDE DENTRO DEL PROCESO.
   //

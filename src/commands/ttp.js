@@ -1,3 +1,4 @@
+const { PRIORIDAD_FONDO } = require('../utils/hijos');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
 const { Readable } = require('stream');
@@ -113,7 +114,7 @@ async function textToStickerBuffer(text) {
       await new Promise((resolve, reject) => {
         let stderr = '';
         let timer = null;
-        const cmd = ffmpeg(inputStream)
+        const cmd = ffmpeg(inputStream).renice(PRIORIDAD_FONDO)
           .setFfmpegPath(ffmpegPath)
           .inputOptions([
             '-f', 'rawvideo',
