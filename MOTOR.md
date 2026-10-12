@@ -398,12 +398,38 @@ tiene dos vídeos y no se parecen:
 | normal | 576x1024 | H.264 | 1,1 MB |
 | HD | 1080x1920 | HEVC | 1,5 MB |
 
-Se pide siempre el mejor, pero el HD viene en **HEVC**, y eso no es
-intercambiable: WhatsApp reproduce H.264 en todas partes y el HEVC se le
-atraganta según el teléfono. Un vídeo de 1080 que a media docena del grupo no
-se les abre es peor que uno de 576 que ve todo el mundo. Así que se mira qué
-llegó y, si es HEVC, se coge el siguiente. Recodificar no es opción: pasar
-1080x1920 a H.264 en un core son decenas de segundos con alguien esperando.
+Se pide siempre el mejor y, si cabe, **va tal cual**: los mismos fotogramas
+que sirve la red. Al HEVC solo se le cambia la caja (la etiqueta `hvc1`, sin
+la que el iPhone no lo abre), que son 0,2 s. Es lo menos comprimido y lo menos
+pesado que existe de ese vídeo: cualquier recodificado le quita calidad, y
+pasar HEVC a H.264 además lo engorda.
+
+Hasta el 12 oct el HEVC se convertía a H.264 por si algún móvil no lo abría, y
+eso era lo que hacía eterno un `!tt` largo. Medido en un núcleo:
+
+| vídeo | convertir | el fichero | parecido al original |
+|---|---|---|---|
+| 30 s | 37 s | 4,2 → 7,6 MB | SSIM 0,990 |
+| 90 s | 91 s | 11,2 → 14,0 MB | SSIM 0,986 |
+| 1:57 | 115 s | 14,8 → 14,7 MB | SSIM 0,976 |
+
+Con `REDES_HEVC=0` en el `.env` se vuelve a convertir, para un grupo donde
+alguien no pueda abrirlos (un móvil muy viejo, WhatsApp Web sin HEVC). AV1 y
+VP9 se convierten siempre.
+
+**Lo que no cabe se ajusta; no se cambia por una copia peor.** Si la mejor
+copia pasa de 16 MB se baja igual (hasta 40) y se ajusta con techo de bitrate.
+Mandar el `play` de 576 cuando el `hdplay` se pasa es lo que el dueño ya
+rechazó cuando notó que los vídeos «habían bajado de calidad» (capa 84). Si
+ese techo baja de 1.500 kb/s (más o menos a partir del minuto y cuarto), se
+ajusta a 720: medido contra el original, a esos bits el 1080 no se ve mejor
+(SSIM 0,976 contra 0,979 el de 1:57), pesa 2 MB más y tarda 40 s más. yt-dlp
+igual: el mejor formato, hasta 40 MB, y se ajusta después.
+
+**Y quien espera lo ve.** Los comandos de herramientas renuevan el
+«escribiendo…» mientras trabajan y, si pasan de 6 s, ponen un aviso
+«⏳ Bajando el vídeo de TikTok… Lleva 12 s» que se edita con la fase y se
+borra al acabar (`utils/progreso.js`, el texto en la fila de `comandos.js`).
 
 **Y lo que se manda como vídeo tiene que tener vídeo.** Pasó en el grupo:
 WhatsApp contestó *«something is wrong with the video file»*. Lo que le había
@@ -424,9 +450,8 @@ Más allá de ese número no sirve de nada, así que se corta ahí y se dice en 
 grupo: es el único motivo de fallo que no se arregla reintentando, y quien pegó
 el enlace merece saberlo.
 
-Es decisión del dueño, no del código: con `REDES_HEVC=1` en el `.env` se manda
-el mejor y punto. Y al proveedor de TikTok hay que **pedirle** el HD, con
-`&hd=1` al final de `TIKTOK_API`.
+Y al proveedor de TikTok hay que **pedirle** el HD, con `&hd=1` al final de
+`TIKTOK_API`.
 
 **Y pedir un vídeo no puede costarte el grupo.** `!tt <enlace>` es, para el
 antilink, un mensaje con un enlace: lo borraba, contaba aviso y al tercero

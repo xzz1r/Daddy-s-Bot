@@ -218,6 +218,9 @@ const COBRO_CENTRAL = LISTAS.COBRO_CENTRAL;
 // Hasta mil borrados, y si faltan claves pide el historial al teléfono.
 // Bajan un gif de fuera y lo pasan por ffmpeg.
 const LENTOS = LISTAS.LENTOS;
+// Y lo que dice cada uno si tarda mas de la cuenta (ver utils/progreso.js).
+const ESPERA = LISTAS.ESPERA;
+const progreso = require('../utils/progreso');
 
 // vs/versus cobran dentro de cmdVs: tienen tres salidas sin respuesta (sin
 // menciones, contra uno mismo, y el silencio contra el owner) y cobrando
@@ -2659,6 +2662,19 @@ async function handleMessage(sock, msg, opciones = {}) {
     pagoAqui = pago;
   }
 
+  // Y MIENTRAS DURE, QUE SE SEPA. El «escribiendo…» de arriba sale una vez y
+  // WhatsApp lo apaga solo a los pocos segundos; un *!tt* largo se quedaba
+  // despues en silencio y no se distinguia de un bot colgado. Esto lo renueva
+  // y, si el comando pasa de seis segundos, pone un aviso con lo que lleva que
+  // se borra al acabar. Ver utils/progreso.js.
+  //
+  // Va AQUI, pegado al `try`, y no junto al «escribiendo…»: entre medias hay
+  // dos salidas —el privado y el que no tiene saldo— que no pasan por el
+  // `finally`, y un aviso empezado ahi no lo borraria nadie.
+  if (LENTOS.has(command)) {
+    progreso.empezar(sock, msg, { texto: ESPERA[command] || null, presencia: vistoActivo(config.autoRead) });
+  }
+
   try {
     let resultado;
     // EL REPARTO. Cada nombre lleva a su fila del registro (comandos.js) y la
@@ -2748,6 +2764,9 @@ async function handleMessage(sock, msg, opciones = {}) {
         + (cobradoAqui > 0 ? `\n_Te devuelvo los ${cobradoAqui} de aura._` : ''),
     }, { quoted: msg }).catch(() => {});
   } finally {
+    // El aviso de espera, si salio, se borra; y deja de renovarse el
+    // «escribiendo…» antes de apagarlo, no despues.
+    if (LENTOS.has(command)) await progreso.terminar(msg);
     // ─── Y SE APAGA EL «ESCRIBIENDO…» ────────────────────────────────────
     //
     // Se encendia al empezar un comando lento y no se apagaba nunca: la unica

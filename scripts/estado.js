@@ -699,40 +699,32 @@ if (bot) {
   }
 }
 
-// LA CALIDAD DE LOS VIDEOS DE *!tt*, *!ig*, *!x* Y *!pin*, QUE HOY NO SE VE.
+// LA CALIDAD DE LOS VIDEOS DE *!tt*, *!ig*, *!x* Y *!pin*, Y LO QUE TARDAN.
 //
-// Un video puede salir peor de lo que la red lo sirve por dos motivos, y los
-// dos son decisiones tomadas a proposito que desde fuera parecen un fallo:
+// Un video puede salir distinto de como lo sirve la red por dos motivos, y los
+// dos se ven aqui con numero en vez de con una opinion:
 //
-//   · REDES_HEVC. TikTok e Instagram sirven cada vez mas su copia buena en
-//     HEVC/H.265, y ese formato no se abre en todos los telefonos. De serie el
-//     bot lo DESCARTA y manda la siguiente opcion, que suele ser la de menos
-//     resolucion. En un grupo de iPhone eso es tirar el 1080 por nada, y se
-//     arregla con REDES_HEVC=1 en el .env.
-//   · Los 16 MB de WhatsApp. Lo que no cabe no se manda, y se coge el mejor de
-//     los que caben. Eso no tiene vuelta: 16 MB es el limite real del envio en
-//     linea, comprobado, y por encima solo se puede mandar como documento.
+//   · REDES_HEVC. De serie el HEVC va TAL CUAL: es lo mas rapido, lo menos
+//     comprimido y lo menos pesado. Con REDES_HEVC=0 se convierte a H.264 para
+//     los moviles que no lo abren, y eso cuesta un segundo de CPU por segundo de
+//     video y engorda el fichero.
+//   · Los 16 MB de WhatsApp. Lo que no cabe se ajusta (recodificado): no se
+//     cambia por una copia peor. 16 MB es el limite real del envio en linea,
+//     comprobado.
 //
-// Ninguno de los dos se veia en ningun sitio. Se cuentan del propio log, que es
-// donde el bot ya lo dice, para que la pregunta "¿han bajado de calidad?" tenga
-// una respuesta con numero en vez de una opinion.
+// Se cuentan del propio log, que es donde el bot ya lo dice.
 {
-  const hevcOn = /^(1|si|sí|true|yes)$/i.test(String(process.env.REDES_HEVC || '').trim());
+  const hevcTalCual = !/^(0|no|false|off)$/i.test(String(process.env.REDES_HEVC || '').trim());
   // El log se pide aparte: el de arriba vive dentro de su bloque y ahi no llega.
   const logRedes = sh('pm2 logs bot --out --lines 400 --nostream 2>/dev/null', 20000) || '';
-  const bajados = logRedes.split('\n').filter((l) => /no se reproduce en todos los telefonos/.test(l)).length;
-  const grandes = logRedes.split('\n').filter((l) => /no caben en WhatsApp/.test(l)).length;
+  const lineas = logRedes.split('\n');
+  const recodificados = lineas.filter((l) => /redes: recodificado/.test(l)).length;
 
-  if (bajados > 0 && !hevcOn) {
-    aviso(`${bajados} vídeo(s) de redes se mandaron en peor calidad por venir en HEVC (REDES_HEVC está apagado)`,
-      'si en el grupo todos llevan iPhone o Android reciente: pon REDES_HEVC=1 en el .env y reinicia');
-  } else if (bajados > 0) {
-    bien(`${bajados} vídeo(s) venían en HEVC y se mandaron igual (REDES_HEVC=1)`);
-  } else {
-    bien(`calidad de redes: ninguna bajada por formato${hevcOn ? ' (REDES_HEVC=1)' : ''}`);
-  }
-  if (grandes > 0) {
-    bien(`${grandes} vez/veces se descartó una copia por pasar de 16 MB: es el límite real de WhatsApp, no un ajuste`);
+  if (hevcTalCual) bien('vídeos de redes: el HEVC va tal cual, sin recodificar (REDES_HEVC=0 lo convierte)');
+  else aviso('REDES_HEVC=0: el HEVC se convierte a H.264, y un vídeo largo tarda lo que dura',
+    'si nadie del grupo tiene problemas para abrirlos, quita REDES_HEVC del .env y reinicia');
+  if (recodificados > 0) {
+    bien(`${recodificados} vídeo(s) se recodificaron (no cabían${hevcTalCual ? '' : ' o venían en HEVC'}); el detalle, en pm2 logs`);
   }
 }
 

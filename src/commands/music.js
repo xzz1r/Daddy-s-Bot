@@ -148,12 +148,22 @@ async function cmdPlay(sock, msg, args, groupMeta) {
     // `{ url }` y no el buffer: Baileys abre un createReadStream y la RAM del
     // bot no se entera del tamaño. Si el proveedor trajo los bytes por su
     // cuenta se mandan tal cual, que ahi no hay fichero del que leer.
+    //
+    // Y LA SUBIDA, CON TOPE DE TIEMPO PARADA. Sin el, Baileys espera lo que
+    // tarde el sistema en dar por muerta una conexion que se ha quedado muda —
+    // minutos— y la cancion ni llega ni avisa. Un minuto sin mover un byte
+    // corta, se prueba otro servidor de WhatsApp y, si tampoco, se devuelve el
+    // aura con su aviso. Una subida lenta pero viva sigue.
+    //
+    // EL MP3 VA TAL CUAL LO DA EL PROVEEDOR. El bot no lo recodifica: pasarlo a
+    // otro formato le quitaria calidad, y para pesar menos habria que
+    // apretarlo, que es lo mismo dicho al reves.
     await sock.sendMessage(jid, {
       audio: audioBuffer || { url: result.filePath },
       mimetype: result.mimetype || 'audio/mp4',
       fileName: `${result.title}.${result.ext || 'm4a'}`,
       ptt: false,
-    }, { quoted: msg });
+    }, { quoted: msg, mediaUploadTimeoutMs: 60000 });
     incrementStat('musicPlayed');
   } catch (err) {
     logger.error(`Send audio error: ${err.message}`);

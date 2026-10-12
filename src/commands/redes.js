@@ -15,6 +15,7 @@ const { traer, buscar, buscarVarios, enlaceDe, plataformaDe, esPerfil, hayComoTr
 const { getSender, canonicalJid } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo, SIN_SERVICIO } = require('../utils/auraCobro');
 const logger = require('../utils/logger');
+const progreso = require('../utils/progreso');
 
 // UN ENLACE CADA OCHO SEGUNDOS POR PERSONA. No es por el precio —el aura ya
 // frena eso— sino por los dos huecos de descarga que hay para todo el bot: sin
@@ -107,6 +108,8 @@ const FOTOS_POR_PIN = 5;
 // WhatsApp corta los pies largos con un «ver más» y un tuit puede llevar cuatro
 // mil caracteres. Por encima de esto el pie deja de ser un pie.
 const TOPE_PIE = 900;
+// Ver la nota del envio en hazRed.
+const SUBIDA_PARADA_MS = 60000;
 
 async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = null, pinesDados = null) {
   const jid = msg.key.remoteJid;
@@ -246,7 +249,10 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
     traido = busqueda
       ? await buscarVarios(busqueda, `pin|${jid}|${busqueda.toLowerCase()}`, pinesDados,
         pinesDados ? 1 : FOTOS_POR_PIN)
-      : await traer(url, plataforma);
+      : await traer(url, plataforma, {
+        // Si hay que recodificar, quien espera ve que va para rato y cuanto.
+        avisar: (texto, segundos) => progreso.etapa(msg, texto, segundos),
+      });
   } catch (e) {
     logger.warn(`${plataforma}: ${e.message}`);
     await devolverAura();
@@ -293,6 +299,7 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
 
   const tBajar = Date.now() - t0;
   const t1 = Date.now();
+  progreso.etapa(msg, 'Subiéndolo a WhatsApp');
   try {
     // DESDE EL DISCO, NO DESDE UN BUFFER: Baileys abre un createReadStream con
     // una ruta, así que un vídeo de 25 MB no son 25 MB de RAM del bot.
@@ -417,7 +424,14 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
       // mismo mensaje repite el recuadro cinco veces.
       const extra = padre?.key ? { albumParentKey: padre.key } : {};
       const opciones = (!padre && ids.length === 0) ? { quoted: msg } : {};
-      const enviado = await sock.sendMessage(jid, { ...medio, ...extra }, opciones);
+      // UNA SUBIDA PARADA NO PUEDE DEJAR EL COMANDO COLGADO. Baileys sube sin
+      // limite de tiempo si no se le pide: una conexion que se queda muda a
+      // medio video espera lo que tarde el sistema en rendirse, que son
+      // minutos, y quien lo pidio no recibe ni el video ni el aviso. Con esto,
+      // un minuto sin mover un byte corta, se prueba el siguiente servidor de
+      // WhatsApp, y si ninguno va, sale el «no lo aceptó» y se devuelve el aura.
+      // Cuenta el tiempo PARADA, no el total: una subida lenta pero viva sigue.
+      const enviado = await sock.sendMessage(jid, { ...medio, ...extra }, { ...opciones, mediaUploadTimeoutMs: SUBIDA_PARADA_MS });
       if (enviado?.key?.id) ids.push(enviado.key.id);
     }
 

@@ -63,6 +63,15 @@ otros dos, quedándose con las mejores. No se añaden frases: una nueva entra
 sacando otra. La regla vive en `src/commands/percent.js` (`TAMANO_TRAMO`,
 `tramoPrincipal`) y la capa 120 no deja pasar otro tamaño. Salen en baraja.
 
+## Vídeos de redes: tal cual
+
+Lo pidió el dueño (12 oct): lo menos comprimidos y lo menos pesados posible, y
+que un `!tt` largo no tarde minutos. Lo que cabe en 16 MB va **sin
+recodificar**, también el HEVC (solo se le cambia la caja a `hvc1`); con
+`REDES_HEVC=0` se vuelve a convertir. Lo que no cabe se ajusta y nunca se
+cambia por una copia peor (capa 84). Las herramientas lentas avisan con
+`espera` en su fila (`utils/progreso.js`). Capas 96 y 124.
+
 ## Apelativos de dominancia: se quedan
 
 «…, pequeña.», «…, mi niña.», «…, princesa.» y el resto al final de las

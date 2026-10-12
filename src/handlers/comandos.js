@@ -25,6 +25,9 @@
 //               reembolso del cobro central
 //   meta        necesita la metadata del grupo (admins, participantes)
 //   lento       tarda: se enseña «escribiendo…» mientras trabaja
+//   espera      lo que dice el aviso «⏳ … Lleva 12 s» si pasa de seis segundos
+//               (ver utils/progreso.js). Solo en los lentos: sin `lento` no se
+//               mira
 //   cobro       concepto de PRECIOS que cuesta; un objeto si cambia por nombre
 //   cobraDentro cobra el propio comando (sabe cuando no ha servido y devuelve);
 //               el cobro central no le toca, pero la puerta del privado si
@@ -88,21 +91,21 @@ const vault = (sub) => (c) => c.de('vault').cmdVault(c.sock, c.msg, [sub, ...c.a
 const FAMILIAS = [
   { nombres: ['play', 'musica', 'cancion', 'song', 'playsong', 'playaudio'], meta: true, lento: true, cobraDentro: true, cobro: 'play',
     hace: (c) => c.de('music').cmdPlay(c.sock, c.msg, c.args, c.meta) },
-  { nombres: ['tt', 'tiktok'], lento: true, cobraDentro: true, cobro: 'redes',
+  { nombres: ['tt', 'tiktok'], lento: true, espera: 'Bajando el vídeo de TikTok', cobraDentro: true, cobro: 'redes',
     hace: (c) => c.de('redes').cmdTikTok(c.sock, c.msg, c.args, c.meta) },
-  { nombres: ['ig', 'insta', 'instagram'], lento: true, cobraDentro: true, cobro: 'redes',
+  { nombres: ['ig', 'insta', 'instagram'], lento: true, espera: 'Bajando lo de Instagram', cobraDentro: true, cobro: 'redes',
     hace: (c) => c.de('redes').cmdInstagram(c.sock, c.msg, c.args, c.meta) },
-  { nombres: ['pin', 'pinterest'], lento: true, cobraDentro: true, cobro: 'redes',
+  { nombres: ['pin', 'pinterest'], lento: true, espera: 'Trayéndolo de Pinterest', cobraDentro: true, cobro: 'redes',
     hace: (c) => c.de('redes').cmdPinterest(c.sock, c.msg, c.args, c.meta) },
   // *!x* — la foto, el gif o el video de un tuit. Los alias son los dos nombres
   // de la red (el de ahora y el de siempre) y lo que la gente escribe cuando no
   // se acuerda de ninguno de los dos.
-  { nombres: ['x', 'twitter', 'tuit', 'tweet'], lento: true, cobraDentro: true, cobro: 'redes',
+  { nombres: ['x', 'twitter', 'tuit', 'tweet'], lento: true, espera: 'Bajando el tuit', cobraDentro: true, cobro: 'redes',
     hace: (c) => c.de('redes').cmdX(c.sock, c.msg, c.args, c.meta) },
   // *!next* sobre la foto que mando el bot: otra de la misma busqueda. No lleva
   // argumentos —la busqueda sale del mensaje al que se responde— asi que no
   // puede confundirse con nada.
-  { nombres: ['next', 'otra', 'siguiente'],
+  { nombres: ['next', 'otra', 'siguiente'], lento: true, espera: 'Buscando otra',
     hace: (c) => c.de('redes').cmdNext(c.sock, c.msg, c.args, c.meta) },
   { nombres: ['cachelist', 'listacache', 'cache'], meta: true, cobro: 'cachelist',
     hace: (c) => c.de('music').cmdCacheList(c.sock, c.msg) },
@@ -110,7 +113,7 @@ const FAMILIAS = [
     hace: (c) => soloDueno(c, () => c.de('music').cmdClearCache(c.sock, c.msg)) },
   { nombres: ['whoami'], meta: true,
     hace: (c) => c.de('social').cmdWhoami(c.sock, c.msg, c.args, c.meta) },
-  { nombres: ['s', 'sticker', 'stk'], meta: true, lento: true, cobraDentro: true, media: true, cobro: 'sticker',
+  { nombres: ['s', 'sticker', 'stk'], meta: true, lento: true, espera: 'Haciendo el sticker', cobraDentro: true, media: true, cobro: 'sticker',
     hace: (c) => c.de('sticker').cmdSticker(c.sock, c.msg, c.meta) },
   // !k — se lleva al privado del owner el archivo citado. No responde nada en
   // el grupo (ni siquiera un error) y no sale en el menu: es una herramienta de
@@ -210,7 +213,7 @@ const FAMILIAS = [
     hace: (c) => c.de('group').cmdAntiLink(c.sock, c.msg, c.args, c.meta) },
   { nombres: ['scan', 'escanear'], meta: true, lento: true,
     hace: (c) => c.de('scan').cmdScan(c.sock, c.msg, c.meta) },
-  { nombres: ['fk', 'verificar', 'verify', 'check'], meta: true, lento: true, cobraDentro: true, media: true, cobro: 'fk',
+  { nombres: ['fk', 'verificar', 'verify', 'check'], meta: true, lento: true, espera: 'Mirando esa cuenta', cobraDentro: true, media: true, cobro: 'fk',
     hace: (c) => c.de('fk').cmdFk(c.sock, c.msg, c.args, c.meta) },
   { nombres: ['marcarfake', 'fake'], meta: true,
     hace: (c) => c.de('fk').cmdMarkFake(c.sock, c.msg, c.args, c.meta) },
@@ -257,11 +260,11 @@ const FAMILIAS = [
     hace: (c) => c.de('group').cmdUnmute(c.sock, c.msg, c.args, c.meta) },
   { nombres: ['ship'], meta: true, cobro: 'ship', aOtro: true,
     hace: (c) => c.de('ship').cmdShip(c.sock, c.msg, c.args, c.meta) },
-  { nombres: ['ttp', 'texto'], meta: true, lento: true, cobro: 'ttp',
+  { nombres: ['ttp', 'texto'], meta: true, lento: true, espera: 'Haciendo el sticker de texto', cobro: 'ttp',
     hace: (c) => c.de('ttp').cmdTtp(c.sock, c.msg, c.args) },
-  { nombres: ['toimg', 'stimg'], meta: true, lento: true, cobraDentro: true, media: true, cobro: 'toimg',
+  { nombres: ['toimg', 'stimg'], meta: true, lento: true, espera: 'Pasando el sticker a foto', cobraDentro: true, media: true, cobro: 'toimg',
     hace: (c) => c.de('toimg').cmdToImg(c.sock, c.msg, c.meta) },
-  { nombres: ['tovid'], meta: true, lento: true, cobraDentro: true, media: true, cobro: 'tovid',
+  { nombres: ['tovid'], meta: true, lento: true, espera: 'Pasando el sticker a vídeo', cobraDentro: true, media: true, cobro: 'tovid',
     hace: (c) => c.de('toimg').cmdToVid(c.sock, c.msg, c.meta) },
   { nombres: ['pfp', 'foto'], meta: true, lento: true, cobraDentro: true, cobro: 'pfp',
     hace: (c) => c.de('pfp').cmdPfp(c.sock, c.msg, c.args, c.meta) },
@@ -411,6 +414,8 @@ function construirListas({ ALIAS_ACCION, familiaDe = null }) {
   const SOLO_CONSULTA = new Set();
   const MEDIA_CMDS = new Set();
   const COBRO_CENTRAL = {};
+  // Nombre -> el texto del aviso de espera (ver `espera`).
+  const ESPERA = {};
   // Nombre -> familia. Lo usa el corrector: una errata que se parece a dos
   // alias del MISMO comando no es una duda, y una que se parece a dos comandos
   // distintos si.
@@ -432,6 +437,7 @@ function construirListas({ ALIAS_ACCION, familiaDe = null }) {
       FAMILIA.set(n, f.grupo ? `${f.grupo}:${(familiaDe && familiaDe(n)) || n}` : `fila${i}`);
       if (f.meta) NEEDS_META.add(n);
       if (f.lento) LENTOS.add(n);
+      if (f.lento && f.espera) ESPERA[n] = f.espera;
       if (f.cobraDentro) COBRAN_SOLOS.add(n);
       if (f.aura) CMDS_AURA.add(n);
       if (f.consulta) SOLO_CONSULTA.add(n);
@@ -443,7 +449,7 @@ function construirListas({ ALIAS_ACCION, familiaDe = null }) {
   });
   // Los de porcentaje, sacados de su precio: comparten concepto y son los unicos.
   const CMDS_PORCENTAJE = Object.keys(COBRO_CENTRAL).filter((n) => COBRO_CENTRAL[n] === 'percent');
-  return { NEEDS_META, LENTOS, COBRAN_SOLOS, CMDS_AURA, SOLO_CONSULTA, MEDIA_CMDS, COBRO_CENTRAL, CMDS_PORCENTAJE, FAMILIA, EJECUTA, A_OTRO };
+  return { NEEDS_META, LENTOS, COBRAN_SOLOS, CMDS_AURA, SOLO_CONSULTA, MEDIA_CMDS, COBRO_CENTRAL, CMDS_PORCENTAJE, FAMILIA, EJECUTA, A_OTRO, ESPERA };
 }
 
 module.exports = { FAMILIAS, construirListas, cargarComando };

@@ -18306,26 +18306,24 @@ const manda = async (quien, tipo, opciones) => {
     if (fallos === antes95) console.log(verde('   ✓ con el mapa frío se resuelve antes de negar, y el dueño sigue blindado'));
   }
 
-  // ── 96. EL VÍDEO SE AJUSTA PARA QUE QUEPA, NO SE CAMBIA POR UNO PEOR ───
+  // ── 96. EL VÍDEO VA TAL CUAL SI CABE, Y SI NO, SE AJUSTA ───────────────
   //
-  // Lo pidio el dueño asi: calidad maxima y comprimido lo mas que se pueda sin
-  // perderla. Antes el bot hacia lo contrario — ante un video grande o en HEVC
-  // cogia OTRA copia de la misma publicacion, que casi siempre es la de menos
-  // resolucion. Un 1080 se convertia en un 480 por un problema de formato o por
-  // dos megas de mas.
+  // Lo pidio el dueño asi: calidad maxima, lo menos comprimido y lo menos
+  // pesado posible (12 oct, con un *!tt* de 1:57 que tardaba minutos). La copia
+  // que sirve la red es las tres cosas: cualquier recodificado le quita calidad
+  // y pasar HEVC a H.264 ademas la engorda. Medido en un nucleo, convertir el
+  // HEVC costaba un segundo de CPU por segundo de video:
   //
-  // Medido en un nucleo, que es la maquina del dueño:
+  //   30 s    37 s    4,2 -> 7,6 MB     SSIM 0,990
+  //   1:57   115 s   14,8 -> 14,7 MB    SSIM 0,976
+  //   tal cual        0,2 s, los mismos fotogramas
   //
-  //   HEVC 1080p de 30 s     18 MB → 12 MB   26 s
-  //   H.264 1080p de 33 MB   32 MB → 15 MB   25 s
-  //   lo que ya cabe                          0 s   (no se toca)
-  //
-  // LO QUE VIGILA ESTA CAPA es que ese coste solo se pague cuando hace falta, y
-  // que cuando se paga sirva de algo: que el resultado quepa, que se pueda
-  // reproducir, y que la resolucion NO baje — encoger es la forma facil de que
-  // quepa y es justo lo que el dueño no quiere.
+  // LO QUE VIGILA ESTA CAPA: que lo que cabe vaya tal cual (el HEVC, con la
+  // etiqueta `hvc1` que pide el iPhone y nada mas), que REDES_HEVC=0 siga
+  // convirtiendo, que lo que no cabe se ajuste hasta caber, y que la resolucion
+  // solo baje cuando a esos bits el 1080 no se veria mejor.
   {
-    console.log('\n96. EL VÍDEO SE AJUSTA PARA QUE QUEPA, NO SE CAMBIA POR UNO PEOR');
+    console.log('\n96. EL VÍDEO VA TAL CUAL SI CABE, Y SI NO, SE AJUSTA');
     const antes96 = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
     const {
@@ -18333,6 +18331,9 @@ const manda = async (quien, tipo, opciones) => {
       _techoDeBitrate: techo96,
       _TOPE_WHATSAPP: TOPE96,
       _TOPE_BAJADA: BAJADA96,
+      _salidaDe: salida96,
+      _segundosDeRecodificar: coste96,
+      _analizarMedio: analiza96,
     } = require(path.join(R, 'src/utils/redes'));
 
     // 1) EL TOPE DE BAJADA ES MAYOR QUE EL DE ENVIO. Si fueran el mismo, la
@@ -18341,7 +18342,7 @@ const manda = async (quien, tipo, opciones) => {
       `el tope de bajada (${BAJADA96}) no supera al de envío (${TOPE96}): la copia buena no llegaría a bajarse`);
 
     // 2) EL TECHO DE BITRATE BAJA CON LA DURACION, que es lo que hace que un
-    //    clip largo quepa sin tener que encogerlo.
+    //    clip largo quepa.
     exige(techo96(15) > techo96(60) && techo96(60) > techo96(180),
       `el techo de bitrate no baja con la duración: ${techo96(15)} / ${techo96(60)} / ${techo96(180)}`);
     for (const seg of [5, 30, 90, 180]) {
@@ -18350,17 +18351,32 @@ const manda = async (quien, tipo, opciones) => {
         `con ${seg}s el techo de ${techo96(seg)}k no cabe en ${Math.round(TOPE96 / 1048576)} MB`);
     }
 
-    // 3) Y EL AJUSTE DE VERDAD, con ficheros hechos aqui. Sin red.
+    // 3) LA RESOLUCION BAJA SOLO CUANDO NO SE VERIA. Con bits de sobra (30 s) el
+    //    1080 se queda; con pocos (1:57) baja a 720, que medido se ve igual o
+    //    mejor, pesa menos y tarda un tercio menos. Y uno que ya es 720 no baja.
+    const v = (segundos, ancho = 1080, alto = 1920) => ({ segundos, ancho, alto, fps: 30 });
+    exige(!salida96(v(30)).encoger, 'un vertical 1080 de 30 s se encoge al ajustarlo: con esos bits el 1080 sí se ve');
+    exige(salida96(v(117)).encoger, 'un vertical 1080 de 1:57 se ajusta en 1080: a esos bits no se ve mejor, pesa más y tarda más');
+    exige(salida96(v(117, 1920, 1080)).encoger, 'un apaisado 1080 de 1:57 no se encoge como el vertical');
+    exige(!salida96(v(117, 720, 1280)).encoger, 'un 720 se encogería más todavía');
+    // Y LO QUE CUESTA se calcula con sentido: mas largo, mas caro; encogido,
+    // mas barato; y sin duracion no se inventa.
+    exige(coste96(v(60)) > coste96(v(30)) && coste96(v(60)) > coste96(v(60, 720, 1280)),
+      `lo que cuesta recodificar no crece con la duración o los píxeles: ${coste96(v(30))} / ${coste96(v(60))} / ${coste96(v(60, 720, 1280))}`);
+    exige(coste96({ ancho: 1080, alto: 1920 }) === null, 'sin duración, el coste de recodificar se inventa');
+
+    // 4) Y EL AJUSTE DE VERDAD, con ficheros hechos aqui. Sin red.
     const os96 = require('os');
     const caja96 = fs.mkdtempSync(path.join(os96.tmpdir(), 'video-'));
+    const hevcAntes = process.env.REDES_HEVC;
     try {
       const { ffmpegPath: ff96 } = require(path.join(R, 'src/utils/ffmpeg'));
       const { execFileSync: ejecutar96 } = require('child_process');
-      const crear = (nombre, args) => {
+      const crear = (nombre, args, fuente = 'testsrc2=size=720x1280:rate=30:duration=6', segundos = 6) => {
         const f = path.join(caja96, nombre);
         ejecutar96(ff96, ['-hide_banner', '-loglevel', 'error', '-y',
-          '-f', 'lavfi', '-i', 'testsrc2=size=720x1280:rate=30:duration=6',
-          '-f', 'lavfi', '-i', 'sine=frequency=440:duration=6',
+          '-f', 'lavfi', '-i', fuente,
+          '-f', 'lavfi', '-i', `sine=frequency=440:duration=${segundos}`,
           ...args, '-shortest', f], { timeout: 180000 });
         return f;
       };
@@ -18374,37 +18390,94 @@ const manda = async (quien, tipo, opciones) => {
         return { codec, ancho: dim ? Number(dim[1]) : null, alto: dim ? Number(dim[2]) : null,
           bytes: fs.statSync(f).size };
       };
+      // La huella de los FOTOGRAMAS, no del fichero: lo que tiene que ser igual
+      // al cambiar la caja es la imagen, no los bytes del contenedor.
+      const huella = (f) => {
+        try {
+          return ejecutar96(ff96, ['-hide_banner', '-loglevel', 'error', '-i', f, '-map', '0:v', '-f', 'md5', '-'],
+            { encoding: 'utf8', timeout: 120000 }).trim();
+        } catch { return null; }
+      };
 
-      // a) H.264 que ya cabe: NO SE TOCA. Es el caso de casi todos los TikToks
-      //    y pagar 25 s de CPU por el seria el peor cambio posible.
+      // a) H.264 que ya cabe: NO SE TOCA. Es el caso de casi todos los TikToks.
       const pequeno = crear('cabe.mp4', ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '30', '-pix_fmt', 'yuv420p', '-c:a', 'aac']);
       const antesP = mide(pequeno);
       exige(antesP.bytes <= TOPE96, `el fichero de prueba "ya cabe" pesa ${antesP.bytes} y no sirve para probar eso`);
       const salP = await ajustar96(pequeno);
       exige(salP === pequeno,
-        'un vídeo que ya es H.264 y ya cabe se recodifica igual: son 25 s de CPU por nada en el caso más común');
+        'un vídeo que ya es H.264 y ya cabe se recodifica igual: es CPU y calidad tiradas en el caso más común');
 
-      // b) HEVC: se convierte, y sale algo que reproduce cualquier telefono.
-      const hevc = crear('hevc.mp4', ['-c:v', 'libx265', '-preset', 'ultrafast', '-crf', '30', '-tag:v', 'hvc1', '-pix_fmt', 'yuv420p', '-c:a', 'aac']);
+      // b) HEVC QUE CABE: VA TAL CUAL. Se hace con la etiqueta `hev1`, que es la
+      //    que el iPhone no abre y la que pone ffmpeg de serie: tiene que salir
+      //    `hvc1`, en HEVC, con los mismos fotogramas y en un momento.
+      delete process.env.REDES_HEVC;
+      const hevc = crear('hevc.mp4', ['-c:v', 'libx265', '-preset', 'ultrafast', '-crf', '30', '-tag:v', 'hev1', '-pix_fmt', 'yuv420p', '-c:a', 'aac']);
       const antesH = mide(hevc);
+      const huellaH = huella(hevc);
       exige(antesH.codec === 'hevc', `el fichero HEVC de prueba salió en ${antesH.codec}`);
+      const t96 = Date.now();
       const salH = await ajustar96(hevc);
-      exige(salH !== hevc, 'un vídeo en HEVC se manda tal cual: no se abre en todos los teléfonos');
-      if (salH !== hevc) {
-        const despH = mide(salH);
-        exige(despH.codec === 'h264', `el HEVC se convirtió a ${despH.codec} y no a h264`);
-        // LA RESOLUCION NO BAJA. Encoger es la forma facil de hacer que quepa y
-        // es exactamente lo que el dueño NO quiere.
-        exige(despH.ancho === antesH.ancho && despH.alto === antesH.alto,
-          `al convertir se encogió de ${antesH.ancho}x${antesH.alto} a ${despH.ancho}x${despH.alto}: la resolución no se toca`);
-        exige(despH.bytes <= TOPE96, `lo convertido pesa ${despH.bytes} y no cabe en WhatsApp`);
+      const ms96 = Date.now() - t96;
+      const despH = fs.existsSync(salH) ? await analiza96(salH) : {};
+      exige(despH.video === 'hevc', `un HEVC que cabe sale en ${despH.video}: se ha recodificado, y eso es lo que tardaba minutos`);
+      exige(despH.etiqueta === 'hvc1', `el HEVC sale con la etiqueta ${despH.etiqueta}: sin hvc1 el iPhone no lo abre`);
+      exige(huella(salH) === huellaH && huellaH !== null, 'al cambiarle la caja al HEVC han cambiado los fotogramas: tenía que ser el mismo vídeo');
+      exige(ms96 < 5000, `cambiar la caja de un HEVC de 6 s ha tardado ${ms96} ms: eso no es copiar, es recodificar`);
+
+      // c) CON REDES_HEVC=0, EL HEVC SE CONVIERTE, para el grupo que lo pida.
+      process.env.REDES_HEVC = '0';
+      const hevc0 = crear('hevc0.mp4', ['-c:v', 'libx265', '-preset', 'ultrafast', '-crf', '30', '-tag:v', 'hvc1', '-pix_fmt', 'yuv420p', '-c:a', 'aac']);
+      const antes0 = mide(hevc0);
+      const sal0 = await ajustar96(hevc0);
+      exige(sal0 !== hevc0, 'con REDES_HEVC=0 el HEVC se manda tal cual: el dueño lo pidió convertido');
+      if (sal0 !== hevc0) {
+        const desp0 = mide(sal0);
+        exige(desp0.codec === 'h264', `con REDES_HEVC=0 el HEVC se convirtió a ${desp0.codec} y no a h264`);
+        exige(desp0.ancho === antes0.ancho && desp0.alto === antes0.alto,
+          `al convertir un clip corto se encogió de ${antes0.ancho}x${antes0.alto} a ${desp0.ancho}x${desp0.alto}: con bits de sobra no se toca`);
+        exige(desp0.bytes <= TOPE96, `lo convertido pesa ${desp0.bytes} y no cabe en WhatsApp`);
       }
+      delete process.env.REDES_HEVC;
+
+      // d) LO QUE NO CABE SE AJUSTA HASTA CABER. Un clip corto de 22 MB: sale
+      //    en H.264, por debajo del tope y con su resolucion.
+      const gordo = crear('gordo.mp4', ['-c:v', 'libx264', '-preset', 'ultrafast', '-b:v', '60M', '-minrate', '60M',
+        '-maxrate', '60M', '-bufsize', '2M', '-x264-params', 'nal-hrd=cbr', '-pix_fmt', 'yuv420p', '-c:a', 'aac'],
+      'testsrc2=size=720x1280:rate=30:duration=3', 3);
+      const antesG = mide(gordo);
+      exige(antesG.bytes > TOPE96, `el fichero de prueba "no cabe" pesa ${antesG.bytes} y no sirve para probar eso`);
+      let avisado = null;
+      const salG = await ajustar96(gordo, (texto, seg) => { avisado = { texto, seg }; });
+      const despG = fs.existsSync(salG) ? mide(salG) : {};
+      exige(despG.bytes <= TOPE96, `un vídeo de ${Math.round(antesG.bytes / 1048576)} MB sale con ${despG.bytes} bytes: no cabe en WhatsApp`);
+      exige(despG.ancho === antesG.ancho && despG.alto === antesG.alto,
+        `un clip corto que no cabía se encogió de ${antesG.ancho}x${antesG.alto} a ${despG.ancho}x${despG.alto}`);
+      // Y quien espera se entera de que eso va para rato.
+      exige(avisado && /quepa/.test(avisado.texto) && avisado.seg > 0,
+        `al ponerse a ajustar no avisa a quien espera, o no dice cuánto (${JSON.stringify(avisado)})`);
     } finally {
+      if (hevcAntes === undefined) delete process.env.REDES_HEVC; else process.env.REDES_HEVC = hevcAntes;
       fs.rmSync(caja96, { recursive: true, force: true });
     }
 
-    if (fallos === antes96) console.log(verde('   ✓ lo que ya cabe no se toca, y lo que no cabe se ajusta sin bajar de resolución'));
+    // 5) Y EL TOPE SE MIRA DESPUES DE AJUSTAR. Estaba antes, y entonces el
+    //    ajuste de un video grande no se ejecutaba nunca: la API bajaba el 1080
+    //    de 22 MB para ajustarlo y esa linea lo tiraba con un «pesa 22 MB».
+    {
+      const rd96 = soloCodigo('src/utils/redes.js');
+      const iTraer = rd96.indexOf('async function traer(');
+      const cuerpo = rd96.slice(iTraer, rd96.indexOf('\nmodule.exports', iTraer));
+      const iAjuste = cuerpo.indexOf('await ajustarParaWhatsApp(');
+      const iTopeVideo = cuerpo.indexOf('if (final > TOPE_WHATSAPP)');
+      exige(iAjuste > 0 && iTopeVideo > iAjuste,
+        'traer() mira el tope de WhatsApp antes de ajustar el vídeo: lo que no cabe se rechaza sin intentar que quepa');
+      exige(!/if \(size > TOPE_WHATSAPP\) throw new Error/.test(cuerpo),
+        'traer() vuelve a tirar por tamaño todo lo que baja, antes de ajustarlo');
+    }
+
+    if (fallos === antes96) console.log(verde('   ✓ lo que cabe va tal cual (el HEVC solo cambia de caja), y lo que no cabe se ajusta hasta caber'));
   }
+
 
   // ── 97. !limpiar BORRA PARA TODOS, TAMBIÉN LO DEL DUEÑO ──────────────────
   //
@@ -20919,6 +20992,275 @@ const manda = async (quien, tipo, opciones) => {
     ]);
     exige(segundo === 'ok', 'un envío con ritmo no sale en medio segundo');
     if (fallos === antes123) console.log(verde('   ✓ mensajes, expulsiones y consultas salen espaciadas, y el visto queda fuera'));
+  }
+
+  // ── 124. UN VÍDEO LARGO NO TARDA LO QUE DURA, Y QUIEN ESPERA LO VE ──────
+  //
+  // El dueño (12 oct): pasaba un *!tt* de 1:57 y «no sé siquiera si funciona o
+  // si se quedó congelado». Eran dos fallos que se sumaban: el bot recodificaba
+  // el HEVC de TikTok (un segundo de CPU por segundo de video: dos minutos) y
+  // mientras tanto no decia nada — el «escribiendo…» se apagaba solo a los
+  // pocos segundos y el enlace ya estaba borrado.
+  //
+  // La capa 96 vigila que lo que cabe vaya tal cual. Esta vigila lo demas:
+  //
+  //   1. El aviso de espera: sale si tarda, dice la fase, se edita en el sitio
+  //      y se borra al acabar; si el comando es rapido no sale nada.
+  //   2. Que este enchufado: en el manejador, en las filas de las herramientas
+  //      y en las fases de *!tt*.
+  //   3. Que si la mejor copia no cabe, se baje y se AJUSTE hasta caber, aunque
+  //      el video sea largo y haya otra copia peor que ya cabe: cambiarla por
+  //      la peor es lo que el dueño ya rechazo una vez (capa 84).
+  //   4. Que yt-dlp no aborte con lo que no cabe: lo baja hasta 40 MB y se ajusta.
+  //   5. Que una subida parada no deje el comando colgado.
+  //   6. Que la medida del audio, ahora con ebur128, de lo mismo que loudnorm.
+  {
+    console.log('\n124. UN VÍDEO LARGO NO TARDA LO QUE DURA, Y QUIEN ESPERA LO VE');
+    const antes124 = fallos;
+    const exige = (c, q) => { if (!c) { fallos++; console.log(rojo(`   ✗ ${q}`)); } };
+    const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    // 1) EL AVISO, con un socket fingido y los tiempos en milisegundos.
+    {
+      const progreso = require(path.join(R, 'src/utils/progreso'));
+      const log = [];
+      let n = 0;
+      const sock = {
+        sendMessage: async (jid, c, o) => {
+          log.push({ c, o });
+          return (c.text && !c.edit) ? { key: { id: `AV${++n}`, remoteJid: jid, fromMe: true } } : {};
+        },
+        sendPresenceUpdate: async (t) => { log.push({ presencia: t }); },
+      };
+      const msg = { key: { id: 'CAPA124-1', remoteJid: '000000124@g.us' } };
+      progreso.empezar(sock, msg, { texto: 'Bajando el vídeo de TikTok', presencia: true, tras: 80, cada: 120, azar: 10, latido: 40 });
+      await dormir(110);
+      const primero = log.find((l) => l.c && l.c.text && !l.c.edit);
+      exige(primero && /Bajando el vídeo de TikTok/.test(primero.c.text) && /Lleva \d+ s/.test(primero.c.text),
+        `si tarda, no sale el aviso con lo que lleva (${primero ? primero.c.text : 'nada'})`);
+      exige(primero && primero.o && primero.o.quoted === msg, 'el aviso no cita el comando: no se sabe de quién es');
+      progreso.etapa(msg, 'Subiéndolo a WhatsApp');
+      await dormir(40);
+      const editado = log.find((l) => l.c && l.c.edit && /Subiéndolo/.test(l.c.text));
+      exige(editado && editado.c.edit && editado.c.edit.id === 'AV1',
+        'la fase nueva no edita el aviso en el sitio: o no se dice, o sale otro mensaje');
+      exige(log.filter((l) => l.c && l.c.text && !l.c.edit).length === 1, 'el aviso sale más de una vez');
+      exige(log.filter((l) => l.presencia === 'composing').length >= 2, 'el «escribiendo…» no se renueva mientras trabaja');
+      await progreso.terminar(msg);
+      const borrado = log.find((l) => l.c && l.c.delete);
+      exige(borrado && borrado.c.delete.id === 'AV1', 'al acabar, el aviso se queda puesto en el grupo');
+      const tras = log.length;
+      await dormir(200);
+      exige(log.length === tras, `después de acabar siguen saliendo cosas (${log.length - tras})`);
+      exige(progreso._activos.size === 0, 'el seguimiento se queda vivo después de acabar');
+
+      // Lo rapido no ve nada.
+      log.length = 0;
+      const rapido = { key: { id: 'CAPA124-2', remoteJid: '000000124@g.us' } };
+      progreso.empezar(sock, rapido, { texto: 'Haciendo el sticker', tras: 80 });
+      await dormir(20);
+      await progreso.terminar(rapido);
+      await dormir(120);
+      exige(log.length === 0, `un comando rápido deja ${log.length} mensaje(s) de espera: eso es ruido`);
+
+      // Y si lo que viene es largo y se sabe, el aviso sale YA, con lo que queda.
+      log.length = 0;
+      const largo = { key: { id: 'CAPA124-3', remoteJid: '000000124@g.us' } };
+      progreso.empezar(sock, largo, { texto: 'Bajando el vídeo de TikTok', tras: 5000 });
+      progreso.etapa(largo, 'Ajustando el vídeo para que quepa en WhatsApp', 75);
+      await dormir(30);
+      const ya = log.find((l) => l.c && l.c.text && !l.c.edit);
+      exige(ya && /quedan unos \d+ s/.test(ya.c.text),
+        `un ajuste de minuto y pico no avisa hasta los seis segundos, o no dice cuánto queda (${ya ? ya.c.text : 'nada'})`);
+      await progreso.terminar(largo);
+    }
+
+    // 2) ENCHUFADO.
+    {
+      const mh = soloCodigo('src/handlers/messageHandler.js');
+      const iPago = mh.indexOf('if (!pago.ok) {');
+      const iEmpieza = mh.indexOf('progreso.empezar(sock, msg');
+      const iTry = mh.indexOf('let resultado;');
+      exige(iEmpieza > iPago && iEmpieza < iTry,
+        'el aviso de espera no empieza justo antes del reparto: o empieza donde una salida temprana lo deja huérfano, o no empieza');
+      const iTermina = mh.indexOf('await progreso.terminar(msg)');
+      const iPausa = mh.indexOf("sendPresenceUpdate('paused', jid)");
+      exige(iTermina > iTry && iTermina < iPausa, 'el aviso no se cierra en el finally antes de apagar el «escribiendo…»');
+      const { construirListas } = require(path.join(R, 'src/handlers/comandos'));
+      const L = construirListas({ ALIAS_ACCION: [] });
+      for (const c of ['tt', 'tiktok', 'ig', 'pin', 'x', 'next', 's', 'sticker', 'toimg', 'tovid', 'ttp']) {
+        exige(L.LENTOS.has(c) && typeof L.ESPERA[c] === 'string' && L.ESPERA[c].length > 5,
+          `*!${c}* no tiene aviso de espera: si tarda, nadie sabe si sigue vivo`);
+      }
+      const rc = soloCodigo('src/commands/redes.js');
+      exige(/avisar: \(texto, segundos\) => progreso\.etapa\(msg, texto, segundos\)/.test(rc),
+        '*!tt* no cuenta cuándo se pone a recodificar: el aviso se queda en «bajando» durante minutos');
+      exige(/progreso\.etapa\(msg, 'Subiéndolo a WhatsApp'\)/.test(rc), '*!tt* no dice cuándo empieza a subir');
+      // 5) Y LA SUBIDA, CON TOPE DE TIEMPO PARADA, en *!tt* y en *!play*.
+      exige(/mediaUploadTimeoutMs: SUBIDA_PARADA_MS/.test(rc),
+        'la subida de *!tt* no tiene tope: una conexión muda deja el comando colgado minutos, sin vídeo ni aviso');
+      exige(/mediaUploadTimeoutMs: \d+/.test(soloCodigo('src/commands/music.js')),
+        'la subida de *!play* no tiene tope: una conexión muda deja el comando colgado');
+    }
+
+    // 3) y 4) LA COPIA QUE SE ELIGE, con la API y la red fingidas.
+    {
+      const guion = String.raw`
+process.env.TIKTOK_API = 'https://api.invalid/tt?';
+const fs = require('fs-extra');
+const path = require('path');
+const R = __RAIZ__;
+const { execFileSync } = require('child_process');
+const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+const D = fs.mkdtempSync(path.join(require('os').tmpdir(), 'capa124-'));
+const hazClip = (nombre, args) => {
+  const f = path.join(D, nombre);
+  execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', ...args, f], { timeout: 180000 });
+  return f;
+};
+const cbr = (k) => ['-c:v', 'libx264', '-preset', 'ultrafast', '-b:v', k, '-minrate', k, '-maxrate', k, '-bufsize', '2M', '-x264-params', 'nal-hrd=cbr', '-pix_fmt', 'yuv420p'];
+// Uno pequeño que cabe (la copia peor) y uno que no cabe (la buena, 720 de
+// ancho y 22 MB).
+const sd = hazClip('sd.mp4', ['-f', 'lavfi', '-i', 'testsrc2=size=480x854:rate=30:duration=3', '-f', 'lavfi', '-i', 'sine=d=3',
+  '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '30', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-shortest']);
+const corto = hazClip('corto.mp4', ['-f', 'lavfi', '-i', 'testsrc2=size=720x1280:rate=30:duration=3', '-f', 'lavfi', '-i', 'sine=d=3',
+  ...cbr('60M'), '-c:a', 'aac', '-shortest']);
+
+const rutaDl = require.resolve(path.join(R, 'src/utils/downloader'));
+const dlReal = require(rutaDl);
+let pedidos = [];
+let ytArgs = null;
+const fuenteDe = { 'https://cdn.invalid/hd-corto.mp4': corto, 'https://cdn.invalid/sd.mp4': sd };
+require.cache[rutaDl].exports = Object.assign({}, dlReal, {
+  acquireDownloadSlot: async () => {},
+  releaseDownloadSlot: () => {},
+  downloadUrlToFile: async (url, dest) => { pedidos.push(url); await fs.copy(fuenteDe[url], dest); },
+  ytdlp: async (args) => {
+    ytArgs = args;
+    const o = args[args.indexOf('-o') + 1];
+    await fs.copy(sd, o.replace('%(ext)s', 'mp4'));
+    return '';
+  },
+});
+const axios = require('axios');
+let respuesta = null;
+let pesos = {};
+axios.get = async (u) => {
+  if (/api\.invalid/.test(u)) return { data: respuesta };
+  throw new Error('la prueba no sale a la red');
+};
+axios.head = async (u) => {
+  if (pesos[u] == null) throw new Error('sin cabecera');
+  return { headers: { 'content-length': String(pesos[u]) } };
+};
+
+const redes = require(path.join(R, 'src/utils/redes'));
+const quejas = [];
+const ok = (c, t) => { if (!c) quejas.push(t); };
+const MB = 1048576;
+
+(async () => {
+  // a) La buena pesa 22 MB, detras hay una peor que cabe, y la API dice que el
+  //    video dura 1:57. Aun asi se baja LA BUENA y se ajusta: cambiarla por la
+  //    peor es lo que el dueño rechazo («han bajado de calidad»). La espera se
+  //    ve en el aviso; la calidad perdida no se recupera.
+  pedidos = [];
+  respuesta = { data: { hdplay: 'https://cdn.invalid/hd-corto.mp4', play: 'https://cdn.invalid/sd.mp4', duration: 117 } };
+  pesos = { 'https://cdn.invalid/hd-corto.mp4': 22 * MB, 'https://cdn.invalid/sd.mp4': fs.statSync(sd).size };
+  let fallo = null;
+  let r = await redes.traer('https://www.tiktok.com/@a/video/1', 'tiktok').catch((e) => { fallo = e; return null; });
+  ok(!fallo, 'la buena de 22 MB se rechaza en vez de ajustarla hasta que quepa: ' + (fallo && fallo.message));
+  ok(pedidos[0] === 'https://cdn.invalid/hd-corto.mp4',
+    'con la buena de 22 MB se manda la copia peor en vez de ajustar la buena: ' + pedidos.join(', '));
+  ok(r && r.bytes <= redes._TOPE_WHATSAPP, 'la buena que no cabía no se ha ajustado hasta caber (' + (r && r.bytes) + ')');
+  const salio = r && r.fichero ? await redes._analizarMedio(r.fichero) : {};
+  ok(salio.ancho === 720, 'lo que llega no es la buena (' + salio.ancho + ' de ancho)');
+  if (r && r.fichero) await fs.remove(r.fichero);
+
+  // b) Sin cabeceras ni duracion, lo mismo: se baja la buena, se mide y se
+  //    ajusta. Y por el camino no queda nada tirado en temp/.
+  pedidos = [];
+  respuesta = { data: { hdplay: 'https://cdn.invalid/hd-corto.mp4', play: 'https://cdn.invalid/sd.mp4' } };
+  pesos = {};
+  const yaHabia = new Set(await fs.readdir(dlReal.TEMP_DIR).catch(() => []));
+  fallo = null;
+  r = await redes.traer('https://www.tiktok.com/@a/video/2', 'tiktok').catch((e) => { fallo = e; return null; });
+  ok(!fallo && pedidos.join(',') === 'https://cdn.invalid/hd-corto.mp4',
+    'sin cabeceras, la buena que no cabe no se ajusta: ' + (fallo ? fallo.message : pedidos.join(', ')));
+  ok(r && r.bytes <= redes._TOPE_WHATSAPP, 'sin cabeceras, lo que se manda no cabe (' + (r && r.bytes) + ')');
+  if (r && r.fichero) await fs.remove(r.fichero);
+  const sobras = (await fs.readdir(dlReal.TEMP_DIR).catch(() => [])).filter((f) => f.startsWith('red_') && !yaHabia.has(f));
+  ok(sobras.length === 0, 'al ajustar se quedan ficheros tirados en temp/: ' + sobras.join(', '));
+
+  // 4) yt-dlp: el mejor formato, como siempre, y la bajada con el tope de 40
+  //    MB para que lo que no quepa llegue a ajustarse en vez de abortar.
+  delete process.env.TIKTOK_API;
+  const f = await redes._porYtDlp('https://www.tiktok.com/@a/video/4', 'tiktok');
+  if (f) await fs.remove(f);
+  const fmt = ytArgs ? ytArgs[ytArgs.indexOf('-f') + 1] : '';
+  ok(fmt === redes.PLATAFORMAS.tiktok.formato,
+    'yt-dlp ya no pide el mejor formato (' + fmt + '): uno peor que quepa es la copia peor que el dueño no quiere');
+  const tope = ytArgs ? ytArgs[ytArgs.indexOf('--max-filesize') + 1] : '';
+  ok(tope === Math.floor(redes._TOPE_BAJADA / MB) + 'M',
+    'yt-dlp aborta con el tope de WhatsApp (' + tope + '): lo que no cabe no llega ni a ajustarse');
+
+  await fs.remove(D);
+  console.log('CAPA124:' + JSON.stringify(quejas));
+})().catch(async (e) => {
+  await fs.remove(D).catch(() => {});
+  console.log('CAPA124:' + JSON.stringify(['la prueba revento: ' + (e && e.stack || e)]));
+});
+`;
+      const { execFileSync } = require('child_process');
+      const os124 = require('os');
+      const dir124 = fs.mkdtempSync(path.join(os124.tmpdir(), 'capa124-'));
+      try {
+        try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(dir124, 'node_modules'), 'dir'); } catch { /* el hijo lo dira */ }
+        fs.writeFileSync(path.join(dir124, 'p.js'), guion.replace(/__RAIZ__/g, json(R)));
+        let salida = '';
+        try {
+          salida = execFileSync(process.execPath, [path.join(dir124, 'p.js')],
+            { encoding: 'utf8', timeout: 300000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+        } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+        const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA124:'));
+        exige(!!linea, `la prueba de la copia que se elige no contestó: ${salida.slice(-400).trim()}`);
+        if (linea) {
+          let quejas = [];
+          try { quejas = JSON.parse(linea.slice('CAPA124:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+          for (const q of quejas) exige(false, q);
+        }
+      } finally {
+        fs.rmSync(dir124, { recursive: true, force: true });
+      }
+    }
+
+    // 6) LA MEDIDA DEL AUDIO DA LO MISMO QUE ANTES. Se cambio loudnorm por
+    //    ebur128 porque mide lo mismo cuatro veces mas rapido; si alguna vez
+    //    dejaran de coincidir, el volumen de los videos cambiaria sin que nadie
+    //    lo pidiera.
+    {
+      const os124b = require('os');
+      const caja = fs.mkdtempSync(path.join(os124b.tmpdir(), 'audio124-'));
+      try {
+        const { ffmpegPath: ff } = require(path.join(R, 'src/utils/ffmpeg'));
+        const { execFileSync: ej, spawnSync: sp } = require('child_process');
+        const f = path.join(caja, 'tono.mp4');
+        ej(ff, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi', '-i', 'color=c=black:s=160x120:d=8',
+          '-f', 'lavfi', '-i', "aevalsrc='0.2*sin(2*PI*440*t)*(0.4+0.6*abs(sin(PI*t/3)))':s=44100:d=8",
+          '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-shortest', f], { timeout: 60000, stdio: 'ignore' });
+        const medido = await require(path.join(R, 'src/utils/redes'))._medirAudio(f);
+        const r = sp(ff, ['-hide_banner', '-i', f, '-vn', '-af', 'loudnorm=print_format=json', '-f', 'null', '-'],
+          { encoding: 'utf8', timeout: 60000 });
+        const m = /\{[^{}]*"input_i"[^{}]*\}/s.exec(String(r.stderr || ''));
+        const ln = m ? JSON.parse(m[0]) : null;
+        exige(medido && ln && Math.abs(medido.lufs - Number(ln.input_i)) <= 0.5 && Math.abs(medido.pico - Number(ln.input_tp)) <= 0.5,
+          `la medida del audio no coincide con la de loudnorm (${JSON.stringify(medido)} contra ${ln && ln.input_i} LUFS / ${ln && ln.input_tp} dB): el volumen de los vídeos cambiaría`);
+      } finally {
+        fs.rmSync(caja, { recursive: true, force: true });
+      }
+    }
+
+    if (fallos === antes124) console.log(verde('   ✓ lo que no cabe se ajusta sin cambiarlo por una copia peor, y mientras trabaja se ve que sigue vivo'));
   }
 
   }
