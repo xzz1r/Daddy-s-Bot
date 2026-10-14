@@ -116,7 +116,10 @@ const POOLS_MODO = args.includes('--pools');
 // se reescribio. Los numeros de arriba eran una meta que nunca se midio entera
 // (nadie 502 con 520 dentro): esta es la foto real, y aun asi por debajo de
 // lo que habia antes de Grok en todas las familias.
-const TECHO = { nadie: 485, analogia: 6, coletilla: 91, eco: 4, molde: 155, enlatado: 127, roto: 2 };
+// Y el 14 oct, al afilar el aviso de «Solo admins» y sus cierres (cuatro
+// empezaban por «Ese comando» y varios no le hablaban a nadie): nadie 483,
+// molde 151.
+const TECHO = { nadie: 483, analogia: 6, coletilla: 91, eco: 4, molde: 151, enlatado: 127, roto: 2 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();
