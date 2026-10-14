@@ -22,12 +22,12 @@ const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
 
 const { getAura, addAura, drainAura, drainConCaja, spendAura, flushAura, forzarCaja, verCaja: cajaDePersona, BOLSA } = require('../utils/auraStore');
 const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
-const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, castigoCifra, exitoOwnerRobo, factorRespaldo, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA, SALDO_MINIMO, CAJA, BUTRON } = require('../utils/economia');
+const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, castigoCifra, exitoOwnerRobo, factorRespaldo, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA, SALDO_MINIMO, CAJA, BUTRON } = require('../utils/economia');
 const { ownerGana } = require('../utils/rigOwner');
 const { fichaFalsaBuscado } = require('../utils/fachada');
 const tienda = require('../utils/roboStore');
 const momentum = require('../utils/momentum');
-const { objetivoDelDia, esObjetivoDelDia, diaClave } = require('../utils/objetivoDia');
+const { objetivoDelDia, esObjetivoDelDia } = require('../utils/objetivoDia');
 const RX = require('../data/roboExtraPhrases');
 const { ROBO_FALLO_REMATE, ROB_WIN, ROB_FAIL, ROB_MAESTRO, ROB_PARCIAL, ROB_DESASTRE } = require('../data/roboPhrases');
 const { fraseCooldown, ROBO: ROBO_CD, ROBO_ASALTO, ROBO_GUARDIA } = require('../data/cooldownPhrases');
@@ -1150,49 +1150,6 @@ async function topLadrones(sock, msg, jid, groupMeta) {
   return sock.sendMessage(jid, { text: text.trimEnd(), mentions: r.map(x => x.jid) }, { quoted: msg });
 }
 
-// El consejo de la cifra: una vez al dia por persona y grupo. Repetido en cada
-// robo era una linea fija debajo de todos los mensajes del grupo.
-const pistaVista = new Map();   // `${grupo}|${persona}` -> diaClave
-// LA FACHADA DEL OWNER, EN UNA FUNCION Y EXPORTADA, Y NO POR ELEGANCIA.
-//
-// Esto vivia dentro de cmdRobo, o sea que no habia forma de llamarlo desde
-// fuera: `npm run check` solo podia comprobar que las palabras `chanceVisible`
-// y `ROBO_OWNER_VISIBLE` aparecieran en el fichero. Con eso, sustituir todo el
-// calculo por `chanceVisible = chanceFinal` —que es enseñarle al owner su
-// probabilidad real, justo lo que delata el amaño— pasaba en verde. Probado.
-//
-// Sacada aqui, el validador la EJECUTA y comprueba lo unico que importa: que al
-// owner nunca se le enseñe su numero, y que lo que se le enseñe viva en la
-// banda de un miembro cualquiera. Es la misma forma que ya tenia `!aura` con
-// pApuestaVisible, que por eso si estaba bien vigilado.
-//
-// `sinJitter` es para el validador: sin el, el ±3 % aleatorio obliga a repetir
-// la comprobacion muchas veces para estar seguro.
-function chanceVisibleDe(esOwner, chanceReal, stake, maxStake, mom, sinJitter = false) {
-  if (!esOwner) return chanceReal;
-  const { min, max } = ROBO_OWNER_VISIBLE;
-  const codicia = maxStake > 0 ? Math.min(1, stake / maxStake) : 0;
-  const centro = max - (max - min) * codicia;              // pedir mas, enseñar menos
-  const jitter = sinJitter ? 0 : (Math.random() - 0.5) * 0.06;  // ±3 puntos, para que no se repita
-  let v = Math.min(max, Math.max(min, centro + jitter));
-  // El momentum tambien mueve la cifra que se ve, para que la linea de "racha
-  // caliente" no acompañe a un % identico al de siempre. Dentro de la banda.
-  if (mom) {
-    v += mom.tipo === 'caliente' ? 0.03 : -0.03;
-    v = Math.min(max, Math.max(min, v));
-  }
-  return v;
-}
-
-function pistaCifra(grupo, quien) {
-  const hoy = diaClave();
-  const k = `${grupo}|${canonicalJid(quien)}`;
-  if (pistaVista.get(k) === hoy) return false;
-  if (pistaVista.size >= 2000) pistaVista.delete(pistaVista.keys().next().value);
-  pistaVista.set(k, hoy);
-  return true;
-}
-
 async function cmdRobo(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
@@ -1426,29 +1383,6 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   anotarIntento(jid, canonicalJid(sender), canonicalJid(target));
   let success = Math.random() < chanceFinal;
 
-  // ─── El porcentaje que se ENSEÑA ───────────────────────────────────────────
-  //
-  // El mensaje imprime la probabilidad, y ahi estaba el problema: al owner le
-  // salia un 78 % mientras al resto del grupo le salia entre 24 y 38. No hacia
-  // falta sospechar nada, estaba escrito en cada robo, uno debajo del otro.
-  //
-  // Lo que se enseña es la probabilidad que TENDRIA si no fuera owner: se
-  // recalcula desde la base de un miembro y con las mismas dinamicas. Asi no es
-  // un numero inventado al azar sino uno coherente — sube y baja con la cifra
-  // que pide, igual que el de cualquiera — y encaja con lo que el grupo ve.
-  //
-  // Por dentro no cambia nada: `chance` es lo que decide el resultado.
-  // Al owner se le enseña una cifra CREIBLE Y DISTINTA cada vez.
-  //
-  // Antes se calculaba como si fuera un miembro normal, pero con el castigo por
-  // codicia al 30 % esa cuenta se hunde contra el suelo del 15 % en cuanto se
-  // pide una cantidad grande — y el owner pide grande. El bot acababa cantando
-  // "15 % de salir bien" en todas las tiradas y saliendo bien en todas: un
-  // numero fijo que se repite es lo que delata el amaño, no el numero en si.
-  //
-  // Se mueve dentro de la banda real de un miembro y baja un poco cuanto mas se
-  // pide, para que siga teniendo la logica que cualquiera espera ver.
-  let chanceVisible = chanceVisibleDe(ladronEsOwner, chanceFinal, stake, maxStake, mom);
 
   // Víctima = owner principal → el robo falla siempre.
   // Atacante = owner principal → ownerGana(ROBO_OWNER_EXITO), no el 100 %.
@@ -1473,12 +1407,6 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const { mult, titulo } = DESENLACES[clave];
   if (clave === 'maestro') momentum.anotar(jid, sender, 'caliente', 'aura');
   else if (clave === 'desastre') momentum.anotar(jid, sender, 'tilt', 'aura');
-  const pctMom = (x) => Math.round(Math.abs(x) * 100);
-  const notaPuerta = clave === 'maestro'
-    ? `\n_Caliente. La próxima *!aura* (10 min) lleva un +${pctMom(MOMENTUM.caliente)}%._`
-    : clave === 'desastre'
-      ? `\n_Tilt. La próxima *!aura* (10 min) te resta un ${pctMom(MOMENTUM.tilt)}%._`
-      : '';
   // Nunca se mueve más aura de la que la víctima tiene ni de la que el ladrón
   // puede pagar: un golpe maestro sobre alguien con poco no le deja en negativo.
   const bruto = Math.max(1, Math.round(stake * Math.abs(mult)));
@@ -1502,70 +1430,19 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       ? `\n_Ibas a por ${fmt(raw)}, pero entre suelto y banco solo tienes ${fmt(maxStake)} para pagar si sale mal._`
       : `\n_Ibas a por ${fmt(raw)}, pero ${vNom} solo tenía ${fmt(maxStake)}._`;
   const fraccion = maxStake > 0 ? stake / maxStake : 0;
-  // La cifra se enseña SIEMPRE. Era lo que faltaba: se podia elegir desde hacia
-  // tiempo, pero el bot solo lo mencionaba al recortar, y si el parser fallaba
-  // (que era el caso normal con menciones) ni siquiera recortaba — eligia otra
-  // cifra en silencio. Ahora se ve a por cuanto se fue, contra que tope, y si
-  // la cifra la puso el jugador o el bot.
-  // CORTA. La nota llego a tener seis segmentos y una linea entera de tutorial
-  // debajo de cada robo, y se lee en un movil pegada a otras cuatro lineas.
-  //
-  // Lo que se ha quitado y por que:
-  //
-  //  · "punto dulce" salia DOS VECES en la misma linea — una en este texto y
-  //    otra en el sello de etiquetaRiesgo, que devuelve la misma palabra. No
-  //    era estilo, era un duplicado.
-  //  · "*!robo @alguien 200* para elegir" iba en CADA robo de quien no pone
-  //    cifra, para siempre. Un consejo que se repite cien veces deja de ser un
-  //    consejo. Ahora sale una vez al dia por persona, que es cuando enseña algo.
-  //
-  // Queda lo que responde a "cuanto iba y que posibilidades tenia".
-  // LA CIFRA NO SE DICE TRES VECES. Salia en el titular ("intentó robarle
-  // *39*"), en el saldo ("−39") y otra vez aqui ("39 de 87"). De las tres, la
-  // unica que aporta algo nuevo es el TOPE: cuanto se podia haber pedido.
-  const notaApuesta = elegido
-    ? `tope ${fmt(maxStake)} · ${Math.round(chanceVisible * 100)}%`
-    : `tope ${fmt(maxStake)} · ${Math.round(chanceVisible * 100)}%${pistaCifra(jid, sender) ? ' · *!robo @alguien 200* para elegir' : ''}`;
-  // EL SELLO SE VA ENTERO. Primero se quito cuando coincidia con un motivo de
-  // riesgo ("cobarde · sin agallas (−6%)", dos etiquetas para una cosa). Lo que
-  // quedaba era el caso del punto dulce, y ahi tampoco aporta: poner
-  // "punto dulce" al lado de "39 de 87" es etiquetar unos numeros que se leen
-  // solos. La proporcion ya dice si fuiste goloso o cobarde.
 
-  // AL OWNER SE LE FABRICA EL DESGLOSE, no solo el porcentaje.
+  // ─── LO QUE NO SE CUENTA ────────────────────────────────────────────────────
   //
-  // A un miembro el bot le explica de donde sale su probabilidad
-  // ("codicia (−14%) · te tienen fichado (−8%)"). Al owner no le salia NINGUNO,
-  // porque su calculo real se salta esos castigos — asi que su mensaje era el
-  // unico del grupo sin desglose. Eso delata tanto como un numero repetido:
-  // no hace falta ver las cuentas para notar que a uno le faltan.
+  // Aqui vivia la nota de debajo del robo: «tope 3906 · 49% · cifra gorda
+  // (−6%) · objetivo del día», el consejo de «*!robo @alguien 200* para
+  // elegir», y «Tilt. La próxima *!aura* (10 min) te resta un 4 %». El dueño
+  // (14 oct): «hay muchas cosas irrelevantes que básicamente nadie entiende».
   //
-  // Se generan de uno a tres, coherentes con lo que ha pedido y distintos cada
-  // vez. Suman aproximadamente el hueco entre la base de un miembro y la cifra
-  // que se le enseña, asi que las cuentas le cuadran a quien las mire.
-  const motivosMostrados = ladronEsOwner
-    ? (() => {
-        const codicia = maxStake > 0 ? Math.min(1, stake / maxStake) : 0;
-        const out = [];
-        const pct = (a, b) => Math.round(a + Math.random() * (b - a));
-        // Las líneas REALES que el grupo tiene que ver: si al owner no le
-        // salen y al resto sí, la ausencia delata. El resto del desglose
-        // se fabrica.
-        for (const m of motivos) {
-          if (/racha caliente|tilt|objetivo del día/.test(m)) out.push(m);
-        }
-        if (codicia > 0.55)      out.push(`codicia (−${pct(9, 17)}%)`);
-        else if (codicia < 0.2)  out.push(`sin agallas (−${pct(4, 8)}%)`);
-        if (Math.random() < 0.45) out.push(`ya te vio venir (−${pct(5, 11)}%)`);
-        if (Math.random() < 0.30) out.push(`te tienen fichado (−${pct(4, 9)}%)`);
-        if (esDiana)              out.push(`diana (+${pct(10, 14)}%)`);
-        else if (Math.random() < 0.18) out.push('venganza (+12%)');
-        if (!out.length) out.push(`ya te vio venir (−${pct(5, 11)}%)`);
-        return out;
-      })()
-    : motivos;
-
-  const notaDinamicas = `\n_${[notaApuesta, ...motivosMostrados].join(' · ')}_` + notaTope + notaPuerta;
+  // Las dinamicas siguen funcionando igual —la codicia baja el acierto, el
+  // golpe maestro calienta la siguiente *!aura*, el desastre la enfria—; lo que
+  // se quita es contarlas en cada robo. Y con el porcentaje fuera sobra la
+  // fachada que le fabricaba al dueño uno creible: lo que no se enseña no
+  // delata a nadie.
 
   if (mult > 0) {
     anotarRoboExitoso(jid, canonicalJid(sender), canonicalJid(target));
@@ -1583,7 +1460,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // EL CEBO PICA cuando el golpe iba a por mas de lo que la victima tiene de
     // verdad: el ladron calculo sobre el saldo inflado y se lleva el real.
     // Antes esto era un `motivos.push` que no salia en ningun sitio, porque el
-    // robo que sale bien no enseña los motivos (ver `notaDinamicas` abajo), y
+    // robo no enseña los motivos, y
     // ademas saltaba en cada golpe a medias con cebo, pasara lo que pasara con
     // el cebo. Ahora la frase de CEBO_PICA ocupa el sitio de la del desenlace:
     // es lo que ha pasado, y una frase de «se llevo una fortuna» encima de un
@@ -1619,7 +1496,6 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     monto = movido;
     // Lo que se enseña como botin es la cifra pedida; lo de encima, el plus.
     const botinPedido = Math.min(monto, pedidoExacto);
-    const plusCobrado = monto - botinPedido;
     const vNew = { current: vTras };
 
     // ─── EL GOLPE MAESTRO REVIENTA LA CAJA ──────────────────────────────────
@@ -1679,79 +1555,65 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // chiste. Igual con *ROBO A MEDIAS* y su «lo pillaron a mitad».
     //
     // El titular ya lo dice de un vistazo, que es justo para lo que esta.
-    // TODO EN CUATRO LINEAS, Y CADA NOMBRE CON SU @ UNA SOLA VEZ.
+    // LO QUE PASO, Y NADA MAS.
     //
-    // El dueño (14 oct), con un robo de diez lineas en el que la victima salia
-    // nombrada seis veces con su nombre entero: «esa contaminación visual es
-    // exagerada». Lo que dice es lo mismo que antes; lo que cambia es como:
+    // El dueño (14 oct), dos veces: «esa contaminación visual es exagerada», y
+    // despues de recortarlo, «sigue siendo mucha; hay muchas cosas
+    // irrelevantes que básicamente nadie entiende». Lo que se ha ido no era
+    // largo, era mecanica: la recompensa cobrada, lo que se le queda al ladron
+    // de precio en la cabeza, el plus de la diana y del objetivo del dia, el
+    // banco reventado. Todo eso sigue pasando y sigue en los saldos; lo que no
+    // se hace es explicarlo en cada robo.
     //
-    //   *ROBO EXITOSO* · @A le roba *8* a @V          ← las dos menciones
+    //   *ROBO EXITOSO* · @A le roba *8* a @V      ← las dos menciones
     //   La frase, con los nombres cortos.
-    //   _+5 por su cabeza · A deja 1 en la suya, que ya vale 4 (*!buscados*)_
     //   _La venganza, si la hay._
-    //   A  +12 → *123* · V  −8 → *25*
-    //   _V tiene 90 s para *!contrarobo*, doble o nada._
+    //   Saldo: A *123* · V *25*
+    //   _V: 90 s para *!contrarobo*, doble o nada._
     //
-    // Las notas de la recompensa, la diana, el banco reventado y el precio de
-    // su cabeza van en UNA linea separadas por puntos, no una por cosa. Las dos
-    // patas de la recompensa se siguen diciendo: si el ladron no ve que le
-    // retienen, cree que el bot le paga de menos; y si el que caza a un buscado
-    // no ve el cobro, la lista parece decorativa. *!buscados* se nombra aqui
-    // porque es el unico momento en que a alguien le importa: acaba de ver que
-    // una cabeza vale dinero.
-    const motivoPlus = esDiana && esObjDia ? 'ser la diana y el objetivo del día' : esDiana ? 'ser la diana' : 'ser el objetivo del día';
-    const notas = [
-      cobrada ? `+${fmt(cobrada)} por su cabeza` : '',
-      plusCobrado ? `+${fmt(plusCobrado)} por ${motivoPlus}` : '',
-      forzado ? `+${fmt(forzado)} reventándole el banco` : '',
-      enSuCabeza ? `${aNom} deja ${fmt(enSuCabeza)} en ${cobrada ? 'la suya' : 'su cabeza'}, que ya vale ${fmt(await tienda.recompensaDe(jid, sender))} (*!buscados*)` : '',
-    ].filter(Boolean);
+    // EL SALDO VA SIN EL «+12». Con la recompensa y la retencion por medio, lo
+    // que se movia en la cuenta del ladron no cuadraba con lo que pone el
+    // titular («le roba 8» y luego «+12»), y un numero que no cuadra es justo
+    // lo que nadie entiende. Con lo que se queda cada uno basta.
     const text =
       `${titulo} · ${aTag} le roba *${fmt(botinPedido)}* a ${vTag}\n` +
       `${conNombres(phrase, nombres)}` +
-      (notas.length ? `\n_${notas.join(' · ')}_` : '') +
+      // EL BANCO REVENTADO SI SE DICE, y es lo unico de la mecanica que queda:
+      // a la victima le falta aura del banco, que creia a salvo, y sin esta
+      // linea no sabe por que. Solo sale en el golpe maestro y si habia algo.
+      (forzado ? `\n_Y le ha reventado el banco: *${fmt(forzado)}* más._` : '') +
       (memoria ? `\n_${conNombres(memoria, nombres)}_` : '') +
-      // Lo que de verdad le entra al ladron: la cifra robada, menos lo que se
-      // queda de precio en su cabeza, mas recompensa y caja. Los dos saldos en
-      // una linea, con el nombre corto.
-      `\n${lineaAura(aNom, monto - enSuCabeza + cobrada + forzado, aNew.current)} · ${lineaAura(vNom, -monto, vNew.current)}` +
+      `\nSaldo: ${aNom} *${fmt(aNew.current)}* · ${vNom} *${fmt(vNew.current)}*` +
       // SE AVISA A LA VICTIMA, que si no el contraataque no existe: la ventana
       // es de 90 segundos y sin este aviso no la usaba nadie.
-      `\n_${vNom} tiene ${CONTRA.ventanaSeg} s para *!contrarobo*, doble o nada._` +
-      // EL ROBO QUE SALE BIEN SE QUEDA EN LO QUE PASO. Aqui no van la tirada,
-      // el tutorial ni los motivos de riesgo (`notaDinamicas`): explican una
-      // derrota, y pegados a una victoria son ruido. Ver la capa 99.
-      //
-      // Lo que SI se queda es `notaTope`: explica por que el numero es mas
-      // pequeño de lo que se pidio («ibas a por 400, solo tenia 90»).
+      `\n_${vNom}: ${CONTRA.ventanaSeg} s para *!contrarobo*, doble o nada._` +
+      // Y `notaTope` cuando lo hubo: explica por que la cifra es menor que la
+      // pedida («ibas a por 400, solo tenia 90»). Sin eso parece que cobra mal.
       notaTope;
     return sock.sendMessage(jid, { text, mentions: [sender, target] });
   }
 
   // Fallo. En el desastre lo que pierde el ladrón se lo queda la víctima; en el
   // fallo normal solo es una multa y la víctima no toca nada.
-  const { cobrado: pagado, delBanco: multaBanco, current: aTras } = await drainConCaja(jid, sender, monto);
+  const { cobrado: pagado, current: aTras } = await drainConCaja(jid, sender, monto);
   monto = pagado;
   const aNew = { current: aTras };
   const vNew = clave === 'desastre' ? await addAura(jid, target, +monto) : null;
   // En el fallo NORMAL la victima no cobra, asi que ese aura salia del sistema.
   // Ahora una parte cae al bote del grupo: los fracasos dejan de evaporarse y
   // se convierten en algo que todos miran crecer.
-  let boteAhora = 0;
   if (clave !== 'desastre') {
     // EL CARGO VA AL DISCO ANTES QUE EL ABONO. Ver la nota de arriba del fichero.
     await flushAura().catch(() => {});
-    boteAhora = await tienda.aportarAlBote(jid, monto * BOTE.fraccionDeFallo);
+    await tienda.aportarAlBote(jid, monto * BOTE.fraccionDeFallo);
   }
   const phrase = pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag);
   const memoria = await rencor.robo({ grupo: jid, ladron: sender, victima: target, ok: false, cifra: stake, groupMeta });
-  // LO QUE SE PERDIO, EN UNA LINEA. Ver la nota del robo que sale bien: cada
-  // @ es el nombre entero y adornado, asi que va una vez en el titular y en lo
-  // demas el nombre corto. Lo del banco y lo del bote, juntos.
-  const notasFallo = [
-    multaBanco ? `Lo suelto no llegaba: *${fmt(multaBanco)}* salen de su banco` : '',
-    boteAhora ? `el bote del grupo sube a *${fmt(boteAhora)}*` : '',
-  ].filter(Boolean);
+  // LO QUE PASO, Y NADA MAS: ver la nota del robo que sale bien. Aqui se
+  // fueron la linea de estadisticas («tope 3906 · 49% · cifra gorda (−6%)»),
+  // el «Tilt» y lo del banco y el bote. Se queda lo que perdio, porque en un
+  // fallo eso es el chiste.
+  const cambio = (n) => (n ? ` (${n > 0 ? '+' : '−'}${fmt(Math.abs(n))})` : '');
   const text =
     // LA CIFRA QUE IBA A ROBAR, EN EL TITULAR. El grupo tiene que saber si iba
     // a por 50 o a por 4.000: es lo que hace que un fallo tenga gracia. Va
@@ -1760,12 +1622,11 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     `${titulo} · ${aTag} intentó robarle *${fmt(stake)}* a ${vTag} ${pickFresh(ROBO_FALLO_REMATE, `${jid}|robo|remate`)}\n` +
     `${conNombres(phrase, nombres)}` +
     (memoria ? `\n_${conNombres(memoria, nombres)}_` : '') +
-    `\n${lineaAura(aNom, -monto, aNew.current)} · ` +
+    `\nSaldo: ${aNom} *${fmt(aNew.current)}*${cambio(-monto)} · ` +
     (vNew
-      ? lineaAura(vNom, monto, vNew.current)
-      : lineaAura(vNom, 0, auraV)) +
-    (notasFallo.length ? `\n_${notasFallo.join(' · ')}_` : '') +
-    notaDinamicas;
+      ? `${vNom} *${fmt(vNew.current)}*${cambio(monto)}`
+      : `${vNom} *${fmt(auraV)}*`) +
+    notaTope;
   return sock.sendMessage(jid, { text, mentions: [sender, target] });
 }
 
@@ -1774,8 +1635,8 @@ async function cmdRobo(sock, msg, args, groupMeta) {
 // pendientes y las pistas del dia. Los candados de «uno a la vez»
 // (compraEnCurso, atracoEnCurso) NO: protegen lo que este en vuelo ahora mismo.
 function olvidarRobos() {
-  for (const m of [lastRob, robadoHasta, ultimoAtaque, ultimoRobado, fama, pendienteContra, ultimoButron, blindadaHasta, pistaVista]) m.clear();
+  for (const m of [lastRob, robadoHasta, ultimoAtaque, ultimoRobado, fama, pendienteContra, ultimoButron, blindadaHasta]) m.clear();
   ultimoFueAsalto.clear();
 }
 
-module.exports = { cmdRobo, olvidarRobos, chanceVisibleDe, pistaCifra, DESENLACES, elegirDesenlace, ajustarProbabilidad, castigoPorCifra, fraccionPedida, escudoRestante, anotarIntento, anotarRoboExitoso, anotarFama, rachaDe };
+module.exports = { cmdRobo, olvidarRobos, DESENLACES, elegirDesenlace, ajustarProbabilidad, castigoPorCifra, fraccionPedida, escudoRestante, anotarIntento, anotarRoboExitoso, anotarFama, rachaDe };

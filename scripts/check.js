@@ -3406,40 +3406,12 @@ const di=async(quien,texto,extra)=>{
     // punto dulce, porque etiquetar unos numeros que estan al lado no aporta.
     exige(!/const notaSello/.test(rb) && !/etiquetaRiesgo/.test(rb),
       'volvio el sello de riesgo a la nota: es una etiqueta para unos numeros que se leen solos');
-    // Y la cifra pedida no se repite en la nota: ya sale en el titular y en el
-    // saldo. Lo unico que aporta la nota es el TOPE.
-    exige(/tope \$\{fmt\(maxStake\)\}/.test(rb) && !/\$\{fmt\(stake\)\} de \$\{fmt\(maxStake\)\}/.test(rb),
-      'la nota vuelve a repetir la cifra pedida: ya sale dos veces mas arriba');
-    // El consejo de la cifra no puede volver a salir en cada robo.
-    // OTRA QUE ERA VACUA. Pedia que la llamada y la funcion existieran como
-    // texto. Quitandole a `pistaCifra` la linea que recuerda a quien ya lo ha
-    // visto, la funcion sigue ahi, se sigue llamando, y el consejo sale en TODOS
-    // los robos — que es justo lo que esta capa dice impedir. Se llama dos veces
-    // y se mira lo unico que importa: que la segunda diga que no.
-    {
-      const { pistaCifra } = require(path.join(R, 'src/commands/robo'));
-      exige(typeof pistaCifra === 'function',
-        'robo.js ya no exporta pistaCifra: no hay forma de comprobar que el consejo se dosifica');
-      if (typeof pistaCifra === 'function') {
-        const g = `000000000@g.us`;
-        // DOS CUENTAS DISTINTAS DE VERDAD, no dos sorteos del mismo bombo.
-        //
-        // Eran `34600009` mas tres digitos al azar, y la tercera comprobacion
-        // —"a otra persona SI le sale"— sacaba OTRO numero del mismo rango de
-        // novecientos. Una vez de cada novecientas salia el mismo, o sea la
-        // misma persona, y entonces la prueba se contradecia sola y daba un
-        // rojo que no era del bot. Con el reloj y un contador no se repiten.
-        let n16 = 0;
-        const cuenta16 = () => `346${String(Date.now()).slice(-9)}${n16++}@s.whatsapp.net`;
-        const quien = cuenta16();
-        exige(pistaCifra(g, quien) === true, 'el consejo de la cifra no sale ni la primera vez');
-        exige(pistaCifra(g, quien) === false,
-          'el consejo de *!robo @alguien 200* vuelve a salir en todos los robos: repetido cien veces no enseña nada');
-        // Y a otra persona SI le sale: el freno es por persona, no global.
-        exige(pistaCifra(g, cuenta16()) === true,
-          'el consejo se apaga para todo el grupo cuando lo ve uno: entonces no lo aprende nadie mas');
-      }
-    }
+    // LA NOTA DE ESTADISTICAS SE FUE ENTERA (14 oct). El dueño: «hay muchas
+    // cosas irrelevantes que básicamente nadie entiende». Ni el tope, ni el
+    // porcentaje, ni los motivos, ni el consejo de «*!robo @alguien 200* para
+    // elegir». Que no vuelvan por la puerta de atras.
+    exige(!/tope \$\{fmt\(maxStake\)\}/.test(rb) && !/para elegir/.test(rb),
+      'ha vuelto la nota de estadísticas o el consejo de la cifra al robo: el dueño los quitó porque nadie los entiende');
     // Y no se explica con una frase lo que el numero de al lado ya dice.
     exige(!/Se le cayó todo encima/.test(rb),
       'volvio la linea que narra lo que las cifras de dos lineas mas abajo ya enseñan');
@@ -3650,17 +3622,17 @@ const di=async(quien,texto,extra)=>{
         || !(fr(630, 34) < fr(200, 34) && fr(200, 34) < fr(68, 34))) {
         fallos++; console.log(rojo('   ✗ pedir mucho más de lo que tienes ya no hunde la probabilidad hasta casi cero'));
       }
-      let outM = '', outO = '';
-      try {
-        outM = execSync(`node ${JSON.stringify(path.join(R, 'scripts/robo-cifra.js'))} miembro 34 0 5000 ${JSON.stringify('!robar 630 @V')}`,
-          { encoding: 'utf8', timeout: 60000, stdio: ['ignore', 'pipe', 'ignore'] });
-        outO = execSync(`node ${JSON.stringify(path.join(R, 'scripts/robo-cifra.js'))} owner 34 0 5000 ${JSON.stringify('!robar 630 @V')}`,
-          { encoding: 'utf8', timeout: 60000, stdio: ['ignore', 'pipe', 'ignore'] });
-      } catch (e) { outM = outM || `${e.stdout || ''}`; }
-      if (!/· 0% ·/.test(outM) || !/sin respaldo/.test(outM)) {
-        fallos++; console.log(rojo(`   ✗ un miembro con 34 que pide 630 no sale a 0 % sin respaldo: ${(outM.split('\n').find((l) => /tope/.test(l)) || outM.trim().slice(-120))}`));
+      // Y QUE *!robo* LO APLIQUE, y solo a quien no es owner. Esto se miraba
+      // leyendo el «· 0% · sin respaldo» del mensaje, pero el 14 oct el dueño
+      // quito la linea de estadisticas («nadie la entiende»). El castigo sigue;
+      // se comprueba donde vive: multiplicando el acierto, dentro de la rama
+      // que no es del owner.
+      const rbR = soloCodigo('src/commands/robo.js');
+      const iCmdR = rbR.indexOf('async function cmdRobo');
+      const cuerpoR = iCmdR < 0 ? '' : rbR.slice(iCmdR);
+      if (!/if \(!ladronEsOwner\) \{[^}]*?const f = factorRespaldo\(stake, fianzaA\);\s*if \(f < 0\.98\) \{\s*chanceFinal \*= f;/.test(cuerpoR)) {
+        fallos++; console.log(rojo('   ✗ *!robo* ya no multiplica el acierto por el respaldo, o se lo aplica también al owner, que está exento'));
       }
-      if (/sin respaldo/.test(outO)) { fallos++; console.log(rojo('   ✗ al owner le cae el castigo sin respaldo, y está exento')); }
     }
     if (fallos === antes) console.log(verde('   ✓ la cifra escrita llega entera al robo, con poco aura o con todo en el banco, pedir más es más difícil (salvo para el owner) y pedir muchas veces lo que tienes es casi imposible'));
   }
@@ -4192,58 +4164,19 @@ const di=async(quien,texto,extra)=>{
     exige(/momentum\.anotar\(jid, sender, 'tilt', 'robo'\)/.test(auraSrc), 'un desastre de !aura tiene que dejar tilt el siguiente !robo');
 
     const roboSrc = fs.readFileSync(path.join(R, 'src/commands/robo.js'), 'utf8');
-    // ESTA GUARDA ERA VACUA Y DEJABA PASAR EL FALLO QUE DECIA VIGILAR.
-    //
-    // Comprobaba que las palabras `chanceVisible` y `ROBO_OWNER_VISIBLE`
-    // aparecieran en el fichero. Con eso, sustituir todo el calculo por
-    // `chanceVisible = chanceFinal` —o sea, enseñarle al owner su probabilidad
-    // real, que es exactamente lo que delata el amaño— pasaba en verde. Probado
-    // rompiendolo.
-    //
-    // Ahora se EJECUTA la funcion. Y se ejecuta con el jitter apagado, porque
-    // con el ±3 % aleatorio dentro haria falta repetirlo muchas veces para estar
-    // seguro de algo.
+    // AL OWNER NO SE LE PUEDE VER SU PROBABILIDAD, Y AHORA NO SE LE VE A
+    // NADIE. Aqui se vigilaba la fachada que le fabricaba una creible: el
+    // mensaje del robo imprimia el porcentaje, y el suyo real (78 %) al lado
+    // del de los demas (24-38 %) cantaba el amaño. Desde el 14 oct el robo no
+    // imprime porcentaje ninguno —el dueño lo quito por ruido—, y lo que no se
+    // enseña no delata. Lo que queda por vigilar es que no vuelva a imprimirse.
+    // Solo en *!robo*: el atraco a la tienda y el butron enseñan la suya a
+    // proposito, y no van amañados.
     {
-      const { chanceVisibleDe } = require(path.join(R, 'src/commands/robo'));
-      const { ROBO_OWNER_VISIBLE } = require(path.join(R, 'src/utils/economia'));
-      exige(typeof chanceVisibleDe === 'function',
-        'robo.js ya no exporta chanceVisibleDe: la fachada del owner vuelve a ser incomprobable desde fuera');
-      if (typeof chanceVisibleDe === 'function') {
-        // Un miembro ve su numero de verdad. Si esto cambia, el bot le estaria
-        // mintiendo a todo el grupo y no solo tapando al dueño.
-        exige(chanceVisibleDe(false, 0.37, 500, 1000, null, true) === 0.37,
-          'a un miembro cualquiera se le enseña una probabilidad que no es la suya');
-        // Y al owner, NUNCA la suya, pida lo que pida.
-        for (const real of [0.62, 0.75, 0.9]) {
-          for (const pedido of [0, 250, 500, 1000]) {
-            const visto = chanceVisibleDe(true, real, pedido, 1000, null, true);
-            exige(Math.abs(visto - real) > 0.05,
-              `pidiendo ${pedido} se le enseña al owner ${Math.round(visto * 100)} % y su probabilidad real es ${Math.round(real * 100)} %: eso es lo que delata el amaño`);
-            exige(visto >= ROBO_OWNER_VISIBLE.min && visto <= ROBO_OWNER_VISIBLE.max,
-              `la cifra que ve el owner (${Math.round(visto * 100)} %) se sale de la banda de un miembro`);
-          }
-        }
-        // Y NO PUEDE SER SIEMPRE LA MISMA. Un numero fijo que se repite en cada
-        // tirada delata igual que enseñar el real: fue el fallo original.
-        const cien = Array.from({ length: 100 }, () => chanceVisibleDe(true, 0.62, 400, 1000, null));
-        exige(new Set(cien.map((x) => Math.round(x * 100))).size >= 3,
-          'la cifra que ve el owner sale siempre igual: un numero fijo que se repite es lo que canta');
-      }
-
-      // Y QUE *!robo* LA USE. Esto se me escapo al reescribir la guarda: probaba
-      // la funcion, que estaba perfecta, y no que el comando la llamara.
-      // Sustituyendo la llamada por `chanceVisible = chanceFinal` la funcion
-      // seguia bien y el validador seguia en verde, con el owner viendo su
-      // probabilidad real en el grupo. Probado, y verde.
-      //
-      // El call site se comprueba por texto y no ejecutando *!robo*, y conviene
-      // decir por que: *!robo* mueve saldo de verdad, asi que ejecutarlo aqui
-      // escribiria en el aura real del grupo. Por eso la expresion se pide
-      // ENTERA y exacta: asi no basta con dejar el nombre de la funcion suelto.
-      const iCmd = roboSrc.indexOf('async function cmdRobo');
-      const cuerpoCmd = iCmd < 0 ? '' : roboSrc.slice(iCmd);
-      exige(/let chanceVisible = chanceVisibleDe\(ladronEsOwner, chanceFinal, stake, maxStake, mom\);/.test(cuerpoCmd),
-        '*!robo* ya no pasa por chanceVisibleDe: la funcion puede estar perfecta, pero al owner se le esta enseñando otra cosa');
+      const iRobo = roboSrc.indexOf('async function cmdRobo');
+      const cuerpoRobo = iRobo < 0 ? '' : roboSrc.slice(iRobo, roboSrc.indexOf('\nfunction olvidarRobos', iRobo));
+      exige(iRobo >= 0 && !/Math\.round\(chance\w*\s*\*\s*100\)\}\s*%/.test(cuerpoRobo),
+        '*!robo* vuelve a imprimir la probabilidad: al owner se le veria la suya, que es lo que delata el amaño');
     }
     exige(/ownerGana\(jid, ROBO_OWNER_EXITO\)/.test(roboSrc), 'el dado real del owner en !robo no se tocó');
     exige(/momentum\.consumir\(jid, sender, 'robo'\)/.test(roboSrc), '!robo gasta la racha que viene de !aura');
@@ -18956,16 +18889,21 @@ const manda = async (quien, tipo, opciones) => {
     exige(/ROBO/.test(txt99), `el robo no ha contestado nada: ${JSON.stringify(txt99.slice(0, 120))}`);
     if (/ROBO/.test(txt99)) {
       // ── LO QUE NO SE PUEDE PERDER ─────────────────────────────────────────
-      // El dinero, las dos patas. Sin esto no hay economia que mirar.
-      exige(/\+\d+\s*→/.test(txt99) && /−\d+\s*→/.test(txt99),
-        `el robo ya no dice cuánto se movió ni cómo quedan: ${JSON.stringify(txt99.slice(0, 200))}`);
+      // Con cuanto se queda cada uno. Sin esto no hay economia que mirar.
+      exige(/Saldo: \S+ \*\d[\d.]*\* · \S+ \*\d[\d.]*\*/.test(txt99),
+        `el robo ya no dice cómo quedan los dos: ${JSON.stringify(txt99.slice(0, 200))}`);
       // La ventana, que CADUCA en 90 s. Si no sale aqui, no sale en ningun
       // sitio donde sirva: nadie se acuerda de un comando por el menu.
       exige(/!contrarobo/.test(txt99),
         'el robo ya no avisa de !contrarobo: esa ventana dura 90 s y sin el aviso no la usa nadie');
-      // El precio en la cabeza es lo unico que hace que !buscados exista.
-      exige(/!buscados/.test(txt99),
-        'el robo ya no dice que el ladrón lleva precio encima: !buscados se queda en una lista que nadie abre');
+      // ── LO QUE NADIE ENTENDIA, Y NO PUEDE VOLVER (14 oct) ────────────────
+      // La recompensa, el precio de su cabeza, el plus de la diana y del
+      // objetivo del dia, el banco, el bote, los porcentajes y el «Caliente».
+      // Patrones de las NOTAS, no palabras sueltas: las frases del robo pueden
+      // hablar del bote o de la diana, y eso es chiste, no mecanica.
+      const ruido99 = /!buscados|por su cabeza|en la suya|por ser (?:la diana|el objetivo)|salen de su banco|el bote del grupo sube|\d+ ?%|Caliente\.|Tilt\./i;
+      exige(!ruido99.test(txt99),
+        `ha vuelto la mecánica al robo («${(txt99.match(ruido99) || [''])[0]}»): el dueño la quitó porque nadie la entiende`);
 
       // ── LO QUE NO PUEDE VOLVER ────────────────────────────────────────────
       exige(!/\btope \d/.test(txt99),
@@ -18986,8 +18924,8 @@ const manda = async (quien, tipo, opciones) => {
       // Y QUE NO SE VUELVA A INFLAR. Doce lineas era el problema, y el 14 oct
       // el dueño vio otro de diez: «esa contaminación visual es exagerada».
       const lineas99 = txt99.split('\n').filter((l) => l.trim()).length;
-      exige(lineas99 <= 6,
-        `el mensaje del robo ha vuelto a ${lineas99} líneas: se recortó a 6 porque en un móvil cada una se parte en dos`);
+      exige(lineas99 <= 5,
+        `el mensaje del robo ha vuelto a ${lineas99} líneas: se recortó a 5 (titular, frase, venganza, saldo y contrarrobo)`);
       exige(!/\n\s*\n/.test(txt99), 'el robo vuelve a llevar líneas en blanco: son bloques de más en la pantalla');
       // CADA @ ES EL NOMBRE ENTERO Y ADORNADO, asi que va una vez: en el titular.
       for (const [quien, jid99] of [['el ladrón', A99], ['la víctima', V99]]) {
@@ -18995,8 +18933,28 @@ const manda = async (quien, tipo, opciones) => {
         exige(veces === 1, `${quien} sale mencionado ${veces} veces en el robo: la mención va una vez y lo demás con su nombre corto`);
       }
       exige(/Sweetgirl/.test(txt99), 'el nombre adornado no sale limpio («Sweetgirl») en el robo');
+
+      // Y EL QUE FALLA, LO MISMO: sin la linea de estadisticas ni el «Tilt».
+      const fallo99 = [];
+      const sockF99 = { user: { id: BOT99 }, sendMessage: async (j, c) => { fallo99.push(c.text || ''); return { key: { id: 'y' } }; } };
+      require(path.join(R, 'src/commands/robo')).olvidarRobos();
+      const dadoF = Math.random;
+      Math.random = () => 0.999;
+      try {
+        await cmdRobo(sockF99, {
+          key: { remoteJid: G99, id: `F99${sello99}`, participant: A99, fromMe: false },
+          message: { extendedTextMessage: { text: '!robar 200', contextInfo: { mentionedJid: [V99] } } },
+        }, ['200'], meta99);
+      } finally { Math.random = dadoF; }
+      const txtF99 = fallo99.join('\n');
+      exige(/intentó robarle/.test(txtF99), `el robo fallido no ha contestado: ${JSON.stringify(txtF99.slice(0, 120))}`);
+      exige(!ruido99.test(txtF99) && !/\btope \d/.test(txtF99),
+        `el robo fallido vuelve a llevar mecánica que nadie entiende («${(txtF99.match(ruido99) || txtF99.match(/\btope \d+/) || [''])[0]}»)`);
+      exige(/Saldo: .*\(−\d/.test(txtF99), 'el robo fallido ya no dice lo que perdió el ladrón');
+      exige(txtF99.split('\n').filter((l) => l.trim()).length <= 4,
+        `el robo fallido tiene ${txtF99.split('\n').filter((l) => l.trim()).length} líneas: titular, frase, venganza y saldo`);
     }
-    if (fallos === antes99) console.log(verde('   ✓ el robo dice el dinero, el chiste y los 90 s en seis líneas, con cada @ una sola vez'));
+    if (fallos === antes99) console.log(verde('   ✓ el robo dice lo que pasó, cómo quedan y los 90 s, sin mecánica que nadie entiende'));
   }
 
   // ── 100. EL LATIDO DE PRESENCIA NO PUEDE TIRAR EL BOT ───────────────────
