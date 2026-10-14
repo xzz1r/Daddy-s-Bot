@@ -3,7 +3,7 @@ const { apel } = require('../utils/vocativo');
 const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
 const { getAura, transferAura } = require('../utils/auraStore');
 const { ownerGana } = require('../utils/rigOwner');
-const { lineaAura } = require('../utils/formatoJuego');
+const { lineaAura, nombresCortos, unaMencion } = require('../utils/formatoJuego');
 const rencor = require('../utils/rencor');
 
 // Resolve a JID to its canonical form (preferring phone-JID) using the group
@@ -151,13 +151,17 @@ async function resolveDuel(sock, jid, d, groupMeta) {
   // Si ya se batieron otro dia, el bot se acuerda (utils/rencor.js).
   const memoria = await rencor.duelo({ grupo: jid, gana: winner, pierde: loser, cifra: d.stake, groupMeta });
 
-  const text =
-    `*DUELO · ${fmt(d.stake)} de aura*\n\n` +
+  // Una mencion por persona —la de la frase— y los saldos en una linea con el
+  // nombre corto. Ver nombresCortos en utils/formatoJuego.js.
+  const wTag = `@${winner.split('@')[0]}`;
+  const lTag = `@${loser.split('@')[0]}`;
+  const [wNom, lNom] = await nombresCortos(winner, loser);
+  const text = unaMencion(
+    `*DUELO · ${fmt(d.stake)} de aura*\n` +
     `${phrase}` +
     (memoria ? `\n_${memoria}_` : '') +
-    `\n\n` +
-    `${lineaAura(`@${winner.split('@')[0]}`, d.stake, w.current)}\n` +
-    `${lineaAura(`@${loser.split('@')[0]}`, -d.stake, l.current)}`;
+    `\n${lineaAura(wTag, d.stake, w.current)} · ${lineaAura(lTag, -d.stake, l.current)}`,
+    [[wTag, wNom], [lTag, lNom]]);
 
   await sock.sendMessage(jid, { text, mentions: [winner, loser] });
 }

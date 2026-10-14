@@ -18930,6 +18930,14 @@ const manda = async (quien, tipo, opciones) => {
       sendMessage: async (j, c) => { visto99.push(c.text || ''); return { key: { id: 'x' } }; },
     };
     const meta99 = { id: G99, participants: [{ id: BOT99, admin: 'admin' }, { id: A99 }, { id: V99 }] };
+    // Con nombre, como en el grupo: sin el, el bot vuelve a la mencion en cada
+    // sitio y la prueba de «una mencion por persona» no mediria nada. Uno de
+    // los dos con el nombre adornado de la captura del dueño.
+    {
+      const { recordName: anota99 } = require(path.join(R, 'src/utils/nombreStore'));
+      await anota99([A99], 'DIEGØ');
+      await anota99([V99], '◥꧁𝓢𝔀𝓮𝓮𝓽𝓰𝓲𝓻𝓵༄⁷⁸⁶ᵈ᭄');
+    }
 
     await addAura(G99, A99, 4000);
     await addAura(G99, V99, 4000);
@@ -18975,12 +18983,20 @@ const manda = async (quien, tipo, opciones) => {
       exige(!/se llevó bastante más de lo que iba a por|Lo pillaron a mitad/.test(txt99),
         'ha vuelto la línea que repite lo que ya dice el titular (*ROBO REDONDO* / *ROBO A MEDIAS*)');
 
-      // Y QUE NO SE VUELVA A INFLAR. Doce lineas era el problema.
+      // Y QUE NO SE VUELVA A INFLAR. Doce lineas era el problema, y el 14 oct
+      // el dueño vio otro de diez: «esa contaminación visual es exagerada».
       const lineas99 = txt99.split('\n').filter((l) => l.trim()).length;
-      exige(lineas99 <= 8,
-        `el mensaje del robo ha vuelto a ${lineas99} líneas: se recortó a 8 porque en un móvil cada una se parte en dos`);
+      exige(lineas99 <= 6,
+        `el mensaje del robo ha vuelto a ${lineas99} líneas: se recortó a 6 porque en un móvil cada una se parte en dos`);
+      exige(!/\n\s*\n/.test(txt99), 'el robo vuelve a llevar líneas en blanco: son bloques de más en la pantalla');
+      // CADA @ ES EL NOMBRE ENTERO Y ADORNADO, asi que va una vez: en el titular.
+      for (const [quien, jid99] of [['el ladrón', A99], ['la víctima', V99]]) {
+        const veces = txt99.split(`@${jid99.split('@')[0]}`).length - 1;
+        exige(veces === 1, `${quien} sale mencionado ${veces} veces en el robo: la mención va una vez y lo demás con su nombre corto`);
+      }
+      exige(/Sweetgirl/.test(txt99), 'el nombre adornado no sale limpio («Sweetgirl») en el robo');
     }
-    if (fallos === antes99) console.log(verde('   ✓ el robo dice el dinero, el chiste y los 90 s, y no arrastra cola ni repite nada'));
+    if (fallos === antes99) console.log(verde('   ✓ el robo dice el dinero, el chiste y los 90 s en seis líneas, con cada @ una sola vez'));
   }
 
   // ── 100. EL LATIDO DE PRESENCIA NO PUEDE TIRAR EL BOT ───────────────────

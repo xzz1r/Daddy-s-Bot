@@ -3,7 +3,7 @@ const { transferAura, flushAura, addAura } = require('../utils/auraStore');
 const { fmt, parseCantidad, avisoPermiso } = require('../utils/helpers');
 const { aportarAlBote } = require('../utils/roboStore');
 const logger = require('../utils/logger');
-const { lineaAura } = require('../utils/formatoJuego');
+const { lineaAura, nombresCortos, unaMencion } = require('../utils/formatoJuego');
 
 // El minimo y el impuesto viven en utils/economia.js con el resto de la escala.
 const { REGALO_MIN: GIFT_MIN, IMPUESTO, impuestoDe } = require('../utils/economia');
@@ -76,14 +76,15 @@ async function cmdDar(sock, msg, args) {
   const sTag = `@${sender.split('@')[0]}`;
   const tTag = `@${target.split('@')[0]}`;
 
+  // Una mencion por persona y sin lineas en blanco: ver nombresCortos.
+  const [sNom, tNom] = await nombresCortos(sender, target);
   await sock.sendMessage(jid, {
-    text:
-      `*TRANSFERENCIA DE AURA*\n\n` +
-      `${sTag} le pasa *${fmt(amount)} de aura* a ${tTag}\n\n` +
-      `${lineaAura(sTag, -cargo, result.fromNew)}\n` +
-      `${lineaAura(tTag, amount, result.toNew)}\n\n` +
-      `_Impuesto de transferencia: *${fmt(impuesto)}*` +
-      (alBote > 0 ? `, y *${fmt(alBote)}* se van al bote.` : '.') + `_`,
+    text: unaMencion(
+      `*TRANSFERENCIA DE AURA* · ${sTag} le pasa *${fmt(amount)}* a ${tTag}\n` +
+      `${lineaAura(sTag, -cargo, result.fromNew)} · ${lineaAura(tTag, amount, result.toNew)}\n` +
+      `_Impuesto: *${fmt(impuesto)}*` +
+      (alBote > 0 ? `, y *${fmt(alBote)}* se van al bote._` : '._'),
+      [[sTag, sNom], [tTag, tNom]]),
     mentions: [sender, target],
   }, { quoted: msg });
 }

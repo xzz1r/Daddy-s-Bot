@@ -100,4 +100,82 @@ function lineaAura(quien, delta, total, { negrita = false } = {}) {
   return negrita ? `*${cuerpo}*` : cuerpo;
 }
 
-module.exports = { tiempoRestante, bloqueCooldown, lineaAura, MINUTO, HORA, DIA };
+// ─── LA MENCION, UNA VEZ; DESPUES, EL NOMBRE CORTO ───────────────────────────
+//
+// El dueño (14 oct), con un robo que nombraba seis veces a la victima con su
+// nombre entero —«◥꧁𝓢𝔀𝓮𝓮𝓽𝓰𝓲𝓻𝓵༄⁷⁸⁶ᵈ᭄»—: «esa contaminación visual es
+// exagerada». Cada @ que WhatsApp pinta es el nombre completo, adornos
+// incluidos, y en un mensaje de dos personas salian cuatro o seis.
+//
+// Asi que la mencion va UNA vez, en el titular, que es lo que avisa al movil
+// de cada uno. En el resto de lineas —la frase, los saldos, la venganza— va el
+// nombre corto: el pushName (lo que cada uno se pone a si mismo, ver
+// nombreStore) sin adornos y en una palabra. «◥꧁𝓢𝔀𝓮𝓮𝓽𝓰𝓲𝓻𝓵༄⁷⁸⁶ᵈ᭄» es «Sweetgirl».
+//
+// La limpieza: fuera superindices y letras modificadoras (los ⁷⁸⁶ᵈ del
+// adorno); las letras «de fantasia» (𝓢, 𝔀, Ⓜ…) se pasan a las normales con
+// NFKC; fuera lo que no sea letra o cifra (emoji, simbolos, marcas); y se queda
+// la primera palabra con tres letras o mas («xX_DarkLord_Xx» es «DarkLord»). Si no queda nada, o los dos se quedan con el mismo nombre, se
+// vuelve a la mencion: mejor un @ de mas que no saber quien es quien.
+const MAX_CORTO = 16;
+function nombreLimpio(nombre) {
+  if (!nombre) return '';
+  const s = String(nombre).normalize('NFC')
+    .replace(/[\p{Lm}\p{No}]/gu, ' ')
+    .normalize('NFKC')
+    // Los selectores de variante y los de anchura cero van pegados a la
+    // letra («Ⓜ️»): se borran, no se cambian por un espacio, o parten la palabra.
+    .replace(/[\uFE00-\uFE0F\u200B-\u200D\u2060\p{Me}]/gu, '')
+    .replace(/[^\p{L}\p{N}\p{M} ]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const palabras = s.split(' ');
+  const palabra = palabras.find((w) => (w.match(/\p{L}/gu) || []).length >= 3)
+    || palabras.find((w) => (w.match(/\p{L}/gu) || []).length >= 2) || '';
+  return palabra.length > MAX_CORTO ? palabra.slice(0, MAX_CORTO) : palabra;
+}
+
+// Los nombres cortos de varias personas, en el mismo orden. El de quien no
+// tenga nombre limpio, o lo comparta con otro del mensaje, es su @.
+async function nombresCortos(...jids) {
+  const ns = require('./nombreStore');
+  await ns.cargar().catch(() => {});
+  const limpios = jids.map((j) => nombreLimpio(ns.getName(j)));
+  return jids.map((j, i) => {
+    const n = limpios[i];
+    const repetido = n && limpios.some((m, k) => k !== i && m && m.toLowerCase() === n.toLowerCase());
+    return n && !repetido ? n : `@${String(j).split('@')[0]}`;
+  });
+}
+
+// La mencion entera y nada detras que siga siendo numero: «@3460001» no puede
+// comerse el principio de «@34600012».
+const rxMencion = (m) => new RegExp(`${m.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?!\\d)`, 'g');
+
+// Cambia TODAS las menciones de un texto por los nombres cortos. Para lo que va
+// debajo de un titular que ya lleva las menciones.
+function conNombres(texto, pares) {
+  let t = String(texto || '');
+  for (const [mencion, nombre] of pares) {
+    if (mencion && nombre && mencion !== nombre) t = t.replace(rxMencion(mencion), nombre);
+  }
+  return t;
+}
+
+// Deja la PRIMERA mencion de cada uno y cambia las demas por su nombre corto.
+// Para los mensajes que no tienen un titular con nombres: el @ queda donde se
+// le nombra por primera vez, que es lo que hace sonar su movil.
+function unaMencion(texto, pares) {
+  let t = String(texto || '');
+  for (const [mencion, nombre] of pares) {
+    if (!mencion || !nombre || mencion === nombre) continue;
+    let primera = true;
+    t = t.replace(rxMencion(mencion), (m) => {
+      if (primera) { primera = false; return m; }
+      return nombre;
+    });
+  }
+  return t;
+}
+
+module.exports = { tiempoRestante, bloqueCooldown, lineaAura, nombreLimpio, nombresCortos, conNombres, unaMencion, MINUTO, HORA, DIA };

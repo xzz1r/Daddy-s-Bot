@@ -34,7 +34,7 @@ const { fraseCooldown, ROBO: ROBO_CD, ROBO_ASALTO, ROBO_GUARDIA } = require('../
 const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
 const logger = require('../utils/logger');
-const { bloqueCooldown, lineaAura, tiempoRestante } = require('../utils/formatoJuego');
+const { bloqueCooldown, lineaAura, tiempoRestante, nombresCortos, conNombres, unaMencion } = require('../utils/formatoJuego');
 const rencor = require('../utils/rencor');
 const { clavesMapa, juntarEnMapa } = require('../utils/persona');
 
@@ -760,10 +760,12 @@ async function contraatacar(sock, msg, jid, sender, groupMeta) {
     const pool = clave === 'demoledor' ? RX.CONTRA_DEMOLEDOR
                : clave === 'raspado'   ? RX.CONTRA_RASPADO
                : RX.CONTRA_GANA;
+    // Una mencion por persona y sin lineas en blanco: ver nombresCortos.
+    const [aNomC, vNomC] = await nombresCortos(p.ladron, sender);
     return sock.sendMessage(jid, {
-      text: `${des.titulo}\n\n` +
-        `${fraseCon(pool, `${jid}|contra|${clave}`, { '%A': a, '%V': v, '%C': fmt(real) })}\n\n` +
-        `${lineaAura(v, real, vN.current)}${pieVel}`,
+      text: unaMencion(`${des.titulo}\n` +
+        `${fraseCon(pool, `${jid}|contra|${clave}`, { '%A': a, '%V': v, '%C': fmt(real) })}\n` +
+        `${lineaAura(v, real, vN.current)}${pieVel}`, [[a, aNomC], [v, vNomC]]),
       mentions: [sender, p.ladron],
     }, { quoted: msg });
   }
@@ -772,10 +774,11 @@ async function contraatacar(sock, msg, jid, sender, groupMeta) {
   await addAura(jid, p.ladron, castigo);
   const vN = { current: tras };
   const poolMal = clave === 'ruina' ? RX.CONTRA_RUINA : RX.CONTRA_PIERDE;
+  const [aNomC, vNomC] = await nombresCortos(p.ladron, sender);
   return sock.sendMessage(jid, {
-    text: `${des.titulo}\n\n` +
-      `${fraseCon(poolMal, `${jid}|contra|${clave}`, { '%A': a, '%V': v, '%C': fmt(castigo) })}\n\n` +
-      `${lineaAura(v, -castigo, vN.current)}${pieVel}`,
+    text: unaMencion(`${des.titulo}\n` +
+      `${fraseCon(poolMal, `${jid}|contra|${clave}`, { '%A': a, '%V': v, '%C': fmt(castigo) })}\n` +
+      `${lineaAura(v, -castigo, vN.current)}${pieVel}`, [[a, aNomC], [v, vNomC]]),
     mentions: [sender, p.ladron],
   }, { quoted: msg });
 }
@@ -1454,6 +1457,11 @@ async function cmdRobo(sock, msg, args, groupMeta) {
 
   const aTag = `@${sender.split('@')[0]}`;
   const vTag = `@${target.split('@')[0]}`;
+  // La mencion va una vez, en el titular; en el resto, el nombre corto. Ver
+  // nombresCortos en utils/formatoJuego.js: el dueño vio un robo que nombraba
+  // seis veces a la victima con su nombre entero y adornado.
+  const [aNom, vNom] = await nombresCortos(sender, target);
+  const nombres = [[aTag, aNom], [vTag, vNom]];
 
   // Cooldown was already claimed above (before the awaits) to close the
   // double-rob race; it stays set here whether the roll wins or loses.
@@ -1492,7 +1500,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const notaTope = !recortado ? ''
     : limitaLadron
       ? `\n_Ibas a por ${fmt(raw)}, pero entre suelto y banco solo tienes ${fmt(maxStake)} para pagar si sale mal._`
-      : `\n_Ibas a por ${fmt(raw)}, pero ${vTag} solo tenía ${fmt(maxStake)}._`;
+      : `\n_Ibas a por ${fmt(raw)}, pero ${vNom} solo tenía ${fmt(maxStake)}._`;
   const fraccion = maxStake > 0 ? stake / maxStake : 0;
   // La cifra se enseña SIEMPRE. Era lo que faltaba: se podia elegir desde hacia
   // tiempo, pero el bot solo lo mencionaba al recortar, y si el parser fallaba
@@ -1671,75 +1679,51 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // chiste. Igual con *ROBO A MEDIAS* y su «lo pillaron a mitad».
     //
     // El titular ya lo dice de un vistazo, que es justo para lo que esta.
-    const extra =
-      ''
-      // Las dos patas de la recompensa se DICEN. Si el ladron no ve que le
-      // retienen, cree que el bot le ha pagado de menos; y si el que caza a un
-      // buscado no ve el cobro, la lista sigue pareciendo decorativa.
-      + (cobrada ? `\n_Llevaba precio en la cabeza: *+${fmt(cobrada)}* de recompensa encima del botín._` : '')
-      + (plusCobrado ? `\n_${esDiana && esObjDia ? 'Era la diana y el objetivo del día' : esDiana ? 'Era la diana' : 'Era el objetivo del día'}: *+${fmt(plusCobrado)}* encima de lo que pediste._` : '')
-      // La caja forzada SE DICE. Es lo mas gordo que puede pasar en un robo y
-      // si no sale aqui, la victima solo ve que le falta aura de la caja y no
-      // sabe por que. Una linea, y solo cuando de verdad habia algo dentro.
-      + (forzado ? `\n_Le reventó el banco: *+${fmt(forzado)}* que tenía guardados._` : '')
-      // *!buscados* se nombra AQUI porque la guia ya no lo lista, y este es el
-      // unico momento en que a alguien le importa: acaba de ver que una cabeza
-      // vale dinero. Un comando que solo vive en una lista que nadie lee es un
-      // comando que no existe.
-      + (enSuCabeza ? `\n_De los *${fmt(monto)}*, *${fmt(enSuCabeza)}* se quedan de precio por su cabeza: ahora vale *${fmt(await tienda.recompensaDe(jid, sender))}* para quien lo cace — *!buscados*._` : '');
+    // TODO EN CUATRO LINEAS, Y CADA NOMBRE CON SU @ UNA SOLA VEZ.
+    //
+    // El dueño (14 oct), con un robo de diez lineas en el que la victima salia
+    // nombrada seis veces con su nombre entero: «esa contaminación visual es
+    // exagerada». Lo que dice es lo mismo que antes; lo que cambia es como:
+    //
+    //   *ROBO EXITOSO* · @A le roba *8* a @V          ← las dos menciones
+    //   La frase, con los nombres cortos.
+    //   _+5 por su cabeza · A deja 1 en la suya, que ya vale 4 (*!buscados*)_
+    //   _La venganza, si la hay._
+    //   A  +12 → *123* · V  −8 → *25*
+    //   _V tiene 90 s para *!contrarobo*, doble o nada._
+    //
+    // Las notas de la recompensa, la diana, el banco reventado y el precio de
+    // su cabeza van en UNA linea separadas por puntos, no una por cosa. Las dos
+    // patas de la recompensa se siguen diciendo: si el ladron no ve que le
+    // retienen, cree que el bot le paga de menos; y si el que caza a un buscado
+    // no ve el cobro, la lista parece decorativa. *!buscados* se nombra aqui
+    // porque es el unico momento en que a alguien le importa: acaba de ver que
+    // una cabeza vale dinero.
+    const motivoPlus = esDiana && esObjDia ? 'ser la diana y el objetivo del día' : esDiana ? 'ser la diana' : 'ser el objetivo del día';
+    const notas = [
+      cobrada ? `+${fmt(cobrada)} por su cabeza` : '',
+      plusCobrado ? `+${fmt(plusCobrado)} por ${motivoPlus}` : '',
+      forzado ? `+${fmt(forzado)} reventándole el banco` : '',
+      enSuCabeza ? `${aNom} deja ${fmt(enSuCabeza)} en ${cobrada ? 'la suya' : 'su cabeza'}, que ya vale ${fmt(await tienda.recompensaDe(jid, sender))} (*!buscados*)` : '',
+    ].filter(Boolean);
     const text =
-      `${titulo}\n` +
-      `${aTag} le roba *${fmt(botinPedido)}* a ${vTag}${extra}\n\n` +
-      `${phrase}` +
-      (memoria ? `\n_${memoria}_` : '') +
-      `\n\n` +
-      // La CUARTA forma que habia de contar lo mismo, y la unica con el total
-      // delante y el movimiento en un parentesis detras. El robo con exito es
-      // justo donde mas se lee esta linea, asi que era el peor sitio para que
-      // no se pareciera a la del duelo, la del regalo ni la del contrarrobo.
-      // Lo que de verdad le entra al ladron: la cifra robada, menos lo que se queda
-      // de precio en su cabeza, mas recompensa y caja. Antes ponia +monto y el
-      // total no cuadraba con la suma.
-      `${lineaAura(aTag, monto - enSuCabeza + cobrada + forzado, aNew.current)}\n${lineaAura(vTag, -monto, vNew.current)}` +
-      // SE AVISA A LA VICTIMA, que si no el contraataque no existe.
+      `${titulo} · ${aTag} le roba *${fmt(botinPedido)}* a ${vTag}\n` +
+      `${conNombres(phrase, nombres)}` +
+      (notas.length ? `\n_${notas.join(' · ')}_` : '') +
+      (memoria ? `\n_${conNombres(memoria, nombres)}_` : '') +
+      // Lo que de verdad le entra al ladron: la cifra robada, menos lo que se
+      // queda de precio en su cabeza, mas recompensa y caja. Los dos saldos en
+      // una linea, con el nombre corto.
+      `\n${lineaAura(aNom, monto - enSuCabeza + cobrada + forzado, aNew.current)} · ${lineaAura(vNom, -monto, vNew.current)}` +
+      // SE AVISA A LA VICTIMA, que si no el contraataque no existe: la ventana
+      // es de 90 segundos y sin este aviso no la usaba nadie.
+      `\n_${vNom} tiene ${CONTRA.ventanaSeg} s para *!contrarobo*, doble o nada._` +
+      // EL ROBO QUE SALE BIEN SE QUEDA EN LO QUE PASO. Aqui no van la tirada,
+      // el tutorial ni los motivos de riesgo (`notaDinamicas`): explican una
+      // derrota, y pegados a una victoria son ruido. Ver la capa 99.
       //
-      // La ventana es de 90 segundos y el mensaje del robo no la mencionaba por
-      // ningun lado: habia que saber de antemano que *!robo contra* existia y
-      // acordarse en el momento. El resultado es que no lo usaba nadie — ni el
-      // dueño del bot sabia que estaba ahi.
-      //
-      // Va aqui y no en el menu porque un aviso sirve cuando llega en el
-      // segundo en que hace falta, no en una lista que se lee una vez.
-      `\n_${vTag}: ${CONTRA.ventanaSeg}s para *!contrarobo* — doble o nada._` +
-      // EL ROBO QUE SALE BIEN SE QUEDA EN LO QUE PASO. Aqui iba `notaDinamicas`
-      // entero y eran DOS lineas mas de cola, que en un movil se parten en
-      // cuatro. El dueño lo vio en el grupo: contaminacion visual.
-      //
-      // De lo que llevaba, esto es lo que se va y por que:
-      //
-      //  · `tope N · NN%` — estadistica de la tirada. En un robo que SALE no
-      //    responde a nada: ya sabes cuanto te llevaste, esta abajo en verde.
-      //    En el que falla si contesta «que posibilidades tenia», asi que ahi
-      //    sigue puesto.
-      //  · `*!robo @alguien 200* para elegir` — tutorial. Mismo caso que el
-      //    parrafo de aura que se quito del "no te llega": la peña no aprende
-      //    el juego en la cola de un mensaje que lee por el chiste.
-      //  · los motivos de riesgo (`codicia (−14%)`…) — explican una derrota.
-      //    Pegados a una victoria son ruido. Se quedan en el fallo, que es
-      //    donde el desglose del owner tiene que seguir saliendo para que su
-      //    ausencia no lo delate.
-      //  · `objetivo del día` — SALIA DOS VECES EN EL MISMO MENSAJE: una aqui
-      //    dentro de los motivos y otra arriba en `Era el objetivo del dia`.
-      //    Quitando esta cola, queda la de arriba, que es la que dice cuanto.
-      //  · `Caliente. La proxima *!aura* lleva un +N%` — se anuncia OTRA VEZ en
-      //    *!aura*, y alli en el momento en que de verdad se aplica
-      //    («Vienes de un golpe: esta tirada llevaba un +N%»). Un efecto que
-      //    se cuenta cuando se gana y cuando se gasta se cuenta una vez: al
-      //    gastarlo.
-      //
-      // Lo que SI se queda es `notaTope`, que no es cola ni estadistica:
-      // explica por que el numero es mas pequeño de lo que se pidio («ibas a
-      // por 400, solo tenia 90»). Sin eso, el recorte parece que cobra mal.
+      // Lo que SI se queda es `notaTope`: explica por que el numero es mas
+      // pequeño de lo que se pidio («ibas a por 400, solo tenia 90»).
       notaTope;
     return sock.sendMessage(jid, { text, mentions: [sender, target] });
   }
@@ -1761,39 +1745,26 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   }
   const phrase = pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag);
   const memoria = await rencor.robo({ grupo: jid, ladron: sender, victima: target, ok: false, cifra: stake, groupMeta });
+  // LO QUE SE PERDIO, EN UNA LINEA. Ver la nota del robo que sale bien: cada
+  // @ es el nombre entero y adornado, asi que va una vez en el titular y en lo
+  // demas el nombre corto. Lo del banco y lo del bote, juntos.
+  const notasFallo = [
+    multaBanco ? `Lo suelto no llegaba: *${fmt(multaBanco)}* salen de su banco` : '',
+    boteAhora ? `el bote del grupo sube a *${fmt(boteAhora)}*` : '',
+  ].filter(Boolean);
   const text =
-    `${titulo}\n` +
-    // LA CIFRA QUE IBA A ROBAR, EN EL TITULAR.
-    //
-    // Decia solo "intentó robarle a @V y le salió como el puto culo": el grupo
-    // no se enteraba de si habia ido a por 50 o a por 4.000, que es justo lo
-    // que hace que un fallo tenga gracia o no. La unica cifra visible era la
-    // multa (`@A −90`), y esa NO es lo que intento robar — se confunden solas.
-    //
-    // Lo que se intento vivia solo en la nota tecnica de abajo, en cursiva y en
-    // letra pequeña, junto al porcentaje. Ahi no se lee.
-    //
-    // Va `stake`, que es lo que pidio, no `monto`, que a estas alturas ya vale
-    // la multa. Y va delante del remate porque las quince frases empiezan por
-    // "y ", asi que la linea sigue leyendose como una sola.
-    `${aTag} intentó robarle *${fmt(stake)}* a ${vTag} ${pickFresh(ROBO_FALLO_REMATE, `${jid}|robo|remate`)}\n` +
-    // Aqui iba "_Se le cayo todo encima: @V se queda con lo que traia._", y
-    // sobraba: dos lineas mas abajo se lee `@V +200 → *3350*`. Explicar con una
-    // frase lo que el numero de al lado ya dice es exactamente lo que hacia
-    // largo el mensaje.
-    //
-    // Y el remate y el desenlace van PEGADOS, sin linea en blanco en medio: los
-    // dos cuentan lo mismo (que fallo), asi que separarlos en dos bloques hacia
-    // parecer que eran dos cosas distintas.
-    `${phrase}` +
-    (memoria ? `\n_${memoria}_` : '') +
-    `\n\n` +
-    `${lineaAura(aTag, -monto, aNew.current)}\n` +
+    // LA CIFRA QUE IBA A ROBAR, EN EL TITULAR. El grupo tiene que saber si iba
+    // a por 50 o a por 4.000: es lo que hace que un fallo tenga gracia. Va
+    // `stake`, lo que pidio, y no `monto`, que a estas alturas ya es la multa.
+    // El remate va pegado: las quince frases empiezan por "y ".
+    `${titulo} · ${aTag} intentó robarle *${fmt(stake)}* a ${vTag} ${pickFresh(ROBO_FALLO_REMATE, `${jid}|robo|remate`)}\n` +
+    `${conNombres(phrase, nombres)}` +
+    (memoria ? `\n_${conNombres(memoria, nombres)}_` : '') +
+    `\n${lineaAura(aNom, -monto, aNew.current)} · ` +
     (vNew
-      ? lineaAura(vTag, monto, vNew.current)
-      : lineaAura(vTag, 0, auraV)) +
-    (multaBanco ? `\n_No te llegaba con lo suelto: *${fmt(multaBanco)}* han salido de tu banco._` : '') +
-    (boteAhora ? `\n_El bote del grupo sube a *${fmt(boteAhora)}*._` : '') +
+      ? lineaAura(vNom, monto, vNew.current)
+      : lineaAura(vNom, 0, auraV)) +
+    (notasFallo.length ? `\n_${notasFallo.join(' · ')}_` : '') +
     notaDinamicas;
   return sock.sendMessage(jid, { text, mentions: [sender, target] });
 }
