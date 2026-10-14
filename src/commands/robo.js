@@ -34,7 +34,7 @@ const { fraseCooldown, ROBO: ROBO_CD, ROBO_ASALTO, ROBO_GUARDIA } = require('../
 const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
 const logger = require('../utils/logger');
-const { bloqueCooldown, lineaAura, tiempoRestante, nombresCortos, conNombres, unaMencion } = require('../utils/formatoJuego');
+const { bloqueCooldown, lineaAura, tiempoRestante, nombresCortos } = require('../utils/formatoJuego');
 const rencor = require('../utils/rencor');
 const { clavesMapa, juntarEnMapa } = require('../utils/persona');
 
@@ -760,12 +760,13 @@ async function contraatacar(sock, msg, jid, sender, groupMeta) {
     const pool = clave === 'demoledor' ? RX.CONTRA_DEMOLEDOR
                : clave === 'raspado'   ? RX.CONTRA_RASPADO
                : RX.CONTRA_GANA;
-    // Una mencion por persona y sin lineas en blanco: ver nombresCortos.
-    const [aNomC, vNomC] = await nombresCortos(p.ladron, sender);
+    // La frase, intacta y con sus menciones; el saldo, con el nombre corto y
+    // sin lineas en blanco. Ver nombresCortos en utils/formatoJuego.js.
+    const [, vNomC] = await nombresCortos(p.ladron, sender);
     return sock.sendMessage(jid, {
-      text: unaMencion(`${des.titulo}\n` +
+      text: `${des.titulo}\n` +
         `${fraseCon(pool, `${jid}|contra|${clave}`, { '%A': a, '%V': v, '%C': fmt(real) })}\n` +
-        `${lineaAura(v, real, vN.current)}${pieVel}`, [[a, aNomC], [v, vNomC]]),
+        `${lineaAura(vNomC, real, vN.current)}${pieVel}`,
       mentions: [sender, p.ladron],
     }, { quoted: msg });
   }
@@ -774,11 +775,11 @@ async function contraatacar(sock, msg, jid, sender, groupMeta) {
   await addAura(jid, p.ladron, castigo);
   const vN = { current: tras };
   const poolMal = clave === 'ruina' ? RX.CONTRA_RUINA : RX.CONTRA_PIERDE;
-  const [aNomC, vNomC] = await nombresCortos(p.ladron, sender);
+  const [, vNomC] = await nombresCortos(p.ladron, sender);
   return sock.sendMessage(jid, {
-    text: unaMencion(`${des.titulo}\n` +
+    text: `${des.titulo}\n` +
       `${fraseCon(poolMal, `${jid}|contra|${clave}`, { '%A': a, '%V': v, '%C': fmt(castigo) })}\n` +
-      `${lineaAura(v, -castigo, vN.current)}${pieVel}`, [[a, aNomC], [v, vNomC]]),
+      `${lineaAura(vNomC, -castigo, vN.current)}${pieVel}`,
     mentions: [sender, p.ladron],
   }, { quoted: msg });
 }
@@ -1391,11 +1392,11 @@ async function cmdRobo(sock, msg, args, groupMeta) {
 
   const aTag = `@${sender.split('@')[0]}`;
   const vTag = `@${target.split('@')[0]}`;
-  // La mencion va una vez, en el titular; en el resto, el nombre corto. Ver
-  // nombresCortos en utils/formatoJuego.js: el dueño vio un robo que nombraba
-  // seis veces a la victima con su nombre entero y adornado.
+  // Las frases van INTACTAS, con sus menciones, como siempre. El nombre corto
+  // es solo para las lineas de datos —el saldo y el aviso del contrarrobo—,
+  // que eran las que repetian el nombre entero y adornado sin decir nada. Ver
+  // nombresCortos en utils/formatoJuego.js.
   const [aNom, vNom] = await nombresCortos(sender, target);
-  const nombres = [[aTag, aNom], [vTag, vNom]];
 
   // Cooldown was already claimed above (before the awaits) to close the
   // double-rob race; it stays set here whether the roll wins or loses.
@@ -1566,7 +1567,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // se hace es explicarlo en cada robo.
     //
     //   *ROBO EXITOSO* · @A le roba *8* a @V      ← las dos menciones
-    //   La frase, con los nombres cortos.
+    //   La frase, intacta y con sus menciones.
     //   _La venganza, si la hay._
     //   Saldo: A *123* · V *25*
     //   _V: 90 s para *!contrarobo*, doble o nada._
@@ -1577,12 +1578,12 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // lo que nadie entiende. Con lo que se queda cada uno basta.
     const text =
       `${titulo} · ${aTag} le roba *${fmt(botinPedido)}* a ${vTag}\n` +
-      `${conNombres(phrase, nombres)}` +
+      `${phrase}` +
       // EL BANCO REVENTADO SI SE DICE, y es lo unico de la mecanica que queda:
       // a la victima le falta aura del banco, que creia a salvo, y sin esta
       // linea no sabe por que. Solo sale en el golpe maestro y si habia algo.
       (forzado ? `\n_Y le ha reventado el banco: *${fmt(forzado)}* más._` : '') +
-      (memoria ? `\n_${conNombres(memoria, nombres)}_` : '') +
+      (memoria ? `\n_${memoria}_` : '') +
       `\nSaldo: ${aNom} *${fmt(aNew.current)}* · ${vNom} *${fmt(vNew.current)}*` +
       // SE AVISA A LA VICTIMA, que si no el contraataque no existe: la ventana
       // es de 90 segundos y sin este aviso no la usaba nadie.
@@ -1620,8 +1621,8 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // `stake`, lo que pidio, y no `monto`, que a estas alturas ya es la multa.
     // El remate va pegado: las quince frases empiezan por "y ".
     `${titulo} · ${aTag} intentó robarle *${fmt(stake)}* a ${vTag} ${pickFresh(ROBO_FALLO_REMATE, `${jid}|robo|remate`)}\n` +
-    `${conNombres(phrase, nombres)}` +
-    (memoria ? `\n_${conNombres(memoria, nombres)}_` : '') +
+    `${phrase}` +
+    (memoria ? `\n_${memoria}_` : '') +
     `\nSaldo: ${aNom} *${fmt(aNew.current)}*${cambio(-monto)} · ` +
     (vNew
       ? `${vNom} *${fmt(vNew.current)}*${cambio(monto)}`

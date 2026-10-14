@@ -18927,12 +18927,19 @@ const manda = async (quien, tipo, opciones) => {
       exige(lineas99 <= 5,
         `el mensaje del robo ha vuelto a ${lineas99} líneas: se recortó a 5 (titular, frase, venganza, saldo y contrarrobo)`);
       exige(!/\n\s*\n/.test(txt99), 'el robo vuelve a llevar líneas en blanco: son bloques de más en la pantalla');
-      // CADA @ ES EL NOMBRE ENTERO Y ADORNADO, asi que va una vez: en el titular.
-      for (const [quien, jid99] of [['el ladrón', A99], ['la víctima', V99]]) {
-        const veces = txt99.split(`@${jid99.split('@')[0]}`).length - 1;
-        exige(veces === 1, `${quien} sale mencionado ${veces} veces en el robo: la mención va una vez y lo demás con su nombre corto`);
-      }
-      exige(/Sweetgirl/.test(txt99), 'el nombre adornado no sale limpio («Sweetgirl») en el robo');
+      // LAS FRASES, INTACTAS; LOS DATOS, CON EL NOMBRE CORTO. El dueño: «las
+      // frases deben quedar intactas, solo se debe eliminar la contaminación».
+      // La frase del robo (segunda linea) lleva sus menciones como siempre y
+      // ningun nombre cambiado; el saldo y el aviso del contrarrobo, que eran
+      // los que repetian el nombre entero y adornado, van sin @.
+      const lin99 = txt99.split('\n').filter((l) => l.trim());
+      const frase99 = lin99[1] || '';
+      exige(!/DIEGØ|Sweetgirl/.test(frase99),
+        `la frase del robo sale con los nombres cambiados: tiene que ir intacta, con sus menciones («${frase99.slice(0, 70)}»)`);
+      const datos99 = lin99.filter((l) => /^Saldo:|!contrarobo/.test(l));
+      exige(datos99.length === 2 && datos99.every((l) => !/@\d/.test(l)),
+        `el saldo o el aviso del contrarrobo vuelven a llevar menciones: ${JSON.stringify(datos99)}`);
+      exige(datos99.some((l) => /Sweetgirl/.test(l)), 'el nombre adornado no sale limpio («Sweetgirl») en el saldo');
 
       // Y EL QUE FALLA, LO MISMO: sin la linea de estadisticas ni el «Tilt».
       const fallo99 = [];
@@ -18948,6 +18955,8 @@ const manda = async (quien, tipo, opciones) => {
       } finally { Math.random = dadoF; }
       const txtF99 = fallo99.join('\n');
       exige(/intentó robarle/.test(txtF99), `el robo fallido no ha contestado: ${JSON.stringify(txtF99.slice(0, 120))}`);
+      exige(!/DIEGØ|Sweetgirl/.test(txtF99.split('\n')[1] || ''),
+        'la frase del robo fallido sale con los nombres cambiados: tiene que ir intacta');
       exige(!ruido99.test(txtF99) && !/\btope \d/.test(txtF99),
         `el robo fallido vuelve a llevar mecánica que nadie entiende («${(txtF99.match(ruido99) || txtF99.match(/\btope \d+/) || [''])[0]}»)`);
       exige(/Saldo: .*\(−\d/.test(txtF99), 'el robo fallido ya no dice lo que perdió el ladrón');

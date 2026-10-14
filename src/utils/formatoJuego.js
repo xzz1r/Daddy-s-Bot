@@ -100,17 +100,20 @@ function lineaAura(quien, delta, total, { negrita = false } = {}) {
   return negrita ? `*${cuerpo}*` : cuerpo;
 }
 
-// ─── LA MENCION, UNA VEZ; DESPUES, EL NOMBRE CORTO ───────────────────────────
+// ─── EL NOMBRE CORTO, PARA LAS LINEAS DE DATOS ───────────────────────────────
 //
 // El dueño (14 oct), con un robo que nombraba seis veces a la victima con su
 // nombre entero —«◥꧁𝓢𝔀𝓮𝓮𝓽𝓰𝓲𝓻𝓵༄⁷⁸⁶ᵈ᭄»—: «esa contaminación visual es
 // exagerada». Cada @ que WhatsApp pinta es el nombre completo, adornos
-// incluidos, y en un mensaje de dos personas salian cuatro o seis.
+// incluidos.
 //
-// Asi que la mencion va UNA vez, en el titular, que es lo que avisa al movil
-// de cada uno. En el resto de lineas —la frase, los saldos, la venganza— va el
-// nombre corto: el pushName (lo que cada uno se pone a si mismo, ver
-// nombreStore) sin adornos y en una palabra. «◥꧁𝓢𝔀𝓮𝓮𝓽𝓰𝓲𝓻𝓵༄⁷⁸⁶ᵈ᭄» es «Sweetgirl».
+// Las FRASES no se tocan: van intactas, con sus menciones, que es como las
+// quiere el dueño («las frases deben quedar intactas, solo se debe eliminar la
+// contaminación»). Lo que lleva el nombre corto son las lineas de DATOS —el
+// saldo, el aviso del contrarrobo—, que repetian el nombre entero sin decir
+// nada. El nombre corto es el pushName (lo que cada uno se pone a si mismo,
+// ver nombreStore) sin adornos y en una palabra: «◥꧁𝓢𝔀𝓮𝓮𝓽𝓰𝓲𝓻𝓵༄⁷⁸⁶ᵈ᭄» es
+// «Sweetgirl».
 //
 // La limpieza: fuera superindices y letras modificadoras (los ⁷⁸⁶ᵈ del
 // adorno); las letras «de fantasia» (𝓢, 𝔀, Ⓜ…) se pasan a las normales con
@@ -148,34 +151,4 @@ async function nombresCortos(...jids) {
   });
 }
 
-// La mencion entera y nada detras que siga siendo numero: «@3460001» no puede
-// comerse el principio de «@34600012».
-const rxMencion = (m) => new RegExp(`${m.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?!\\d)`, 'g');
-
-// Cambia TODAS las menciones de un texto por los nombres cortos. Para lo que va
-// debajo de un titular que ya lleva las menciones.
-function conNombres(texto, pares) {
-  let t = String(texto || '');
-  for (const [mencion, nombre] of pares) {
-    if (mencion && nombre && mencion !== nombre) t = t.replace(rxMencion(mencion), nombre);
-  }
-  return t;
-}
-
-// Deja la PRIMERA mencion de cada uno y cambia las demas por su nombre corto.
-// Para los mensajes que no tienen un titular con nombres: el @ queda donde se
-// le nombra por primera vez, que es lo que hace sonar su movil.
-function unaMencion(texto, pares) {
-  let t = String(texto || '');
-  for (const [mencion, nombre] of pares) {
-    if (!mencion || !nombre || mencion === nombre) continue;
-    let primera = true;
-    t = t.replace(rxMencion(mencion), (m) => {
-      if (primera) { primera = false; return m; }
-      return nombre;
-    });
-  }
-  return t;
-}
-
-module.exports = { tiempoRestante, bloqueCooldown, lineaAura, nombreLimpio, nombresCortos, conNombres, unaMencion, MINUTO, HORA, DIA };
+module.exports = { tiempoRestante, bloqueCooldown, lineaAura, nombreLimpio, nombresCortos, MINUTO, HORA, DIA };
