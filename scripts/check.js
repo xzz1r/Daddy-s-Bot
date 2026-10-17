@@ -21499,6 +21499,9 @@ const textos = (ev) => ev.filter((e) => e.tipo === 'texto');
   // 12. Los huecos de las frases.
   ok(AVISO_SPAM.every((f) => !/%[A-Z]/.test(f)), 'AVISO_SPAM lleva un hueco y nadie lo rellena');
   ok(BAN_SPAM.every((f) => (f.match(/%M/g) || []).length === 1), 'una frase de BAN_SPAM no lleva la mención, o la lleva dos veces');
+  // Lo pidió el dueño: cada frase deja claro que es POR EL SPAM.
+  const sinSpam = [...AVISO_SPAM, ...BAN_SPAM].filter((f) => !/spam/i.test(f));
+  ok(!sinSpam.length, 'hay frases que no dicen que es por el spam: ' + sinSpam.join(' | '));
 
   console.log('CAPA125:' + JSON.stringify(quejas));
   process.exit(0);
