@@ -6,23 +6,24 @@
 // en src/utils/spamTexto.js.
 //
 // AVISO_SPAM va detrás de «@persona, el spam está prohibido.», así que no lleva
-// huecos: le habla a quien acaba de spamear y le ataca el sentido del humor.
+// huecos. Ataque directo y personal a quien acaba de spamear, como lo pidió el
+// dueño: no tiene gracia y no la va a tener nunca. Nada de hablar del chiste.
 //
 // BAN_SPAM sale cuando ya está fuera, y le habla al grupo: usa a esa persona de
 // ejemplo. %M es su mención. Nada concuerda con %M en masculino ni en femenino:
 // «baneada» va con «escoria» y «baneado» con «pedazo», no con quien se va.
 
 const AVISO_SPAM = [
-  'El puto chiste se murió en el primer mensaje y tú has seguido mandando el cadáver.',
-  'Tu sentido del humor cabe entero en el portapapeles, y encima es de otro gilipoyas.',
-  'Repetirlo no lo hace más gracioso, joder. Solo deja claro que no tienes un segundo chiste.',
-  'Te imaginabas al grupo llorando de risa y lo único que has conseguido es que les vibre el móvil por una mierda.',
-  'Si a la primera no hizo gracia, a la décima lo único que das tú es vergüenza ajena.',
-  'Tienes el puto humor de quien todavía reenvía cadenas de 2014.',
-  'Hacer reír pide una idea, y tú no tienes ni puta idea. Por eso te has quedado en hacer ruido.',
-  'Copiar y pegar la misma mierda en bucle no es humor: es confesar que no se te ocurre nada tuyo.',
-  'Spamear para que te hagan caso es cosa de quien no tiene nada que contar, y tú lo has dejado clarísimo.',
-  'Tú confundes dar por culo con hacer gracia, y lo primero lo bordas.',
+  'No tienes ni puta gracia, y no la vas a tener nunca: eso no se aprende copiando.',
+  'Nunca has hecho reír a nadie en tu vida, y por eso robas chistes de otros y los pegas en bucle.',
+  'Te ríes tú de tus propios chistes de mierda porque nadie más te los ríe.',
+  'Si alguien se ha reído alguna vez contigo, se estaba riendo de ti y no te enteraste.',
+  'Naciste sin una puta gota de gracia y te vas a morir igual, pegando copys de otros.',
+  'Tu sentido del humor no existe, joder. Lo que tienes es un portapapeles y unas ganas desesperadas de que te miren.',
+  'Hacer gracia no es lo tuyo y no lo va a ser nunca. Tú das vergüenza ajena, que es otra cosa.',
+  'Ni con mil copys vas a tener la gracia que te crees que tienes.',
+  'Lo más gracioso que has hecho hoy es creer que esto tenía gracia.',
+  'No eres la puta persona graciosa del grupo: eres la que hace que la gente lo silencie.',
 ];
 
 const BAN_SPAM = [
