@@ -10,6 +10,7 @@ const { recordName } = require('../utils/nombreStore');
 const { recordFacts, recordDevice, getMemberFacts } = require('../utils/nickStore');
 const { noteOffence, forget, yaAvisado, marcarAvisado, olvidarAviso } = require('../utils/mediaSpam');
 const { isAllowed, noteWarning, resetWarnings, MAX_AVISOS } = require('../utils/linkPerms');
+const spamTexto = require('../utils/spamTexto');
 const { tienePase, gastarIndulto } = require('../utils/roboStore');
 const { banAccount } = require('../utils/banlist');
 const { businessEvidence } = require('../utils/businessCheck');
@@ -410,6 +411,40 @@ async function borrarDeSilenciado(sock, jid, msg, sender, meta) {
 // frio justo despues de cada reinicio; la metadata trae las dos formas siempre.
 async function expulsar(sock, jid, target, meta = null) {
   return aplicarAUno(sock, jid, target, 'remove', meta);
+}
+
+// EL SPAM DE TEXTO, CASTIGADO. La rafaga ya la ha medido utils/spamTexto.js, y
+// quien llega aqui no es admin ni del tier dueño, y el bot si es admin.
+//
+// Aviso 1: se cierra el grupo y DESPUES se avisa. Lo primero es cortar la
+// rafaga; el aviso puede esperar un segundo, el spam no.
+// Aviso 2: lista negra, fuera, y se le usa de ejemplo delante del grupo. El
+// anuncio va DETRAS de echarle, como el resto de la moderacion automatica: el
+// grupo solo ve lo que ha pasado de verdad.
+async function castigarSpamTexto(sock, jid, sender, meta, rafaga) {
+  const toca = await spamTexto.sancion(jid, sender, rafaga.desde)
+    .catch((e) => { logger.unaVez('spam de texto', e); return null; });
+  if (!toca) return;
+  const num = sender.split('@')[0];
+  if (toca === 'ban') {
+    await banAccount(allForms(sender, meta), `spam de mensajes repetidos en ${jid}`, 'auto')
+      .catch((e) => logger.unaVez('vetar por spam de texto', e));
+    const fuera = await expulsar(sock, jid, sender, meta);
+    if (!fuera) anotarTropiezo(`Spam de mensajes en ${jid} de +${num}: vetado pero NO expulsado. Hazlo a mano.`);
+    await sock.sendMessage(jid, { text: spamTexto.textoBan(jid, sender, { fuera }), mentions: [sender] }).catch(() => {});
+    return;
+  }
+  // Se cierra sin mirar la metadata: su `announce` se queda viejo en la cache
+  // (abrir o cerrar no la invalida), y fiarse de ella podia dejar el grupo
+  // abierto diciendo «grupo cerrado». Si no se puede cerrar, no se dice.
+  let cerrado = false;
+  try {
+    await withTimeout(sock.groupSettingUpdate(jid, 'announcement'), 10000);
+    cerrado = true;
+  } catch (e) {
+    anotarTropiezo(`Spam de mensajes en ${jid} de +${num}: NO he podido cerrar el grupo (${e?.message || e}).`);
+  }
+  await sock.sendMessage(jid, { text: spamTexto.textoAviso(jid, sender, { cerrado }), mentions: [sender] }).catch(() => {});
 }
 
 // LA MISMA PERSONA CON LA MISMA CLAVE EN LOS CUATRO SITIOS.
@@ -2325,6 +2360,31 @@ async function handleMessage(sock, msg, opciones = {}) {
             mentions: [sender],
           }).catch(() => {});
         }
+        return;
+      }
+    }
+  }
+
+  // ─── SPAM DE TEXTO: EL MISMO MENSAJE, UNA Y OTRA VEZ ─────────────────────
+  //
+  // Lo pidio el dueño (17 oct): mas de 10 mensajes iguales del mismo numero en
+  // menos de 10 segundos. La primera vez se cierra el grupo con un *Aviso 1 de
+  // 2*; la segunda, ban. Las cuentas, en utils/spamTexto.js.
+  //
+  // Va detras del antilink: un enlace repetido ya lo borra y lo castiga el
+  // suyo, y aqui solo llega el texto que se queda en el grupo. Los stickers, las
+  // fotos y los videos tienen su propia regla mas abajo. Y la metadata se pide
+  // solo cuando hay rafaga, igual que con los stickers: contar es gratis.
+  if (jid.endsWith('@g.us') && !msg.key.fromMe && sender
+      && (typeof msg.message?.conversation === 'string' || msg.message?.extendedTextMessage)) {
+    const rafaga = spamTexto.anotar(jid, sender, textoCrudo, msg.messageTimestamp);
+    if (rafaga) {
+      const meta = await getGroupMeta(sock, jid);
+      const protegido = !meta ||
+        isGroupAdmin(sender, msg.key.fromMe, meta) ||
+        esOwnerDelMensaje(msg, sender, senderPn, meta);
+      if (!protegido && isBotAdmin(sock, meta)) {
+        await castigarSpamTexto(sock, jid, sender, meta, rafaga);
         return;
       }
     }

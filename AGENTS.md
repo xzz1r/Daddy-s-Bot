@@ -72,6 +72,14 @@ recodificar**, también el HEVC (solo se le cambia la caja a `hvc1`); con
 cambia por una copia peor (capa 84). Las herramientas lentas avisan con
 `espera` en su fila (`utils/progreso.js`). Capas 96 y 124.
 
+## Spam de texto: aviso 1 de 2 y ban
+
+Lo pidió el dueño (17 oct): más de 10 mensajes iguales del mismo número en
+menos de 10 segundos cierran el grupo con un *Aviso 1 de 2*; a la segunda, ban.
+Los números, el margen y el orden (cerrar antes de avisar, echar antes de
+anunciar) viven en `src/utils/spamTexto.js` y en `castigarSpamTexto`. Las frases
+están en `src/data/spamPhrases.js`. La capa 125 lo vigila. Ver `MOTOR.md`.
+
 ## Apelativos de dominancia: se quedan
 
 «…, pequeña.», «…, mi niña.», «…, princesa.» y el resto al final de las

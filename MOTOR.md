@@ -175,6 +175,30 @@ Ahora cada estado detectado apunta su final en `data/estadosVistos.json` y
 `npm run estado` lo resume de las últimas 24 h. «Sigue saliendo» y «no se
 detecta» se leían igual desde fuera y tienen arreglos opuestos.
 
+## El spam de texto
+
+Lo pidió el dueño (17 oct): más de 10 mensajes iguales del mismo número en
+menos de 10 segundos.
+
+- **La primera vez** el bot cierra el grupo (solo escriben los admins) y después
+  avisa, con *Aviso 1 de 2* en negrita: el spam está prohibido, y una frase de
+  `AVISO_SPAM` contra su sentido del humor. El grupo **no se abre solo**: lo
+  abre un admin con `!open`.
+- **La segunda**, ban: lista negra, que es global, y fuera del grupo. El aviso
+  sale después de echarle y le usa de ejemplo con `BAN_SPAM`. Si no se le ha
+  podido echar, solo dice lo de la lista negra.
+
+«Iguales» es el mismo texto sin contar mayúsculas ni espacios. Solo cuenta el
+texto: stickers, fotos y vídeos tienen su regla, y un enlace repetido se lo
+queda el antilink. A los admins y al tier dueño no se les toca, y sin admin el
+bot no hace nada.
+
+La ráfaga se cuenta con la hora de cada mensaje, no con la de llegada: el lote
+de una reconexión trae minutos de conversación en un segundo. Lo que ya iba de
+camino cuando salió el aviso tampoco es la segunda: hay 30 s de margen. El aviso
+se guarda en `data/spamTexto.json`, no caduca y se borra con el ban. El código
+está en `src/utils/spamTexto.js`; lo prueban las capas 111 y 125.
+
 ---
 
 ## Las acciones por dentro

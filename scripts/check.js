@@ -20147,6 +20147,41 @@ const manda = async (quien, tipo, opciones) => {
         'a la victima robada con su @lid se le va el escudo en cuanto el bot sabe su telefono: la pueden vaciar entre cinco');
     }
 
+    // ── 10b. El spam de texto: la ráfaga y el aviso ──────────────────────
+    //
+    // Seis con el @lid y cinco con el teléfono son once, y quien fue avisado
+    // con el @lid tiene que llevarse el ban cuando vuelve por el teléfono: si
+    // no, cada forma suya tiene su propio aviso y el ban no llega nunca. El
+    // aviso va a un fichero de prueba: el de verdad lo está usando el bot.
+    {
+      const ST = require(path.join(R, 'src/utils/spamTexto'));
+      const ficheroAntes = ST._file();
+      const f111 = path.join(require('os').tmpdir(), `spam111-${process.pid}.json`);
+      ST._usarFichero(f111);
+      try {
+        const desde = Math.floor(Date.now() / 1000);
+        {
+          const { L, T } = persona();
+          let r = null;
+          for (let i = 0; i < 6; i++) r = ST.anotar(G, L, 'el mismo copy', desde) || r;
+          WA.rememberMapping(L, T);
+          for (let i = 0; i < 5; i++) r = ST.anotar(G, T, 'el mismo copy', desde) || r;
+          exige(r && r.veces === 11, `6 mensajes iguales con el @lid y 5 con el telefono no hacen la rafaga de 11 (${JSON.stringify(r)})`);
+        }
+        {
+          const { L, T } = persona();
+          exige(await ST.sancion(G, L, desde) === 'aviso', 'la primera rafaga de spam no es el aviso');
+          WA.rememberMapping(L, T);
+          exige(await ST.avisosDe(G, T) === 1, 'el aviso de spam dado con el @lid no consta por el telefono');
+          exige(await ST.sancion(G, T, desde + 600) === 'ban',
+            'avisado por spam con el @lid, la segunda rafaga por el telefono es otro aviso: el ban no llega nunca');
+        }
+      } finally {
+        ST._usarFichero(ficheroAntes);
+        fs.rmSync(f111, { force: true });
+      }
+    }
+
     // ── 11. Ningún almacén se hace su propia copia ───────────────────────
     //
     // Los que juntan formas lo hacen con la pieza comun. Una copia nueva de
@@ -20170,7 +20205,7 @@ const manda = async (quien, tipo, opciones) => {
       recorre(dir);
       exige(!copias.length, `vuelve a haber copias propias de juntar @lid y telefono en ${copias.join(', ')}: usa utils/persona.js`);
     }
-    if (fallos === antes111) console.log(verde('   ✓ saldo, caja, top, recompensa, objetos, racha, contadores, permisos, rafaga y esperas: la misma persona con sus dos formas'));
+    if (fallos === antes111) console.log(verde('   ✓ saldo, caja, top, recompensa, objetos, racha, contadores, permisos, rafaga, esperas y spam de texto: la misma persona con sus dos formas'));
   }
 
   // ── 112. QUIEN SALE POR UN COMANDO SALE CON SU @ ─────────────────────────
@@ -21266,6 +21301,230 @@ const MB = 1048576;
     }
 
     if (fallos === antes124) console.log(verde('   ✓ lo que no cabe se ajusta sin cambiarlo por una copia peor, y mientras trabaja se ve que sigue vivo'));
+  }
+
+  // ── 125. EL SPAM DE TEXTO: AVISO CON EL GRUPO CERRADO, Y A LA SEGUNDA BAN ──
+  //
+  // Lo pidio el dueño (17 oct): la gente pega el mismo copy en bucle porque se
+  // cree que tiene gracia. Mas de 10 mensajes iguales del mismo numero en menos
+  // de 10 segundos: la primera vez se cierra el grupo con un *Aviso 1 de 2*, la
+  // segunda es ban, y el aviso del ban usa a esa persona de ejemplo.
+  //
+  // Se prueba con el manejador de verdad, en una copia del bot con su propio
+  // data/: el ban escribe en la lista negra, y la lista negra es global.
+  {
+    console.log('\n125. EL SPAM DE TEXTO: AVISO CON EL GRUPO CERRADO, Y A LA SEGUNDA BAN');
+    const antes125 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const guion = String.raw`
+const fs = require('fs'), os = require('os'), path = require('path');
+const R = __RAIZ__;
+const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'spam125-'));
+fs.cpSync(path.join(R, 'src'), path.join(ROOT, 'src'), { recursive: true });
+fs.mkdirSync(path.join(ROOT, 'data')); fs.mkdirSync(path.join(ROOT, 'temp'));
+try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(ROOT, 'node_modules'), 'dir'); } catch {}
+process.chdir(ROOT);
+process.env.OWNER_NUMBER = '346000125000';
+process.on('exit', () => { try { fs.rmSync(ROOT, { recursive: true, force: true }); } catch {} });
+const { handleMessage } = require(path.join(ROOT, 'src/handlers/messageHandler'));
+const ST = require(path.join(ROOT, 'src/utils/spamTexto'));
+const WA = require(path.join(ROOT, 'src/utils/wa'));
+const BL = require(path.join(ROOT, 'src/utils/banlist'));
+const { AVISO_SPAM, BAN_SPAM } = require(path.join(ROOT, 'src/data/spamPhrases'));
+const quejas = [];
+const ok = (c, t) => { if (!c) quejas.push(t); };
+const BOT = '549125@s.whatsapp.net';
+let n = 0, gr = 0;
+// Un grupo por escenario: la metadata se cachea por grupo.
+const nuevoGrupo = () => '1203630000' + String(++gr).padStart(4, '0') + '@g.us';
+
+// Lo que hace el bot, en orden: cerrar, avisar, echar. Solo cuentan los avisos
+// de esta regla; el resto del bot (el cartel del dia, un hito) no es de aqui.
+const manda = async (G, quien, texto, ts, o = {}) => {
+  const ev = o.ev || [];
+  const sock = {
+    user: { id: BOT },
+    sendMessage: async (j, c) => {
+      if (c.text && /Aviso \d de 2/.test(c.text)) ev.push({ tipo: 'texto', texto: c.text, menciones: c.mentions || [] });
+      return { key: { id: 'K' + (++n) } };
+    },
+    groupMetadata: async () => ({ id: G, subject: 'G', participants: [
+      { id: quien, admin: o.admin ? 'admin' : null }, { id: BOT, admin: o.botSinAdmin ? null : 'admin' }] }),
+    groupParticipantsUpdate: async (g, ids, accion) => {
+      for (const j of ids) ev.push({ tipo: 'fuera', quien: j, accion });
+      return ids.map((j) => ({ jid: j, status: o.echaFalla ? '403' : '200' }));
+    },
+    groupSettingUpdate: async (g, valor) => {
+      if (o.cierraFalla) throw new Error('not-authorized');
+      ev.push({ tipo: 'ajuste', valor });
+    },
+    profilePictureUrl: async () => { throw new Error('sin foto'); },
+    readMessages: async () => {}, sendPresenceUpdate: async () => {},
+  };
+  await handleMessage(sock, {
+    key: { remoteJid: G, fromMe: false, id: 'S125' + (++n), participant: quien },
+    messageTimestamp: ts,
+    message: { conversation: texto },
+  }, o.diferido ? { diferido: true } : {}).catch((e) => quejas.push('el manejador lanzó: ' + e.message));
+  return ev;
+};
+const textos = (ev) => ev.filter((e) => e.tipo === 'texto');
+
+(async () => {
+  const t0 = Math.floor(Date.now() / 1000);
+
+  // 1. Diez iguales no son nada: la regla es MAS de diez.
+  {
+    const G = nuevoGrupo(), A = '346000125001@s.whatsapp.net', ev = [];
+    for (let i = 0; i < 10; i++) await manda(G, A, 'el copy de siempre', t0, { ev });
+    ok(!ev.length, 'con 10 mensajes iguales ya actúa, y la regla es MÁS de 10: ' + JSON.stringify(ev));
+
+    // 2. El undecimo: se cierra el grupo y DESPUES se avisa.
+    await manda(G, A, 'el copy de siempre', t0 + 1, { ev });
+    const iCierre = ev.findIndex((e) => e.tipo === 'ajuste' && e.valor === 'announcement');
+    const iAviso = ev.findIndex((e) => e.tipo === 'texto');
+    ok(iCierre >= 0, 'con 11 iguales en un segundo no se cierra el grupo');
+    ok(iAviso >= 0, 'con 11 iguales en un segundo no sale el aviso');
+    ok(iCierre < 0 || iAviso < 0 || iAviso > iCierre, 'el aviso sale antes de cerrar el grupo: la ráfaga sigue mientras se avisa');
+    const aviso = iAviso >= 0 ? ev[iAviso] : { texto: '', menciones: [] };
+    ok(/^\*Aviso 1 de 2\*\n/.test(aviso.texto), 'el aviso no abre con *Aviso 1 de 2* en negrita: ' + aviso.texto);
+    ok(aviso.texto.includes('el spam está prohibido'), 'el aviso no dice que el spam está prohibido: ' + aviso.texto);
+    ok(AVISO_SPAM.some((f) => aviso.texto.includes(f)), 'el aviso no le ataca el humor con una frase de AVISO_SPAM: ' + aviso.texto);
+    ok(/\nGrupo cerrado\. A la siguiente, ban\.$/.test(aviso.texto), 'el aviso no dice que el grupo queda cerrado y que la siguiente es ban: ' + aviso.texto);
+    ok(aviso.texto.includes('@346000125001') && aviso.menciones.includes(A), 'el aviso no menciona a quien spamea');
+    ok(!ev.some((e) => e.tipo === 'fuera'), 'al primer aviso ya se le echa');
+
+    // 3. Lo que ya iba de camino no es una segunda ráfaga.
+    const antes = ev.length;
+    for (let i = 0; i < 15; i++) await manda(G, A, 'el copy de siempre', t0 + 2, { ev });
+    ok(ev.length === antes, 'los mensajes que ya iban de camino cuentan como segunda ráfaga: ban sin haber podido leer el aviso (' + JSON.stringify(ev.slice(antes)) + ')');
+
+    // 4. La segunda de verdad: lista negra, fuera, y de ejemplo.
+    const t1 = t0 + Math.ceil(ST.GRACIA_MS / 1000) + 60;
+    for (let i = 0; i < 11; i++) await manda(G, A, 'otro copy', t1, { ev });
+    const fuera = ev.filter((e) => e.tipo === 'fuera');
+    ok(fuera.length === 1 && WA.sameUser(fuera[0].quien, A) && fuera[0].accion === 'remove',
+      'a la segunda ráfaga no se le echa: ' + JSON.stringify(fuera));
+    ok(await BL.isBanned([A]), 'a la segunda ráfaga no acaba en la lista negra');
+    const ban = textos(ev).pop() || { texto: '' };
+    ok(/^\*Aviso 2 de 2: ban\*\n/.test(ban.texto), 'el aviso del ban no abre con *Aviso 2 de 2: ban*: ' + ban.texto);
+    ok(BAN_SPAM.some((f) => ban.texto.endsWith(f.replace('%M', '@346000125001'))),
+      'el aviso del ban no le usa de ejemplo con una frase de BAN_SPAM: ' + ban.texto);
+    ok(ban.menciones.includes(A), 'el aviso del ban no menciona a quien se va');
+    ok(ev.indexOf(ban) > ev.findIndex((e) => e.tipo === 'fuera'),
+      'el ban se anuncia antes de echarle: si el kick falla, el grupo lee algo que no ha pasado');
+    ok(await ST.avisosDe(G, A) === 0, 'tras el ban el aviso sigue apuntado: si vuelve, se le echa sin avisarle');
+  }
+
+  // 5. «En menos de 10 segundos»: del primero al último, 10 ya no; 9 sí.
+  {
+    const A = '346000125002@s.whatsapp.net';
+    const G = nuevoGrupo(), ev = [];
+    for (let i = 0; i <= 10; i++) await manda(G, A, 'jajaja', t0 + i, { ev });
+    ok(!textos(ev).length, '11 iguales en 10 segundos justos ya actúan: la regla es en MENOS de 10');
+    const G2 = nuevoGrupo(), ev2 = [];
+    for (let i = 0; i <= 10; i++) await manda(G2, A, 'jajaja', t0 + Math.min(i, 9), { ev: ev2 });
+    ok(textos(ev2).length === 1, '11 iguales en 9 segundos no actúan');
+  }
+
+  // 6. Distintos no cuentan; las mayúsculas y los espacios no los hacen distintos.
+  {
+    const A = '346000125003@s.whatsapp.net';
+    const G = nuevoGrupo(), ev = [];
+    for (let i = 0; i < 15; i++) await manda(G, A, 'mensaje número ' + i, t0, { ev });
+    ok(!ev.length, 'quince mensajes distintos en un segundo se cuentan como iguales');
+    const G2 = nuevoGrupo(), ev2 = [];
+    for (let i = 0; i < 11; i++) await manda(G2, A, i % 2 ? 'JAJA  el copy' : ' jaja el copy', t0, { ev: ev2 });
+    ok(textos(ev2).length === 1, 'el mismo copy con otras mayúsculas o espacios se cuenta como mensajes distintos');
+  }
+
+  // 7. Admins, tier dueño y bot sin admin: ni se cierra ni se avisa ni se echa.
+  {
+    const casos = [
+      ['un admin', '346000125004@s.whatsapp.net', { admin: true }],
+      ['el dueño', '346000125000@s.whatsapp.net', {}],
+      ['alguien con el bot sin admin', '346000125005@s.whatsapp.net', { botSinAdmin: true }],
+    ];
+    for (const [quien, A, o] of casos) {
+      const G = nuevoGrupo(), ev = [];
+      for (let i = 0; i < 12; i++) await manda(G, A, 'spam protegido', t0, { ...o, ev });
+      ok(!ev.length, 'con ' + quien + ' spameando, el bot actúa: ' + JSON.stringify(ev));
+    }
+  }
+
+  // 8. Lo que no ha pasado no se dice: sin cierre no hay «grupo cerrado», y sin
+  //    kick no se le usa de ejemplo.
+  {
+    const A = '346000125006@s.whatsapp.net', G = nuevoGrupo(), ev = [];
+    for (let i = 0; i < 11; i++) await manda(G, A, 'copy', t0, { ev, cierraFalla: true });
+    const aviso = textos(ev)[0] || { texto: '' };
+    ok(/^\*Aviso 1 de 2\*/.test(aviso.texto) && !/cerrado/i.test(aviso.texto) && /A la siguiente, ban\.$/.test(aviso.texto),
+      'el grupo no se ha podido cerrar y el aviso dice otra cosa: ' + aviso.texto);
+    const t1 = t0 + Math.ceil(ST.GRACIA_MS / 1000) + 60;
+    for (let i = 0; i < 11; i++) await manda(G, A, 'copy', t1, { ev, echaFalla: true });
+    const ban = textos(ev).pop() || { texto: '' };
+    ok(/^\*Aviso 2 de 2: ban\*\n@346000125006 a la lista negra por spam de mensajes\.$/.test(ban.texto),
+      'no se le ha podido echar y el aviso le usa de ejemplo como si se hubiera ido: ' + ban.texto);
+  }
+
+  // 9. El lote de la reconexión: cinco minutos de «buenos días» llegan en un
+  //    segundo y no son una ráfaga. Una ráfaga de verdad dentro del lote, sí.
+  {
+    const A = '346000125007@s.whatsapp.net';
+    const G = nuevoGrupo(), ev = [];
+    for (let i = 0; i < 11; i++) await manda(G, A, 'buenos días', t0 - 300 + i * 30, { ev, diferido: true });
+    ok(!ev.length, 'el lote de la reconexión se cuenta por la hora de llegada: once mensajes de cinco minutos hacen una ráfaga que nadie ha hecho');
+    const G2 = nuevoGrupo(), ev2 = [];
+    for (let i = 0; i < 11; i++) await manda(G2, A, 'copy', t0 - 60, { ev: ev2, diferido: true });
+    ok(textos(ev2).length === 1, 'una ráfaga que llega en el lote de la reconexión se escapa');
+  }
+
+  // 10. La misma persona por su @lid y por su teléfono es una sola ráfaga.
+  {
+    const L = '125000125000008@lid', T = '346000125008@s.whatsapp.net', G = nuevoGrupo(), ev = [];
+    for (let i = 0; i < 6; i++) await manda(G, L, 'copy partido', t0, { ev });
+    WA.rememberMapping(L, T);
+    for (let i = 0; i < 5; i++) await manda(G, T, 'copy partido', t0, { ev });
+    ok(textos(ev).length === 1, '6 con el @lid y 5 con el teléfono no hacen ráfaga: la persona se parte en dos');
+  }
+
+  // 11. El aviso sobrevive a un reinicio.
+  {
+    const G = nuevoGrupo(), A = '346000125009@s.whatsapp.net';
+    ok(await ST.sancion(G, A, t0) === 'aviso', 'la primera ráfaga no es el aviso');
+    ST._reset();
+    ok(await ST.sancion(G, A, t0 + 600) === 'ban', 'tras un reinicio se ha perdido el aviso: la segunda ráfaga vuelve a ser la primera');
+  }
+
+  // 12. Los huecos de las frases.
+  ok(AVISO_SPAM.every((f) => !/%[A-Z]/.test(f)), 'AVISO_SPAM lleva un hueco y nadie lo rellena');
+  ok(BAN_SPAM.every((f) => (f.match(/%M/g) || []).length === 1), 'una frase de BAN_SPAM no lleva la mención, o la lleva dos veces');
+
+  console.log('CAPA125:' + JSON.stringify(quejas));
+  process.exit(0);
+})().catch((e) => { console.log('CAPA125:' + JSON.stringify(['la prueba reventó: ' + (e && e.stack || e)])); process.exit(0); });
+`;
+    const { execFileSync } = require('child_process');
+    const os125 = require('os');
+    const dir125 = fs.mkdtempSync(path.join(os125.tmpdir(), 'capa125-'));
+    try {
+      fs.writeFileSync(path.join(dir125, 'p.js'), guion.replace(/__RAIZ__/g, json(R)));
+      let salida = '';
+      try {
+        salida = execFileSync(process.execPath, [path.join(dir125, 'p.js')],
+          { encoding: 'utf8', timeout: 120000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+      const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA125:'));
+      exige(!!linea, `la prueba del spam de texto no contestó: ${salida.slice(-400).trim()}`);
+      if (linea) {
+        let quejas = [];
+        try { quejas = JSON.parse(linea.slice('CAPA125:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+        for (const q of quejas) exige(false, q);
+      }
+    } finally {
+      fs.rmSync(dir125, { recursive: true, force: true });
+    }
+    if (fallos === antes125) console.log(verde('   ✓ más de 10 iguales en menos de 10 s: grupo cerrado y aviso; a la segunda, ban y de ejemplo'));
   }
 
   }

@@ -119,7 +119,9 @@ const POOLS_MODO = args.includes('--pools');
 // Y el 14 oct, al afilar el aviso de «Solo admins» y sus cierres (cuatro
 // empezaban por «Ese comando» y varios no le hablaban a nadie): nadie 483,
 // molde 151.
-const TECHO = { nadie: 483, analogia: 6, coletilla: 91, eco: 4, molde: 151, enlatado: 127, roto: 2 };
+// Y el 17 oct, con los avisos del spam de texto (entran sin ningún defecto):
+// nadie 482.
+const TECHO = { nadie: 482, analogia: 6, coletilla: 91, eco: 4, molde: 151, enlatado: 127, roto: 2 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();

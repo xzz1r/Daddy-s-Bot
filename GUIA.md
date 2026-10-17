@@ -705,6 +705,7 @@ copia legible. Si las dos discrepan, la del código tiene razón.
 | `casino.js` (los bonos) | `%M` el hito que se acaba de cruzar (50, 100, 200, 500 o 1.000). **Nunca escribas el número a mano dentro de la frase**: Tier 1 tiene tres hitos y las frases se quedaron diciendo «200 mensajes» en los tres, así que la cabecera y el cuerpo del mismo mensaje se contradecían. Lo sustituye `casino.js` al elegir la frase |
 | `activity.js`, `duel.js` | `%W` ganador, `%L` perdedor |
 | `accionPhrases.js` | `%A` quien la hace, `%V` quien la recibe |
+| `spamPhrases.js` (el spam de texto) | `%M` la mención de quien se va, solo en `BAN_SPAM`. `AVISO_SPAM` va sin huecos: sale detrás de «@persona, el spam está prohibido.» |
 | `rencorPhrases.js` (la memoria de rencor) | `%A` quien gana hoy (en el robo, quien roba), `%V` quien pierde (a quien roban), `%D` cuándo fue la vez anterior («ayer», «el martes»), `%C` la cifra de entonces, `%N` cuántas seguidas (solo en las rachas). Toda frase nombra a **los dos** y dice **cuándo**: la capa 109 lo exige |
 | `avisos.js` | `%V` la persona del cartel del día. **Solo el pool `OBJETIVO_DIA_CARTEL` lo usa**. El resto de avisos van sin huecos, se mandan tal cual. Lo sustituye el manejador de mensajes, no un comando, porque ese cartel se cuelga solo con el primer mensaje del día y no lo pide nadie |
 | `mog.js` | `%M` / `%L` |
