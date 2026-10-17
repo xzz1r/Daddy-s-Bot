@@ -431,7 +431,7 @@ async function capasDelMenu() {
     if (fallos === antes) console.log(verde(`   ✓ cada comando en su nivel (${cR.size}/${cA.size}/${cO.size} comandos por menu)`));
   }
 
-  // ── 46. LO QUE EL MENU ENSEÑA SE PUEDE TECLEAR ───────────────────────────
+  // ── 46. LO QUE EL MENU ENSEÑA SE PUEDE ESCRIBIR ──────────────────────────
   //
   // El dispatcher quita tildes y eñes antes de comparar, asi que un `case` con
   // eñe no se alcanza jamas y el alias se guarda como *punetazo*. Eso funciona:
@@ -448,10 +448,10 @@ async function capasDelMenu() {
   //
   //   · cada clave tiene que ser un comando que el bot acepta de verdad;
   //   · y el valor, al normalizarlo, tiene que dar EXACTAMENTE la clave — o sea,
-  //     que lo que se enseña se pueda teclear. Sin esto, un dia el menu anuncia
+  //     que lo que se enseña se pueda escribir. Sin esto, un dia el menu anuncia
   //     algo que no responde, que es peor que la falta de ortografia.
   {
-    console.log('\n46. LO QUE EL MENU ENSEÑA SE PUEDE TECLEAR');
+    console.log('\n46. LO QUE EL MENU ENSEÑA SE PUEDE ESCRIBIR');
     const antes = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
     const { normalizarComando } = require(path.join(R, 'src/handlers/messageHandler'));
@@ -466,14 +466,14 @@ async function capasDelMenu() {
         exige(reales.has(clave),
           `COMO_SE_ESCRIBE tiene "${clave}", que no es un comando: el menu ensenyaria algo que el bot no acepta`);
         exige(normalizarComando(valor) === clave,
-          `el menu ensenyaria *!${valor}*, que al teclearlo llega como *!${normalizarComando(valor)}* y no como *!${clave}*`);
+          `el menu ensenyaria *!${valor}*, que al escribirlo llega como *!${normalizarComando(valor)}* y no como *!${clave}*`);
         exige(valor !== clave,
           `"${clave}" esta en COMO_SE_ESCRIBE sin cambiar nada: sobra`);
       }
       exige(/comoSeEscribe\(x\)/.test(soc),
         'la lista larga del menu dejo de pasar por comoSeEscribe: vuelve a ensenyar los alias sin tilde');
     }
-    if (fallos === antes) console.log(verde('   ✓ el menu escribe los comandos con su tilde y su eñe, y todos se pueden teclear asi'));
+    if (fallos === antes) console.log(verde('   ✓ el menu escribe los comandos con su tilde y su eñe, y todos se pueden escribir asi'));
   }
 }
 
@@ -921,7 +921,7 @@ async function capaStores() {
       // comprobacion se saltaba media lista en silencio — probado quitandole el
       // precio a !pfp: no decia nada.
       for (const k of Object.keys(PRECIOS)) if (!clave[k]) clave[k] = k;
-      // !s se teclea distinto de como se llama su precio.
+      // !s se escribe distinto de como se llama su precio.
       clave.s = 'sticker';
 
       // LA REGLA ES "AL MENOS UNA VEZ CON SU PRECIO", no "en cada linea".
@@ -1841,7 +1841,7 @@ const di=async(quien,texto,extra)=>{
     // al texto exacto `if (c?.me && !c.account)` y eso no distingue «han
     // quitado la limpieza» —lo que vigila— de «la limpieza ha ganado un
     // guardian», que es lo que paso: le falto `&& !codigoEnVuelo` para no
-    // borrar el emparejamiento que se esta tecleando, y esta guarda se puso
+    // borrar el emparejamiento que se esta escribiendo, y esta guarda se puso
     // roja por un arreglo. Lo que de verdad importa aqui es que la limpieza
     // exista y que se apoye en `account`; que la condicion entera se comporte
     // bien en los tres estados lo mide la capa 64, evaluandola de verdad.
@@ -4837,7 +4837,7 @@ const di=async(quien,texto,extra)=>{
       // *!anla* no se corregia, y es el ejemplo que el dueño llevaba usando
       // toda la conversacion. La distancia era Levenshtein a secas: cruzar dos
       // letras cuesta DOS operaciones y el margen de un comando de cuatro
-      // letras es UNO. Con eso, el error de tecleo mas comun que hay —el dedo
+      // letras es UNO. Con eso, el error al escribir mas comun que hay —el dedo
       // que llega antes que el otro— no disparaba el corrector.
       {
         const mh = require(path.join(R, 'src/handlers/messageHandler'));
@@ -4871,12 +4871,12 @@ const di=async(quien,texto,extra)=>{
       // SOBRE LO QUE ACABA DE HACER, no al lado.
       //
       // Estaban asi 27 de 57. Se conectan de formas distintas a proposito —«lo
-      // has destrozado al teclearlo», «mira lo que has puesto», «te ha salido
-      // otra cosa», «ni teclearlo bien»— porque rematarlas todas con «y lo has
+      // has destrozado al escribirlo», «mira lo que has puesto», «te ha salido
+      // otra cosa», «ni escribirlo bien»— porque rematarlas todas con «y lo has
       // escrito mal» seria arreglar esto rompiendo lo de abajo.
       // `escri` y no `escrib`: «escrito» y «escrita» no llevan la b, y con
       // `escrib` la guarda daba por flotante una frase que si conectaba.
-      const ACTO = /escri|teclea|aciert|romper|rompe|roto|torcido|mal puest|mal escrit|has puesto|acabas de poner|ponerlo|te sale|salido|ha quedado|has dejado|fallad|fallar|fallo|cagarla|joderlo|entera|entero|no ha podido|no has podido|te ha ganado|medirte|visto el nivel|devolver|destroz|autocorrector|errores de dedo|analfabeto/i;
+      const ACTO = /escri|aciert|romper|rompe|roto|torcido|mal puest|mal escrit|has puesto|acabas de poner|ponerlo|te sale|salido|ha quedado|has dejado|fallad|fallar|fallo|cagarla|joderlo|entera|entero|no ha podido|no has podido|te ha ganado|medirte|visto el nivel|devolver|destroz|autocorrector|errores de dedo|analfabeto/i;
       const flotantes = AV.MAL_ESCRITO.filter((f) => !ACTO.test(f));
       exige(flotantes.length === 0,
         `${flotantes.length} frase(s) de MAL_ESCRITO insultan sin decir que lo escribio mal, y asi el insulto flota: "${flotantes[0] || ''}"`);
@@ -4901,7 +4901,7 @@ const di=async(quien,texto,extra)=>{
         ['contraste (No es X, es Y)', /^(no es|eso no|no escribes|no lo has)/],
         ['enumeración (Ni X ni Y)', /^ni /],
         ['capacidad (No das/sabes)', /^(no das|no llegas|no sabes|no entiendes|no hay|no te)/],
-        ['impersonal (Esto lo…)',  /^(esto|escribir|teclear|copiar|un comando|una puta|ni una)/],
+        ['impersonal (Esto lo…)',  /^(esto|escribir|copiar|un comando|una puta|ni una)/],
         ['al grupo',                /^(el grupo|delante|se te ha visto|nadie|una puta palabra mal)/],
         ['locativo (Ahí…)',       /^ahi /],
         ['temporal (Hasta aquí…)',/^(hasta|el mismo|manana)/],
@@ -4926,7 +4926,7 @@ const di=async(quien,texto,extra)=>{
       exige(porEsqueleto.size >= 8,
         `las frases de MAL_ESCRITO solo usan ${porEsqueleto.size} formas distintas de montar la frase: con tan pocas suena a plantilla por mucho que cambien las palabras`);
 
-      // Y QUE HAYA DE SOBRA. Este aviso lo dispara cualquiera que teclee mal, o
+      // Y QUE HAYA DE SOBRA. Este aviso lo dispara cualquiera que escriba mal, o
       // sea a diario, y con la ventana de pickFresh un pool corto se recita.
       exige(AV.MAL_ESCRITO.length >= 50,
         `MAL_ESCRITO se ha quedado en ${AV.MAL_ESCRITO.length} frases: con la ventana de pickFresh eso se repite`);
@@ -5203,7 +5203,7 @@ const di=async(quien,texto,extra)=>{
         // La validez no sirve para distinguirlos: "+34 600 11 12 22" es un
         // numero valido para libphonenumber y es un ejemplo de la
         // documentacion. Lo que los separa es la ENTROPIA — un numero de
-        // documentacion se teclea con la mano, y sale con digitos repetidos, en
+        // documentacion se escribe a mano, y sale con digitos repetidos, en
         // secuencia, o con muy poca variedad.
         //
         // El sesgo esta puesto a proposito hacia marcar de mas: un ejemplo
@@ -6272,13 +6272,13 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
       // SE NORMALIZA ANTES DE COMPARAR, y esto no es un detalle de regex.
       //
       // El menu enseña *!musica* con tilde y *!puñetazo* con eñe, porque es como
-      // se escriben y las dos formas se teclean igual (el dispatcher quita
+      // se escriben, y las dos formas llegan igual (el dispatcher quita
       // tildes y eñes antes de comparar). Esta linea buscaba `[a-z0-9]+`, o sea
       // que en cuanto el menu escribio bien esas cinco palabras dejaron de
       // contar como documentadas y la capa acuso de que faltaban del menu.
       //
       // El fallo era de la comprobacion, no del menu: hay que comparar por la
-      // forma TECLEADA, que es la unica que los dos lados comparten.
+      // forma SIN TILDES, que es la unica que los dos lados comparten.
       const sinTilde = (x) => String(x).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\u00f1/g, 'n');
       const enMenu = new Set([...menu.matchAll(/\$\{p\}([a-z0-9\u00e1\u00e9\u00ed\u00f3\u00fa\u00f1\u00fc]+)/gi)]
         .map((m) => sinTilde(m[1].toLowerCase())));
@@ -7509,7 +7509,7 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       exige(dg({ response: 'esto no es una direccion' }) === null, 'se acepta como gif algo que no es una direccion');
       exige(dg({}) === null && dg(null) === null, 'una respuesta vacia se da por buena');
     }
-    if (fallos === antes) console.log(verde(`   ✓ los ${nombres.length} nombres de accion son unicos, no pisan nada y se pueden teclear`));
+    if (fallos === antes) console.log(verde(`   ✓ los ${nombres.length} nombres de accion son unicos, no pisan nada y se pueden escribir`));
   }
 
   // ── 38. SI AL BOT LE QUITAN EL ADMIN, EL DUEÑO SE ENTERA ─────────────────
@@ -7674,7 +7674,7 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       const antesEnv = process.env.GUARDIAN_DE;
       process.env.GUARDIAN_DE = '5491199999999';
 
-      // EL NUMERO NO LO TECLEA NADIE: lo anota el bot al conectar y el guardian
+      // EL NUMERO NO LO ESCRIBE NADIE: lo anota el bot al conectar y el guardian
       // lo lee. Pedir dieciseis digitos a mano en un .env es pedir el fallo, y
       // el fallo aqui es mudo: con un digito cambiado el guardian ve la
       // degradacion y no reconoce al bot, el dia que hacia falta.
@@ -7929,7 +7929,7 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
 
       // Y EL BORRADO DE CREDENCIALES A MEDIAS, que es la trampa que costo cinco
       // intentos en el bot: pedir un codigo deja `me` escrito antes de que nadie
-      // lo teclee, y si la vinculacion no se completa todos los arranques
+      // lo escriba, y si la vinculacion no se completa todos los arranques
       // siguientes salen 401 para siempre. Se prueba de verdad, con carpetas de
       // credenciales reales, porque es un BORRADO: equivocarse de condicion aqui
       // es cargarse una sesion buena en cada arranque.
@@ -9072,7 +9072,7 @@ const di=async(quien,t)=>{out.length=0;
       // LO QUE IMPORTA ES EL PREFIJO, no la redaccion. La primera linea cambio
       // —el dueño pidio que aclare SIEMPRE que asi no se escribe— asi que esto
       // ya no puede anclarse al principio del texto. Lo que sigue siendo
-      // obligatorio es que la correccion salga con el prefijo que tecleo la
+      // obligatorio es que la correccion salga con el prefijo que escribio la
       // persona: a quien escribe con barra hay que contestarle con barra, o
       // parece que la barra no vale.
       exige(/\*\/pinng\*/.test(r.corrector[1]) && /\*\/ping\*/.test(r.corrector[1]) && !/\*!/.test(r.corrector[1]),
@@ -10042,7 +10042,7 @@ const di=async(quien,t)=>{out.length=0;
       exige(g._vinculacionArmada() === true, 'con el fichero puesto, el guardián no se da por armado y nunca vincularía');
       g._desarmarVinculacion();
       exige(g._vinculacionArmada() === false,
-        'pedir un código no desarma: si nadie lo teclea, el siguiente arranque manda otro y vuelve la ráfaga');
+        'pedir un código no desarma: si nadie lo escribe, el siguiente arranque manda otro y vuelve la ráfaga');
 
       const src = soloCodigo('src/guardian.js');
       const iPuerta = src.indexOf('vinculacionArmada()');
@@ -12543,14 +12543,14 @@ const di=async(quien,t)=>{out.length=0;
     exige(deOtro.priv === 0 && deOtro.grupo === 0 && deOtro.del === 0,
       'un miembro cualquiera usó *!k* y el bot hizo algo: esto es del dueño y con los demás no contesta ni para negarse');
 
-    // ── 3. EL DISPARADOR TECLEADO SE BORRA; LA PALABRA SUELTA NO ───────────
+    // ── 3. EL DISPARADOR ESCRITO SE BORRA; LA PALABRA SUELTA NO ────────────
     //
     // Es toda la razon de que existan los disparadores de palabra: «!k» escrito
     // canta y por eso se borra, pero borrar un «Welcome» real deja el aviso de
     // «se eliminó este mensaje» a la vista del grupo, que llama mas la atencion
     // que dejarlo puesto.
     exige((await correr({ texto: '!k', citado: tipos.imagen })).del === 1,
-      '*!k* tecleado ya no se borra del grupo: queda a la vista que se usó un comando');
+      '*!k* escrito ya no se borra del grupo: queda a la vista que se usó un comando');
     for (const palabra of ['Welcome', 'welcome!', '¿Diría algo?', 'dirias algo']) {
       const r = await correr({ texto: palabra, citado: tipos.imagen });
       exige(r.priv === 1, `«${palabra}» citando una foto no disparó *!k*`);
@@ -12637,7 +12637,7 @@ const di=async(quien,t)=>{out.length=0;
   // ── 64. EL CODIGO DE VINCULACION SOBREVIVE A UNA RECONEXION ──────────────
   //
   // «No funciona el codigo que envia la VPS», y el codigo estaba bien: lo que
-  // fallaba es que se moria solo mientras se tecleaba.
+  // fallaba es que se moria solo mientras se escribia.
   //
   // `requestPairingCode` escribe `creds.me` y la clave efimera del
   // emparejamiento ANTES de devolver el codigo. Eso deja unas credenciales con
@@ -12728,7 +12728,7 @@ const di=async(quien,t)=>{out.length=0;
     // 2. Y LA GUARDA: con un resto corto NO se pide ningun codigo.
     //
     // Es lo unico que de verdad protege. Sin ella, el bot imprime un codigo
-    // perfectamente valido para un numero que no es de nadie, y quien lo teclea
+    // perfectamente valido para un numero que no es de nadie, y quien lo escribe
     // no tiene forma de saber por que no entra.
     const iGuarda = bot.indexOf('MIN_DIGITOS_NUMERO');
     exige(iGuarda > 0,
@@ -20321,23 +20321,34 @@ const manda = async (quien, tipo, opciones) => {
     // todo el bot». En el grupo se escribe en una pantalla, no se aporrea un
     // teclado. Se busca en todo src/ y en MOTOR.md, comentarios incluidos,
     // para que nadie lo vuelva a copiar de un sitio donde parecia valer. La
-    // GUIA no: es la que lo prohibe, y para eso tiene que nombrarlo.
-    const tecleos = [];
-    const recorreT = (d) => {
+    // GUIA la nombra entre «» porque es la que la prohibe.
+    //
+    // Y TAMBIEN LO QUE EL DUEÑO LEE AL DESPLEGAR (17 oct). `npm run update`
+    // enseñaba «46. LO QUE EL MENU ENSEÑA SE PUEDE …», con la palabra entera:
+    // esta capa solo miraba src/ y la puerta se la saltaba. Ahora entran
+    // scripts/ y los .md de la raiz. Ahi si vale nombrarla entre «», que es
+    // como se cita la regla (esta capa y la GUIA lo hacen); suelta, no.
+    // La regex va escrita `te[c]le` para no cazarse a si misma.
+    const ESA_PALABRA = /(?<![a-záéíóúñ])te[c]le[a-záéíóúñ]*/i;
+    const conTecle = [];
+    const mira = (f, citarVale) => {
+      const t = fs.readFileSync(f, 'utf8');
+      const m = (citarVale ? t.replace(/«[^»\n]*»/g, '') : t).match(ESA_PALABRA);
+      if (m) conTecle.push(`${path.relative(R, f)} («${m[0]}»)`);
+    };
+    const recorreT = (d, ext, citarVale) => {
       for (const e of fs.readdirSync(d, { withFileTypes: true })) {
         const f = path.join(d, e.name);
-        if (e.isDirectory()) recorreT(f);
-        else if (/\.(js|json|md)$/.test(e.name)) {
-          const m = fs.readFileSync(f, 'utf8').match(/(?<![a-záéíóúñ])tecle[a-záéíóúñ]*/i);
-          if (m) tecleos.push(`${path.relative(R, f)} («${m[0]}»)`);
-        }
+        if (e.isDirectory()) recorreT(f, ext, citarVale);
+        else if (ext.test(e.name)) mira(f, citarVale);
       }
     };
-    recorreT(path.join(R, 'src'));
-    for (const f of ['MOTOR.md']) {
-      try { const m = fs.readFileSync(path.join(R, f), 'utf8').match(/(?<![a-záéíóúñ])tecle[a-záéíóúñ]*/i); if (m) tecleos.push(`${f} («${m[0]}»)`); } catch {}
+    recorreT(path.join(R, 'src'), /\.(js|json|md)$/, false);
+    recorreT(path.join(R, 'scripts'), /\.(js|sh)$/, true);
+    for (const f of fs.readdirSync(R).filter((x) => x.endsWith('.md'))) {
+      mira(path.join(R, f), f !== 'MOTOR.md');
     }
-    if (tecleos.length) { fallos++; console.log(rojo(`   ✗ vuelve a salir «teclear», que el dueño mando cambiar por «escribir»: ${tecleos.join(', ')}`)); }
+    if (conTecle.length) { fallos++; console.log(rojo(`   ✗ vuelve a salir «teclear», que el dueño mando cambiar por «escribir»: ${conTecle.join(', ')}`)); }
     if (fallos === antes114) console.log(verde('   ✓ ni rastro de «bardear» ni de «teclear»'));
   }
 
@@ -20797,7 +20808,7 @@ const manda = async (quien, tipo, opciones) => {
     if (/banAccount|lista negra/.test(sinComentarios)) { fallos++; console.log(rojo('   ✗ al que mete un admin a dedo se le vuelve a meter en la lista negra (o se anuncia asi)')); }
     if (!/'remove'/.test(sinComentarios)) { fallos++; console.log(rojo('   ✗ al que mete un admin a dedo ya no se le saca del grupo')); }
     if (!/'demote'/.test(sinComentarios)) { fallos++; console.log(rojo('   ✗ el admin que mete gente a dedo ya no pierde el admin')); }
-    // Y --codigo lleva el +57 puesto: el dueño teclea el numero del bot y ya.
+    // Y --codigo lleva el +57 puesto: el dueño escribe el numero del bot y ya.
     const N = require(path.join(R, 'src/bot'))._numeroDeVinculacion;
     const casos = [
       [['3001234567'], '573001234567'],
