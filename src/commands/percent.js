@@ -280,6 +280,7 @@ module.exports = {
   cmdLinda:         makeCmd('linda'),
   cmdLindo:         makeCmd('lindo'),
   cmdFea:           makeCmd('fea'),
+  cmdGorda:         makeCmd('gorda'),
   cmdGay:           makeCmd('gay'),
   cmdSimp:          makeCmd('simp'),
   cmdHot:           makeCmd('sexy'),

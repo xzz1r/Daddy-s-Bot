@@ -161,6 +161,7 @@ const FAMILIAS = [
   // escribe todo el mundo.
   porcentaje(['perdedor', 'l'], 'cmdPerdedor'),
   porcentaje(['fea'], 'cmdFea'),
+  porcentaje(['gorda'], 'cmdGorda'),
   porcentaje(['infiel'], 'cmdInfiel'),
   porcentaje(['feminidad'], 'cmdFeminidad'),
   porcentaje(['masculinidad'], 'cmdMasculinidad'),
