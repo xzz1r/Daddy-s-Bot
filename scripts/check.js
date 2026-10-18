@@ -21340,7 +21340,7 @@ try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(ROOT, 'node_modules
 process.chdir(ROOT);
 process.env.OWNER_NUMBER = '346000125000';
 process.on('exit', () => { try { fs.rmSync(ROOT, { recursive: true, force: true }); } catch {} });
-const { handleMessage } = require(path.join(ROOT, 'src/handlers/messageHandler'));
+const { handleMessage, reabrirPendientes } = require(path.join(ROOT, 'src/handlers/messageHandler'));
 const ST = require(path.join(ROOT, 'src/utils/spamTexto'));
 const WA = require(path.join(ROOT, 'src/utils/wa'));
 const BL = require(path.join(ROOT, 'src/utils/banlist'));
@@ -21354,15 +21354,18 @@ const nuevoGrupo = () => '1203630000' + String(++gr).padStart(4, '0') + '@g.us';
 
 // Lo que hace el bot, en orden: cerrar, avisar, echar. Solo cuentan los avisos
 // de esta regla; el resto del bot (el cartel del dia, un hito) no es de aqui.
-const manda = async (G, quien, texto, ts, o = {}) => {
+// Si el grupo esta cerrado, como lo diria WhatsApp: lo cambia groupSettingUpdate
+// y lo lee groupMetadata.
+const cerrados = new Set();
+const sockDe = (G, quien, o = {}) => {
   const ev = o.ev || [];
-  const sock = {
+  return {
     user: { id: BOT },
     sendMessage: async (j, c) => {
       if (c.text && /Aviso \d de 2/.test(c.text)) ev.push({ tipo: 'texto', texto: c.text, menciones: c.mentions || [] });
       return { key: { id: 'K' + (++n) } };
     },
-    groupMetadata: async () => ({ id: G, subject: 'G', participants: [
+    groupMetadata: async () => ({ id: G, subject: 'G', announce: cerrados.has(G), participants: [
       { id: quien, admin: o.admin ? 'admin' : null }, { id: BOT, admin: o.botSinAdmin ? null : 'admin' }] }),
     groupParticipantsUpdate: async (g, ids, accion) => {
       const falla = accion === 'remove' ? o.echaFalla : o.rangoFalla;
@@ -21371,11 +21374,16 @@ const manda = async (G, quien, texto, ts, o = {}) => {
     },
     groupSettingUpdate: async (g, valor) => {
       if (o.cierraFalla) throw new Error('not-authorized');
+      if (valor === 'announcement') cerrados.add(g); else cerrados.delete(g);
       ev.push({ tipo: 'ajuste', valor });
     },
     profilePictureUrl: async () => { throw new Error('sin foto'); },
     readMessages: async () => {}, sendPresenceUpdate: async () => {},
   };
+};
+const manda = async (G, quien, texto, ts, o = {}) => {
+  const ev = o.ev || [];
+  const sock = sockDe(G, quien, { ...o, ev });
   await handleMessage(sock, {
     key: { remoteJid: G, fromMe: false, id: 'S125' + (++n), participant: quien },
     messageTimestamp: ts,
@@ -21388,8 +21396,12 @@ const textos = (ev) => ev.filter((e) => e.tipo === 'texto');
 // verdad: si el dueño lo vuelve a mover, se mueven con él.
 const N = ST.IGUALES;
 
+const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+
 (async () => {
   const t0 = Math.floor(Date.now() / 1000);
+  // La reapertura, lejos: en el resto de casos no puede colarse a mitad.
+  ST._usarEsperas({ reabrir: 60000 });
 
   // 1. Uno menos del umbral no es nada.
   ok(N === 5, 'el spam de texto ya no salta con 5 iguales (salta con ' + N + '): es lo que pidió el dueño');
@@ -21409,7 +21421,7 @@ const N = ST.IGUALES;
     ok(/^\*Aviso 1 de 2\*\n/.test(aviso.texto), 'el aviso no abre con *Aviso 1 de 2* en negrita: ' + aviso.texto);
     ok(aviso.texto.includes('el spam está prohibido'), 'el aviso no dice que el spam está prohibido: ' + aviso.texto);
     ok(AVISO_SPAM.some((f) => aviso.texto.includes(f)), 'el aviso no le ataca el humor con una frase de AVISO_SPAM: ' + aviso.texto);
-    ok(/\nGrupo cerrado\. A la siguiente, ban\.$/.test(aviso.texto), 'el aviso no dice que el grupo queda cerrado y que la siguiente es ban: ' + aviso.texto);
+    ok(/\nGrupo cerrado 20 segundos\. A la siguiente, ban\.$/.test(aviso.texto), 'el aviso no dice que el grupo queda cerrado 20 segundos y que la siguiente es ban: ' + aviso.texto);
     ok(aviso.texto.includes('@346000125001') && aviso.menciones.includes(A), 'el aviso no menciona a quien spamea');
     ok(!ev.some((e) => e.tipo === 'fuera'), 'al primer aviso ya se le echa');
 
@@ -21549,6 +21561,69 @@ const N = ST.IGUALES;
     ok(await ST.sancion(G, A, t0 + 600) === 'ban', 'tras un reinicio se ha perdido el aviso: la segunda ráfaga vuelve a ser la primera');
   }
 
+  // 13. EL GRUPO SE ABRE SOLO (dueño, 18 oct), y solo si sigue cerrado.
+  {
+    ST._usarEsperas({ reabrir: 150 });
+    const A = '346000125011@s.whatsapp.net';
+    const G = nuevoGrupo(), ev = [];
+    for (let i = 0; i < N; i++) await manda(G, A, 'copy y fuera', t0, { ev });
+    await espera(500);
+    const ajustes = ev.filter((e) => e.tipo === 'ajuste').map((e) => e.valor).join(',');
+    ok(ajustes === 'announcement,not_announcement' && !cerrados.has(G),
+      'el grupo cerrado por el spam no se vuelve a abrir solo: ' + ajustes);
+    ok(!(G in await ST.reaperturasPendientes()), 'abierto el grupo, la reapertura sigue apuntada en disco');
+
+    // Si alguien lo abre antes, el bot no hace nada.
+    const G2 = nuevoGrupo(), ev2 = [];
+    for (let i = 0; i < N; i++) await manda(G2, A, 'copy y fuera', t0, { ev: ev2 });
+    cerrados.delete(G2);
+    await espera(500);
+    ok(!ev2.some((e) => e.valor === 'not_announcement'), 'el grupo ya estaba abierto y el bot lo vuelve a abrir');
+
+    // Si ya estaba cerrado antes del spam, lo cerró un admin: se queda cerrado.
+    const G3 = nuevoGrupo(), ev3 = [];
+    cerrados.add(G3);
+    for (let i = 0; i < N; i++) await manda(G3, A, 'copy y fuera', t0, { ev: ev3 });
+    await espera(500);
+    ok(cerrados.has(G3) && !ev3.some((e) => e.valor === 'not_announcement'),
+      'un grupo que ya estaba cerrado lo abre el bot al terminar el spam: deshace lo que hizo un admin');
+    const aviso3 = textos(ev3)[0] || { texto: '' };
+    ok(/\nGrupo cerrado\. A la siguiente/.test(aviso3.texto), 'el aviso promete abrir un grupo que no va a abrir: ' + aviso3.texto);
+
+    // Un reinicio en esos 20 segundos: lo pendiente se retoma al conectar.
+    ST._usarEsperas({ reabrir: 60000 });
+    const G4 = nuevoGrupo(), ev4 = [];
+    for (let i = 0; i < N; i++) await manda(G4, A, 'copy y fuera', t0, { ev: ev4 });
+    ok(G4 in await ST.reaperturasPendientes(), 'la reapertura no se apunta en disco: un reinicio deja el grupo cerrado');
+    await ST.apuntarReapertura(G4, Date.now() - 1000);
+    ST._reset();
+    const ev5 = [];
+    await reabrirPendientes(sockDe(G4, A, { ev: ev5 }));
+    await espera(300);
+    ok(ev5.some((e) => e.valor === 'not_announcement') && !cerrados.has(G4),
+      'tras un reinicio, el grupo que tocaba reabrir se queda cerrado');
+    ST._usarEsperas({ reabrir: 60000 });
+  }
+
+  // 14. EL AVISO CADUCA A LAS 12 HORAS (dueño, 18 oct).
+  {
+    const fs2 = require('fs');
+    const G = nuevoGrupo(), A = '346000125012@s.whatsapp.net';
+    const envejece = (horas) => {
+      const d = JSON.parse(fs2.readFileSync(ST._file(), 'utf8'));
+      for (const k of Object.keys(d[G] || {})) d[G][k].ts = Date.now() - horas * 3600000;
+      fs2.writeFileSync(ST._file(), JSON.stringify(d));
+      ST._reset();
+    };
+    ok(await ST.sancion(G, A, t0) === 'aviso', 'la primera ráfaga no es el aviso');
+    envejece(11);
+    ok(await ST.sancion(G, A, t0 + 600) === 'ban', 'un aviso de hace 11 horas ya no cuenta: caduca antes de las 12');
+    ok(await ST.sancion(G, A, t0) === 'aviso', 'tras el ban, la siguiente no vuelve a ser el aviso');
+    envejece(13);
+    ok(await ST.avisosDe(G, A) === 0, 'un aviso de hace 13 horas sigue contando');
+    ok(await ST.sancion(G, A, t0 + 600) === 'aviso', 'con el aviso caducado, la segunda ráfaga va a ban en vez de empezar otra vez');
+  }
+
   // 12. Los huecos de las frases.
   ok(AVISO_SPAM.every((f) => !/%[A-Z]/.test(f)), 'AVISO_SPAM lleva un hueco y nadie lo rellena');
   ok(BAN_SPAM.every((f) => (f.match(/%M/g) || []).length === 1), 'una frase de BAN_SPAM no lleva la mención, o la lleva dos veces');
@@ -21584,7 +21659,7 @@ const N = ST.IGUALES;
     } finally {
       fs.rmSync(dir125, { recursive: true, force: true });
     }
-    if (fallos === antes125) console.log(verde('   ✓ 5 iguales en menos de 10 s: grupo cerrado y aviso; a la segunda, ban, o fuera el admin si lo es, y de ejemplo'));
+    if (fallos === antes125) console.log(verde('   ✓ 5 iguales en menos de 10 s: grupo cerrado 20 s y aviso; a la segunda en 12 h, ban, o fuera el admin si lo es'));
   }
 
   // ── 126. LA PEÑA ACTIVA SE HALAGA, SIN VENENO DETRÁS ─────────────────────

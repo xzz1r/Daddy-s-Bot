@@ -184,8 +184,10 @@ bot no puede actuar (sin admin, sin metadata del grupo), lo dice en el log.
 
 - **La primera vez** el bot cierra el grupo (solo escriben los admins) y después
   avisa, con *Aviso 1 de 2* en negrita: el spam está prohibido, y una frase de
-  `AVISO_SPAM` contra su sentido del humor. El grupo **no se abre solo**: lo
-  abre un admin con `!open`.
+  `AVISO_SPAM` contra su sentido del humor. El grupo **se abre solo a los 20
+  segundos** (dueño, 18 oct), salvo que alguien ya lo haya abierto. Si ya
+  estaba cerrado antes del spam, lo cerró un admin y el bot no lo toca. La
+  reapertura se apunta en disco y se retoma al reconectar.
 - **La segunda**, ban: lista negra, que es global, y fuera del grupo. El aviso
   sale después de echarle y le usa de ejemplo con `BAN_SPAM`. Si no se le ha
   podido echar, solo dice lo de la lista negra.
@@ -203,8 +205,9 @@ ni el guardián: los dos se fían de lo que hace el bot.
 
 La ráfaga se cuenta con la hora de cada mensaje, no con la de llegada: el lote
 de una reconexión trae minutos de conversación en un segundo. Lo que ya iba de
-camino cuando salió el aviso tampoco es la segunda: hay 30 s de margen. El aviso
-se guarda en `data/spamTexto.json`, no caduca y se borra con el ban. El código
+camino cuando salió el aviso tampoco es la segunda: hay 15 s de margen. El aviso
+se guarda en `data/spamTexto.json`, **caduca a las 12 horas** (dueño, 18 oct) y
+se borra con el ban. El código
 está en `src/utils/spamTexto.js`; lo prueban las capas 111 y 125.
 
 ---

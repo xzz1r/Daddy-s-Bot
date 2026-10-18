@@ -12,6 +12,8 @@
 //   · La segunda, ban: lista negra y fuera del grupo.
 //   · Los admins tambien (18 oct), pero a la segunda no se les banea: se les
 //     quita el admin. Solo se libra el tier dueño.
+//   · Mas flexible (18 oct): el aviso caduca a las 12 horas, y el grupo que se
+//     cierra se vuelve a abrir solo a los 20 segundos.
 //
 // Dos piezas, y ninguna puede vivir donde vive la otra:
 //
@@ -21,8 +23,11 @@
 //     lo que se escribio en diez minutos, y contado por la llegada seria una
 //     rafaga que nadie ha hecho.
 //   · EL AVISO, en disco. Un reinicio no puede regalar el aviso ya gastado,
-//     igual que con los enlaces (utils/linkPerms.js). No caduca y se borra al
-//     banear: si alguien vuelve al grupo, empieza otra vez por el aviso.
+//     igual que con los enlaces (utils/linkPerms.js). Caduca a las 12 horas y
+//     se borra al banear: si alguien vuelve al grupo, empieza otra vez por el
+//     aviso. Y en el mismo fichero, la reapertura pendiente de cada grupo
+//     cerrado: si el bot se reinicia en esos 20 segundos, el grupo no se queda
+//     cerrado para siempre.
 //
 // Las dos juntan a la persona con utils/persona.js: la misma rafaga o el mismo
 // aviso no se pueden partir entre su @lid y su telefono.
@@ -44,7 +49,18 @@ const VENTANA_S = 10;
 // las tiene enviadas antes de que el grupo se cierre, y llegan detras del
 // aviso. Sin este margen, la misma tanda que se ha llevado el aviso se llevaria
 // tambien el ban sin que nadie haya podido leer nada.
-const GRACIA_MS = 30 * 1000;
+// Por debajo de REABRIR_MS a proposito: una rafaga nueva despues de reabrir
+// tiene que contar.
+const GRACIA_MS = 15 * 1000;
+
+// Cuanto vale el aviso (dueño, 18 oct): pasadas 12 horas, la siguiente rafaga
+// vuelve a ser el aviso 1.
+const AVISO_DURA_MS = 12 * 60 * 60 * 1000;
+
+// Cuanto se queda cerrado el grupo (dueño, 18 oct). Lo justo para cortar la
+// rafaga; despues se abre solo, salvo que ya lo haya abierto alguien.
+const REABRIR_MS = 20 * 1000;
+let esperaReabrir = REABRIR_MS;   // las pruebas la acortan
 
 // Lo que se recuerda de cada persona: los ultimos mensajes de la ventana. Con
 // cinco iguales basta; sesenta cubre a quien los mezcla con otros.
@@ -132,12 +148,15 @@ function ficha(grupo, jid) {
   return { g, k: clave, rec: g[clave] };
 }
 
+// Un aviso de hace mas de 12 horas ya no cuenta.
+const vivo = (rec) => (rec?.avisos || 0) >= 1 && Date.now() - (rec.ts || 0) < AVISO_DURA_MS;
+
 // Lo que toca con esta rafaga: 'aviso', 'ban' o null (sigue siendo la tanda
 // que ya se aviso). Deja apuntado lo que decide.
 async function sancion(grupo, jid, desde) {
   await load();
   const { g, k, rec } = ficha(grupo, jid);
-  if ((rec?.avisos || 0) >= 1) {
+  if (vivo(rec)) {
     if (Number(desde) * 1000 <= (rec.ts || 0) + GRACIA_MS) return null;
     delete g[k];
     if (!Object.keys(g).length) delete store[grupo];
@@ -153,8 +172,33 @@ async function sancion(grupo, jid, desde) {
 async function avisosDe(grupo, jid) {
   await load();
   if (!store[grupo]) return 0;
-  return ficha(grupo, jid).rec?.avisos || 0;
+  const { rec } = ficha(grupo, jid);
+  return vivo(rec) ? rec.avisos : 0;
 }
+
+// ─── la reapertura pendiente ─────────────────────────────────────────────────
+
+async function apuntarReapertura(grupo, hasta) {
+  await load();
+  (store.__reabrir || (store.__reabrir = {}))[grupo] = hasta;
+  await guardar();
+}
+
+async function olvidarReapertura(grupo) {
+  await load();
+  if (!store.__reabrir || !(grupo in store.__reabrir)) return;
+  delete store.__reabrir[grupo];
+  if (!Object.keys(store.__reabrir).length) delete store.__reabrir;
+  await guardar();
+}
+
+// { grupo: cuando hay que abrirlo }, para retomarlas al conectar.
+async function reaperturasPendientes() {
+  await load();
+  return { ...(store.__reabrir || {}) };
+}
+
+const esperaReapertura = () => esperaReabrir;
 
 // ─── lo que se dice ──────────────────────────────────────────────────────────
 
@@ -162,10 +206,12 @@ const mencion = (jid) => `@${String(jid).split('@')[0]}`;
 
 // El grupo se cierra ANTES de avisar. Si no se ha podido cerrar, no se dice
 // que esta cerrado. A un admin se le dice lo que le toca a el: el admin.
-function textoAviso(grupo, jid, { cerrado = true, admin = false } = {}) {
+// Si se va a reabrir solo, se dice cuanto: «Grupo cerrado 20 segundos».
+function textoAviso(grupo, jid, { cerrado = true, admin = false, reabre = false } = {}) {
   const frase = pickFresh(AVISO_SPAM, `${grupo}|spam-aviso`);
+  const cierre = !cerrado ? '' : reabre ? `Grupo cerrado ${Math.round(REABRIR_MS / 1000)} segundos. ` : 'Grupo cerrado. ';
   return `*Aviso 1 de 2*\n${mencion(jid)}, el spam está prohibido. ${frase}\n`
-    + `${cerrado ? 'Grupo cerrado. ' : ''}A la siguiente, ${admin ? 'fuera el admin' : 'ban'}.`;
+    + `${cierre}A la siguiente, ${admin ? 'fuera el admin' : 'ban'}.`;
 }
 
 // La segunda de un admin: se queda en el grupo, sin admin, y de ejemplo.
@@ -185,9 +231,11 @@ function textoBan(grupo, jid, { fuera = true } = {}) {
 // Solo para pruebas.
 function _usarFichero(f) { FILE = f; store = null; loadPromise = null; }
 function _reset() { recientes.clear(); store = null; loadPromise = null; }
+function _usarEsperas({ reabrir } = {}) { esperaReabrir = reabrir ?? REABRIR_MS; }
 
 module.exports = {
   anotar, sancion, avisosDe, textoAviso, textoBan, textoSinAdmin,
-  IGUALES, VENTANA_S, GRACIA_MS,
-  _usarFichero, _reset, _file: () => FILE,
+  apuntarReapertura, olvidarReapertura, reaperturasPendientes, esperaReapertura,
+  IGUALES, VENTANA_S, GRACIA_MS, AVISO_DURA_MS, REABRIR_MS,
+  _usarFichero, _reset, _usarEsperas, _file: () => FILE,
 };

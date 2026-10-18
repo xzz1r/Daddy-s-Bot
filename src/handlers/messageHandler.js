@@ -447,9 +447,13 @@ async function castigarSpamTexto(sock, jid, sender, meta, rafaga, esAdmin = fals
     await sock.sendMessage(jid, { text: spamTexto.textoBan(jid, sender, { fuera }), mentions: [sender] }).catch(() => {});
     return;
   }
-  // Se cierra sin mirar la metadata: su `announce` se queda viejo en la cache
-  // (abrir o cerrar no la invalida), y fiarse de ella podia dejar el grupo
-  // abierto diciendo «grupo cerrado». Si no se puede cerrar, no se dice.
+  // ¿ESTABA YA CERRADO? Se pregunta a WhatsApp, no a la cache: su `announce`
+  // se queda viejo (abrir o cerrar no la invalida). Si lo cerro un admin, el
+  // bot lo deja como estaba: solo reabre lo que cierra el.
+  invalidateGroupMeta(jid);
+  const antes = await getGroupMeta(sock, jid);
+  const yaCerrado = Boolean(antes?.announce);
+  // Si no se puede cerrar, no se dice.
   let cerrado = false;
   try {
     await withTimeout(sock.groupSettingUpdate(jid, 'announcement'), 10000);
@@ -457,7 +461,49 @@ async function castigarSpamTexto(sock, jid, sender, meta, rafaga, esAdmin = fals
   } catch (e) {
     anotarTropiezo(`Spam de mensajes en ${jid} de +${num}: NO he podido cerrar el grupo (${e?.message || e}).`);
   }
-  await sock.sendMessage(jid, { text: spamTexto.textoAviso(jid, sender, { cerrado, admin: esAdmin }), mentions: [sender] }).catch(() => {});
+  // Y SE ABRE SOLO A LOS 20 SEGUNDOS (dueño, 18 oct). La reapertura se apunta
+  // en disco: un reinicio en esos 20 segundos no puede dejar el grupo cerrado.
+  const reabre = cerrado && !yaCerrado;
+  if (reabre) {
+    await spamTexto.apuntarReapertura(jid, Date.now() + spamTexto.esperaReapertura()).catch(() => {});
+    programarReapertura(sock, jid, spamTexto.esperaReapertura());
+  }
+  await sock.sendMessage(jid, { text: spamTexto.textoAviso(jid, sender, { cerrado, admin: esAdmin, reabre }), mentions: [sender] }).catch(() => {});
+}
+
+// EL GRUPO QUE CERRO EL SPAM, SE ABRE SOLO. A la hora se mira el estado DE
+// VERDAD: si alguien ya lo ha abierto, no se toca nada.
+const reaperturas = new Map();   // grupo -> temporizador
+
+function programarReapertura(sock, jid, ms) {
+  clearTimeout(reaperturas.get(jid));
+  const t = setTimeout(() => {
+    reaperturas.delete(jid);
+    reabrirGrupo(sock, jid).catch((e) => logger.unaVez('reabrir tras el spam', e));
+  }, Math.max(0, ms));
+  t.unref?.();
+  reaperturas.set(jid, t);
+}
+
+async function reabrirGrupo(sock, jid) {
+  await spamTexto.olvidarReapertura(jid).catch(() => {});
+  invalidateGroupMeta(jid);
+  const meta = await getGroupMeta(sock, jid);
+  if (!meta) { anotarTropiezo(`No he podido mirar si ${jid} sigue cerrado tras el spam: sin metadata.`); return; }
+  if (!meta.announce) return;   // ya esta abierto: no se hace nada
+  if (!isBotAdmin(sock, meta)) { anotarTropiezo(`${jid} sigue cerrado tras el spam y NO soy admin para abrirlo.`); return; }
+  try {
+    await withTimeout(sock.groupSettingUpdate(jid, 'not_announcement'), 10000);
+  } catch (e) {
+    anotarTropiezo(`NO he podido reabrir ${jid} tras el spam (${e?.message || e}).`);
+  }
+}
+
+// Al conectar se retoman las que quedaron pendientes de antes de un reinicio.
+// Las que ya han vencido se hacen al momento.
+async function reabrirPendientes(sock) {
+  const pendientes = await spamTexto.reaperturasPendientes();
+  for (const [jid, hasta] of Object.entries(pendientes)) programarReapertura(sock, jid, hasta - Date.now());
 }
 
 // LA MISMA PERSONA CON LA MISMA CLAVE EN LOS CUATRO SITIOS.
@@ -2878,7 +2924,7 @@ async function handleMessage(sock, msg, opciones = {}) {
 
 }
 
-module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGroupMeta, PERMISO_ENLACE,
+module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGroupMeta, reabrirPendientes, PERMISO_ENLACE,
   // Para que la capa pueda conducir el corrector sin montar un grupo entero.
   _sugerirComando: sugerirComando,
   _sugerenciasComando: sugerenciasComando,

@@ -78,7 +78,8 @@ Lo pidió el dueño (17 oct): 5 mensajes iguales del mismo número en menos de 1
 segundos cierran el grupo con un *Aviso 1 de 2*; a la segunda, ban. Eran más de
 10 y no saltaba nunca (18 oct).
 Los admins no se libran (18 oct): a la segunda se les quita el admin en vez del
-ban. Solo se libra el tier dueño. Los números, el margen y el orden (cerrar
+ban. Solo se libra el tier dueño. El aviso caduca a las 12 horas y el grupo se
+abre solo a los 20 segundos, si nadie lo ha abierto antes (18 oct). Los números, el margen y el orden (cerrar
 antes de avisar, echar antes de anunciar) viven en `src/utils/spamTexto.js` y en
 `castigarSpamTexto`. Las frases están en `src/data/spamPhrases.js`. La capa 125
 lo vigila. Ver `MOTOR.md`.

@@ -138,7 +138,7 @@ const STUB_SOLICITUD = new Set([144, 172]);
 // Barridos de autoaccept pendientes, por grupo. Junta las rafagas: si llegan
 // cinco solicitudes seguidas se hace UN barrido, no cinco.
 const autoAcceptPendiente = new Map();
-const { handleMessage, invalidateGroupMeta, getGroupMeta, metaParaBaileys, sembrarGrupos } = require('./handlers/messageHandler');
+const { handleMessage, invalidateGroupMeta, getGroupMeta, metaParaBaileys, sembrarGrupos, reabrirPendientes } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, isAutoAceptarEnabled, flushState, vistoActivo } = require('./utils/state');
 const { isOwner, sameUser, isBotAdmin, phoneMatch, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto } = require('./utils/wa');
 const { anotarDeuda, cobrarDeuda, flushDeuda } = require('./utils/adminDeuda');
@@ -1104,6 +1104,10 @@ async function connectToWhatsApp() {
       // que la primera vez de cada accion pague el viaje entero despues de cada
       // despliegue.
       try { require('./commands/acciones').calentarDespensa(); } catch (e) { logger.warn(`despensa: ${e.message}`); }
+
+      // Los grupos que cerro el spam y que tocaba reabrir mientras el bot no
+      // estaba (ver reabrirPendientes en messageHandler).
+      reabrirPendientes(sock).catch((e) => logger.warn(`reabrir tras el spam: ${e.message}`));
 
       // Explicit save on full connection to ensure session is complete
       await saveCreds();
