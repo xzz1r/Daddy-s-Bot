@@ -274,8 +274,8 @@ fi
 # el codigo que acaba de bajar es byte a byte el que paso la puerta entera antes
 # de empujarse. scripts/sello.js guarda la huella de ese arbol aprobado; aqui se
 # recalcula sobre lo bajado y solo se coge el atajo si cuadra EXACTAMENTE —
-# ruta y contenido de todo src/, todo scripts/ e index.js, la propia puerta
-# incluida, para que aflojarla rompa la huella.
+# ruta y contenido de todo src/, todo scripts/, index.js y ecosystem.config.js,
+# la propia puerta incluida, para que aflojarla rompa la huella.
 #
 # Si no cuadra —un fichero tocado a mano, una bajada a medias, un push sin pasar
 # la puerta— corre entera como siempre. El caso inseguro se protege solo.

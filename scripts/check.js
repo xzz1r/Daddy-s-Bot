@@ -8629,6 +8629,7 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
             '  if (o && o.responseType === "arraybuffer") return { data: GORDO };',
             '  return { data: { results: [{ url: "x" }] } }; };',
             `const acc = require(${JSON.stringify(path.join(R, 'src/commands/acciones'))});`,
+            `acc._usarDirectorio(${JSON.stringify(path.join(dirB, 'despensa'))});`,
             'let latidos = 0; const iv = setInterval(() => { latidos++; }, 200);',
             'const A = acc.ACCIONES.hug;',
             'const clave = acc._claveDespensa(A.cat, A.nsfw, A.catNsfw);',
@@ -8676,49 +8677,73 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     // miniatura. La primera version de este codigo agrupaba mal los ficheros y
     // perdia las miniaturas por el camino; una guarda que solo mirase el texto
     // habria pasado en verde.
+    //
+    // Y SIN OCUPAR RAM (dueño, 18 oct). El cuerpo vive en el disco desde que se
+    // escribe y en memoria queda la miniatura: la despensa entera estaba dos
+    // veces, en disco y en RAM, hasta 24 MB de mas. Se mira que la memoria
+    // suelte los bytes, que al servir vuelvan los mismos, y que una unidad sin
+    // fichero no salga como un video vacio.
+    //
+    // EN UN DIRECTORIO APARTE. Esto corre tambien en la VPS, con el bot vivo
+    // escribiendo en data/despensa: la prueba de antes recuperaba SUS unidades
+    // y se comia una, y con su categoria llena borraba la propia de la prueba.
     {
       const fsx = require('fs-extra');
-      const dir = acc._DESPENSA_DIR;
-      const previo = await fsx.pathExists(dir) ? await fsx.readdir(dir) : null;
-      // Una accion DE VERDAD: al leer el disco solo se recuperan las
-      // categorias que siguen existiendo, asi que una inventada se borraria
-      // sola y la prueba pasaria en verde sin probar nada.
-      const real = acc.ACCIONES[acc.ACTIVAS[0]];
-      const clave = acc._claveDespensa(real.cat, real.nsfw, real.catNsfw);
-      const cuerpo = Buffer.from('prueba-de-despensa-en-disco');
-      const thumb = Buffer.from('miniatura');
-      acc._guardarEnDespensa(clave, { mp4: cuerpo, thumb });
-      await new Promise((r) => setTimeout(r, 400));
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ddb-despensa-'));
+      const recargar = () => {
+        for (const k of Object.keys(require.cache)) if (k.endsWith('commands/acciones.js')) delete require.cache[k];
+        const a = require(path.join(R, 'src/commands/acciones'));
+        a._usarDirectorio(dir);
+        return a;
+      };
+      const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+      try {
+        const acc1 = recargar();
+        // Una accion DE VERDAD: al leer el disco solo se recuperan las
+        // categorias que siguen existiendo, asi que una inventada se borraria
+        // sola y la prueba pasaria en verde sin probar nada.
+        const real = acc1.ACCIONES[acc1.ACTIVAS[0]];
+        const clave = acc1._claveDespensa(real.cat, real.nsfw, real.catNsfw);
+        const cuerpo = Buffer.from('prueba-de-despensa-en-disco');
+        const thumb = Buffer.from('miniatura');
+        const medio = { mp4: cuerpo, thumb };
+        acc1._guardarEnDespensa(clave, medio);
+        await espera(400);
+        exige(!medio.mp4 && medio._cuerpo?.peso === cuerpo.length,
+          'la despensa sigue con los gifs en RAM despues de escribirlos en disco: los mismos bytes dos veces, hasta 24 MB de mas en una maquina de 1 GB');
 
-      // El "reinicio": el modulo se recarga y su despensa nace vacia.
-      for (const k of Object.keys(require.cache)) if (k.endsWith('commands/acciones.js')) delete require.cache[k];
-      const acc2 = require(path.join(R, 'src/commands/acciones'));
-      exige(acc2._despensa.size === 0, 'la despensa no nace vacia tras recargar: la prueba no vale');
-      await acc2._restaurarDespensa();
-      const cola = acc2._despensa.get(clave)?.cola || [];
-      const vuelto = cola.find((x) => x.mp4 && Buffer.compare(x.mp4, cuerpo) === 0);
-      exige(!!vuelto,
-        'la despensa no sobrevive al reinicio: despues de cada despliegue vuelve a haber once minutos en los que cada accion paga el viaje entero (medido: 15105 ms)');
-      exige(!!vuelto && vuelto.thumb && Buffer.compare(vuelto.thumb, thumb) === 0,
-        'lo recuperado del disco viene sin miniatura: Baileys lanza su propio ffmpeg al enviar, en el unico core de la VPS y con alguien esperando');
+        // El "reinicio": el modulo se recarga y su despensa nace vacia.
+        const acc2 = recargar();
+        exige(acc2._despensa.size === 0, 'la despensa no nace vacia tras recargar: la prueba no vale');
+        await acc2._restaurarDespensa();
+        const cola = acc2._despensa.get(clave)?.cola || [];
+        exige(cola.length === 1,
+          'la despensa no sobrevive al reinicio: despues de cada despliegue vuelve a haber once minutos en los que cada accion paga el viaje entero (medido: 15105 ms)');
+        exige(cola.every((x) => !x.mp4 && !x.imagen),
+          'al arrancar se vuelven a leer los gifs enteros a memoria: la despensa ocupa en RAM lo mismo que en disco');
+        exige(!!cola[0]?.thumb && Buffer.compare(cola[0].thumb, thumb) === 0,
+          'lo recuperado del disco viene sin miniatura: Baileys lanza su propio ffmpeg al enviar, en el unico core de la VPS y con alguien esperando');
 
-      // Y lo consumido deja de ocupar disco.
-      if (vuelto) {
-        // POR DIFERENCIA DE FICHEROS, NO POR CUENTA. Las capas corren en
-        // paralelo y el calentado de otra puede estar escribiendo en este mismo
-        // directorio: contar cuantos hay da rojo sin que nada este mal. Lo que
-        // se exige es que desaparezca alguno de LOS QUE HABIA.
+        // Servir: los mismos bytes, y lo consumido deja de ocupar disco.
         const antesF = await fsx.readdir(dir);
-        acc2._sacarDeDespensa(clave);
-        await new Promise((r) => setTimeout(r, 400));
-        const despuesF = new Set(await fsx.readdir(dir));
-        exige(antesF.some((f) => !despuesF.has(f)),
+        const servido = await acc2._sacarDeDespensa(clave);
+        exige(!!servido && Buffer.isBuffer(servido.mp4) && Buffer.compare(servido.mp4, cuerpo) === 0,
+          'lo que sale de la despensa no son los bytes que entraron: el gif guardado en disco no vuelve entero al mandarlo');
+        await espera(400);
+        exige(antesF.length > 0 && (await fsx.readdir(dir)).length === 0,
           'consumir una unidad no borra su fichero: el directorio crece sin tope hasta llenar el disco de la VPS');
+
+        // Una unidad sin fichero se salta: el comando va a la web.
+        const huerfana = { mp4: Buffer.from('se-va-a-borrar'), thumb };
+        acc2._guardarEnDespensa(clave, huerfana);
+        await espera(400);
+        if (huerfana._cuerpo) await fsx.remove(huerfana._cuerpo.fichero);
+        exige(!!huerfana._cuerpo && await acc2._sacarDeDespensa(clave) === null,
+          'una unidad cuyo fichero ha desaparecido se sirve igual: el grupo recibiria un video vacio en vez del gif de la web');
+      } finally {
+        for (const k of Object.keys(require.cache)) if (k.endsWith('commands/acciones.js')) delete require.cache[k];
+        fs.rmSync(dir, { recursive: true, force: true });
       }
-      // Se deja como estaba: esto corre en la maquina del dueño.
-      for (const f of await fsx.readdir(dir)) if (!previo || !previo.includes(f)) await fsx.remove(path.join(dir, f));
-      if (!previo) await fsx.remove(dir);
-      for (const k of Object.keys(require.cache)) if (k.endsWith('commands/acciones.js')) delete require.cache[k];
     }
 
     if (fallos === antes) console.log(verde('   ✓ la despensa se mira antes de la red, repone lo suyo, manda ligero y se llena sola sin rafagas'));
@@ -9171,18 +9196,20 @@ const di=async(quien,t)=>{out.length=0;
       // paso al escribir esto.
       const apps = (require(path.join(R, 'ecosystem.config.js')).apps || [])
         .filter((a) => a && a.name && typeof a.max_memory_restart === 'string')
-        .map((a) => ({ nombre: a.name, techo: Number(String(a.max_memory_restart).replace(/\D/g, '')) }));
+        .map((a) => ({ nombre: a.name, techo: Number(String(a.max_memory_restart).replace(/\D/g, '')), env: a.env || {} }));
       exige(apps.length >= 2, `ecosystem.config.js declara ${apps.length} proceso(s) con techo de memoria; se esperaban al menos 2 (bot y guardian)`);
       const guion = {
         bot: "require('./src/handlers/messageHandler.js'); require('./src/bot.js');",
         guardian: "require('./src/guardian.js');",
       };
-      for (const { nombre, techo } of apps) {
+      for (const { nombre, techo, env } of apps) {
         if (!guion[nombre]) continue;
         let rss = 0;
         try {
           const salida = execSync(`node -e ${JSON.stringify(`${guion[nombre]}setTimeout(()=>{console.log('RSS'+Math.round(process.memoryUsage().rss/1048576));process.exit(0)},1200)`)}`,
-            { encoding: 'utf8', timeout: 60000, cwd: R, env: { ...process.env, NODE_ENV: 'production' }, stdio: ['ignore', 'pipe', 'ignore'] });
+            // Con el entorno que le pone pm2, NODE_OPTIONS incluidas: es lo que
+            // corre en la VPS, y lo que mide el techo.
+            { encoding: 'utf8', timeout: 60000, cwd: R, env: { ...process.env, NODE_ENV: 'production', ...env }, stdio: ['ignore', 'pipe', 'ignore'] });
           const m = salida.match(/RSS(\d+)/);
           rss = m ? Number(m[1]) : 0;
         } catch { rss = 0; }
@@ -17459,6 +17486,7 @@ console.log('CAPA87:' + JSON.stringify(quejas));
     try {
       for (const r of ['src', 'scripts']) fs.cpSync(path.join(R, r), path.join(caja, r), { recursive: true });
       fs.copyFileSync(path.join(R, 'index.js'), path.join(caja, 'index.js'));
+      fs.copyFileSync(path.join(R, 'ecosystem.config.js'), path.join(caja, 'ecosystem.config.js'));
       fs.mkdirSync(path.join(caja, 'data'), { recursive: true });
       try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir'); } catch {}
 
@@ -17472,6 +17500,7 @@ console.log('CAPA87:' + JSON.stringify(quejas));
         ['tocar un fichero de src', () => fs.appendFileSync(path.join(caja, 'src/utils/usuarios.js'), '\n// x\n')],
         ['tocar la propia puerta', () => fs.appendFileSync(path.join(caja, 'scripts/check.js'), '\n// x\n')],
         ['tocar el arranque', () => fs.appendFileSync(path.join(caja, 'index.js'), '\n// x\n')],
+        ['tocar las opciones con las que arranca pm2', () => fs.appendFileSync(path.join(caja, 'ecosystem.config.js'), '\n// x\n')],
         ['renombrar un fichero', () => fs.renameSync(path.join(caja, 'src/utils/usuarios.js'), path.join(caja, 'src/utils/usuarios2.js'))],
         ['mover un fichero de carpeta', () => fs.renameSync(path.join(caja, 'src/utils/usuarios.js'), path.join(caja, 'src/commands/usuarios.js'))],
         ['añadir un fichero', () => fs.writeFileSync(path.join(caja, 'src/utils/colado.js'), 'module.exports={};\n')],
@@ -17484,6 +17513,7 @@ console.log('CAPA87:' + JSON.stringify(quejas));
           fs.cpSync(path.join(caja, r), path.join(caja, `${r}.bak`), { recursive: true });
         }
         const idxBak = fs.readFileSync(path.join(caja, 'index.js'));
+        const ecoBak = fs.readFileSync(path.join(caja, 'ecosystem.config.js'));
         hacer();
         const nueva = sello();
         exige(nueva !== base, `${que} NO cambia la huella: el atajo aprobaría un árbol que nadie comprobó`);
@@ -17492,6 +17522,7 @@ console.log('CAPA87:' + JSON.stringify(quejas));
           fs.renameSync(bak, path.join(caja, r));
         }
         fs.writeFileSync(path.join(caja, 'index.js'), idxBak);
+        fs.writeFileSync(path.join(caja, 'ecosystem.config.js'), ecoBak);
         exige(sello() === base, `restaurar tras "${que}" no devuelve la huella: la huella no es estable`);
       }
 
@@ -21706,6 +21737,71 @@ const espera = (ms) => new Promise((r) => setTimeout(r, ms));
     const bajan = podio.filter((f) => /ojera|no duerm|insomnio|hacen bulto|le sobran horas|horas muertas|des el co[ñn]azo|no tiene ni de co[ñn]a|solo escribe m[aá]s|que escriba lo que quiera/i.test(f));
     exige(!bajan.length, `el podio vuelve a subir a uno bajando a otro: «${(bajan[0] || '').slice(0, 90)}»`);
     if (fallos === antes126) console.log(verde('   ✓ rachas, bonos, relevancia alta, duelos ajustados y podio: halagan sin rematar'));
+  }
+
+  // ── 127. LA RAM: LO QUE NO HACIA NADA, FUERA ──────────────────────────────
+  //
+  // Lo pidio el dueño (18 oct): «optimiza el espacio de RAM, que la calidad se
+  // quede y ocupe menos». Ninguno de estos ajustes toca lo que se manda:
+  //
+  //   · la generacion joven de V8, que Node deja crecer a 32 MB y no devuelve:
+  //     16 en el bot y 4 en el guardian;
+  //   · un hilo de fondo para V8 en vez de cuatro, que en el unico core de la
+  //     VPS no van en paralelo con nada;
+  //   · MALLOC_ARENA_MAX=2: las arenas de malloc se quedan con lo que ya no
+  //     se usa, una por hilo.
+  //
+  // La despensa en disco, que es la cuarta, la vigila la 43.
+  //
+  // SE ARRANCA UN NODE CON LAS NODE_OPTIONS DEL ECOSYSTEM y se mide lo que
+  // hace, no lo que pone: con una opcion mal escrita Node no arranca —el bot
+  // caido en el siguiente despliegue—, y una bien escrita con otro numero
+  // pasaria cualquier regex.
+  //
+  // Y EL BOT NO BAJA DE 16, que es la otra mitad de la medida: con la joven a
+  // 8, leer un JSON de 20.000 personas tardo un 45 % mas. Ahorrar RAM a costa
+  // del unico core no es lo que pidio el dueño.
+  {
+    console.log('\n127. LA RAM: LO QUE NO HACIA NADA, FUERA');
+    const antes127 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const apps = Object.fromEntries((require(path.join(R, 'ecosystem.config.js')).apps || []).map((a) => [a.name, a]));
+    const PRUEBA = [
+      "const v8 = require('v8'); let pico = 0, b = [];",
+      "for (let r = 0; r < 30; r++) { b = []; for (let i = 0; i < 20000; i++) b.push({ a: i, s: 'x' + i, c: [i, i] });",
+      "  pico = Math.max(pico, v8.getHeapSpaceStatistics().find((s) => s.space_name === 'new_space').space_size); }",
+      "let hilos = 0; try { hilos = require('fs').readdirSync('/proc/self/task').length; } catch {}",
+      "console.log('RES' + JSON.stringify({ joven: Math.round(pico / 1048576), hilos }));",
+    ].join('\n');
+    const medir = (env) => {
+      const r = spawnSync(process.execPath, ['-e', PRUEBA],
+        { encoding: 'utf8', timeout: 30000, env: { ...process.env, NODE_OPTIONS: '', ...env } });
+      const linea = String(r.stdout || '').split('\n').find((l) => l.startsWith('RES'));
+      return linea ? JSON.parse(linea.slice(3))
+        : { error: String(r.stderr || r.error?.message || 'sin salida').trim().split('\n')[0] };
+    };
+    const base = medir({});
+    // [proceso, tope de la generacion joven en MB, suelo]
+    for (const [nombre, tope, suelo] of [['bot', 16, 16], ['guardian', 4, 0]]) {
+      const env = apps[nombre]?.env || {};
+      exige(!!apps[nombre], `ecosystem.config.js ya no declara *${nombre}*: esta capa no mide nada`);
+      exige(env.MALLOC_ARENA_MAX === '2',
+        `*${nombre}* vuelve a arrancar sin MALLOC_ARENA_MAX=2: malloc se queda con lo que ya no se usa, 5-8 MB por proceso`);
+      const m = medir(env);
+      if (m.error) {
+        exige(false, `Node no arranca con las NODE_OPTIONS de *${nombre}* («${env.NODE_OPTIONS}»): ${m.error}. Con pm2, el proceso caido en el siguiente despliegue`);
+        continue;
+      }
+      exige(m.joven <= tope,
+        `la generacion joven de *${nombre}* crece hasta ${m.joven} MB (tope ${tope}): Node se queda esa RAM y no la devuelve`);
+      exige(m.joven >= suelo,
+        `la generacion joven de *${nombre}* se queda en ${m.joven} MB: por debajo de 16, leer un JSON grande tarda un 45 % mas en el unico core`);
+      if (base.hilos && m.hilos) {
+        exige(m.hilos <= base.hilos - 3,
+          `*${nombre}* arranca con ${m.hilos} hilos y Node sin tocar con ${base.hilos}: V8 vuelve a tener cuatro hilos de fondo en una maquina de un core`);
+      }
+    }
+    if (fallos === antes127) console.log(verde('   ✓ bot y guardian arrancan con la generacion joven a su medida, un hilo de fondo y dos arenas de malloc'));
   }
 
   }

@@ -379,10 +379,10 @@ const TOPE_DESCARGA = 8 * 1024 * 1024;   // un gif de reacción pesa cientos de 
 // con el uso, y llenarla al arrancar seria pegarle veinte peticiones seguidas a
 // la web en cada despliegue, que es como se consigue que te corten.
 //
-// EL TOPE ES DE MEMORIA, NO DE UNIDADES. Un gif de reacción va de 27 KB a
+// EL TOPE ES DE PESO, NO DE UNIDADES. Un gif de reacción va de 27 KB a
 // 1,5 MB, así que "dos por categoría" no dice nada sobre lo que ocupa. Con
-// veinte acciones y este tope no pasa de 24 MB, en una máquina de 1 GB donde el
-// bot ronda los 140.
+// veinte acciones y este tope no pasa de 24 MB. Desde el 18 oct esos 24 MB
+// están en el disco y no en la RAM: ver «el cuerpo vive en el disco», abajo.
 // Las ultimas direcciones servidas de cada categoria, para no repetir gif. Seis
 // es mas que las dos que caben en la despensa y menos que el catalogo de la
 // categoria mas pobre: bloquear mas seria quedarse sin de donde elegir.
@@ -444,7 +444,24 @@ const reponiendo = new Set();    // para no pedir dos veces lo mismo a la vez
 // las NSFW, lo que sean. Van a `data/`, que está fuera de git entero —el
 // repositorio es público y esto no se sube nunca— y ocupan como mucho el tope
 // de la despensa, 24 MB.
-const DESPENSA_DIR = path.join(__dirname, '../../data/despensa');
+//
+// ─── Y EL CUERPO VIVE EN EL DISCO, NO EN LA RAM ────────────────────────────
+//
+// Lo pidió el dueño (18 oct): «optimiza el espacio de RAM sin perder calidad».
+// La despensa ya se escribía entera en disco para sobrevivir al reinicio, y
+// además se quedaba entera en memoria: los mismos bytes dos veces, hasta 24 MB
+// de RAM en una máquina de 1 GB para tener a mano gifs que salen de uno en uno.
+//
+// Ahora, en cuanto el fichero está escrito, la memoria suelta los bytes y se
+// queda con la ruta, el peso y la miniatura, que son unos KB. Al servirlo se
+// lee del disco: milisegundos para un MP4 de ~100 KB, contra los segundos de
+// la web que la despensa viene a ahorrar. Son los mismos bytes: la calidad no
+// cambia en nada.
+//
+// Si el disco falla, sigue como antes: los bytes no se sueltan hasta que el
+// fichero está escrito entero, y una unidad cuyo fichero ha desaparecido se
+// salta y se pide a la web, en vez de mandar un vídeo vacío.
+let DESPENSA_DIR = path.join(__dirname, '../../data/despensa');
 // Un MP4 de hace dos días sigue reproduciéndose igual, pero una despensa que no
 // caduca deja de rotar: las mismas dos unidades por categoría para siempre. Con
 // un día se conserva lo que vale —el hueco después de un despliegue— y se sigue
@@ -465,14 +482,25 @@ const loteNuevo = (clave) => `${huella(clave)}-${Date.now()}-${Math.random().toS
 // Escribir y borrar no pueden tocar el camino caliente ni tumbar el bot: la
 // despensa es una optimización, y una optimización que rompe el comando al que
 // ayuda no ayuda. Todo va sin esperar y con el fallo tragado.
-const enDisco = new Map();       // item -> [ficheros suyos]
+const enDisco = new Map();       // item -> { ficheros, escrito }
 let avisadoDisco = false;
 function disco(fn) {
-  Promise.resolve().then(fn).catch((e) => {
+  return Promise.resolve().then(fn).catch((e) => {
     if (avisadoDisco) return;
     avisadoDisco = true;
     logger.warn(`despensa en disco: ${e.message} (sigue funcionando en memoria)`);
   });
+}
+
+// Del sufijo del fichero al campo del medio.
+const CAMPO = { mp4: 'mp4', img: 'imagen' };
+
+// `_cuerpo` = { campo, fichero, peso }: los bytes están en el disco y no en el
+// medio. Sin `_cuerpo` siguen en memoria: recién llegado, o el disco falló.
+function soltarCuerpo(medio, fichero) {
+  const campo = medio.mp4 ? 'mp4' : 'imagen';
+  medio._cuerpo = { campo, fichero, peso: medio[campo].length };
+  delete medio[campo];
 }
 
 function guardarEnDisco(clave, medio) {
@@ -483,18 +511,51 @@ function guardarEnDisco(clave, medio) {
   if (medio.thumb) partes.push(['thb', medio.thumb]);
   const lote = loteNuevo(clave);
   const ficheros = partes.map(([tipo]) => path.join(DESPENSA_DIR, `${lote}.${tipo}`));
-  enDisco.set(medio, ficheros);
-  disco(async () => {
+  const apunte = { ficheros, escrito: null };
+  enDisco.set(medio, apunte);
+  apunte.escrito = disco(async () => {
     await fs.ensureDir(DESPENSA_DIR);
-    for (let i = 0; i < partes.length; i++) await fs.writeFile(ficheros[i], partes[i][1]);
+    // Con otro nombre y luego se renombra: ahora el fichero es la única copia,
+    // y uno escrito a medias no puede pasar por bueno al arrancar. El `.tmp` no
+    // casa con el patrón de abajo, así que si se queda huérfano se borra solo.
+    for (let i = 0; i < partes.length; i++) {
+      await fs.writeFile(`${ficheros[i]}.tmp`, partes[i][1]);
+      await fs.rename(`${ficheros[i]}.tmp`, ficheros[i]);
+    }
+    // Escrito entero y todavía en la despensa: la memoria suelta los bytes.
+    if (enDisco.get(medio) === apunte) soltarCuerpo(medio, ficheros[0]);
   });
 }
 
-function borrarDeDisco(medio) {
-  const ficheros = enDisco.get(medio);
-  if (!ficheros) return;
+// Se borra cuando la escritura ha terminado, no antes. Borrar durante la
+// escritura dejaba el fichero vivo detrás del borrado, y al arrancar volvía
+// como una unidad que nadie tenía. `antes` es la lectura que tiene que acabar
+// primero, cuando la unidad se está sirviendo. El `.tmp` va también: es lo que
+// queda de una escritura que falló.
+function borrarDeDisco(medio, antes = null) {
+  const apunte = enDisco.get(medio);
+  if (!apunte) return;
   enDisco.delete(medio);
-  disco(() => Promise.all(ficheros.map((f) => fs.remove(f))));
+  disco(async () => {
+    await apunte.escrito;
+    await antes;
+    await Promise.all(apunte.ficheros.flatMap((f) => [fs.remove(f), fs.remove(`${f}.tmp`)]));
+  });
+}
+
+// Lo contrario de soltarCuerpo, justo antes de mandarla. Devuelve false si el
+// fichero ya no está: esa unidad no se puede servir.
+async function recuperarCuerpo(medio) {
+  const c = medio._cuerpo;
+  if (!c) return true;
+  try {
+    medio[c.campo] = await fs.readFile(c.fichero);
+  } catch (e) {
+    logger.unaVez('despensa: una unidad sin su fichero, se salta', { message: e.code || e.message });
+    return false;
+  }
+  delete medio._cuerpo;
+  return true;
 }
 
 // Al arrancar: se lee el directorio, se agrupa por huella y se reconstruye. Lo
@@ -521,13 +582,17 @@ async function restaurarDespensa() {
     const cuerpo = ficheros.mp4 || ficheros.img;
     // Un lote al que le falta el cuerpo es una escritura que se quedó a medias.
     if (!cuerpo) { for (const f of Object.values(ficheros)) await fs.remove(f); continue; }
-    const medio = ficheros.mp4 ? { mp4: await fs.readFile(cuerpo) } : { imagen: await fs.readFile(cuerpo) };
+    // El cuerpo NO se lee: se queda en el disco hasta que alguien lo pida. De
+    // aquí solo sale la miniatura, que va en el mensaje y pesa unos KB.
+    const { size } = await fs.stat(cuerpo);
+    if (!size) { for (const f of Object.values(ficheros)) await fs.remove(f); continue; }
+    const medio = { _cuerpo: { campo: CAMPO[ficheros.mp4 ? 'mp4' : 'img'], fichero: cuerpo, peso: size } };
     if (ficheros.thb) medio.thumb = await fs.readFile(ficheros.thb);
     // Si la categoría ya está llena, este lote sobra: se borra en vez de
     // quedarse ocupando disco para siempre sin que nadie lo lea.
     const d = despensa.get(clave);
     if (d && d.cola.length >= LISTOS_POR_CAT) { for (const f of Object.values(ficheros)) await fs.remove(f); continue; }
-    enDisco.set(medio, Object.values(ficheros));
+    enDisco.set(medio, { ficheros: Object.values(ficheros), escrito: null });
     guardarEnDespensa(clave, medio, true);
     n++;
   }
@@ -580,7 +645,9 @@ function claveDespensa(cat, nsfw, catNsfw) {
   return `${conFuente ? 'nsfw' : 'sfw'}|${conFuente ? (catNsfw || cat) : cat}`;
 }
 
-const pesaDe = (m) => (m?.mp4?.length || m?.imagen?.length || 0);
+// Lo que pesa, esté en memoria o en el disco. Sin el `_cuerpo`, una despensa
+// en disco pesaría cero y la poda dejaría de frenar el disco.
+const pesaDe = (m) => (m?._cuerpo?.peso || m?.mp4?.length || m?.imagen?.length || 0);
 
 function pesoDespensa() {
   let t = 0;
@@ -600,13 +667,23 @@ function podarDespensa() {
   }
 }
 
-function sacarDeDespensa(clave) {
+// Fuera de la cola y del disco en el mismo paso, ANTES de esperar a nada: dos
+// comandos a la vez no se pueden llevar la misma unidad, y una escritura que
+// termine ahora ya no le puede soltar los bytes al que la está mandando. El
+// fichero se borra cuando ya se ha leído.
+//
+// Si el fichero no está, se prueba con la siguiente, y sin ninguna devuelve
+// null: el comando va a la web como con la despensa vacía, que es lo que hay.
+async function sacarDeDespensa(clave) {
   const d = despensa.get(clave);
-  if (!d?.cola.length) return null;
-  d.ts = Date.now();
-  const medio = d.cola.shift();
-  borrarDeDisco(medio);
-  return medio;
+  while (d?.cola.length) {
+    d.ts = Date.now();
+    const medio = d.cola.shift();
+    const leido = recuperarCuerpo(medio);
+    borrarDeDisco(medio, leido);
+    if (await leido) return medio;
+  }
+  return null;
 }
 
 function guardarEnDespensa(clave, medio, delDisco = false) {
@@ -889,7 +966,7 @@ async function traerAccion(cat, nsfw, catNsfw, deDespensa = false) {
   const cual = conFuente ? (catNsfw || cat) : cat;
   const clave = claveDespensa(cat, nsfw, catNsfw);
   if (!deDespensa) {
-    const listo = sacarDeDespensa(clave);
+    const listo = await sacarDeDespensa(clave);
     if (listo) return listo;
   }
   // EL DESGLOSE DE LOS TRES PASOS. El log decia `traer 15105` y ese numero no
@@ -1240,4 +1317,4 @@ async function ejecutarAccion(escrito, sock, msg, args, groupMeta) {
   return hacer ? hacer(sock, msg, args, groupMeta) : undefined;
 }
 
-module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, ejecutarAccion, calentarDespensa, _restaurarDespensa: restaurarDespensa, _guardarEnDespensa: guardarEnDespensa, _sacarDeDespensa: sacarDeDespensa, _DESPENSA_DIR: DESPENSA_DIR, _fondo: () => fondoEnCurso, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, _yaSalio: yaSalio, _apuntarGif: apuntarGif, _gifsRecientes: gifsRecientes, _fuentesDe: fuentesDe, _FUENTES: FUENTES, _CATALOGO: CATALOGO, _apartadas: apartadas, _RECIENTES_POR_CAT: RECIENTES_POR_CAT, _direccionDe: direccionDe, _direccionDelGif: direccionDelGif, ...comandos, _turnoRoast: turnoRoast };
+module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, ejecutarAccion, calentarDespensa, _restaurarDespensa: restaurarDespensa, _guardarEnDespensa: guardarEnDespensa, _sacarDeDespensa: sacarDeDespensa, get _DESPENSA_DIR() { return DESPENSA_DIR; }, _usarDirectorio: (dir) => { DESPENSA_DIR = dir; }, _fondo: () => fondoEnCurso, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, _yaSalio: yaSalio, _apuntarGif: apuntarGif, _gifsRecientes: gifsRecientes, _fuentesDe: fuentesDe, _FUENTES: FUENTES, _CATALOGO: CATALOGO, _apartadas: apartadas, _RECIENTES_POR_CAT: RECIENTES_POR_CAT, _direccionDe: direccionDe, _direccionDelGif: direccionDelGif, ...comandos, _turnoRoast: turnoRoast };

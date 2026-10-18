@@ -36,7 +36,12 @@ const SELLO = path.join(R, '.sello');
 //
 // .sello NO entra, por lo evidente: escribirlo cambiaria la huella que acaba
 // de escribir.
-const RAICES = ['src', 'scripts', 'index.js'];
+//
+// ecosystem.config.js SI (18 oct): dice con que NODE_OPTIONS arranca pm2 al
+// bot, y con una mal escrita Node no arranca. Fuera de la huella, un commit que
+// solo tocara eso cogeria el atajo y la capa que lo prueba (127) no correria
+// en la VPS justo antes de reiniciar con ello.
+const RAICES = ['src', 'scripts', 'index.js', 'ecosystem.config.js'];
 
 function ficherosDe(rel, out = []) {
   const abs = path.join(R, rel);

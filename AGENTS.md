@@ -93,6 +93,14 @@ alto de `!relevancia`, duelos ajustados de `!vs`, pilar de `!caso` y podio de
 `!count`. La inactividad se sigue atacando como siempre. Ver `GUIA.md` («A
 quién pega el bot») y la capa 126.
 
+## La RAM: lo justo, sin tocar la calidad
+
+Lo pidió el dueño (18 oct). La generación joven de V8, un solo hilo de fondo y
+dos arenas de malloc van en `ecosystem.config.js`. El bot no baja de 16 MB de
+generación joven: más bajo, el único core lo paga. Los gifs de la despensa de
+acciones viven en disco, y en memoria solo queda su miniatura: no se vuelven a
+cargar enteros en RAM. Capas 127 y 43. Ver `MOTOR.md`.
+
 ## Apelativos de dominancia: se quedan
 
 «…, pequeña.», «…, mi niña.», «…, princesa.» y el resto al final de las

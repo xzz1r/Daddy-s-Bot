@@ -85,7 +85,33 @@ module.exports = {
       // Node no sabe que la máquina va justa de RAM y reserva heap de más.
       // Con el techo puesto, el recolector de basura trabaja antes y se evita
       // llegar al max_memory_restart de arriba.
-      NODE_OPTIONS: '--max-old-space-size=384',
+      //
+      // LA RAM QUE NO HACIA NADA (dueño, 18 oct: «optimiza el espacio de RAM
+      // sin perder calidad»). Dos ajustes de Node y uno de malloc, medidos en
+      // un core (`taskset -c 0`, como la VPS) con 20.000 mensajes por el
+      // manejador:
+      //
+      //   solo el techo de arriba          RSS ~144 MB
+      //   + generación joven a 8 MB        ┐
+      //   + un solo hilo de fondo para V8  ├ RSS ~129 MB, igual de rápido
+      //   + MALLOC_ARENA_MAX=2 (abajo)     ┘
+      //
+      // · --max-semi-space-size=8. Lo recién creado vive en la generación
+      //   joven, y Node la deja crecer hasta 32 MB, que luego no devuelve. Con
+      //   8 MB por mitad se queda en 16. NO MAS BAJO: a 4, un JSON grande que se
+      //   lee entero (20.000 personas, como un aura.json enorme) tardó un 45 %
+      //   más, 2,25 s contra 1,55, porque deja de caber y se copia de un lado
+      //   a otro. A 8 tardó lo mismo que sin tocar nada.
+      // · --v8-pool-size=1. V8 arranca cuatro hilos para recoger basura y
+      //   compilar en paralelo. En un core no van en paralelo con nada: se
+      //   turnan con el bot y cada uno tiene su memoria. Con uno, siete hilos
+      //   pasan a cuatro.
+      NODE_OPTIONS: '--max-old-space-size=384 --max-semi-space-size=8 --v8-pool-size=1',
+      // malloc reparte la memoria nativa en «arenas», una por hilo que la pide
+      // a la vez, y cada arena se queda con lo que ya no usa. Con dos basta en
+      // un core: 5-8 MB menos, sin coste medible. Lo heredan ffmpeg y yt-dlp,
+      // que en un core tampoco necesitan más.
+      MALLOC_ARENA_MAX: '2',
     },
   }, {
     // ─── EL GUARDIÁN ─────────────────────────────────────────────────────────
@@ -110,7 +136,7 @@ module.exports = {
     //
     // EL TECHO ESTUVO EN 120M Y ERA UNA TRAMPA. La cifra salía de medir 22 MB
     // recién arrancado, pero esos 22 MB eran `heapUsed` y `max_memory_restart`
-    // de pm2 se mide en RSS. Medido de verdad, con estas mismas NODE_OPTIONS:
+    // de pm2 se mide en RSS. Medido de verdad, con las NODE_OPTIONS de entonces:
     //
     //   guardián recién cargado:  RSS 111 MB   ·   heapUsed 27 MB
     //
@@ -161,7 +187,13 @@ module.exports = {
     watch: false,
     env: {
       NODE_ENV: 'production',
-      NODE_OPTIONS: '--max-old-space-size=96',
+      // Lo mismo que el bot, y aquí la generación joven puede bajar más: el
+      // guardián no lee JSON grandes ni guarda nada, solo descifra mensajes
+      // pequeños que tira al momento. Medido al arrancar: 104 MB → 88. Y en
+      // marcha debería notarse más: en la VPS llegó a 138 MB, y sin tope esta
+      // generación crece ella sola hasta 32.
+      NODE_OPTIONS: '--max-old-space-size=96 --max-semi-space-size=2 --v8-pool-size=1',
+      MALLOC_ARENA_MAX: '2',
     },
   }],
 };

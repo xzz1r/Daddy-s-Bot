@@ -78,6 +78,29 @@ al arreglar la causa se acaba ignorando justo el día que dice la verdad. Así q
 `npm run estado` mira el **ritmo**: cuánto ha subido desde la última vez que se
 miró, guardado en `data/estadoReinicios.json`. Callado si no sube.
 
+## La RAM: lo que no hacía nada
+
+Lo pidió el dueño (18 oct): menos RAM sin perder calidad. Nada de esto toca lo
+que se manda: son los mismos vídeos, gifs y fotos, byte a byte.
+
+- **La generación joven de V8**, en las `NODE_OPTIONS` del ecosystem. Node la
+  deja crecer hasta 32 MB y no la devuelve. Va a 16 en el bot
+  (`--max-semi-space-size=8`) y a 4 en el guardián (`=2`). El bot no baja de
+  16: a 8, leer un JSON de 20.000 personas tardó un 45 % más.
+- **Un hilo de fondo para V8** (`--v8-pool-size=1`) en vez de cuatro, que en un
+  core no van en paralelo con nada.
+- **`MALLOC_ARENA_MAX=2`**: malloc deja de quedarse memoria por cada hilo.
+- **La despensa, en disco** (ver «Las acciones por dentro»): en memoria queda
+  la miniatura y el gif se lee del disco al mandarlo.
+
+Medido en un core, como la VPS, con 20.000 mensajes por el manejador: el bot
+pasa de ~144 MB a ~129 sin perder velocidad, y el guardián arranca con 88 en
+vez de 104. En marcha llegó a 138, y sin tope la generación joven crece ella
+sola hasta 32 MB. La despensa son hasta 24 MB más. `npm run update` lo
+aplica solo, porque reinicia pasando el ecosystem. La capa 127 arranca Node
+con esas opciones y mide lo que hace, y la 43 vigila que la despensa no vuelva
+a la RAM.
+
 ---
 
 ## El ritmo: nada sale en ráfaga
@@ -241,6 +264,14 @@ despliegue va como el de ayer y la web recibe **menos** peticiones. Caducan a
 las 24 h para que el contenido siga rotando. El nombre del fichero lleva
 dentro el hash de la categoría, así que el directorio **es** el índice: no hay
 un `indice.json` que pueda desincronizarse, y lo que sobra se borra al leer.
+
+Y desde el 18 oct **no está también en la RAM**. Antes los mismos bytes
+estaban dos veces, en disco y en memoria, hasta 24 MB. Ahora, en cuanto el
+fichero está escrito (con otro nombre y luego renombrado, para que uno a medias
+no pase por bueno), la memoria se queda con la ruta, el peso y la miniatura. Al
+mandar el gif se lee del disco: milisegundos, contra los segundos de la web.
+Una unidad cuyo fichero ha desaparecido se salta y el comando va a la web, en
+vez de mandar un vídeo vacío.
 
 Y cuando una acción tarda, el log ya dice **dónde**: `traer 15105 [web 400,
 bajar 260, ffmpeg 14400]`. Los tres pasos son tres problemas distintos con
