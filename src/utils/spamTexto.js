@@ -14,6 +14,9 @@
 //     quita el admin. Solo se libra el tier dueño.
 //   · Mas flexible (18 oct): el aviso caduca a las 12 horas, y el grupo que se
 //     cierra se vuelve a abrir solo a los 20 segundos.
+//   · Sin trampas (18 oct): cambiar un emoji o un signo ya no hace distinto el
+//     mensaje, y el mismo copy pegado por varias personas tambien salta (la
+//     cadena, abajo).
 //
 // Dos piezas, y ninguna puede vivir donde vive la otra:
 //
@@ -34,10 +37,10 @@
 
 const path = require('path');
 const crypto = require('crypto');
-const { juntarPersona, clavesMapa, juntarEnMapa, esObjeto } = require('./persona');
+const { juntarPersona, clavesMapa, juntarEnMapa, esObjeto, formasDe } = require('./persona');
 const { atomicWriteJson, readJsonOrEnoent, pickFresh } = require('./helpers');
 const logger = require('./logger');
-const { AVISO_SPAM, BAN_SPAM, ADMIN_SPAM } = require('../data/spamPhrases');
+const { AVISO_SPAM, BAN_SPAM, ADMIN_SPAM, CADENA_SPAM } = require('../data/spamPhrases');
 
 // Salta con el QUINTO igual. «En menos de 10 segundos»: del primero al ultimo
 // de los iguales van como mucho 9 segundos enteros, que es lo que da la marca
@@ -69,13 +72,53 @@ const MAX_CLAVES = 5000;
 
 const recientes = new Map();   // `${grupo}|${persona}` -> [{ t, h }]
 
+// QUE SE PAREZCAN ES QUE SON IGUALES (dueño, 18 oct). Al principio solo no
+// contaban las mayusculas y los espacios, y bastaba con cambiar un emoji o un
+// signo para que cinco copias fueran cinco mensajes distintos. Ahora se
+// comparan las letras y los numeros, y nada mas:
+//
+//   · ni tildes ni letras de adorno: «𝓙𝓪𝓳𝓪» y «Jája» son lo mismo que «jaja»;
+//   · ni emojis, ni signos, ni el formato de WhatsApp (*negrita*);
+//   · ni los caracteres invisibles que se pegan para que dos copias parezcan
+//     distintas;
+//   · ni las letras o silabas repetidas: «holaaaa» es «hola», y «jaja» y
+//     «jajajaja» son lo mismo. Se quedan en una, también las que van dobles
+//     de verdad («carro»): da igual, porque las dos copias pasan por lo mismo.
+//
+// LOS NUMEROS SI CUENTAN: una mencion es un numero. Sin ellos, «!aura @uno» y
+// «!aura @otro» eran el mismo mensaje, y quien mirara el aura de cinco
+// personas seguidas se llevaba el aviso.
+function esencia(texto) {
+  return String(texto || '')
+    .normalize('NFKD')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, '')
+    .replace(/(\p{L}{1,3}?)\1+/gu, '$1');
+}
+
 // El texto entero no se guarda: un copy puede tener miles de letras y aqui hay
 // una entrada por mensaje. Con la huella basta para saber si son iguales.
-// Mayusculas y espacios no cuentan: «JAJAJA» y «jajaja » son el mismo spam.
+//
+// Un mensaje sin letras ni numeros se compara entero, sin espacios ni
+// invisibles y con las repeticiones recogidas igual: «😂😂😂» cinco veces
+// sigue siendo spam.
 function huella(texto) {
-  const limpio = String(texto || '').normalize('NFC').toLowerCase().replace(/\s+/g, ' ').trim();
+  const limpio = esencia(texto) || String(texto || '').normalize('NFC').toLowerCase()
+    .replace(/[\s\p{Cf}\uFE0F]+/gu, '')
+    .replace(/(.{1,3}?)\1+/gu, '$1');
   if (!limpio) return null;
   return crypto.createHash('sha1').update(limpio).digest('base64').slice(0, 16);
+}
+
+// Lo que ya no puede formar parte de ninguna rafaga se va. Las claves se
+// reponen al final cada vez que se tocan, asi que las de delante son las mas
+// viejas: se barre desde el principio hasta la primera que sigue viva. Sin
+// esto, cada persona y cada copy se quedaban en memoria hasta el tope.
+function barrer(mapa, t) {
+  for (const [k, v] of mapa) {
+    if (t - v[v.length - 1].t < VENTANA_S) break;
+    mapa.delete(k);
+  }
 }
 
 // messageTimestamp viene en segundos, como numero o como Long de protobuf.
@@ -96,14 +139,66 @@ function anotar(grupo, jid, texto, ts) {
   const ultimo = Math.max(...lista.map((x) => x.t));
   const vivos = lista.filter((x) => ultimo - x.t < VENTANA_S).slice(-POR_PERSONA);
   const iguales = vivos.filter((x) => x.h === h);
+  recientes.delete(clave);
   if (iguales.length >= IGUALES) {
-    recientes.delete(clave);
     return { veces: iguales.length, desde: Math.min(...iguales.map((x) => x.t)) };
   }
-  if (!recientes.has(clave) && recientes.size >= MAX_CLAVES) {
-    recientes.delete(recientes.keys().next().value);
-  }
+  barrer(recientes, t);
+  if (recientes.size >= MAX_CLAVES) recientes.delete(recientes.keys().next().value);
   recientes.set(clave, vivos);
+  return null;
+}
+
+// ─── la cadena: el mismo copy, de varias personas ───────────────────────────
+//
+// Lo pidio el dueño (18 oct). Cada uno lo pega una vez y entre todos llenan el
+// grupo, y la regla de arriba no salta nunca porque cuenta por persona. Esta
+// salta con el mismo copy de 3 personas distintas en menos de 10 segundos, y a
+// cada una le toca lo mismo que si lo hubiera pegado cinco veces: aviso, y si
+// ya lo tenia, ban (o fuera el admin).
+//
+// SOLO CON COPYS DE VERDAD: 30 letras o mas. Por debajo estan «jajaja»,
+// «buenos dias» o «feliz cumple», que en un grupo lo escriben diez personas
+// seguidas sin que sea spam de nadie.
+const CADENA_PERSONAS = 3;
+const CADENA_LETRAS = 30;
+const cadenas = new Map();   // `${grupo}|${huella}` -> [{ t, quien, pn }]
+
+// La misma persona por su @lid y por su telefono es una, no dos. Cada una sale
+// con su forma canonica (el telefono, si se sabe) y todas las que se le
+// conocen, para mirar si es admin o dueño en la metadata.
+function personasDe(entradas) {
+  const personas = [];
+  for (const { quien, pn } of entradas) {
+    const formas = [...formasDe(quien), ...(pn ? formasDe(pn) : [])];
+    const ya = personas.find((p) => p.formas.some((f) => formas.includes(f)));
+    if (ya) { for (const f of formas) if (!ya.formas.includes(f)) ya.formas.push(f); continue; }
+    personas.push({ jid: formasDe(pn || quien)[0], formas: [...new Set(formas)] });
+  }
+  return personas;
+}
+
+// Devuelve null, o la cadena si con este mensaje la pegan ya 3 personas:
+// { personas: [{ jid, formas }], veces, desde }. Como la rafaga, se gasta al
+// saltar. `pn` es el telefono de quien escribe, si llega con su @lid.
+function anotarCadena(grupo, jid, texto, ts, pn = null) {
+  const t = segundosDe(ts);
+  // Se barre con cada mensaje, tambien los cortos, que son casi todos: si solo
+  // barriera un copy largo, los de ayer se quedarian hasta el siguiente.
+  barrer(cadenas, t);
+  const e = esencia(texto);
+  if (!grupo || !jid || e.replace(/\p{N}/gu, '').length < CADENA_LETRAS) return null;
+  const clave = `${grupo}|${huella(e)}`;
+  const lista = [...(cadenas.get(clave) || []), { t, quien: jid, pn }];
+  const ultimo = Math.max(...lista.map((x) => x.t));
+  const vivos = lista.filter((x) => ultimo - x.t < VENTANA_S).slice(-POR_PERSONA);
+  cadenas.delete(clave);
+  const personas = personasDe(vivos);
+  if (personas.length >= CADENA_PERSONAS) {
+    return { personas, veces: vivos.length, desde: Math.min(...vivos.map((x) => x.t)) };
+  }
+  if (cadenas.size >= MAX_CLAVES) cadenas.delete(cadenas.keys().next().value);
+  cadenas.set(clave, vivos);
   return null;
 }
 
@@ -220,6 +315,16 @@ function textoSinAdmin(grupo, jid) {
   return `*Aviso 2 de 2: fuera el admin*\n${frase}`;
 }
 
+// La cadena: un solo aviso con todos dentro, no un mensaje por cabeza.
+function textoCadena(grupo, jids, { cerrado = true, admins = false, reabre = false } = {}) {
+  const frase = pickFresh(CADENA_SPAM, `${grupo}|spam-cadena`);
+  const m = jids.map(mencion);
+  const lista = m.length > 1 ? `${m.slice(0, -1).join(', ')} y ${m[m.length - 1]}` : m[0];
+  const cierre = !cerrado ? '' : reabre ? `Grupo cerrado ${Math.round(REABRIR_MS / 1000)} segundos. ` : 'Grupo cerrado. ';
+  return `*Aviso 1 de 2*\n${lista}, el spam está prohibido, también en cadena. ${frase}\n`
+    + `${cierre}A la siguiente, ban${admins ? ', y a los admins, fuera el admin' : ''}.`;
+}
+
 // Solo se le usa de ejemplo si ha salido de verdad. Si no se le ha podido
 // echar, el grupo ve lo que SI ha pasado: la lista negra.
 function textoBan(grupo, jid, { fuera = true } = {}) {
@@ -230,12 +335,13 @@ function textoBan(grupo, jid, { fuera = true } = {}) {
 
 // Solo para pruebas.
 function _usarFichero(f) { FILE = f; store = null; loadPromise = null; }
-function _reset() { recientes.clear(); store = null; loadPromise = null; }
+function _reset() { recientes.clear(); cadenas.clear(); store = null; loadPromise = null; }
 function _usarEsperas({ reabrir } = {}) { esperaReabrir = reabrir ?? REABRIR_MS; }
 
 module.exports = {
-  anotar, sancion, avisosDe, textoAviso, textoBan, textoSinAdmin,
+  anotar, anotarCadena, sancion, avisosDe, textoAviso, textoBan, textoSinAdmin, textoCadena,
   apuntarReapertura, olvidarReapertura, reaperturasPendientes, esperaReapertura,
-  IGUALES, VENTANA_S, GRACIA_MS, AVISO_DURA_MS, REABRIR_MS,
-  _usarFichero, _reset, _usarEsperas, _file: () => FILE,
+  IGUALES, VENTANA_S, GRACIA_MS, AVISO_DURA_MS, REABRIR_MS, CADENA_PERSONAS, CADENA_LETRAS,
+  esencia, _usarFichero, _reset, _usarEsperas, _file: () => FILE,
+  _cuantasClaves: () => recientes.size + cadenas.size,
 };

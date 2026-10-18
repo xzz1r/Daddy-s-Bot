@@ -220,9 +220,22 @@ bot no puede actuar (sin admin, sin metadata del grupo), lo dice en el log.
   en vez del ban, y se quedan en el grupo de ejemplo con `ADMIN_SPAM`. Al
   creador del grupo no se le puede quitar: si falla, no se anuncia nada.
 
-«Iguales» es el mismo texto sin contar mayúsculas ni espacios. Solo cuenta el
-texto: stickers, fotos y vídeos tienen su regla, y un enlace repetido se lo
-queda el antilink. Solo se libra el tier dueño, y sin admin el bot no hace
+- **La cadena** (18 oct): el mismo copy de **3 personas distintas en menos de
+  10 segundos**, aunque cada una lo pegue una sola vez. A cada una le toca lo
+  que le tocaría sola (aviso, o la segunda si ya lo tenía), con el grupo
+  cerrado antes y **un solo aviso** que los nombra a todos, con `CADENA_SPAM`.
+  Solo con copys de 30 letras o más: «jajaja» o «buenos días» lo escriben diez
+  personas seguidas sin que sea spam. El tier dueño no cuenta: si el copy es
+  suyo y lo siguen dos, no salta.
+
+«Iguales» son **las mismas letras y números** (18 oct): no cuentan las
+mayúsculas, los espacios, las tildes, los emojis, los signos, el formato de
+WhatsApp, los caracteres invisibles, las letras de adorno (𝓱𝓸𝓵𝓪) ni las
+letras o sílabas repetidas («holaaaa», «jajajaja»). Antes bastaba con cambiar
+un emoji para que cinco copias fueran cinco mensajes distintos. Los números sí
+cuentan: una mención es un número, y sin ellos «!aura @uno» y «!aura @otro»
+eran el mismo mensaje. Un mensaje solo de emojis se compara entero. Solo cuenta el texto: stickers,
+fotos y vídeos tienen su regla, y un enlace repetido se lo queda el antilink. Solo se libra el tier dueño, y sin admin el bot no hace
 nada. Que el bot le quite el admin a alguien no lo deshacen ni el anti-admin
 ni el guardián: los dos se fían de lo que hace el bot.
 
@@ -230,8 +243,9 @@ La ráfaga se cuenta con la hora de cada mensaje, no con la de llegada: el lote
 de una reconexión trae minutos de conversación en un segundo. Lo que ya iba de
 camino cuando salió el aviso tampoco es la segunda: hay 15 s de margen. El aviso
 se guarda en `data/spamTexto.json`, **caduca a las 12 horas** (dueño, 18 oct) y
-se borra con el ban. El código
-está en `src/utils/spamTexto.js`; lo prueban las capas 111 y 125.
+se borra con el ban. Lo que ya no puede formar parte de ninguna ráfaga se borra
+de la memoria con cada mensaje. El código está en `src/utils/spamTexto.js`; lo
+prueban las capas 111 y 125.
 
 ---
 

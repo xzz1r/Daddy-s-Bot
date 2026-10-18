@@ -79,10 +79,16 @@ segundos cierran el grupo con un *Aviso 1 de 2*; a la segunda, ban. Eran más de
 10 y no saltaba nunca (18 oct).
 Los admins no se libran (18 oct): a la segunda se les quita el admin en vez del
 ban. Solo se libra el tier dueño. El aviso caduca a las 12 horas y el grupo se
-abre solo a los 20 segundos, si nadie lo ha abierto antes (18 oct). Los números, el margen y el orden (cerrar
-antes de avisar, echar antes de anunciar) viven en `src/utils/spamTexto.js` y en
-`castigarSpamTexto`. Las frases están en `src/data/spamPhrases.js`. La capa 125
-lo vigila. Ver `MOTOR.md`.
+abre solo a los 20 segundos, si nadie lo ha abierto antes (18 oct).
+
+«Iguales» son las mismas letras y números (18 oct): un emoji, un signo, una
+tilde o un invisible ya no hacen distinto un copy. Los números sí cuentan, que
+una mención es un número. Y la cadena: el mismo copy
+de 3 personas en menos de 10 segundos (30 letras o más) les da a todas lo que
+les tocaría solas, con un solo aviso (`CADENA_SPAM`). Los números, el margen y
+el orden (cerrar antes de avisar, echar antes de anunciar) viven en
+`src/utils/spamTexto.js`, `castigarSpamTexto` y `castigarCadena`. Las frases
+están en `src/data/spamPhrases.js`. La capa 125 lo vigila. Ver `MOTOR.md`.
 
 ## La peña activa se halaga, sin veneno
 
@@ -125,16 +131,40 @@ no junta.
 
 1. **`!caso @user` — HECHO.** Mensajes, aura y caja, robos de la semana,
    precio en la cabeza, veto de la tienda, objetivo del día y días en
-   silencio, con un veredicto que sale de esos datos. Los ships no salen:
-   `!ship` no guarda nada y no se inventa. Del dueño, silencio (capa 103).
+   silencio, con un veredicto que sale de esos datos. Los ships no salen en
+   el expediente. Del dueño, silencio (capa 103).
 2. **Memoria de rencor — HECHO.** `!mog`, `!duel`, `!robo` y `!ship` se
    acuerdan del cruce anterior entre esas dos personas y lo citan una vez al
-   día (utils/rencor.js). Solo texto, nada del tier dueño (capa 109).
-3. **Testamento al echar.** El aviso de kick ahora es plantilla. Debería
-   leer el expediente: mensajes, aura, a quién shippeaba.
-4. **`!cartel @user`.** pfp + recompensa en aura + último delito. Ya hay
-   indexer, phash y la estética Rockstar de la tienda.
-5. **`!circulo`.** Grafo de quién responde a quién. «Le hablas a tres y
-   los tres te dejan en visto» duele más que mil analogías.
+   día (utils/rencor.js). Guarda 60 días, también los ships. Solo texto, nada
+   del tier dueño (capa 109).
+3. **Testamento al echar — ELEGIDA POR EL DUEÑO, PENDIENTE.** Lo que hay que
+   hacer:
+   - **Cuándo:** solo en un `!kick` a una persona. Si echan a varios, el
+     aviso sigue como está.
+   - **El mensaje:** la frase de kick tal cual, con su @. Debajo, una sola
+     línea en cursiva, sin @ y con el nombre corto (`nombresCortos`). Nada
+     más.
+   - **Los datos**, leídos antes de echar, porque el aviso sale antes del
+     kick: mensajes (`getUserCount`), aura y caja (`getAura`, `verCaja`) y a
+     quién shippeaba (su último `!ship` en la memoria de rencor).
+   - **Lo que falta:** `rencorStore` no sabe buscar los ships de una persona.
+     Hace falta una función de lectura que los encuentre venga con su @lid o
+     con su teléfono (`utils/persona.js`). Sin ship, no se menciona.
+   - **El remate** sale de los datos (nunca escribió, rico o pobre con el
+     corte de 1.500 de `!aura`, ladrón). Pool nuevo en `kickPhrases.js`,
+     hablando a la persona, sin dar por hecho su género, de 90 caracteres
+     como mucho y sin apelativos nuevos.
+   - **No se cambia `avisoDeKick`:** las capas de kick lo llaman tal cual. El
+     testamento va en una función aparte que `cmdKick` añade al mensaje. Si
+     leer los datos falla o tarda, el aviso sale solo: el kick no espera.
+   - **Una capa nueva**, en sandbox: con una persona sale la línea y con
+     varias no, la frase llega intacta, la línea no lleva @, sin ship no sale
+     ningún nombre, y en el clon limpio de GitHub, con todo a cero, la línea
+     sigue teniendo sentido.
+   - **Antes de empujar:** `npm run frases` no sube del techo, `npm run
+     analogias` da 0 y `npm run ci` sale en verde.
+4. **`!cartel @user` — DESCARTADA** por el dueño.
+5. **`!circulo` — DESCARTADA** por el dueño.
 
-No las implementes de rebote. Si el dueño elige otra, esa y bien.
+No implementes nada de aquí que no esté elegido. Si el dueño elige otra, esa y
+bien.

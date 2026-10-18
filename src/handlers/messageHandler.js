@@ -429,24 +429,33 @@ async function castigarSpamTexto(sock, jid, sender, meta, rafaga, esAdmin = fals
   const toca = await spamTexto.sancion(jid, sender, rafaga.desde)
     .catch((e) => { logger.unaVez('spam de texto', e); return null; });
   if (!toca) return;
-  const num = sender.split('@')[0];
-  if (toca === 'ban' && esAdmin) {
-    const degradado = await aplicarAUno(sock, jid, sender, 'demote', meta);
+  if (toca === 'ban') { await segundaDeSpam(sock, jid, sender, meta, esAdmin); return; }
+  const { cerrado, reabre } = await cerrarPorSpam(sock, jid, `de +${sender.split('@')[0]}`);
+  await sock.sendMessage(jid, { text: spamTexto.textoAviso(jid, sender, { cerrado, admin: esAdmin, reabre }), mentions: [sender] }).catch(() => {});
+}
+
+// La segunda: ban y fuera, o fuera el admin. Se hace y DESPUES se dice.
+async function segundaDeSpam(sock, jid, quien, meta, esAdmin) {
+  const num = quien.split('@')[0];
+  if (esAdmin) {
+    const degradado = await aplicarAUno(sock, jid, quien, 'demote', meta);
     if (!degradado) {
       anotarTropiezo(`Spam de mensajes en ${jid} del admin +${num}: NO he podido quitarle el admin. Hazlo a mano.`);
       return;
     }
-    await sock.sendMessage(jid, { text: spamTexto.textoSinAdmin(jid, sender), mentions: [sender] }).catch(() => {});
+    await sock.sendMessage(jid, { text: spamTexto.textoSinAdmin(jid, quien), mentions: [quien] }).catch(() => {});
     return;
   }
-  if (toca === 'ban') {
-    await banAccount(allForms(sender, meta), `spam de mensajes repetidos en ${jid}`, 'auto')
-      .catch((e) => logger.unaVez('vetar por spam de texto', e));
-    const fuera = await expulsar(sock, jid, sender, meta);
-    if (!fuera) anotarTropiezo(`Spam de mensajes en ${jid} de +${num}: vetado pero NO expulsado. Hazlo a mano.`);
-    await sock.sendMessage(jid, { text: spamTexto.textoBan(jid, sender, { fuera }), mentions: [sender] }).catch(() => {});
-    return;
-  }
+  await banAccount(allForms(quien, meta), `spam de mensajes repetidos en ${jid}`, 'auto')
+    .catch((e) => logger.unaVez('vetar por spam de texto', e));
+  const fuera = await expulsar(sock, jid, quien, meta);
+  if (!fuera) anotarTropiezo(`Spam de mensajes en ${jid} de +${num}: vetado pero NO expulsado. Hazlo a mano.`);
+  await sock.sendMessage(jid, { text: spamTexto.textoBan(jid, quien, { fuera }), mentions: [quien] }).catch(() => {});
+}
+
+// Cierra el grupo y deja apuntado cuando se abre. Devuelve lo que se puede
+// decir: si se ha cerrado y si se va a abrir solo.
+async function cerrarPorSpam(sock, jid, deQuien) {
   // ¿ESTABA YA CERRADO? Se pregunta a WhatsApp, no a la cache: su `announce`
   // se queda viejo (abrir o cerrar no la invalida). Si lo cerro un admin, el
   // bot lo deja como estaba: solo reabre lo que cierra el.
@@ -459,16 +468,38 @@ async function castigarSpamTexto(sock, jid, sender, meta, rafaga, esAdmin = fals
     await withTimeout(sock.groupSettingUpdate(jid, 'announcement'), 10000);
     cerrado = true;
   } catch (e) {
-    anotarTropiezo(`Spam de mensajes en ${jid} de +${num}: NO he podido cerrar el grupo (${e?.message || e}).`);
+    anotarTropiezo(`Spam de mensajes en ${jid} ${deQuien}: NO he podido cerrar el grupo (${e?.message || e}).`);
   }
   // Y SE ABRE SOLO A LOS 20 SEGUNDOS (dueño, 18 oct). La reapertura se apunta
   // en disco: un reinicio en esos 20 segundos no puede dejar el grupo cerrado.
-  const reabre = cerrado && !yaCerrado;
-  if (reabre) {
+  // Si ya estaba cerrado por otro spam de hace un momento, se abre con el
+  // temporizador que ya corre, y eso tambien se dice.
+  if (cerrado && !yaCerrado) {
     await spamTexto.apuntarReapertura(jid, Date.now() + spamTexto.esperaReapertura()).catch(() => {});
     programarReapertura(sock, jid, spamTexto.esperaReapertura());
   }
-  await sock.sendMessage(jid, { text: spamTexto.textoAviso(jid, sender, { cerrado, admin: esAdmin, reabre }), mentions: [sender] }).catch(() => {});
+  return { cerrado, reabre: cerrado && reaperturas.has(jid) };
+}
+
+// LA CADENA: el mismo copy, de varias personas (dueño, 18 oct). A cada una le
+// toca lo que le tocaria sola: aviso, o la segunda si ya lo tenia. El grupo se
+// cierra antes de nada, y un solo aviso los nombra a todos. Las segundas salen
+// detras, cada una con lo suyo y despues de hacerlo.
+async function castigarCadena(sock, jid, meta, culpables, cadena) {
+  const tocas = [];
+  for (const p of culpables) {
+    const toca = await spamTexto.sancion(jid, p.jid, cadena.desde)
+      .catch((e) => { logger.unaVez('cadena de spam', e); return null; });
+    if (toca) tocas.push({ ...p, toca, esAdmin: p.formas.some((f) => isAdmin(meta.participants, f)) });
+  }
+  const avisos = tocas.filter((x) => x.toca === 'aviso');
+  const cierre = avisos.length ? await cerrarPorSpam(sock, jid, `(cadena de ${culpables.length})`) : null;
+  for (const x of tocas.filter((y) => y.toca === 'ban')) await segundaDeSpam(sock, jid, x.jid, meta, x.esAdmin);
+  if (!avisos.length) return;
+  const texto = avisos.length === 1
+    ? spamTexto.textoAviso(jid, avisos[0].jid, { ...cierre, admin: avisos[0].esAdmin })
+    : spamTexto.textoCadena(jid, avisos.map((x) => x.jid), { ...cierre, admins: avisos.some((x) => x.esAdmin) });
+  await sock.sendMessage(jid, { text: texto, mentions: avisos.map((x) => x.jid) }).catch(() => {});
 }
 
 // EL GRUPO QUE CERRO EL SPAM, SE ABRE SOLO. A la hora se mira el estado DE
@@ -2460,6 +2491,26 @@ async function handleMessage(sock, msg, opciones = {}) {
           || Boolean(senderPn && isAdmin(meta.participants, senderPn));
         await castigarSpamTexto(sock, jid, sender, meta, rafaga, esAdmin);
         return;
+      }
+    }
+
+    // Y LA CADENA (18 oct): el mismo copy de varias personas. El tier dueño
+    // no cuenta: si el copy es suyo y lo siguen dos, no es una cadena de spam.
+    const cadena = rafaga ? null : spamTexto.anotarCadena(jid, sender, textoCrudo, msg.messageTimestamp, senderPn);
+    if (cadena) {
+      const meta = await getGroupMeta(sock, jid);
+      if (!meta) {
+        anotarTropiezo(`Cadena de spam en ${jid}: sin metadata del grupo, no hago nada.`);
+      } else {
+        const culpables = cadena.personas.filter((p) => !p.formas.some((f) => isOwner(f, false, meta)));
+        if (culpables.length < spamTexto.CADENA_PERSONAS) {
+          logger.info(`cadena de spam en ${jid} con el tier dueño dentro: no se toca`);
+        } else if (!isBotAdmin(sock, meta)) {
+          anotarTropiezo(`Cadena de spam en ${jid} (${culpables.length} personas) y NO soy admin: no puedo cerrar el grupo ni echar a nadie. Dame admin.`);
+        } else {
+          await castigarCadena(sock, jid, meta, culpables, cadena);
+          return;
+        }
       }
     }
   }
