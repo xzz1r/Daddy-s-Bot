@@ -5,7 +5,9 @@
 // Lo pidio el dueño (17 oct): «la peña del grupo envia copys y hace spam
 // exagerado con esas mierdas que consideran graciosas». La regla es suya:
 //
-//   · Mas de 10 mensajes iguales del mismo numero en menos de 10 segundos.
+//   · 5 mensajes iguales del mismo numero en menos de 10 segundos. Eran mas
+//     de 10 y no saltaba nunca: nadie pega once veces lo mismo en diez
+//     segundos (el dueño, 18 oct).
 //   · La primera vez el bot cierra el grupo y avisa: *Aviso 1 de 2*.
 //   · La segunda, ban: lista negra y fuera del grupo.
 //   · Los admins tambien (18 oct), pero a la segunda no se les banea: se les
@@ -32,10 +34,10 @@ const { atomicWriteJson, readJsonOrEnoent, pickFresh } = require('./helpers');
 const logger = require('./logger');
 const { AVISO_SPAM, BAN_SPAM, ADMIN_SPAM } = require('../data/spamPhrases');
 
-// «Mas de 10»: salta con el undecimo. «En menos de 10 segundos»: del primero
-// al ultimo de los iguales van como mucho 9 segundos enteros, que es lo que
-// da la marca de WhatsApp (va en segundos).
-const IGUALES = 10;
+// Salta con el QUINTO igual. «En menos de 10 segundos»: del primero al ultimo
+// de los iguales van como mucho 9 segundos enteros, que es lo que da la marca
+// de WhatsApp (va en segundos).
+const IGUALES = 5;
 const VENTANA_S = 10;
 
 // LO QUE YA IBA DE CAMINO NO ES UNA SEGUNDA RAFAGA. Quien pega treinta seguidas
@@ -45,7 +47,7 @@ const VENTANA_S = 10;
 const GRACIA_MS = 30 * 1000;
 
 // Lo que se recuerda de cada persona: los ultimos mensajes de la ventana. Con
-// once iguales basta; sesenta cubre a quien los mezcla con otros.
+// cinco iguales basta; sesenta cubre a quien los mezcla con otros.
 const POR_PERSONA = 60;
 const MAX_CLAVES = 5000;
 
@@ -78,7 +80,7 @@ function anotar(grupo, jid, texto, ts) {
   const ultimo = Math.max(...lista.map((x) => x.t));
   const vivos = lista.filter((x) => ultimo - x.t < VENTANA_S).slice(-POR_PERSONA);
   const iguales = vivos.filter((x) => x.h === h);
-  if (iguales.length > IGUALES) {
+  if (iguales.length >= IGUALES) {
     recientes.delete(clave);
     return { veces: iguales.length, desde: Math.min(...iguales.map((x) => x.t)) };
   }

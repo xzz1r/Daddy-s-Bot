@@ -177,8 +177,10 @@ detecta» se leían igual desde fuera y tienen arreglos opuestos.
 
 ## El spam de texto
 
-Lo pidió el dueño (17 oct): más de 10 mensajes iguales del mismo número en
-menos de 10 segundos.
+Lo pidió el dueño (17 oct): 5 mensajes iguales del mismo número en menos de 10
+segundos. Eran más de 10 y no saltaba nunca, porque nadie pega once veces lo
+mismo en diez segundos: el dueño lo bajó a 5 el 18 oct. Cuando hay ráfaga y el
+bot no puede actuar (sin admin, sin metadata del grupo), lo dice en el log.
 
 - **La primera vez** el bot cierra el grupo (solo escriben los admins) y después
   avisa, con *Aviso 1 de 2* en negrita: el spam está prohibido, y una frase de

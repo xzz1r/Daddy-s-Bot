@@ -1,7 +1,7 @@
 // Spam de texto: la misma frase pegada una y otra vez.
 //
 // Lo pidió el dueño (17 oct): la gente manda copys en bucle porque se cree que
-// tienen gracia. Más de 10 mensajes iguales en menos de 10 segundos y el bot
+// tienen gracia. 5 mensajes iguales en menos de 10 segundos y el bot
 // cierra el grupo con un *Aviso 1 de 2*; a la segunda, ban. Las cuentas viven
 // en src/utils/spamTexto.js.
 //

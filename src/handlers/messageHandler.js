@@ -2380,9 +2380,14 @@ async function handleMessage(sock, msg, opciones = {}) {
 
   // ─── SPAM DE TEXTO: EL MISMO MENSAJE, UNA Y OTRA VEZ ─────────────────────
   //
-  // Lo pidio el dueño (17 oct): mas de 10 mensajes iguales del mismo numero en
-  // menos de 10 segundos. La primera vez se cierra el grupo con un *Aviso 1 de
-  // 2*; la segunda, ban. Las cuentas, en utils/spamTexto.js.
+  // Lo pidio el dueño (17 oct): 5 mensajes iguales del mismo numero en menos
+  // de 10 segundos (eran mas de 10 y no saltaba nunca). La primera vez se
+  // cierra el grupo con un *Aviso 1 de 2*; la segunda, ban. Las cuentas, en
+  // utils/spamTexto.js.
+  //
+  // Y SI HAY RAFAGA Y NO SE HACE NADA, SE DICE EN EL LOG. «No salta» se lee
+  // igual desde el grupo si el bot no la ha visto que si la ha visto y no ha
+  // podido actuar (sin admin, sin metadata), y los arreglos son opuestos.
   //
   // Y LOS ADMINS NO SE LIBRAN (18 oct), al reves que en el resto de la
   // moderacion automatica: pasan por el mismo aviso y a la segunda pierden el
@@ -2397,7 +2402,14 @@ async function handleMessage(sock, msg, opciones = {}) {
     const rafaga = spamTexto.anotar(jid, sender, textoCrudo, msg.messageTimestamp);
     if (rafaga) {
       const meta = await getGroupMeta(sock, jid);
-      if (meta && !esOwnerDelMensaje(msg, sender, senderPn, meta) && isBotAdmin(sock, meta)) {
+      const numR = sender.split('@')[0];
+      if (!meta) {
+        anotarTropiezo(`Spam de mensajes en ${jid} de +${numR}: sin metadata del grupo, no hago nada.`);
+      } else if (esOwnerDelMensaje(msg, sender, senderPn, meta)) {
+        logger.info(`spam de mensajes en ${jid} del tier dueño: no se toca`);
+      } else if (!isBotAdmin(sock, meta)) {
+        anotarTropiezo(`Spam de mensajes en ${jid} de +${numR} y NO soy admin: no puedo cerrar el grupo ni echar a nadie. Dame admin.`);
+      } else {
         const esAdmin = isAdmin(meta.participants, sender)
           || Boolean(senderPn && isAdmin(meta.participants, senderPn));
         await castigarSpamTexto(sock, jid, sender, meta, rafaga, esAdmin);

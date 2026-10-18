@@ -20149,7 +20149,7 @@ const manda = async (quien, tipo, opciones) => {
 
     // ── 10b. El spam de texto: la ráfaga y el aviso ──────────────────────
     //
-    // Seis con el @lid y cinco con el teléfono son once, y quien fue avisado
+    // Tres con el @lid y dos con el teléfono son los cinco, y quien fue avisado
     // con el @lid tiene que llevarse el ban cuando vuelve por el teléfono: si
     // no, cada forma suya tiene su propio aviso y el ban no llega nunca. El
     // aviso va a un fichero de prueba: el de verdad lo está usando el bot.
@@ -20163,10 +20163,11 @@ const manda = async (quien, tipo, opciones) => {
         {
           const { L, T } = persona();
           let r = null;
-          for (let i = 0; i < 6; i++) r = ST.anotar(G, L, 'el mismo copy', desde) || r;
+          const N = ST.IGUALES, conLid = N - 2;
+          for (let i = 0; i < conLid; i++) r = ST.anotar(G, L, 'el mismo copy', desde) || r;
           WA.rememberMapping(L, T);
-          for (let i = 0; i < 5; i++) r = ST.anotar(G, T, 'el mismo copy', desde) || r;
-          exige(r && r.veces === 11, `6 mensajes iguales con el @lid y 5 con el telefono no hacen la rafaga de 11 (${JSON.stringify(r)})`);
+          for (let i = 0; i < 2; i++) r = ST.anotar(G, T, 'el mismo copy', desde) || r;
+          exige(r && r.veces === N, `${conLid} mensajes iguales con el @lid y 2 con el telefono no hacen la rafaga de ${N} (${JSON.stringify(r)})`);
         }
         {
           const { L, T } = persona();
@@ -21319,8 +21320,8 @@ const MB = 1048576;
   // (O FUERA EL ADMIN: los admins no se libran, 18 oct.)
   //
   // Lo pidio el dueño (17 oct): la gente pega el mismo copy en bucle porque se
-  // cree que tiene gracia. Mas de 10 mensajes iguales del mismo numero en menos
-  // de 10 segundos: la primera vez se cierra el grupo con un *Aviso 1 de 2*, la
+  // cree que tiene gracia. 5 mensajes iguales del mismo numero en menos de 10
+  // segundos (eran mas de 10 y no saltaba nunca, 18 oct): la primera vez se cierra el grupo con un *Aviso 1 de 2*, la
   // segunda es ban, y el aviso del ban usa a esa persona de ejemplo.
   //
   // Se prueba con el manejador de verdad, en una copia del bot con su propio
@@ -21383,22 +21384,26 @@ const manda = async (G, quien, texto, ts, o = {}) => {
   return ev;
 };
 const textos = (ev) => ev.filter((e) => e.tipo === 'texto');
+// Lo que hace falta para que salte. Las pruebas cuentan con el umbral de
+// verdad: si el dueño lo vuelve a mover, se mueven con él.
+const N = ST.IGUALES;
 
 (async () => {
   const t0 = Math.floor(Date.now() / 1000);
 
-  // 1. Diez iguales no son nada: la regla es MAS de diez.
+  // 1. Uno menos del umbral no es nada.
+  ok(N === 5, 'el spam de texto ya no salta con 5 iguales (salta con ' + N + '): es lo que pidió el dueño');
   {
     const G = nuevoGrupo(), A = '346000125001@s.whatsapp.net', ev = [];
-    for (let i = 0; i < 10; i++) await manda(G, A, 'el copy de siempre', t0, { ev });
-    ok(!ev.length, 'con 10 mensajes iguales ya actúa, y la regla es MÁS de 10: ' + JSON.stringify(ev));
+    for (let i = 0; i < N - 1; i++) await manda(G, A, 'el copy de siempre', t0, { ev });
+    ok(!ev.length, 'con ' + (N - 1) + ' mensajes iguales ya actúa, y salta con el ' + N + '.º: ' + JSON.stringify(ev));
 
-    // 2. El undecimo: se cierra el grupo y DESPUES se avisa.
+    // 2. El que llega al umbral: se cierra el grupo y DESPUES se avisa.
     await manda(G, A, 'el copy de siempre', t0 + 1, { ev });
     const iCierre = ev.findIndex((e) => e.tipo === 'ajuste' && e.valor === 'announcement');
     const iAviso = ev.findIndex((e) => e.tipo === 'texto');
-    ok(iCierre >= 0, 'con 11 iguales en un segundo no se cierra el grupo');
-    ok(iAviso >= 0, 'con 11 iguales en un segundo no sale el aviso');
+    ok(iCierre >= 0, 'con ' + N + ' iguales en un segundo no se cierra el grupo');
+    ok(iAviso >= 0, 'con ' + N + ' iguales en un segundo no sale el aviso');
     ok(iCierre < 0 || iAviso < 0 || iAviso > iCierre, 'el aviso sale antes de cerrar el grupo: la ráfaga sigue mientras se avisa');
     const aviso = iAviso >= 0 ? ev[iAviso] : { texto: '', menciones: [] };
     ok(/^\*Aviso 1 de 2\*\n/.test(aviso.texto), 'el aviso no abre con *Aviso 1 de 2* en negrita: ' + aviso.texto);
@@ -21415,7 +21420,7 @@ const textos = (ev) => ev.filter((e) => e.tipo === 'texto');
 
     // 4. La segunda de verdad: lista negra, fuera, y de ejemplo.
     const t1 = t0 + Math.ceil(ST.GRACIA_MS / 1000) + 60;
-    for (let i = 0; i < 11; i++) await manda(G, A, 'otro copy', t1, { ev });
+    for (let i = 0; i < N; i++) await manda(G, A, 'otro copy', t1, { ev });
     const fuera = ev.filter((e) => e.tipo === 'fuera');
     ok(fuera.length === 1 && WA.sameUser(fuera[0].quien, A) && fuera[0].accion === 'remove',
       'a la segunda ráfaga no se le echa: ' + JSON.stringify(fuera));
@@ -21433,12 +21438,14 @@ const textos = (ev) => ev.filter((e) => e.tipo === 'texto');
   // 5. «En menos de 10 segundos»: del primero al último, 10 ya no; 9 sí.
   {
     const A = '346000125002@s.whatsapp.net';
+    // Los N repartidos de forma que del primero al último vayan 10 segundos.
+    const marcas = Array.from({ length: N }, (_, i) => Math.round((i * 10) / (N - 1)));
     const G = nuevoGrupo(), ev = [];
-    for (let i = 0; i <= 10; i++) await manda(G, A, 'jajaja', t0 + i, { ev });
-    ok(!textos(ev).length, '11 iguales en 10 segundos justos ya actúan: la regla es en MENOS de 10');
+    for (const s of marcas) await manda(G, A, 'jajaja', t0 + s, { ev });
+    ok(!textos(ev).length, N + ' iguales en 10 segundos justos ya actúan: la regla es en MENOS de 10');
     const G2 = nuevoGrupo(), ev2 = [];
-    for (let i = 0; i <= 10; i++) await manda(G2, A, 'jajaja', t0 + Math.min(i, 9), { ev: ev2 });
-    ok(textos(ev2).length === 1, '11 iguales en 9 segundos no actúan');
+    for (const s of marcas) await manda(G2, A, 'jajaja', t0 + Math.min(s, 9), { ev: ev2 });
+    ok(textos(ev2).length === 1, N + ' iguales en 9 segundos no actúan');
   }
 
   // 6. Distintos no cuentan; las mayúsculas y los espacios no los hacen distintos.
@@ -21448,7 +21455,7 @@ const textos = (ev) => ev.filter((e) => e.tipo === 'texto');
     for (let i = 0; i < 15; i++) await manda(G, A, 'mensaje número ' + i, t0, { ev });
     ok(!ev.length, 'quince mensajes distintos en un segundo se cuentan como iguales');
     const G2 = nuevoGrupo(), ev2 = [];
-    for (let i = 0; i < 11; i++) await manda(G2, A, i % 2 ? 'JAJA  el copy' : ' jaja el copy', t0, { ev: ev2 });
+    for (let i = 0; i < N; i++) await manda(G2, A, i % 2 ? 'JAJA  el copy' : ' jaja el copy', t0, { ev: ev2 });
     ok(textos(ev2).length === 1, 'el mismo copy con otras mayúsculas o espacios se cuenta como mensajes distintos');
   }
 
@@ -21469,13 +21476,13 @@ const textos = (ev) => ev.filter((e) => e.tipo === 'texto');
   //     admin. Ni ban ni lista negra: se queda en el grupo, de ejemplo.
   {
     const A = '346000125004@s.whatsapp.net', G = nuevoGrupo(), ev = [];
-    for (let i = 0; i < 11; i++) await manda(G, A, 'spam de admin', t0, { admin: true, ev });
+    for (let i = 0; i < N; i++) await manda(G, A, 'spam de admin', t0, { admin: true, ev });
     ok(ev.some((e) => e.tipo === 'ajuste' && e.valor === 'announcement'), 'con un admin spameando no se cierra el grupo: los admins están exentos');
     const aviso = textos(ev)[0] || { texto: '' };
     ok(/^\*Aviso 1 de 2\*\n/.test(aviso.texto) && /A la siguiente, fuera el admin\.$/.test(aviso.texto),
       'al admin no se le avisa de que a la siguiente pierde el admin: ' + aviso.texto);
     const t1 = t0 + Math.ceil(ST.GRACIA_MS / 1000) + 60;
-    for (let i = 0; i < 11; i++) await manda(G, A, 'spam de admin', t1, { admin: true, ev });
+    for (let i = 0; i < N; i++) await manda(G, A, 'spam de admin', t1, { admin: true, ev });
     const rango = ev.filter((e) => e.tipo === 'rango');
     ok(rango.length === 1 && rango[0].accion === 'demote' && WA.sameUser(rango[0].quien, A),
       'a la segunda no se le quita el admin: ' + JSON.stringify(rango));
@@ -21491,8 +21498,8 @@ const textos = (ev) => ev.filter((e) => e.tipo === 'texto');
     // Y si no se le puede quitar (al creador del grupo no se lo quita nadie),
     // el grupo no lee que se le ha quitado.
     const B = '346000125010@s.whatsapp.net', G2 = nuevoGrupo(), ev2 = [];
-    for (let i = 0; i < 11; i++) await manda(G2, B, 'spam del creador', t0, { admin: true, ev: ev2 });
-    for (let i = 0; i < 11; i++) await manda(G2, B, 'spam del creador', t1, { admin: true, rangoFalla: true, ev: ev2 });
+    for (let i = 0; i < N; i++) await manda(G2, B, 'spam del creador', t0, { admin: true, ev: ev2 });
+    for (let i = 0; i < N; i++) await manda(G2, B, 'spam del creador', t1, { admin: true, rangoFalla: true, ev: ev2 });
     ok(!textos(ev2).some((e) => /Aviso 2 de 2/.test(e.texto)),
       'no se le ha podido quitar el admin y el grupo lee que sí: ' + JSON.stringify(textos(ev2).map((e) => e.texto)));
   }
@@ -21501,12 +21508,12 @@ const textos = (ev) => ev.filter((e) => e.tipo === 'texto');
   //    kick no se le usa de ejemplo.
   {
     const A = '346000125006@s.whatsapp.net', G = nuevoGrupo(), ev = [];
-    for (let i = 0; i < 11; i++) await manda(G, A, 'copy', t0, { ev, cierraFalla: true });
+    for (let i = 0; i < N; i++) await manda(G, A, 'copy', t0, { ev, cierraFalla: true });
     const aviso = textos(ev)[0] || { texto: '' };
     ok(/^\*Aviso 1 de 2\*/.test(aviso.texto) && !/cerrado/i.test(aviso.texto) && /A la siguiente, ban\.$/.test(aviso.texto),
       'el grupo no se ha podido cerrar y el aviso dice otra cosa: ' + aviso.texto);
     const t1 = t0 + Math.ceil(ST.GRACIA_MS / 1000) + 60;
-    for (let i = 0; i < 11; i++) await manda(G, A, 'copy', t1, { ev, echaFalla: true });
+    for (let i = 0; i < N; i++) await manda(G, A, 'copy', t1, { ev, echaFalla: true });
     const ban = textos(ev).pop() || { texto: '' };
     ok(/^\*Aviso 2 de 2: ban\*\n@346000125006 a la lista negra por spam de mensajes\.$/.test(ban.texto),
       'no se le ha podido echar y el aviso le usa de ejemplo como si se hubiera ido: ' + ban.texto);
@@ -21517,20 +21524,21 @@ const textos = (ev) => ev.filter((e) => e.tipo === 'texto');
   {
     const A = '346000125007@s.whatsapp.net';
     const G = nuevoGrupo(), ev = [];
-    for (let i = 0; i < 11; i++) await manda(G, A, 'buenos días', t0 - 300 + i * 30, { ev, diferido: true });
+    for (let i = 0; i < N; i++) await manda(G, A, 'buenos días', t0 - 300 + i * 30, { ev, diferido: true });
     ok(!ev.length, 'el lote de la reconexión se cuenta por la hora de llegada: once mensajes de cinco minutos hacen una ráfaga que nadie ha hecho');
     const G2 = nuevoGrupo(), ev2 = [];
-    for (let i = 0; i < 11; i++) await manda(G2, A, 'copy', t0 - 60, { ev: ev2, diferido: true });
+    for (let i = 0; i < N; i++) await manda(G2, A, 'copy', t0 - 60, { ev: ev2, diferido: true });
     ok(textos(ev2).length === 1, 'una ráfaga que llega en el lote de la reconexión se escapa');
   }
 
   // 10. La misma persona por su @lid y por su teléfono es una sola ráfaga.
   {
     const L = '125000125000008@lid', T = '346000125008@s.whatsapp.net', G = nuevoGrupo(), ev = [];
-    for (let i = 0; i < 6; i++) await manda(G, L, 'copy partido', t0, { ev });
+    const conLid = Math.ceil(N / 2);
+    for (let i = 0; i < conLid; i++) await manda(G, L, 'copy partido', t0, { ev });
     WA.rememberMapping(L, T);
-    for (let i = 0; i < 5; i++) await manda(G, T, 'copy partido', t0, { ev });
-    ok(textos(ev).length === 1, '6 con el @lid y 5 con el teléfono no hacen ráfaga: la persona se parte en dos');
+    for (let i = 0; i < N - conLid; i++) await manda(G, T, 'copy partido', t0, { ev });
+    ok(textos(ev).length === 1, conLid + ' con el @lid y ' + (N - conLid) + ' con el teléfono no hacen ráfaga: la persona se parte en dos');
   }
 
   // 11. El aviso sobrevive a un reinicio.
@@ -21576,7 +21584,7 @@ const textos = (ev) => ev.filter((e) => e.tipo === 'texto');
     } finally {
       fs.rmSync(dir125, { recursive: true, force: true });
     }
-    if (fallos === antes125) console.log(verde('   ✓ más de 10 iguales en menos de 10 s: grupo cerrado y aviso; a la segunda, ban, o fuera el admin si lo es, y de ejemplo'));
+    if (fallos === antes125) console.log(verde('   ✓ 5 iguales en menos de 10 s: grupo cerrado y aviso; a la segunda, ban, o fuera el admin si lo es, y de ejemplo'));
   }
 
   // ── 126. LA PEÑA ACTIVA SE HALAGA, SIN VENENO DETRÁS ─────────────────────
