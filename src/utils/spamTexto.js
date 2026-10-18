@@ -8,6 +8,8 @@
 //   · Mas de 10 mensajes iguales del mismo numero en menos de 10 segundos.
 //   · La primera vez el bot cierra el grupo y avisa: *Aviso 1 de 2*.
 //   · La segunda, ban: lista negra y fuera del grupo.
+//   · Los admins tambien (18 oct), pero a la segunda no se les banea: se les
+//     quita el admin. Solo se libra el tier dueño.
 //
 // Dos piezas, y ninguna puede vivir donde vive la otra:
 //
@@ -28,7 +30,7 @@ const crypto = require('crypto');
 const { juntarPersona, clavesMapa, juntarEnMapa, esObjeto } = require('./persona');
 const { atomicWriteJson, readJsonOrEnoent, pickFresh } = require('./helpers');
 const logger = require('./logger');
-const { AVISO_SPAM, BAN_SPAM } = require('../data/spamPhrases');
+const { AVISO_SPAM, BAN_SPAM, ADMIN_SPAM } = require('../data/spamPhrases');
 
 // «Mas de 10»: salta con el undecimo. «En menos de 10 segundos»: del primero
 // al ultimo de los iguales van como mucho 9 segundos enteros, que es lo que
@@ -157,11 +159,17 @@ async function avisosDe(grupo, jid) {
 const mencion = (jid) => `@${String(jid).split('@')[0]}`;
 
 // El grupo se cierra ANTES de avisar. Si no se ha podido cerrar, no se dice
-// que esta cerrado.
-function textoAviso(grupo, jid, { cerrado = true } = {}) {
+// que esta cerrado. A un admin se le dice lo que le toca a el: el admin.
+function textoAviso(grupo, jid, { cerrado = true, admin = false } = {}) {
   const frase = pickFresh(AVISO_SPAM, `${grupo}|spam-aviso`);
   return `*Aviso 1 de 2*\n${mencion(jid)}, el spam está prohibido. ${frase}\n`
-    + `${cerrado ? 'Grupo cerrado. ' : ''}A la siguiente, ban.`;
+    + `${cerrado ? 'Grupo cerrado. ' : ''}A la siguiente, ${admin ? 'fuera el admin' : 'ban'}.`;
+}
+
+// La segunda de un admin: se queda en el grupo, sin admin, y de ejemplo.
+function textoSinAdmin(grupo, jid) {
+  const frase = pickFresh(ADMIN_SPAM, `${grupo}|spam-admin`).replace(/%M/g, mencion(jid));
+  return `*Aviso 2 de 2: fuera el admin*\n${frase}`;
 }
 
 // Solo se le usa de ejemplo si ha salido de verdad. Si no se le ha podido
@@ -177,7 +185,7 @@ function _usarFichero(f) { FILE = f; store = null; loadPromise = null; }
 function _reset() { recientes.clear(); store = null; loadPromise = null; }
 
 module.exports = {
-  anotar, sancion, avisosDe, textoAviso, textoBan,
+  anotar, sancion, avisosDe, textoAviso, textoBan, textoSinAdmin,
   IGUALES, VENTANA_S, GRACIA_MS,
   _usarFichero, _reset, _file: () => FILE,
 };

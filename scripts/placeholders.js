@@ -69,8 +69,9 @@ const CONTRATO = {
   // La memoria de rencor. %A gana (o roba), %V pierde (o le roban), %D cuando
   // fue la vez anterior, %C la cifra de entonces, %N cuantas seguidas.
   'src/data/rencorPhrases.js':     { permite: ['%A', '%V', '%D', '%C', '%N'],  sustituye: 'src/utils/rencor.js' },
-  // El ban por spam de texto. %M es la mención de quien se va; solo lo lleva
-  // BAN_SPAM. AVISO_SPAM va sin huecos: la mención la pone la línea de antes.
+  // El spam de texto. %M es la mención de quien se va (BAN_SPAM) o de quien
+  // pierde el admin (ADMIN_SPAM). AVISO_SPAM va sin huecos: la mención la pone
+  // la línea de antes.
   'src/data/spamPhrases.js':       { permite: ['%M'],                          sustituye: 'src/utils/spamTexto.js' },
 };
 

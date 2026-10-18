@@ -21316,6 +21316,8 @@ const MB = 1048576;
 
   // ── 125. EL SPAM DE TEXTO: AVISO CON EL GRUPO CERRADO, Y A LA SEGUNDA BAN ──
   //
+  // (O FUERA EL ADMIN: los admins no se libran, 18 oct.)
+  //
   // Lo pidio el dueño (17 oct): la gente pega el mismo copy en bucle porque se
   // cree que tiene gracia. Mas de 10 mensajes iguales del mismo numero en menos
   // de 10 segundos: la primera vez se cierra el grupo con un *Aviso 1 de 2*, la
@@ -21324,7 +21326,7 @@ const MB = 1048576;
   // Se prueba con el manejador de verdad, en una copia del bot con su propio
   // data/: el ban escribe en la lista negra, y la lista negra es global.
   {
-    console.log('\n125. EL SPAM DE TEXTO: AVISO CON EL GRUPO CERRADO, Y A LA SEGUNDA BAN');
+    console.log('\n125. EL SPAM DE TEXTO: AVISO CON EL GRUPO CERRADO, Y A LA SEGUNDA BAN O FUERA EL ADMIN');
     const antes125 = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
     const guion = String.raw`
@@ -21341,7 +21343,7 @@ const { handleMessage } = require(path.join(ROOT, 'src/handlers/messageHandler')
 const ST = require(path.join(ROOT, 'src/utils/spamTexto'));
 const WA = require(path.join(ROOT, 'src/utils/wa'));
 const BL = require(path.join(ROOT, 'src/utils/banlist'));
-const { AVISO_SPAM, BAN_SPAM } = require(path.join(ROOT, 'src/data/spamPhrases'));
+const { AVISO_SPAM, BAN_SPAM, ADMIN_SPAM } = require(path.join(ROOT, 'src/data/spamPhrases'));
 const quejas = [];
 const ok = (c, t) => { if (!c) quejas.push(t); };
 const BOT = '549125@s.whatsapp.net';
@@ -21362,8 +21364,9 @@ const manda = async (G, quien, texto, ts, o = {}) => {
     groupMetadata: async () => ({ id: G, subject: 'G', participants: [
       { id: quien, admin: o.admin ? 'admin' : null }, { id: BOT, admin: o.botSinAdmin ? null : 'admin' }] }),
     groupParticipantsUpdate: async (g, ids, accion) => {
-      for (const j of ids) ev.push({ tipo: 'fuera', quien: j, accion });
-      return ids.map((j) => ({ jid: j, status: o.echaFalla ? '403' : '200' }));
+      const falla = accion === 'remove' ? o.echaFalla : o.rangoFalla;
+      for (const j of ids) if (!falla) ev.push({ tipo: accion === 'remove' ? 'fuera' : 'rango', quien: j, accion });
+      return ids.map((j) => ({ jid: j, status: falla ? '403' : '200' }));
     },
     groupSettingUpdate: async (g, valor) => {
       if (o.cierraFalla) throw new Error('not-authorized');
@@ -21449,10 +21452,9 @@ const textos = (ev) => ev.filter((e) => e.tipo === 'texto');
     ok(textos(ev2).length === 1, 'el mismo copy con otras mayúsculas o espacios se cuenta como mensajes distintos');
   }
 
-  // 7. Admins, tier dueño y bot sin admin: ni se cierra ni se avisa ni se echa.
+  // 7. El tier dueño y el bot sin admin: ni se cierra ni se avisa ni se echa.
   {
     const casos = [
-      ['un admin', '346000125004@s.whatsapp.net', { admin: true }],
       ['el dueño', '346000125000@s.whatsapp.net', {}],
       ['alguien con el bot sin admin', '346000125005@s.whatsapp.net', { botSinAdmin: true }],
     ];
@@ -21461,6 +21463,38 @@ const textos = (ev) => ev.filter((e) => e.tipo === 'texto');
       for (let i = 0; i < 12; i++) await manda(G, A, 'spam protegido', t0, { ...o, ev });
       ok(!ev.length, 'con ' + quien + ' spameando, el bot actúa: ' + JSON.stringify(ev));
     }
+  }
+
+  // 7b. UN ADMIN NO SE LIBRA (18 oct): el mismo aviso, y a la segunda pierde el
+  //     admin. Ni ban ni lista negra: se queda en el grupo, de ejemplo.
+  {
+    const A = '346000125004@s.whatsapp.net', G = nuevoGrupo(), ev = [];
+    for (let i = 0; i < 11; i++) await manda(G, A, 'spam de admin', t0, { admin: true, ev });
+    ok(ev.some((e) => e.tipo === 'ajuste' && e.valor === 'announcement'), 'con un admin spameando no se cierra el grupo: los admins están exentos');
+    const aviso = textos(ev)[0] || { texto: '' };
+    ok(/^\*Aviso 1 de 2\*\n/.test(aviso.texto) && /A la siguiente, fuera el admin\.$/.test(aviso.texto),
+      'al admin no se le avisa de que a la siguiente pierde el admin: ' + aviso.texto);
+    const t1 = t0 + Math.ceil(ST.GRACIA_MS / 1000) + 60;
+    for (let i = 0; i < 11; i++) await manda(G, A, 'spam de admin', t1, { admin: true, ev });
+    const rango = ev.filter((e) => e.tipo === 'rango');
+    ok(rango.length === 1 && rango[0].accion === 'demote' && WA.sameUser(rango[0].quien, A),
+      'a la segunda no se le quita el admin: ' + JSON.stringify(rango));
+    ok(!ev.some((e) => e.tipo === 'fuera'), 'al admin se le echa del grupo, y lo que toca es quitarle el admin');
+    ok(!(await BL.isBanned([A])), 'al admin se le mete en la lista negra, y lo que toca es quitarle el admin');
+    const sinAdmin = textos(ev).pop() || { texto: '' };
+    ok(/^\*Aviso 2 de 2: fuera el admin\*\n/.test(sinAdmin.texto),
+      'el aviso de quitarle el admin no abre con *Aviso 2 de 2: fuera el admin*: ' + sinAdmin.texto);
+    ok(ADMIN_SPAM.some((f) => sinAdmin.texto.endsWith(f.replace('%M', '@346000125004'))),
+      'el aviso no le usa de ejemplo con una frase de ADMIN_SPAM: ' + sinAdmin.texto);
+    ok(await ST.avisosDe(G, A) === 0, 'tras quitarle el admin el aviso sigue apuntado');
+
+    // Y si no se le puede quitar (al creador del grupo no se lo quita nadie),
+    // el grupo no lee que se le ha quitado.
+    const B = '346000125010@s.whatsapp.net', G2 = nuevoGrupo(), ev2 = [];
+    for (let i = 0; i < 11; i++) await manda(G2, B, 'spam del creador', t0, { admin: true, ev: ev2 });
+    for (let i = 0; i < 11; i++) await manda(G2, B, 'spam del creador', t1, { admin: true, rangoFalla: true, ev: ev2 });
+    ok(!textos(ev2).some((e) => /Aviso 2 de 2/.test(e.texto)),
+      'no se le ha podido quitar el admin y el grupo lee que sí: ' + JSON.stringify(textos(ev2).map((e) => e.texto)));
   }
 
   // 8. Lo que no ha pasado no se dice: sin cierre no hay «grupo cerrado», y sin
@@ -21510,9 +21544,13 @@ const textos = (ev) => ev.filter((e) => e.tipo === 'texto');
   // 12. Los huecos de las frases.
   ok(AVISO_SPAM.every((f) => !/%[A-Z]/.test(f)), 'AVISO_SPAM lleva un hueco y nadie lo rellena');
   ok(BAN_SPAM.every((f) => (f.match(/%M/g) || []).length === 1), 'una frase de BAN_SPAM no lleva la mención, o la lleva dos veces');
-  // Lo pidió el dueño: cada frase deja claro que es POR EL SPAM.
-  const sinSpam = [...AVISO_SPAM, ...BAN_SPAM].filter((f) => !/spam/i.test(f));
+  ok(ADMIN_SPAM.every((f) => (f.match(/%M/g) || []).length === 1), 'una frase de ADMIN_SPAM no lleva la mención, o la lleva dos veces');
+  // Lo pidió el dueño: cada frase deja claro que es POR EL SPAM. Y las del
+  // admin, además, que se queda sin admin.
+  const sinSpam = [...AVISO_SPAM, ...BAN_SPAM, ...ADMIN_SPAM].filter((f) => !/spam/i.test(f));
   ok(!sinSpam.length, 'hay frases que no dicen que es por el spam: ' + sinSpam.join(' | '));
+  const sinDecirAdmin = ADMIN_SPAM.filter((f) => !/\badmin\b/i.test(f));
+  ok(!sinDecirAdmin.length, 'hay frases de ADMIN_SPAM que no dicen que pierde el admin: ' + sinDecirAdmin.join(' | '));
 
   console.log('CAPA125:' + JSON.stringify(quejas));
   process.exit(0);
@@ -21538,7 +21576,7 @@ const textos = (ev) => ev.filter((e) => e.tipo === 'texto');
     } finally {
       fs.rmSync(dir125, { recursive: true, force: true });
     }
-    if (fallos === antes125) console.log(verde('   ✓ más de 10 iguales en menos de 10 s: grupo cerrado y aviso; a la segunda, ban y de ejemplo'));
+    if (fallos === antes125) console.log(verde('   ✓ más de 10 iguales en menos de 10 s: grupo cerrado y aviso; a la segunda, ban, o fuera el admin si lo es, y de ejemplo'));
   }
 
   }

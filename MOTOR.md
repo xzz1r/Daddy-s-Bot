@@ -188,10 +188,16 @@ menos de 10 segundos.
   sale después de echarle y le usa de ejemplo con `BAN_SPAM`. Si no se le ha
   podido echar, solo dice lo de la lista negra.
 
+- **Los admins no se libran** (18 oct), al revés que en el resto de la
+  moderación automática: el mismo aviso, pero a la segunda **pierden el admin**
+  en vez del ban, y se quedan en el grupo de ejemplo con `ADMIN_SPAM`. Al
+  creador del grupo no se le puede quitar: si falla, no se anuncia nada.
+
 «Iguales» es el mismo texto sin contar mayúsculas ni espacios. Solo cuenta el
 texto: stickers, fotos y vídeos tienen su regla, y un enlace repetido se lo
-queda el antilink. A los admins y al tier dueño no se les toca, y sin admin el
-bot no hace nada.
+queda el antilink. Solo se libra el tier dueño, y sin admin el bot no hace
+nada. Que el bot le quite el admin a alguien no lo deshacen ni el anti-admin
+ni el guardián: los dos se fían de lo que hace el bot.
 
 La ráfaga se cuenta con la hora de cada mensaje, no con la de llegada: el lote
 de una reconexión trae minutos de conversación en un segundo. Lo que ya iba de

@@ -13,6 +13,10 @@
 // BAN_SPAM sale cuando ya está fuera, y le habla al grupo: usa a esa persona de
 // ejemplo. %M es su mención. Nada concuerda con %M en masculino ni en femenino:
 // «baneada» va con «escoria» y «baneado» con «pedazo», no con quien se va.
+//
+// ADMIN_SPAM es lo mismo para un admin (18 oct): a la segunda no se le banea,
+// se le quita el admin. Sigue en el grupo y lo lee. Todas dicen que es por el
+// spam y que se queda sin admin.
 
 const AVISO_SPAM = [
   'No tienes ni puta gracia, y no la vas a tener nunca por mucho spam que metas.',
@@ -40,4 +44,17 @@ const BAN_SPAM = [
   'Así acaba el spam: %M, fuera del grupo y en la lista negra. Haced captura, que este aviso es lo único con gracia que va a dejar aquí.',
 ];
 
-module.exports = { AVISO_SPAM, BAN_SPAM };
+const ADMIN_SPAM = [
+  'Que os sirva de ejemplo: %M se queda sin admin por spam. El cargo le venía grande, y el copia y pega también.',
+  '%M era admin y ha spameado como si el puto grupo fuera suyo. Ya no es suyo: se queda sin admin.',
+  'Fuera el admin de %M por spam. Tenía las llaves del grupo y las ha usado para llenarlo de mierda.',
+  '%M ha confundido ser admin con tener permiso para spamear mierda. Ahora no tiene ni lo uno ni lo otro.',
+  'Ser admin no te salva del spam, y %M lo acaba de aprender sin admin y delante de todos.',
+  'A %M se le acaba el admin por spam. Mandaba en el grupo y ahora no manda ni en su puto portapapeles.',
+  'Un admin no hace spam, y %M lo ha hecho en bucle. Así que ya no es admin: ahora solo es quien hacía el gilipoyas.',
+  'Mirad a %M: tenía que cuidar el grupo y lo ha llenado de spam. Sin admin, que es lo que le toca a una basura así.',
+  '%M pierde el admin por spam. Quien tenía que frenarlo lo ha mandado en bucle, y eso no se perdona con el cargo puesto.',
+  'Se acabó el admin de %M: spam en bucle y cero vergüenza. La vergüenza se la pone el grupo, que lo está viendo.',
+];
+
+module.exports = { AVISO_SPAM, BAN_SPAM, ADMIN_SPAM };

@@ -28,7 +28,7 @@ const { isMuted } = require('../commands/group');
 const { maybeIndex } = require('../utils/pfpIndexer');
 const acciones = require('../commands/acciones');
 const { construirListas, cargarComando } = require('./comandos');
-const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, isBotJid, esBotCreador, extractText, getSender, getTarget, canonicalJid, sameUser, indexGroupMeta } = require('../utils/wa');
+const { isOwner, isMainOwner, isGroupAdmin, isAdmin, isBotAdmin, isBotJid, esBotCreador, extractText, getSender, getTarget, canonicalJid, sameUser, indexGroupMeta } = require('../utils/wa');
 const { sinApelativo } = require('../utils/vocativo');
 const logger = require('../utils/logger');
 const bitacoraEstados = require('../utils/bitacoraEstados');
@@ -414,18 +414,31 @@ async function expulsar(sock, jid, target, meta = null) {
 }
 
 // EL SPAM DE TEXTO, CASTIGADO. La rafaga ya la ha medido utils/spamTexto.js, y
-// quien llega aqui no es admin ni del tier dueño, y el bot si es admin.
+// quien llega aqui no es del tier dueño, y el bot si es admin.
 //
 // Aviso 1: se cierra el grupo y DESPUES se avisa. Lo primero es cortar la
 // rafaga; el aviso puede esperar un segundo, el spam no.
 // Aviso 2: lista negra, fuera, y se le usa de ejemplo delante del grupo. El
 // anuncio va DETRAS de echarle, como el resto de la moderacion automatica: el
 // grupo solo ve lo que ha pasado de verdad.
-async function castigarSpamTexto(sock, jid, sender, meta, rafaga) {
+//
+// UN ADMIN NO SE LIBRA, pero no se le banea (lo pidio el dueño el 18 oct): a la
+// segunda se le quita el admin y se queda en el grupo, de ejemplo. Si no se le
+// puede quitar —al creador del grupo no se lo quita nadie— no se anuncia nada.
+async function castigarSpamTexto(sock, jid, sender, meta, rafaga, esAdmin = false) {
   const toca = await spamTexto.sancion(jid, sender, rafaga.desde)
     .catch((e) => { logger.unaVez('spam de texto', e); return null; });
   if (!toca) return;
   const num = sender.split('@')[0];
+  if (toca === 'ban' && esAdmin) {
+    const degradado = await aplicarAUno(sock, jid, sender, 'demote', meta);
+    if (!degradado) {
+      anotarTropiezo(`Spam de mensajes en ${jid} del admin +${num}: NO he podido quitarle el admin. Hazlo a mano.`);
+      return;
+    }
+    await sock.sendMessage(jid, { text: spamTexto.textoSinAdmin(jid, sender), mentions: [sender] }).catch(() => {});
+    return;
+  }
   if (toca === 'ban') {
     await banAccount(allForms(sender, meta), `spam de mensajes repetidos en ${jid}`, 'auto')
       .catch((e) => logger.unaVez('vetar por spam de texto', e));
@@ -444,7 +457,7 @@ async function castigarSpamTexto(sock, jid, sender, meta, rafaga) {
   } catch (e) {
     anotarTropiezo(`Spam de mensajes en ${jid} de +${num}: NO he podido cerrar el grupo (${e?.message || e}).`);
   }
-  await sock.sendMessage(jid, { text: spamTexto.textoAviso(jid, sender, { cerrado }), mentions: [sender] }).catch(() => {});
+  await sock.sendMessage(jid, { text: spamTexto.textoAviso(jid, sender, { cerrado, admin: esAdmin }), mentions: [sender] }).catch(() => {});
 }
 
 // LA MISMA PERSONA CON LA MISMA CLAVE EN LOS CUATRO SITIOS.
@@ -2371,6 +2384,10 @@ async function handleMessage(sock, msg, opciones = {}) {
   // menos de 10 segundos. La primera vez se cierra el grupo con un *Aviso 1 de
   // 2*; la segunda, ban. Las cuentas, en utils/spamTexto.js.
   //
+  // Y LOS ADMINS NO SE LIBRAN (18 oct), al reves que en el resto de la
+  // moderacion automatica: pasan por el mismo aviso y a la segunda pierden el
+  // admin en vez de llevarse el ban. Solo se libra el tier dueño.
+  //
   // Va detras del antilink: un enlace repetido ya lo borra y lo castiga el
   // suyo, y aqui solo llega el texto que se queda en el grupo. Los stickers, las
   // fotos y los videos tienen su propia regla mas abajo. Y la metadata se pide
@@ -2380,11 +2397,10 @@ async function handleMessage(sock, msg, opciones = {}) {
     const rafaga = spamTexto.anotar(jid, sender, textoCrudo, msg.messageTimestamp);
     if (rafaga) {
       const meta = await getGroupMeta(sock, jid);
-      const protegido = !meta ||
-        isGroupAdmin(sender, msg.key.fromMe, meta) ||
-        esOwnerDelMensaje(msg, sender, senderPn, meta);
-      if (!protegido && isBotAdmin(sock, meta)) {
-        await castigarSpamTexto(sock, jid, sender, meta, rafaga);
+      if (meta && !esOwnerDelMensaje(msg, sender, senderPn, meta) && isBotAdmin(sock, meta)) {
+        const esAdmin = isAdmin(meta.participants, sender)
+          || Boolean(senderPn && isAdmin(meta.participants, senderPn));
+        await castigarSpamTexto(sock, jid, sender, meta, rafaga, esAdmin);
         return;
       }
     }
