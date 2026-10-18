@@ -24,8 +24,9 @@ const RITMOS = {
   // Aceptar o rechazar solicitudes de entrada.
   groupRequestParticipantsUpdate: { hueco: 3000, azar: 1500 },
   // Preguntar si un número tiene WhatsApp. Es lo más vigilado: consultar
-  // números en serie es exactamente lo que hace un programa de spam.
-  onWhatsApp: { hueco: 2000, azar: 1500, porDia: 60 },
+  // números en serie es exactamente lo que hace un programa de spam. 150 al
+  // día (dueño, 18 oct): eran 60 y una sola *!purge* grande se los comía.
+  onWhatsApp: { hueco: 2000, azar: 1500, porDia: 150 },
   // Mirar perfiles ajenos: foto, «info» y si es cuenta de empresa. Una a una
   // está bien; en serie es exactamente lo que hace un raspador.
   profilePictureUrl: { hueco: 1500, azar: 1000 },

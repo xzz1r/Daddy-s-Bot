@@ -109,8 +109,10 @@ El número anterior se iba a revisión cada poco. Desde el cambio, cada socket
 nuevo pasa por `ponerRitmo` (`src/utils/ritmo.js`): mensajes, borrados y
 stickers (todo es `sendMessage`), expulsiones, solicitudes de entrada y
 consultas de número salen con un hueco mínimo y algo de azar desde la anterior
-del mismo tipo. Consultar si un número tiene WhatsApp lleva además un tope al
-día (lo usa la purga por número). Mirar perfiles ajenos (foto, info, si es
+del mismo tipo. Consultar si un número tiene WhatsApp lleva además un tope de
+150 al día (lo usan la purga por número y `!pfp` con número; eran 60 y el dueño
+lo subió el 18 oct). Si una purga llega al tope, lo dice en una sola línea con
+cuántos números se han quedado sin comprobar. Mirar perfiles ajenos (foto, info, si es
 empresa) y pedir la metadata de los grupos también va espaciado, y el escaneo
 de cuentas de empresa va de una en una. Las solicitudes de entrada se
 sondean cada seis minutos. Las reconexiones nunca bajan de cinco

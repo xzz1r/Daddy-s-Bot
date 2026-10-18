@@ -21072,7 +21072,44 @@ const manda = async (quien, tipo, opciones) => {
       `tres envíos seguidos esperan ${esperas.join('/')} ms en vez de 0/600/1200`);
     const gastar = crearTope(2, () => t);
     exige(gastar() && gastar() && !gastar(), 'el tope diario deja pasar más de lo que dice');
-    exige(RITMOS.onWhatsApp && RITMOS.onWhatsApp.porDia > 0, 'la consulta de números ya no tiene tope diario');
+    exige(RITMOS.onWhatsApp && RITMOS.onWhatsApp.porDia === 150,
+      `la consulta de números tiene un tope de ${RITMOS.onWhatsApp && RITMOS.onWhatsApp.porDia} al día: el dueño lo quiere en 150 (18 oct)`);
+
+    // Y SI SE LLEGA AL TOPE A MITAD DE UNA *!purge*, UNA SOLA LÍNEA (dueño, 18
+    // oct): salía la misma frase una vez por número, veintiséis veces seguidas.
+    // Se conduce el comando entero, con el veto sustituido: no escribe en data/.
+    {
+      const { cmdPurge: purgar123, _conBanlist: conBanlist123 } = require(path.join(R, 'src/commands/purgaNumero'));
+      const soltar123 = conBanlist123(async (formas) => formas.length);
+      try {
+        const BOT123 = '34600012300@s.whatsapp.net';
+        const nums = ['34600012311', '34600012312', '34600012313', '34600012314', '34600012315'];
+        const purgaCon = async (porDia, gastadas) => {
+          const textos = [];
+          const sockT = ponerRitmo({
+            user: { id: BOT123 },
+            sendMessage: async (j, c) => { textos.push(c.text || ''); return {}; },
+            onWhatsApp: async (j) => [{ exists: true, jid: j }],
+            groupFetchAllParticipating: async () => ({}),
+            groupParticipantsUpdate: async (g, ids) => ids.map((jid) => ({ jid, status: '200' })),
+          }, { onWhatsApp: { hueco: 0, azar: 0, porDia } });
+          for (let i = 0; i < gastadas; i++) await sockT.onWhatsApp('34600012399@s.whatsapp.net');
+          const cuerpo = '!purge\n' + nums.join('\n');
+          await purgar123(sockT, { key: { remoteJid: '120363000012300@g.us', fromMe: true, id: 'T123', participant: BOT123 },
+            message: { conversation: cuerpo } }, nums, { participants: [] });
+          return textos[textos.length - 1] || '';
+        };
+        const nada = await purgaCon(1, 1);
+        exige(/^Nada que purgar\./.test(nada) && /5 números sin comprobar: tope de \d+ comprobaciones de hoy alcanzado\. Mándalos otra vez mañana\./.test(nada)
+          && !/Sigue mañana/.test(nada),
+          `con el tope gastado, !purge no lo dice en una línea: ${JSON.stringify(nada)}`);
+        const aMedias = await purgaCon(2, 0);
+        exige(/\n\n3 números sin comprobar: tope/.test(aMedias) && !/Sigue mañana/.test(aMedias) && /^\*PURGE\*/.test(aMedias),
+          `con el tope a mitad de la lista, !purge no lo dice en una línea: ${JSON.stringify(aMedias)}`);
+      } finally {
+        soltar123();
+      }
+    }
     exige(!('sendPresenceUpdate' in RITMOS) && !('readMessages' in RITMOS),
       'el visto o la presencia pasan por el ritmo, y el dueño los dejó fuera');
     // Un envío colgado no puede dejar mudo al bot: la cola espacia arranques,
@@ -21086,7 +21123,7 @@ const manda = async (quien, tipo, opciones) => {
       new Promise((r) => setTimeout(() => r('colgado'), 500)),
     ]);
     exige(segundo === 'ok', 'un envío con ritmo no sale en medio segundo');
-    if (fallos === antes123) console.log(verde('   ✓ mensajes, expulsiones y consultas salen espaciadas, y el visto queda fuera'));
+    if (fallos === antes123) console.log(verde('   ✓ mensajes, expulsiones y consultas salen espaciadas, 150 consultas al día dichas en una línea, y el visto queda fuera'));
   }
 
   // ── 124. UN VÍDEO LARGO NO TARDA LO QUE DURA, Y QUIEN ESPERA LO VE ──────

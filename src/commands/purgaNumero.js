@@ -37,6 +37,7 @@ function _conBanlist(fn) {
   return () => { _banAccount = antes; };
 }
 const { extractNumber } = require('./pfp');
+const { RITMOS } = require('../utils/ritmo');
 const { findPhoneNumbersInText } = require('libphonenumber-js');
 const logger = require('../utils/logger');
 const { aplicarParticipantes } = require('../utils/participantes');
@@ -327,6 +328,13 @@ async function barrerGrupos(sock, grupos, cuentas, hacerAviso) {
   return { fuera, sinPermiso, fallos, visto };
 }
 
+// Los que se quedan sin comprobar por el tope, en UNA linea (dueño, 18 oct):
+// eran una por numero, la misma frase veintiseis veces.
+function lineaDelTope(n) {
+  return `${n} número${n === 1 ? '' : 's'} sin comprobar: tope de ${RITMOS.onWhatsApp.porDia} comprobaciones de hoy alcanzado. `
+    + `Mánda${n === 1 ? 'lo' : 'los'} otra vez mañana.`;
+}
+
 async function resolverCuenta(sock, digitos, groupMeta, protegido = null) {
   try {
     const res = await withTimeout(sock.onWhatsApp(`${digitos}@s.whatsapp.net`), 8000);
@@ -339,7 +347,7 @@ async function resolverCuenta(sock, digitos, groupMeta, protegido = null) {
   } catch (e) {
     // Consultar numeros en serie es lo que WhatsApp mas vigila, asi que hay un
     // tope al dia (utils/ritmo.js). Se dice tal cual: reintentar no sirve.
-    if (e?.code === 'TOPE_DIARIO') return { error: `+${digitos}: tope de comprobaciones de hoy alcanzado. Sigue mañana.` };
+    if (e?.code === 'TOPE_DIARIO') return { tope: true, error: `+${digitos}: tope de comprobaciones de hoy alcanzado. Sigue mañana.` };
     return { error: `No pude comprobar +${digitos}. Inténtalo de nuevo.` };
   }
 }
@@ -491,6 +499,7 @@ async function cmdPurge(sock, msg, args, groupMeta) {
   const errores = [];
   const saltados = [];
   const sinResolver = [];
+  let sinComprobar = 0;
   const vistoNum = new Set();
   const vistoJid = new Set();
 
@@ -616,6 +625,7 @@ async function cmdPurge(sock, msg, args, groupMeta) {
       saltados.push(d);
       continue;
     }
+    if (res.tope) { sinComprobar++; continue; }
     if (res.error) {
       errores.push(res.error);
       continue;
@@ -626,6 +636,7 @@ async function cmdPurge(sock, msg, args, groupMeta) {
 
   if (!cuentas.length) {
     const extra = [];
+    if (sinComprobar) extra.push(lineaDelTope(sinComprobar));
     if (errores.length) extra.push(errores.join('\n'));
     // "Omitidos" a secas: poner el motivo era señalar cuál de esos números es
       // el del dueño, y este mensaje lo lee el grupo entero cuando !purge se
@@ -679,6 +690,7 @@ async function cmdPurge(sock, msg, args, groupMeta) {
       linea('No pude: el bot no es admin', sinPermiso) +
       linea('Falló', fallos) +
       (errores.length ? `\n\n*No válidos*\n${errores.map((e) => `· ${e}`).join('\n')}` : '') +
+      (sinComprobar ? `\n\n${lineaDelTope(sinComprobar)}` : '') +
       (saltados.length ? `\n\n*Omitidos*\n${saltados.map((d) => `· +${d}`).join('\n')}` : '') +
       `\n\n_En lista negra (${anotadas} forma(s) anotadas). Si vuelven a entrar, se les echa solo._`,
   }, { quoted: msg });
