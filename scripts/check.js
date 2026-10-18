@@ -4291,14 +4291,14 @@ const di=async(quien,texto,extra)=>{
       // no tuvieran dos copias—, el eval reventaba con "TRAMO_ALTO is not
       // defined". Una guarda que se rompe al reordenar el fichero que vigila no
       // estaba vigilando el comportamiento, estaba vigilando la forma del texto.
-      const { rollPercent } = require(path.join(R, 'src/commands/percent'));
+      const { rollPercent, TRAMO_ALTO, TRAMO_BAJO } = require(path.join(R, 'src/commands/percent'));
       const N = 40000;
       const medir = (good, own) => {
         let suma = 0, mal = 0;
         for (let i = 0; i < N; i++) {
           const v = rollPercent(good, false, own);
           suma += v;
-          if (good ? v <= 30 : v >= 70) mal++;
+          if (good ? v <= TRAMO_BAJO : v >= TRAMO_ALTO) mal++;
         }
         return { media: suma / N, mal: mal / N };
       };
@@ -20935,11 +20935,23 @@ const manda = async (quien, tipo, opciones) => {
       // !rizz: r = 0.5 cae en su paliza (low).
       const { cmdRizz } = require(path.join(R, 'src/commands/wingman'));
       vuelta(await tirar(cmdRizz, 0.5, 26), RIZZ.low.map((f) => f.replace(/%N/g, TAG)), '!rizz', 'bajo');
+
+      // 3) EL TRAMO ALTO EMPIEZA EN 65 (dueño, 18 oct). Con r = 0.01 un
+      //    positivo cae en su tramo alto y saca el primer número, 65: tiene que
+      //    salir una frase del alto, en los de % y en !rizz, que tenía su propia
+      //    copia de las fronteras con el 70 a mano.
+      exige(pct.TRAMO_ALTO === 65 && pct.TRAMO_BAJO === 30,
+        `los tramos van de ${pct.TRAMO_BAJO} a ${pct.TRAMO_ALTO}: el dueño quiere el alto desde 65 y el bajo hasta 30`);
+      const [conRizz] = await tirar(cmdRizz, 0.01, 1);
+      exige(RIZZ.high.map((f) => f.replace(/%N/g, TAG)).includes(conRizz),
+        '!rizz con un 65 % no saca una frase del tramo alto: vuelve a llevar sus propias fronteras');
+      const [conLinda] = await tirar(pct.cmdLinda, 0.01, 1);
+      exige(LAB.linda.high.map(nomb).includes(conLinda), '!linda con un 65 % no saca una frase del tramo alto');
     } catch (e) {
       exige(false, `la baraja de los tramos reventó: ${e.message}`);
     }
 
-    if (fallos === antes120) console.log(verde('   ✓ 25 en la paliza y 10 en los otros, en los 22 de % y en !rizz; y cada tramo sale entero antes de repetir'));
+    if (fallos === antes120) console.log(verde('   ✓ 25 en la paliza y 10 en los otros, en los 22 de % y en !rizz; cada tramo sale entero antes de repetir, y el alto empieza en 65'));
   }
 
   // ── 121. !INACTIVOS PURGE: SOLO EL DUEÑO, CON CONFIRMACION, SIN ADMINS ────

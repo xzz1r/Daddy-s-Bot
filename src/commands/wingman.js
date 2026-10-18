@@ -1,7 +1,7 @@
 'use strict';
 
 const { getTargetOrSelf, isMainOwner, isOwner, isAdmin } = require('../utils/wa');
-const { rollPercent } = require('./percent');
+const { rollPercent, tramoDe } = require('./percent');
 const { pickFresh, pickBaraja } = require('../utils/helpers');
 const { RIZZ, PIROPOS, WINGMAN_ANECDOTAS, WINGMAN_CIERRES } = require('../data/wingmanPhrases');
 
@@ -15,7 +15,7 @@ async function cmdRizz(sock, msg, groupMeta) {
   const percent = esMainOwner
     ? (Math.random() < 0.80 ? 58 + Math.floor(Math.random() * 28) : 30 + Math.floor(Math.random() * 28))
     : rollPercent(true, esAdmin, esOwner);
-  const tier = percent >= 70 ? 'high' : percent <= 30 ? 'low' : 'mid';
+  const tier = tramoDe(percent);
   // En baraja, como los tramos de porcentaje: son de 25 y 10 frases.
   const phrase = pickBaraja(RIZZ[tier], `${jid}|rizz|${tier}`).replace(/%N/g, `@${num}`);
   await sock.sendMessage(jid, { text: `*RIZZ — ${percent}%*\n\n${phrase}`, mentions: [target] }, { quoted: msg });

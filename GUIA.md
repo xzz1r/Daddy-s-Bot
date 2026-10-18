@@ -119,12 +119,13 @@ Todos siguen exactamente tres pasos:
 ### 3.1. Los tramos
 
 ```
-  70 o más      →  high
-  31 a 69       →  mid
+  65 o más      →  high
+  31 a 64       →  mid
   30 o menos    →  low
 ```
 
-Fronteras cerradas: 70 es `high` y 30 es `low`. No hay huecos.
+Fronteras cerradas: 65 es `high` y 30 es `low`. No hay huecos. El alto
+empezaba en 70; el dueño lo bajó a 65 el 18 oct.
 
 ### 3.2. La polaridad: `goodIsHigh`, lo más importante
 
@@ -159,7 +160,7 @@ mira su polaridad.**
 Aquí está el truco del bot. El porcentaje depende del **rol de quien recibe** el
 comando, no de quien lo escribe. Probabilidad de caer en cada tramo:
 
-|  | high (≥70) | mid (31-69) | low (≤30) |
+|  | high (≥65) | mid (31-64) | low (≤30) |
 |---|---|---|---|
 | **Negativo** → miembro | **87 %** | 9 % | 4 % |
 | **Negativo** → admin | 86 % | 9 % | 5 % |

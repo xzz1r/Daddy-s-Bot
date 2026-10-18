@@ -13,7 +13,7 @@
 // Brief: PENDIENTE.md.
 
 // ═══════════════════════════════════════════════════════════════════════════
-// !fiel — TIER ALTO (70-100%): lealtad real. Halago.
+// !fiel — TIER ALTO (65-100%): lealtad real. Halago.
 // ═══════════════════════════════════════════════════════════════════════════
 
 const FIEL_HIGH = [
@@ -30,7 +30,7 @@ const FIEL_HIGH = [
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
-// !fiel — TIER MEDIO (31-69%): lealtad con grietas. Ni fiable ni traidor.
+// !fiel — TIER MEDIO (31-64%): lealtad con grietas. Ni fiable ni traidor.
 // ═══════════════════════════════════════════════════════════════════════════
 
 const FIEL_MID = [
@@ -79,7 +79,7 @@ const FIEL_LOW = [
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
-// !infiel — TIER ALTO (70-100%): infiel confirmado. Brutal.
+// !infiel — TIER ALTO (65-100%): infiel confirmado. Brutal.
 // ═══════════════════════════════════════════════════════════════════════════
 
 const INFIEL_HIGH = [
@@ -111,7 +111,7 @@ const INFIEL_HIGH = [
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
-// !infiel — TIER MEDIO (31-69%): zona gris. Ni limpio ni pillado.
+// !infiel — TIER MEDIO (31-64%): zona gris. Ni limpio ni pillado.
 // ═══════════════════════════════════════════════════════════════════════════
 
 const INFIEL_MID = [

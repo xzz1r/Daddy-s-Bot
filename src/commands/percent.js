@@ -39,7 +39,7 @@ const OWNER_AMANYO = 0.85;
 // bandas anchas, asi que no vuelven los 97 y 99 repetidos que el grupo cazo.
 const OWNER_SOSO  = 0.42;
 const OWNER_BUENO = 0.50;
-const OWNER_HIGH = [88, 100]; // favorables: siempre alto (tier high ≥70), no siempre 100
+const OWNER_HIGH = [88, 100]; // favorables: siempre alto (tier high ≥65), no siempre 100
 
 // SOLO los que tiran uniforme. El resto pasa por rollPercent, que YA tiene sus
 // propias bandas para el owner (ver OWNER_SOSO/OWNER_BUENO). Reaplicar este
@@ -63,7 +63,7 @@ function rollRange([min, max]) {
 
 // Distribuciones por tier — basadas en el ROL DEL TARGET, no del sender:
 //
-//                    │ alto ≥70% │ medio 31-69% │ bajo ≤30%
+//                    │ alto ≥65% │ medio 31-64% │ bajo ≤30%
 //  ─────────────────┼───────────┼──────────────┼──────────
 //  Negativo miembro │   87 %    │    9 %       │    4 %
 //  Negativo admin   │   86 %    │    9 %       │    5 %
@@ -99,8 +99,9 @@ const DISTRIBUCION = {
     admin: { high: 0.07, mid: 0.19, low: 0.74 } },
 };
 
-// Las fronteras de los tramos. 70 es high y 30 es low: cerradas, sin huecos.
-const TRAMO_ALTO = 70;
+// Las fronteras de los tramos. 65 es high y 30 es low: cerradas, sin huecos.
+// El alto empezaba en 70; el dueño lo bajo a 65 el 18 oct.
+const TRAMO_ALTO = 65;
 const TRAMO_BAJO = 30;
 const tramoDe = (p) => (p >= TRAMO_ALTO ? 'high' : p <= TRAMO_BAJO ? 'low' : 'mid');
 
@@ -138,7 +139,7 @@ function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
   // cada seis !sexy salia con un piropo. Un !rata insultando no llama la
   // atencion de nadie; un !sexy 84 % si.
   if (!goodIsHigh) {
-    // Peyorativos: aqui el grupo saca ALTO (70-100) y quedar bien es sacar bajo.
+    // Peyorativos: aqui el grupo saca ALTO (65-100) y quedar bien es sacar bajo.
     // Al owner le sale la banda sosa la mayoria de las veces, muy bajo de vez en
     // cuando, y —esto es lo que lo hace creible— el resto (1 - OWNER_SOSO -
     // OWNER_BUENO) le sale ALTO de verdad, igual que a cualquiera. Sin esa
@@ -274,7 +275,9 @@ module.exports = {
   // La tabla y las fronteras se exportan para que nadie tenga una segunda copia:
   // las lee `npm run progreso` para repartir el trabajo de contenido y las lee
   // `npm run check` para comprobar que la guia no promete otra cosa.
-  DISTRIBUCION, TRAMO_ALTO, TRAMO_BAJO, OWNER_SOSO, OWNER_BUENO, UNIFORMES,
+  // tramoDe tambien: !rizz tenia su propia copia de las fronteras, con el 70
+  // escrito a mano, y al mover el tramo alto se habria quedado atras.
+  DISTRIBUCION, TRAMO_ALTO, TRAMO_BAJO, tramoDe, OWNER_SOSO, OWNER_BUENO, UNIFORMES,
   TAMANO_TRAMO, tramoPrincipal,
   cmdIncel:         makeCmd('incel'),
   cmdLinda:         makeCmd('linda'),

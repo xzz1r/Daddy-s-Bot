@@ -59,7 +59,9 @@ del aura se apunta ahí, o el reset lo deja vivo. La capa 12i lo comprueba.
 ## Frases de porcentaje y de !rizz: 25 · 10 · 10
 
 Lo fijó el dueño: 25 frases en el tramo de la paliza y 10 en cada uno de los
-otros dos, quedándose con las mejores. No se añaden frases: una nueva entra
+otros dos, quedándose con las mejores. Los tramos: low hasta 30, mid de 31 a
+64 y high desde 65 (lo bajó de 70 el 18 oct); viven en `TRAMO_ALTO` y
+`TRAMO_BAJO`, y `!rizz` usa los mismos (`tramoDe`). No se añaden frases: una nueva entra
 sacando otra. La regla vive en `src/commands/percent.js` (`TAMANO_TRAMO`,
 `tramoPrincipal`) y la capa 120 no deja pasar otro tamaño. Salen en baraja.
 
