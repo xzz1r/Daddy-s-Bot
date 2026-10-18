@@ -21375,7 +21375,7 @@ const { handleMessage, reabrirPendientes } = require(path.join(ROOT, 'src/handle
 const ST = require(path.join(ROOT, 'src/utils/spamTexto'));
 const WA = require(path.join(ROOT, 'src/utils/wa'));
 const BL = require(path.join(ROOT, 'src/utils/banlist'));
-const { AVISO_SPAM, BAN_SPAM, ADMIN_SPAM, CADENA_SPAM } = require(path.join(ROOT, 'src/data/spamPhrases'));
+const { AVISO_SPAM, BAN_SPAM, ADMIN_SPAM } = require(path.join(ROOT, 'src/data/spamPhrases'));
 const quejas = [];
 const ok = (c, t) => { if (!c) quejas.push(t); };
 const BOT = '549125@s.whatsapp.net';
@@ -21396,10 +21396,8 @@ const sockDe = (G, quien, o = {}) => {
       if (c.text && /Aviso \d de 2/.test(c.text)) ev.push({ tipo: 'texto', texto: c.text, menciones: c.mentions || [] });
       return { key: { id: 'K' + (++n) } };
     },
-    // o.miembros: los del grupo, para la cadena, que es de varios.
     groupMetadata: async () => ({ id: G, subject: 'G', announce: cerrados.has(G), participants: [
-      ...(o.miembros || [{ id: quien, admin: o.admin }]).map((m) => ({ id: m.id, admin: m.admin ? 'admin' : null })),
-      { id: BOT, admin: o.botSinAdmin ? null : 'admin' }] }),
+      { id: quien, admin: o.admin ? 'admin' : null }, { id: BOT, admin: o.botSinAdmin ? null : 'admin' }] }),
     groupParticipantsUpdate: async (g, ids, accion) => {
       const falla = accion === 'remove' ? o.echaFalla : o.rangoFalla;
       for (const j of ids) if (!falla) ev.push({ tipo: accion === 'remove' ? 'fuera' : 'rango', quien: j, accion });
@@ -21683,67 +21681,14 @@ const espera = (ms) => new Promise((r) => setTimeout(r, ms));
     ok(await ST.sancion(G, A, t0 + 600) === 'aviso', 'con el aviso caducado, la segunda ráfaga va a ban en vez de empezar otra vez');
   }
 
-  // 15. LA CADENA (dueño, 18 oct): el mismo copy, de varias personas. A cada
-  //     una le toca lo que le tocaría sola, y un solo aviso los nombra a todos.
+  // 15. ES INDIVIDUAL (dueño, 18 oct): el mismo copy pegado una vez por cada
+  //     una de varias personas no es la ráfaga de nadie. Se probó a que
+  //     saltara y el dueño lo quitó.
   {
     const COPY = 'Si lees esto tienes que pegarlo en tres grupos o te cae una maldición';
-    const P = (k) => '3460001250' + k + '@s.whatsapp.net';
-    const A = P(20), B = P(21), C = P(22), D = P(23), E = P(24), F = P(25), DUE = '346000125000@s.whatsapp.net';
-    const miembros = [A, B, C, D, E, F, DUE].map((id) => ({ id, admin: id === F }));
-    const cadena = async (G, quienes, texto, marcas, ev) => {
-      for (let i = 0; i < quienes.length; i++) await manda(G, quienes[i], texto, t0 + (marcas ? marcas[i] : i), { ev, miembros });
-    };
     const G = nuevoGrupo(), ev = [];
-    await cadena(G, [A, B, C], COPY, null, ev);
-    const avisos = textos(ev);
-    ok(avisos.length === 1, 'tres personas pegando el mismo copy no sacan UN aviso: ' + JSON.stringify(avisos.map((e) => e.texto)));
-    const av = avisos[0] || { texto: '', menciones: [] };
-    const iCierre = ev.findIndex((e) => e.tipo === 'ajuste' && e.valor === 'announcement');
-    ok(iCierre >= 0 && iCierre < ev.indexOf(av), 'la cadena no cierra el grupo antes de avisar');
-    ok(av.texto.startsWith('*Aviso 1 de 2*\n@346000125020, @346000125021 y @346000125022, el spam está prohibido, también en cadena. '),
-      'el aviso de la cadena no nombra a los tres y no dice que el spam está prohibido: ' + av.texto);
-    ok(CADENA_SPAM.some((f) => av.texto.includes(f)), 'el aviso de la cadena no les ataca el humor con una frase de CADENA_SPAM: ' + av.texto);
-    ok(/\nGrupo cerrado 20 segundos\. A la siguiente, ban\.$/.test(av.texto), 'el aviso de la cadena no dice lo del cierre y el ban: ' + av.texto);
-    ok([A, B, C].every((j) => av.menciones.includes(j)), 'el aviso de la cadena no menciona a los tres');
-    ok(!ev.some((e) => e.tipo === 'fuera'), 'a la primera cadena ya se echa a alguien');
-    for (const j of [A, B, C]) ok(await ST.avisosDe(G, j) === 1, 'tras la cadena, ' + j + ' no tiene su aviso');
-
-    // Lo que no es cadena: dos personas, un copy corto, tres en 10 segundos
-    // justos, o el tier dueño con dos más.
-    for (const [que, quienes, texto, marcas] of [
-      ['dos personas', [A, B], COPY, null],
-      ['un mensaje corto (menos de ' + ST.CADENA_LETRAS + ' letras)', [A, B, C], 'jajaja buenísimo, me muero', null],
-      ['tres personas en 10 segundos justos', [A, B, C], COPY, [0, 5, 10]],
-      ['el tier dueño con dos más', [DUE, A, B], COPY, null],
-    ]) {
-      const G2 = nuevoGrupo(), ev2 = [];
-      await cadena(G2, quienes, texto, marcas, ev2);
-      ok(!ev2.length, 'con ' + que + ' salta la cadena: ' + JSON.stringify(ev2));
-    }
-
-    // La segunda: quien ya tenía el aviso se va con su ban, y los nuevos se
-    // llevan el aviso, sin él dentro. Un admin, fuera el admin a la siguiente.
-    const t1 = t0 + Math.ceil(ST.GRACIA_MS / 1000) + 60;
-    const ev3 = [];
-    for (const [i, j] of [A, D, F].entries()) await manda(G, j, 'Otro copy de los buenos, este lo pegamos entre todos', t1 + i, { ev: ev3, miembros });
-    const fuera = ev3.filter((e) => e.tipo === 'fuera');
-    ok(fuera.length === 1 && WA.sameUser(fuera[0].quien, A) && await BL.isBanned([A]),
-      'a la segunda cadena, quien ya tenía el aviso no se va con ban: ' + JSON.stringify(fuera));
-    const t3 = textos(ev3);
-    const aviso3 = t3.find((e) => /^\*Aviso 1 de 2\*/.test(e.texto)) || { texto: '', menciones: [] };
-    ok(aviso3.texto.includes('@346000125023 y @346000125025, el spam está prohibido, también en cadena.') && !aviso3.menciones.includes(A),
-      'el aviso de la segunda cadena no nombra solo a los nuevos: ' + aviso3.texto);
-    ok(/A la siguiente, ban, y a los admins, fuera el admin\.$/.test(aviso3.texto),
-      'con un admin en la cadena, el aviso no dice que a la siguiente pierde el admin: ' + aviso3.texto);
-    ok(t3.some((e) => /^\*Aviso 2 de 2: ban\*\n/.test(e.texto) && e.menciones.includes(A)), 'el ban de la cadena no se anuncia');
-
-    // La misma persona por su @lid y por su teléfono es una, no dos.
-    const L = '125000125000026@lid', T = P(26), G4 = nuevoGrupo(), ev4 = [];
-    await manda(G4, L, COPY, t0, { ev: ev4, miembros });
-    WA.rememberMapping(L, T);
-    await manda(G4, T, COPY, t0 + 1, { ev: ev4, miembros });
-    await manda(G4, E, COPY, t0 + 2, { ev: ev4, miembros });
-    ok(!ev4.length, 'una persona con su @lid y con su teléfono cuenta como dos en la cadena: ' + JSON.stringify(ev4));
+    for (let i = 0; i < 8; i++) await manda(G, '3460001250' + (20 + i) + '@s.whatsapp.net', COPY, t0, { ev });
+    ok(!ev.length, 'ocho personas pegando el mismo copy una vez cada una hacen saltar el spam: tiene que ser de una sola persona');
   }
 
   // 16. Lo que ya no puede ser spam se va de la memoria (RAM, 18 oct).
@@ -21752,21 +21697,17 @@ const espera = (ms) => new Promise((r) => setTimeout(r, ms));
     const A = '346000125030@s.whatsapp.net', G = nuevoGrupo();
     const letra = (i) => 'abcdefghijklmnopqrstuvwxyz'[i % 26] + 'abcdefghijklmnopqrstuvwxyz'[Math.floor(i / 26)];
     for (let i = 0; i < 50; i++) ST.anotar(G, '3460001251' + String(i).padStart(2, '0') + '@s.whatsapp.net', 'hola que tal ' + letra(i), t0);
-    for (let i = 0; i < 50; i++) ST.anotarCadena(G, A, 'un copy distinto cada vez para llenar la memoria ' + letra(i), t0);
-    // El manejador pasa cada mensaje por las dos.
     ST.anotar(G, A, 'y uno que llega mucho más tarde', t0 + 60);
-    ST.anotarCadena(G, A, 'y uno que llega mucho más tarde', t0 + 60);
     ok(ST._cuantasClaves() === 1, 'pasados 10 segundos siguen apuntados ' + ST._cuantasClaves() + ' mensajes que ya no pueden ser spam: la memoria crece hasta el tope');
   }
 
   // 12. Los huecos de las frases.
   ok(AVISO_SPAM.every((f) => !/%[A-Z]/.test(f)), 'AVISO_SPAM lleva un hueco y nadie lo rellena');
-  ok(CADENA_SPAM.length === 10 && CADENA_SPAM.every((f) => !/%[A-Z]/.test(f)), 'CADENA_SPAM no son 10 frases sin huecos');
   ok(BAN_SPAM.every((f) => (f.match(/%M/g) || []).length === 1), 'una frase de BAN_SPAM no lleva la mención, o la lleva dos veces');
   ok(ADMIN_SPAM.every((f) => (f.match(/%M/g) || []).length === 1), 'una frase de ADMIN_SPAM no lleva la mención, o la lleva dos veces');
   // Lo pidió el dueño: cada frase deja claro que es POR EL SPAM. Y las del
   // admin, además, que se queda sin admin.
-  const sinSpam = [...AVISO_SPAM, ...BAN_SPAM, ...ADMIN_SPAM, ...CADENA_SPAM].filter((f) => !/spam/i.test(f));
+  const sinSpam = [...AVISO_SPAM, ...BAN_SPAM, ...ADMIN_SPAM].filter((f) => !/spam/i.test(f));
   ok(!sinSpam.length, 'hay frases que no dicen que es por el spam: ' + sinSpam.join(' | '));
   const sinDecirAdmin = ADMIN_SPAM.filter((f) => !/\badmin\b/i.test(f));
   ok(!sinDecirAdmin.length, 'hay frases de ADMIN_SPAM que no dicen que pierde el admin: ' + sinDecirAdmin.join(' | '));
@@ -21795,7 +21736,7 @@ const espera = (ms) => new Promise((r) => setTimeout(r, ms));
     } finally {
       fs.rmSync(dir125, { recursive: true, force: true });
     }
-    if (fallos === antes125) console.log(verde('   ✓ 5 iguales en menos de 10 s, o el mismo copy de 3 personas: grupo cerrado 20 s y aviso; a la segunda en 12 h, ban, o fuera el admin si lo es'));
+    if (fallos === antes125) console.log(verde('   ✓ 5 iguales de la misma persona en menos de 10 s, aunque cambie un emoji o un signo: grupo cerrado 20 s y aviso; a la segunda en 12 h, ban, o fuera el admin si lo es'));
   }
 
   // ── 126. LA PEÑA ACTIVA SE HALAGA, SIN VENENO DETRÁS ─────────────────────

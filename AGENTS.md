@@ -83,12 +83,12 @@ abre solo a los 20 segundos, si nadie lo ha abierto antes (18 oct).
 
 «Iguales» son las mismas letras y números (18 oct): un emoji, un signo, una
 tilde o un invisible ya no hacen distinto un copy. Los números sí cuentan, que
-una mención es un número. Y la cadena: el mismo copy
-de 3 personas en menos de 10 segundos (30 letras o más) les da a todas lo que
-les tocaría solas, con un solo aviso (`CADENA_SPAM`). Los números, el margen y
+una mención es un número. Y es **individual** (dueño, 18 oct): varias personas
+pegando el mismo copy una vez cada una no saltan. Hubo una regla de «cadena»
+para eso y el dueño la quitó: no se vuelve a poner. Los números, el margen y
 el orden (cerrar antes de avisar, echar antes de anunciar) viven en
-`src/utils/spamTexto.js`, `castigarSpamTexto` y `castigarCadena`. Las frases
-están en `src/data/spamPhrases.js`. La capa 125 lo vigila. Ver `MOTOR.md`.
+`src/utils/spamTexto.js` y en `castigarSpamTexto`. Las frases están en
+`src/data/spamPhrases.js`. La capa 125 lo vigila. Ver `MOTOR.md`.
 
 ## La peña activa se halaga, sin veneno
 

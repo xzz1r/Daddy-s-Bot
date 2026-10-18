@@ -220,13 +220,9 @@ bot no puede actuar (sin admin, sin metadata del grupo), lo dice en el log.
   en vez del ban, y se quedan en el grupo de ejemplo con `ADMIN_SPAM`. Al
   creador del grupo no se le puede quitar: si falla, no se anuncia nada.
 
-- **La cadena** (18 oct): el mismo copy de **3 personas distintas en menos de
-  10 segundos**, aunque cada una lo pegue una sola vez. A cada una le toca lo
-  que le tocaría sola (aviso, o la segunda si ya lo tenía), con el grupo
-  cerrado antes y **un solo aviso** que los nombra a todos, con `CADENA_SPAM`.
-  Solo con copys de 30 letras o más: «jajaja» o «buenos días» lo escriben diez
-  personas seguidas sin que sea spam. El tier dueño no cuenta: si el copy es
-  suyo y lo siguen dos, no salta.
+- **Es individual** (dueño, 18 oct): solo cuenta lo que pega cada persona.
+  Que varias peguen el mismo copy una vez cada una no salta. Se probó una
+  regla de «cadena» para eso y el dueño la quitó.
 
 «Iguales» son **las mismas letras y números** (18 oct): no cuentan las
 mayúsculas, los espacios, las tildes, los emojis, los signos, el formato de

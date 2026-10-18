@@ -17,11 +17,6 @@
 // ADMIN_SPAM es lo mismo para un admin (18 oct): a la segunda no se le banea,
 // se le quita el admin. Sigue en el grupo y lo lee. Todas dicen que es por el
 // spam y que se queda sin admin.
-//
-// CADENA_SPAM es el aviso de la cadena (18 oct): el mismo copy pegado por
-// varias personas. Va detrás de «@a, @b y @c, el spam está prohibido, también
-// en cadena.», así que habla a todos en plural y no lleva huecos. El mismo
-// ataque que AVISO_SPAM, a su humor, y todas dicen que es spam.
 
 const AVISO_SPAM = [
   'No tienes ni puta gracia, y no la vas a tener nunca por mucho spam que metas.',
@@ -62,17 +57,4 @@ const ADMIN_SPAM = [
   'Se acabó el admin de %M: spam en bucle y cero vergüenza. La vergüenza se la pone el grupo, que lo está viendo.',
 ];
 
-const CADENA_SPAM = [
-  'Pegar entre todos el mismo copy no os hace graciosos. Os hace spam, y del malo.',
-  'Ninguno de vosotros tiene gracia, y repetir el copy del de al lado no la arregla: es spam.',
-  'Si para hacer reír necesitáis copiaros el spam unos a otros, no vais a hacer reír nunca.',
-  'Sois varios pegando lo mismo y entre todos no juntáis ni media gracia. Eso es spam, no humor.',
-  'Vuestro humor entero cabe en un copiar y pegar, y por eso lo único que sabéis hacer es spam.',
-  'Lo que vosotros llamáis broma es el mismo spam pegado una y otra vez, y no tiene puta gracia.',
-  'Repetís el spam que pega otro porque no se os ocurre nada vuestro, y se nota muchísimo.',
-  'Copiar el chiste de otro en cadena es lo más cerca que vais a estar de tener gracia, y sigue siendo spam.',
-  'Ni el primero que lo pegó tenía gracia ni la tenéis los que lo habéis repetido. Spam y nada más.',
-  'Os habéis puesto de acuerdo para hacer spam y ni así os ha salido algo gracioso.',
-];
-
-module.exports = { AVISO_SPAM, BAN_SPAM, ADMIN_SPAM, CADENA_SPAM };
+module.exports = { AVISO_SPAM, BAN_SPAM, ADMIN_SPAM };
