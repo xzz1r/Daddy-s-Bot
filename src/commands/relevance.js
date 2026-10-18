@@ -100,38 +100,44 @@ let INTERMEDIO = [
 // ═══════════════════════════════════════════════════════════════════════════
 // TRAMO ALTO — sostiene el grupo de verdad.
 // ═══════════════════════════════════════════════════════════════════════════
+//
+// Se le halaga, y sin veneno detrás (lo pidió el dueño el 18 oct). Antes cada
+// frase le daba el mérito y se lo cobraba en la misma línea: «sostienes el
+// grupo con el pulgar y la vida con nada», «fuera no te espera nadie». Quien
+// escribe setecientos mensajes es justo lo que el bot quiere, y se le dice con
+// carisma, no de rodillas. La capa 126 vigila que no vuelva el veneno.
 
 const RELEVANTE = [
-  '%N, %MSG mensajes. Puta mula de carga: el grupo anda porque tú andas, y ni te quejas.',
-  '%MSG mensajes, %N. El día que falta tu nombre en el chat, se nota vacío. El día que faltas en tu casa, ni se enteran.',
-  '%N con %MSG mensajes. Sostienes el grupo con el pulgar y la vida con nada.',
-  'Con %MSG mensajes, %N, eres el puto pilar de este grupo. Los pilares no se mueven, y tú del sofá tampoco.',
-  'Con %MSG mensajes, %N, no hay conversación en la que no aparezcas, ni una en la que te haya llamado alguien.',
+  '%N, %MSG mensajes. El grupo anda porque tú andas, y lo llevas con una soltura que da gusto.',
+  '%MSG mensajes, %N. El día que falta tu nombre en el chat se nota el vacío, y eso es pesar de verdad.',
+  '%N con %MSG mensajes. Sostienes el grupo, y encima se te ve a gusto haciéndolo.',
+  'Con %MSG mensajes, %N, eres el puto pilar de este grupo, y los pilares no se discuten.',
+  'Con %MSG mensajes, %N, no hay conversación buena en la que no aparezcas.',
   '%MSG mensajes, %N. Cuando tú hablas el resto responde, y eso, cabrón, es tener el mando.',
-  '%N con %MSG mensajes. Sigues escribiendo aunque nadie te haya preguntado nada, y aun así funciona. Ese descaro mantiene esto vivo, mi niña.',
-  '%MSG mensajes, %N. Tu pantalla debe de estar rayada de tanto dedo. Con ese desgaste nadie discute tu puto peso en el grupo.',
-  '%N con %MSG mensajes. El grupo te necesita, y tú lo necesitas más, porque fuera no te espera nadie.',
-  '%N con %MSG mensajes. El resto del grupo reacciona a lo que sueltas tú, casi siempre con un «jaja» de compromiso.',
-  'Con %MSG mensajes, %N, si un día te callas se va a notar. Lo raro es que no te callas nunca.',
-  '%MSG mensajes, %N. Has escrito más de lo que escribe un fantasma en toda su vida, y sin que nadie te lo pidiera, cabrón.',
-  '%N con %MSG mensajes. Entras al chat y le cambias el ritmo a todo el mundo, sin que nadie te lo haya pedido.',
-  'Con %MSG mensajes, %N, el grupo depende de ti. Lo has conseguido a base de no tener otra puta cosa que hacer.',
-  '%MSG mensajes, %N. Has hecho de la cantidad una puta virtud. El grupo sin ese ruido tuyo sería un puto páramo.',
-  '%N con %MSG mensajes. El chat va a tu ritmo, y el resto te sigue porque es más fácil que mandarte callar.',
-  '%N, %MSG mensajes. En los puentes desaparece todo el mundo menos tú, porque tú no tienes adónde ir.',
-  'Con %MSG mensajes, %N, has convertido el aparecer en el trabajo que el resto no pica, reina.',
-  '%N, %MSG mensajes. Si dejas de escribir, esto se hunde, y tú detrás, que no tienes otra cosa.',
-  '%N con %MSG mensajes. El grupo ya da por hecho que vas a estar, como da por hecho el wifi.',
-  'Con %MSG mensajes, %N, alguien tenía que mantener esto con vida, y le ha tocado a quien menos vida tiene.',
-  '%MSG mensajes, %N. En el grupo pesas, lo dice el número. Fuera de aquí, pesas lo que pesa tu silla.',
-  'Con %MSG mensajes, %N, has dejado el listón donde el resto no llega, ni quiere, que tiene trabajo.',
-  '%MSG mensajes, %N. Sin ti el grupo baja de revoluciones, y contigo no hay quien lo calle.',
-  'Con %MSG mensajes, %N, cuando el chat se queda callado, eres tú quien lo arranca, aunque nadie te lo pida.',
-  '%N, %MSG mensajes. El resto tiene el visto. Tú tienes el hilo. El hilo manda, cabrón.',
-  '%N, %MSG mensajes. Eres la razón de que este grupo no sea un cementerio, y de que cenes con el plato frío, muñeca.',
-  '%MSG mensajes, %N. Si algún día te vas de este grupo va a haber luto y alivio a partes iguales.',
-  '%N, %MSG mensajes. Cuando este grupo se mueve, tu nombre está en medio, como un bache.',
-  '%N, %MSG mensajes. Escribes tanto que el grupo podría funcionar solo con tus mensajes, y aun así nadie los cita.',
+  '%N con %MSG mensajes. Escribes sin esperar a que te pregunten, y ese descaro mantiene esto vivo, mi niña.',
+  '%MSG mensajes, %N. Con ese volumen y esa constancia, nadie discute tu puto peso en el grupo.',
+  '%N con %MSG mensajes. El grupo te necesita, y cualquiera que lo lea un rato se da cuenta.',
+  '%N con %MSG mensajes. El resto del grupo reacciona a lo que sueltas tú, y eso no lo consigue cualquiera.',
+  'Con %MSG mensajes, %N, si un día te callas se va a notar, y no poco.',
+  '%MSG mensajes, %N. Has escrito más de lo que escribe un fantasma en toda su vida, y cada mensaje ha sumado.',
+  '%N con %MSG mensajes. Entras al chat y le cambias el ritmo a todo el mundo, para bien.',
+  'Con %MSG mensajes, %N, el grupo depende de ti, y has hecho que eso parezca fácil.',
+  '%MSG mensajes, %N. Has hecho de la cantidad una puta virtud, y el grupo sin ti sería un páramo.',
+  '%N con %MSG mensajes. El chat va a tu ritmo, y el resto te sigue porque merece la pena.',
+  '%N, %MSG mensajes. En los puentes desaparece todo el mundo menos tú, y el grupo te lo debe.',
+  'Con %MSG mensajes, %N, has convertido el aparecer en un arte que el resto ni se plantea, reina.',
+  '%N, %MSG mensajes. Si dejas de escribir esto se hunde, así que ni se te ocurra.',
+  '%N con %MSG mensajes. El grupo ya da por hecho que vas a estar, y no hay elogio más alto aquí dentro.',
+  'Con %MSG mensajes, %N, alguien tenía que mantener esto con vida, y te ha tocado a ti, por suerte para todos.',
+  '%MSG mensajes, %N. En el grupo pesas, lo dice el número y lo dice cada conversación que arrancas.',
+  'Con %MSG mensajes, %N, has dejado el listón donde el resto no llega.',
+  '%MSG mensajes, %N. Sin ti el grupo baja de revoluciones, y contigo no hay quien lo pare.',
+  'Con %MSG mensajes, %N, cuando el chat se queda callado, eres quien lo arranca.',
+  '%N, %MSG mensajes. El resto tiene el visto, tú tienes el hilo, y el hilo manda.',
+  '%N, %MSG mensajes. Eres la razón de que este grupo no sea un cementerio, muñeca.',
+  '%MSG mensajes, %N. Si algún día te vas de este grupo, va a haber luto de verdad.',
+  '%N, %MSG mensajes. Cuando este grupo se mueve, tu nombre está en medio, y no es casualidad.',
+  '%N, %MSG mensajes. Escribes tanto y tan bien que el grupo podría funcionar solo con lo tuyo.',
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -197,4 +203,4 @@ async function cmdRelevance(sock, msg, groupMeta) {
   await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
 }
 
-module.exports = { cmdRelevance };
+module.exports = { cmdRelevance, _RELEVANTE: RELEVANTE };

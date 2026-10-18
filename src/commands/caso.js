@@ -81,10 +81,11 @@ const VEREDICTOS = {
     'Lleva unos días callándose. Un par más y ya es costumbre.',
     'Se está enfriando. Un par de días más y pasa a mueble.',
   ],
+  // El que sostiene el grupo se lleva un halago, sin veneno (dueño, 18 oct).
   pilar: [
-    'Sostiene el grupo a base de mensajes. Fuera de aquí no se le conoce actividad.',
-    'Si deja de escribir, el grupo se muere. Si sale a la calle, también, del susto.',
-    'Está entre los que más escriben. Por lo menos alguien lo hace.',
+    'Sostiene el grupo a base de mensajes, y sin eso esto sería otro chat muerto.',
+    'Está entre quienes más escriben, y se nota en cada conversación que arranca.',
+    'Si deja de escribir, el grupo lo nota el primer día. Es de lo mejor que tiene este chat.',
   ],
   rico: [
     'Tanta aura en un bot de WhatsApp, más que un logro, parece un diagnóstico.',

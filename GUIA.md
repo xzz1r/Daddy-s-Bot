@@ -550,6 +550,16 @@ hechos.
 Eso es proclamar: se reconoce lo que ha hecho, y si hay taco va de refuerzo, no
 en su contra.
 
+**Y sin veneno detrás** (el dueño, 18 oct): «en lugar de tirarles mierda
+directa o indirectamente, que el bot los halague por su actividad, con carisma
+y sin ser un lameculos». Vale para las rachas (también la rota), los bonos por
+escribir, el tramo alto de `!relevancia`, los duelos ajustados de `!vs`, el
+pilar de `!caso` y el podio de `!count`. Nada de halagar y rematar en la misma
+frase con la vida que no tiene, el sueño, el vicio, la casa, la familia o el
+trabajo, y en el podio nada de subir a uno bajando a otro. Puede llevar chulería
+(«ni se te ocurra», «que se prepare quien quiera tu sitio»), no veneno. La capa
+126 lo vigila.
+
 Hay **dos formas de fallar aquí, y las dos están en el corpus**:
 
 - **Consolar.** *«Se agradece el sacrificio»*, *«aquí se te valora»*. Es un

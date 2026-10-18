@@ -82,6 +82,15 @@ antes de avisar, echar antes de anunciar) viven en `src/utils/spamTexto.js` y en
 `castigarSpamTexto`. Las frases están en `src/data/spamPhrases.js`. La capa 125
 lo vigila. Ver `MOTOR.md`.
 
+## La peña activa se halaga, sin veneno
+
+Lo pidió el dueño (18 oct): a quien escribe, el bot lo halaga por su actividad,
+con carisma y sin ser un lameculos, y sin tirarle mierda ni directa ni de
+rebote. Rachas (HITO y ROTA), bonos por escribir (`utils/casino.js`), tramo
+alto de `!relevancia`, duelos ajustados de `!vs`, pilar de `!caso` y podio de
+`!count`. La inactividad se sigue atacando como siempre. Ver `GUIA.md` («A
+quién pega el bot») y la capa 126.
+
 ## Apelativos de dominancia: se quedan
 
 «…, pequeña.», «…, mi niña.», «…, princesa.» y el resto al final de las

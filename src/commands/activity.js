@@ -38,24 +38,24 @@ let VS_ROASTS = [
 ];
 
 let VS_AJUSTADO = [
-  '%W gana por poco. %L ha perdido por un par de mensajes, que es perder por gilipoyas.',
+  '%W gana por poco. %L ha perdido por un par de mensajes, y entre dos que sostienen el grupo eso es un empate con ganador.',
   'Duelo apretado. %W gana y %L puede quejarse de todo menos de no haber estado.',
-  '%W se lleva el cara a cara por la mínima. %L, un mal día y ahí se quedó.',
-  'Perder por tan poco jode, %L. Y a %W ganar por tan poco tampoco le deja presumir.',
-  '%W por delante, %L pegado a la espalda. Dos que sostienen el grupo, y uno un poco más.',
+  '%W se lleva el cara a cara por la mínima. %L, ni con un día flojo se ha descolgado.',
+  'Perder por tan poco jode, %L. Y a %W ganar por tan poco tampoco le deja presumir mucho.',
+  '%W por delante, con %L a un paso. Dos que sostienen el grupo, y uno un poco más.',
   'Ajustado. %W gana, pero %L le ha hecho sudar cada mensaje.',
-  '%L pierde de un pelo contra %W. Tanto darle al móvil para acabar de puto segundo.',
-  'Foto finish. %W saca la nariz y %L se queda mordiéndose los labios.',
-  '%W manda hoy por poco. %L se va a pasar la noche escribiendo mierda para darle la vuelta.',
-  'Por la mínima. %W gana y %L no tiene excusa: le ha faltado nada.',
+  '%L pierde de un pelo contra %W. Tanta guerra para un margen tan corto: esto pide revancha.',
+  'Foto finish. %W saca la nariz y %L se queda a nada. Así da gusto ver un duelo.',
+  '%W manda hoy por poco. %L tiene toda la noche para darle la vuelta, y ganas no le faltan.',
+  'Por la mínima. %W gana, y %L ha estado a la altura de principio a fin.',
   '%L, tan cerca de %W que se le oye la respiración. Pero delante va %W.',
-  'Empate técnico con ganador. %W gana, %L se queda con la rabia.',
-  'Ambos escriben como si no tuvieran vida, pero %W tiene todavía menos. %L, casi.',
-  '%W gana sin margen para presumir. %L pierde sin margen para excusas.',
-  '%L ha dado guerra y ha perdido igual. Prepárate, que el cabrón de %W lo va a restregar una semana.',
-  'Cara a cara igualado. %W gana, y a %L le va a escocer.',
+  'Empate técnico con ganador. %W gana, y %L se queda con la revancha pendiente.',
+  'Los dos escriben como si el grupo dependiera de sus mensajes, y depende. Hoy %W un poco más que %L.',
+  '%W gana sin margen para presumir. %L pierde sin margen para excusas, y con la cabeza muy alta.',
+  '%L ha dado guerra y ha perdido igual. Ojo, que %W lo va a recordar toda la semana.',
+  'Cara a cara igualado. %W gana, y a %L le va a escocer lo justo para volver con más fuerza.',
   '%W por delante, por poco. Con un par de mensajes más de %L, esto era otra historia.',
-  'Ajustado. %W gana y a %L le toca tragárselo, con lo poco que ha faltado.',
+  'Ajustado. %W gana, y %L se lo traga con lo poco que ha faltado. Partidazo.',
   'Duelo de los buenos. %W gana y %L no queda mal, que es más de lo que se puede decir del resto del grupo.',
   '%W se lo lleva por un suspiro. %L pierde con la cabeza alta, que aquí es rarísimo.',
 ];
@@ -584,4 +584,4 @@ Para hacerlo: *!inactivos purge confirmar* en los próximos dos minutos.`,
   }, { quoted: msg });
 }
 
-module.exports = { cmdVs, cmdFantasmas, cmdInactivos };
+module.exports = { cmdVs, cmdFantasmas, cmdInactivos, _VS_AJUSTADO: VS_AJUSTADO };

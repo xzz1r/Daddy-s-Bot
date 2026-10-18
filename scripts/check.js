@@ -21579,6 +21579,52 @@ const textos = (ev) => ev.filter((e) => e.tipo === 'texto');
     if (fallos === antes125) console.log(verde('   ✓ más de 10 iguales en menos de 10 s: grupo cerrado y aviso; a la segunda, ban, o fuera el admin si lo es, y de ejemplo'));
   }
 
+  // ── 126. LA PEÑA ACTIVA SE HALAGA, SIN VENENO DETRÁS ─────────────────────
+  //
+  // Lo pidio el dueño (18 oct): «en lugar de tirarles mierda directa o
+  // indirectamente, haz que el bot los halague por su actividad. No seas un
+  // lameculos total, pero halágalos con carisma». Las rachas, los bonos por
+  // escribir, la relevancia alta, los duelos ajustados de *!vs* y el pilar de
+  // *!caso* halagaban con una mano y remataban con la otra: «sostienes el
+  // grupo… y tus ojeras», «te pagan por no tener nada mejor que hacer», «el
+  // psiquiatra tiene hueco el jueves».
+  //
+  // Se busca el veneno que habia: la vida que no tiene, el sueño, el vicio, la
+  // casa, la familia, el trabajo, el movil. Y en el podio de *!count*, que ya
+  // halagaba, lo que subia a uno bajando a otro del podio.
+  {
+    console.log('\n126. LA PEÑA ACTIVA SE HALAGA, SIN VENENO DETRÁS');
+    const antes126 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const VENENO = /ojera|vida social|sin vida|no tienes vida|tienen vida|tener vida|de casa|vicio|adicci|enganch|psiquiatr|diagn[oó]stico|tendinitis|insomnio|no duerm|sin dormir|horas de sue|tu familia|tu jefe|trabaj|sof[aá]\b|pulgar|pantalla|bater[ií]a|cargador|nada mejor que hacer|otra (?:puta )?cosa que hacer|tiempo libre|cotille|pesadez|co[ñn]azo|tabarra|caridad|ni uno que|valiera la pena leer|escribiendo mierda|de puto segundo/i;
+    const racha = require(path.join(R, 'src/data/rachaPhrases'));
+    const bonos = require(path.join(R, 'src/utils/casino'))._PHRASES || {};
+    const deTramos = (t) => Object.values(t || {}).flat();
+    const pools = {
+      'la racha (hito)': racha.HITO,
+      'la racha rota': racha.ROTA,
+      'los bonos por escribir': [...deTramos(bonos.tier1), ...deTramos(bonos.tier2), ...deTramos(bonos.tier3), ...(bonos.redemption || [])],
+      '*!relevancia* alta': require(path.join(R, 'src/commands/relevance'))._RELEVANTE,
+      'los duelos ajustados de *!vs*': require(path.join(R, 'src/commands/activity'))._VS_AJUSTADO,
+      'el pilar de *!caso*': require(path.join(R, 'src/commands/caso')).VEREDICTOS.pilar,
+    };
+    for (const [nombre, pool] of Object.entries(pools)) {
+      exige(Array.isArray(pool) && pool.length >= 3, `no encuentro las frases de ${nombre}: esta capa no mira nada`);
+      const malas = (pool || []).filter((f) => VENENO.test(f));
+      exige(!malas.length, `${nombre} vuelve a halagar con veneno detrás (${malas.length}): «${(malas[0] || '').slice(0, 90)}»`);
+    }
+    // La racha rota no remata a quien la ha perdido: reconoce lo que aguantó.
+    const remate = /basura|fantasma|mierda|tonter[ií]a|desag[uü]e|nadie te ha|nadie ha preguntado|ni lo not[oó]|palm[oó]|autodestrucci|como todo lo que|te abandonan/i;
+    const rematan = (racha.ROTA || []).filter((f) => remate.test(f));
+    exige(!rematan.length, `la racha rota vuelve a rematar a quien la ha perdido: «${(rematan[0] || '').slice(0, 90)}»`);
+    // El podio ya halagaba. Lo que se vigila es subir a uno bajando a otro.
+    const cnt = require(path.join(R, 'src/commands/count'));
+    const podio = [...cnt.MEMBER_PHRASES.flat(), ...cnt.ADMIN_PHRASES.flat(), ...Object.values(cnt.DISTANCIA).flat()];
+    const bajan = podio.filter((f) => /ojera|no duerm|insomnio|hacen bulto|le sobran horas|horas muertas|des el co[ñn]azo|no tiene ni de co[ñn]a|solo escribe m[aá]s|que escriba lo que quiera/i.test(f));
+    exige(!bajan.length, `el podio vuelve a subir a uno bajando a otro: «${(bajan[0] || '').slice(0, 90)}»`);
+    if (fallos === antes126) console.log(verde('   ✓ rachas, bonos, relevancia alta, duelos ajustados y podio: halagan sin rematar'));
+  }
+
   }
 
   if (BREVE) {

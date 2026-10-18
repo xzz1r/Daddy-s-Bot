@@ -121,7 +121,10 @@ const POOLS_MODO = args.includes('--pools');
 // molde 151.
 // Y el 17 oct, con los avisos del spam de texto (entran sin ningún defecto):
 // nadie 482.
-const TECHO = { nadie: 482, analogia: 6, coletilla: 91, eco: 4, molde: 151, enlatado: 127, roto: 2 };
+// Y el 18 oct, al quitarle el veneno a lo que se le dice a la peña activa
+// (rachas, bonos, relevancia alta, duelos ajustados, podio): nadie 479,
+// coletilla 89.
+const TECHO = { nadie: 479, analogia: 6, coletilla: 89, eco: 4, molde: 151, enlatado: 127, roto: 2 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();
