@@ -101,6 +101,16 @@ alto de `!relevancia`, duelos ajustados de `!vs`, pilar de `!caso` y podio de
 `!count`. La inactividad se sigue atacando como siempre. Ver `GUIA.md` («A
 quién pega el bot») y la capa 126.
 
+## Dibujos en las acciones: lo que se pide, y nunca en las explícitas
+
+Lo pidió el dueño (18 oct): «asegúrate de que sí sea lo que se pide, y si son
+NSFW aún más». Con `KLIPY_API_KEY`, un tercio de los gifs de 14 acciones sale
+de dibujos (KLIPY; Tenor cerró en junio de 2026). Solo vale un gif cuyo título o
+etiquetas digan la acción y la serie; si no, anime. Las acciones que van de
+piel (`!kiss`, `!lick`, `!cuddle`, `!bite`…) y las explícitas no llevan dibujos
+nunca, ni por la despensa: son series infantiles. No se añade una acción a
+`DIBUJOS` sin mirar sus frases. Ver `MOTOR.md` y la capa 128.
+
 ## La RAM: lo justo, sin tocar la calidad
 
 Lo pidió el dueño (18 oct). La generación joven de V8, un solo hilo de fondo y

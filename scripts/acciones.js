@@ -22,7 +22,7 @@ const axios = require('axios');
 // habria dicho que el comando esta roto estando perfecto. Una comprobacion que
 // mira un sitio distinto del que mira el bot no comprueba nada, que es
 // exactamente lo que ya costo una tarde con yt-dlp.
-const { ACCIONES, ACTIVAS, _FUENTES: FUENTES, _CATALOGO: CATALOGO, _direccionDe: direccion } = require('../src/commands/acciones');
+const { ACCIONES, ACTIVAS, _FUENTES: FUENTES, _CATALOGO: CATALOGO, _direccionDe: direccion, _DIBUJOS: DIBUJOS, _pedirDibujo: pedirDibujo } = require('../src/commands/acciones');
 
 // Desde el 10 oct cada accion tira de varias webs, y las explicitas de todas
 // las que haya en ACCION_NSFW_API (separadas por espacios o comas). Se prueban
@@ -96,10 +96,39 @@ async function sondear(pedidos) {
   }
 }
 
+// ─── MODO DIBUJOS: ¿QUE SACA KLIPY PARA CADA ACCION? ────────────────────────
+//
+//   npm run acciones -- --dibujos
+//
+// Pide un gif de dibujos para cada accion que los lleva, por el MISMO camino
+// que el bot (pedirDibujo, con su filtro de «dice la accion y la serie»), y
+// enseña el titulo del que ha elegido. Es la forma de ver con tus ojos que sale
+// lo que se pide antes de que lo vea el grupo. Un segundo entre acciones: la
+// clave de pruebas de KLIPY son 100 peticiones por hora.
+async function dibujos() {
+  const verde = (t) => `\x1b[32m${t}\x1b[0m`;
+  const rojo = (t) => `\x1b[31m${t}\x1b[0m`;
+  if (!(process.env.KLIPY_API_KEY || '').trim()) {
+    console.log(rojo('\n  Sin KLIPY_API_KEY en el .env no hay dibujos que probar.\n'));
+    process.exit(1);
+  }
+  console.log('\nDIBUJOS: LO QUE SACA CADA ACCION\n');
+  let nada = 0;
+  for (const cat of Object.keys(DIBUJOS)) {
+    const r = await pedirDibujo(cat, `sondeo|${cat}`);
+    if (r) console.log(`  ${cat.padEnd(10)} ${verde(`[${r.serie}]`)} ${r.titulo}\n  ${' '.repeat(10)} ${r.url}`);
+    else { nada++; console.log(`  ${cat.padEnd(10)} ${rojo('nada que diga lo que se pide: ese gif sale de anime')}`); }
+    await new Promise((res) => setTimeout(res, 1000));
+  }
+  console.log(nada ? `\n  ${nada} sin dibujo. No es un fallo: esas tiran de anime.\n` : verde('\n  Todas sacan un dibujo que dice lo que se pide.\n'));
+}
+
 (async () => {
   const verde = (t) => `\x1b[32m${t}\x1b[0m`;
   const rojo = (t) => `\x1b[31m${t}\x1b[0m`;
   const gris = (t) => `\x1b[90m${t}\x1b[0m`;
+
+  if (process.argv.includes('--dibujos')) return dibujos();
 
   const iProbar = process.argv.indexOf('--probar');
   if (iProbar >= 0) return sondear(process.argv.slice(iProbar + 1).filter((x) => !x.startsWith('-')));

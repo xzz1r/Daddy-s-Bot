@@ -21899,6 +21899,163 @@ const espera = (ms) => new Promise((r) => setTimeout(r, ms));
     if (fallos === antes127) console.log(verde('   ✓ bot y guardian arrancan con la generacion joven a su medida, un hilo de fondo y dos arenas de malloc'));
   }
 
+  // ── 128. LOS DIBUJOS: LO QUE SE PIDE, Y NUNCA EN LAS EXPLÍCITAS ───────────
+  //
+  // Lo pidió el dueño (18 oct): gifs de Cartoon Network y Nickelodeon en las
+  // acciones, además del anime, «asegúrate de que sí sea lo que se pide, y si
+  // son NSFW aún más». Salen de KLIPY (Tenor cerró el 30 jun 2026), y aquí se
+  // prueba con KLIPY simulado, en un proceso aparte:
+  //
+  //   · solo vale un gif cuyo título o etiquetas digan la acción Y la serie;
+  //   · el filtro de contenido va al máximo;
+  //   · las explícitas no piden un dibujo nunca, ni por su cola de la despensa,
+  //     que ya no comparten con la acción normal de la que tiran;
+  //   · las acciones que van de piel tampoco: las series son infantiles;
+  //   · sin un gif que diga lo que se pide, sale de anime;
+  //   · la clave va dentro del enlace de KLIPY y no aparece en el log;
+  //   · sin clave, nada cambia.
+  {
+    console.log('\n128. LOS DIBUJOS: LO QUE SE PIDE, Y NUNCA EN LAS EXPLÍCITAS');
+    const antes128 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const guion = String.raw`
+const fs = require('fs'), os = require('os'), path = require('path');
+const R = __RAIZ__;
+const CLAVE = 'clave-de-prueba-128';
+process.env.KLIPY_API_KEY = CLAVE;
+process.env.ACCION_DIBUJOS = '1';
+process.env.ACCION_NSFW_API = '';
+const quejas = [];
+const ok = (c, t) => { if (!c) quejas.push(t); };
+const axios = require(path.join(R, 'node_modules/axios'));
+const pedidas = [];
+let modo = 'bien';
+const conSerie = (q, series) => series.find((x) => q.startsWith(x.busca + ' '));
+axios.get = async (url, o = {}) => {
+  pedidas.push({ url: String(url), params: o.params || {}, tipo: o.responseType || '' });
+  if (String(url).includes('api.klipy.com')) {
+    if (modo === 'clave mala') { const e = new Error('Request failed with status code 401'); e.response = { status: 401 }; throw e; }
+    const q = String(o.params && o.params.q || '');
+    const serie = conSerie(q, ACC._SERIES);
+    const accion = q.slice(serie ? serie.busca.length + 1 : 0);
+    const mp4 = (u) => ({ md: { mp4: { url: u, width: 320, height: 240, size: 90000 } } });
+    const items = [
+      { id: 1, slug: 'serie-sin-accion', title: (serie ? serie.es[0] : 'x') + ' GIF', tags: ['funny'], type: 'gif', file: mp4('https://klipy.example/sin-accion.mp4') },
+      { id: 2, slug: 'anime-' + accion, title: 'Anime ' + accion + ' GIF', tags: ['anime', accion], type: 'gif', file: mp4('https://klipy.example/sin-serie.mp4') },
+    ];
+    if (modo === 'bien') items.push({ id: 3, slug: 'bueno', title: (serie ? serie.es[0] : '') + ' ' + accion + ' GIF', tags: [accion], type: 'gif', file: mp4('https://klipy.example/bueno.mp4') });
+    return { data: { result: true, data: { data: items, current_page: 1, per_page: 30, has_next: false } } };
+  }
+  if (o.responseType === 'arraybuffer') { const b = Buffer.alloc(64); b.write('ftyp', 4, 'latin1'); return { data: b }; }
+  return { data: { url: 'https://anime.example/' + pedidas.length + '.gif' } };
+};
+const salida = [];
+for (const k of ['log', 'error', 'warn']) { const f = console[k]; console[k] = (...a) => { salida.push(a.join(' ')); }; }
+let ACC = require(path.join(R, 'src/commands/acciones'));
+const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dibujos128-'));
+ACC._usarDirectorio(dir);
+process.on('exit', () => { try { fs.rmSync(dir, { recursive: true, force: true }); } catch {} });
+const desde = () => pedidas.length;
+const klipyDesde = (i) => pedidas.slice(i).filter((p) => p.url.includes('api.klipy.com'));
+const bajadoDesde = (i) => pedidas.slice(i).filter((p) => p.tipo === 'arraybuffer').map((p) => p.url);
+
+(async () => {
+  // 1. Lo que se pide: de tres que llegan, el único que dice la acción y la serie.
+  for (const cat of ['slap', 'punch', 'hug', 'pat']) {
+    const i = desde();
+    await ACC._traerAccion(cat, false, null, true);
+    const k = klipyDesde(i), b = bajadoDesde(i);
+    ok(k.length >= 1, '!' + cat + ' con dibujos al 100 % no le pide nada a KLIPY');
+    ok(b.length === 1 && b[0] === 'https://klipy.example/bueno.mp4',
+      '!' + cat + ' manda un gif que no dice la acción y la serie: ' + JSON.stringify(b));
+    ok(k.every((p) => p.params.content_filter === 'high' && /mp4/.test(String(p.params.format_filter))),
+      'KLIPY se consulta sin el filtro de contenido al máximo: ' + JSON.stringify(k.map((p) => p.params)));
+    ok(k.every((p) => new RegExp('\\b' + ACC._DIBUJOS[cat].busca + '$').test(String(p.params.q))),
+      'la búsqueda de !' + cat + ' no pide esa acción: ' + JSON.stringify(k.map((p) => p.params.q)));
+  }
+  // «pat» no casa dentro de «patrick».
+  const bob = ACC._SERIES.find((x) => x.busca === 'spongebob');
+  ok(!ACC._diceLoQueSePide({ title: 'Patrick Star GIF', slug: 'patrick-star', tags: [] }, ACC._DIBUJOS.pat, bob),
+    'un gif de Patrick Estrella pasa por una caricia: «pat» casa dentro de otra palabra');
+
+  // 2. Las explícitas: nunca, ni con dibujos al 100 %, ni compartiendo categoría.
+  for (const [nombre, a] of Object.entries(ACC.ACCIONES).filter(([, x]) => x.nsfw)) {
+    const i = desde();
+    await ACC._traerAccion(a.cat, true, a.catNsfw, true).catch(() => {});
+    ok(!klipyDesde(i).length, '!' + nombre + ' (explícita) le pide un dibujo a KLIPY');
+    ok(ACC._claveDespensa(a.cat, true, a.catNsfw) !== ACC._claveDespensa(a.cat, false, null),
+      '!' + nombre + ' comparte la cola de la despensa con la acción normal: le puede llegar un dibujo por ahí');
+  }
+
+  // 3. Las que van de piel, tampoco.
+  for (const cat of ['kiss', 'lick', 'cuddle', 'bite', 'tickle', 'mordisquito', 'peck', 'handhold', 'kabedon', 'nosebleed']) {
+    ok(!ACC._DIBUJOS[cat], '!' + cat + ' lleva dibujos: sus frases van de piel y las series son infantiles');
+    const i = desde();
+    await ACC._traerAccion(cat, false, null, true).catch(() => {});
+    ok(!klipyDesde(i).length, '!' + cat + ' le pide un dibujo a KLIPY');
+  }
+
+  // 4. Sin uno que diga lo que se pide: anime, tras tres series como mucho.
+  modo = 'nada bueno';
+  {
+    const i = desde();
+    await ACC._traerAccion('kick', false, null, true);
+    const b = bajadoDesde(i);
+    ok(b.length === 1 && b[0].startsWith('https://anime.example/'),
+      'sin un dibujo que diga lo que se pide, !kick no vuelve al anime: ' + JSON.stringify(b));
+    ok(klipyDesde(i).length <= 3, '!kick le pide ' + klipyDesde(i).length + ' búsquedas a KLIPY para un solo gif');
+  }
+
+  // 5. La clave, fuera del log; y con la clave mala, KLIPY se aparta.
+  modo = 'clave mala';
+  {
+    const i = desde();
+    await ACC._traerAccion('stare', false, null, true);
+    ok(bajadoDesde(i).every((u) => u.startsWith('https://anime.example/')), 'con la clave mala no se vuelve al anime');
+    const j = desde();
+    await ACC._traerAccion('stare', false, null, true);
+    ok(!klipyDesde(j).length, 'con la clave mala se sigue llamando a KLIPY en cada gif');
+    ok(!salida.join('\n').includes(CLAVE), 'la clave de KLIPY sale en el log');
+  }
+
+  // 6. Sin clave, nada cambia.
+  for (const k of Object.keys(require.cache)) if (k.endsWith('commands/acciones.js')) delete require.cache[k];
+  process.env.KLIPY_API_KEY = '';
+  modo = 'bien';
+  ACC = require(path.join(R, 'src/commands/acciones'));
+  ACC._usarDirectorio(dir);
+  {
+    const i = desde();
+    await ACC._traerAccion('slap', false, null, true);
+    ok(!klipyDesde(i).length, 'sin KLIPY_API_KEY se le pide algo a KLIPY');
+  }
+
+  process.stdout.write('CAPA128:' + JSON.stringify(quejas) + '\n');
+  process.exit(0);
+})().catch((e) => { process.stdout.write('CAPA128:' + JSON.stringify(['la prueba reventó: ' + (e && e.stack || e)]) + '\n'); process.exit(0); });
+`;
+    const { execFileSync } = require('child_process');
+    const dir128 = fs.mkdtempSync(path.join(os.tmpdir(), 'capa128-'));
+    try {
+      fs.writeFileSync(path.join(dir128, 'p.js'), guion.replace(/__RAIZ__/g, json(R)));
+      let salida = '';
+      try {
+        salida = execFileSync(process.execPath, [path.join(dir128, 'p.js')],
+          { encoding: 'utf8', timeout: 120000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+      const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA128:'));
+      exige(!!linea, `la prueba de los dibujos no contestó: ${salida.slice(-400).trim()}`);
+      if (linea) {
+        let quejas = [];
+        try { quejas = JSON.parse(linea.slice('CAPA128:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+        for (const q of quejas) exige(false, q);
+      }
+    } finally {
+      fs.rmSync(dir128, { recursive: true, force: true });
+    }
+    if (fallos === antes128) console.log(verde('   ✓ dibujos solo si dicen la acción y la serie, con el filtro al máximo; nunca en las explícitas ni en las de piel; si no, anime'));
+  }
+
   }
 
   if (BREVE) {

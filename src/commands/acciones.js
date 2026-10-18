@@ -343,6 +343,138 @@ function barajar(xs) {
 }
 const TOPE_DESCARGA = 8 * 1024 * 1024;   // un gif de reacción pesa cientos de KB
 
+// ─── DIBUJOS: CARTOON NETWORK, NICKELODEON Y COMPAÑÍA ───────────────────────
+//
+// Lo pidió el dueño (18 oct): que las acciones no sean solo anime. Las webs de
+// arriba solo tienen anime, así que los dibujos salen de un buscador de gifs,
+// KLIPY, el que usan WhatsApp y Discord desde que Google cerró Tenor (30 jun
+// 2026). Hace falta su clave, gratis, en el .env (KLIPY_API_KEY). Sin ella todo
+// sigue como estaba.
+//
+// «QUE SEA LO QUE SE PIDE» (el dueño). Un buscador no tiene categorías como las
+// webs de anime: a «spongebob slap» contesta con cualquier cosa de Bob Esponja.
+// Así que un gif solo vale si su título o sus etiquetas dicen LA ACCIÓN y LA
+// SERIE, las dos. Si ninguno de los que llegan las dice, se prueba otra serie,
+// y si tampoco, el gif sale de anime como siempre: mejor un anime que acierta
+// que un dibujo que no.
+//
+// SOLO EN LAS ACCIONES QUE NO VAN DE PIEL. Estas series son infantiles y media
+// plantilla son niños, y las frases de !kiss, !lick, !cuddle, !bite o !tickle
+// van con doble sentido: ahí no entra un dibujo. Las explícitas (!fuck, !anal,
+// !cum, !spank), aún menos: no pasan nunca por aquí, ni siquiera por la cola de
+// la despensa (ver claveDespensa). Lo vigila la capa 128.
+//
+// Y con el filtro de contenido de KLIPY al máximo (`high`): existen montajes
+// guarros de estas series y no pueden colarse en un !punch.
+const KLIPY = 'https://api.klipy.com/api/v1';
+const KLIPY_KEY = (process.env.KLIPY_API_KEY || '').trim();
+// La parte de los gifs que sale de dibujos, de 0 a 1. Un tercio por defecto.
+const PARTE_DIBUJOS = (() => {
+  const crudo = String(process.env.ACCION_DIBUJOS || '').trim();
+  const n = Number(crudo);
+  return crudo !== '' && Number.isFinite(n) && n >= 0 && n <= 1 ? n : 1 / 3;
+})();
+
+// Por acción: lo que se busca y las palabras que tiene que llevar el gif.
+const DIBUJOS = {
+  hug:      { busca: 'hug', dice: ['hug', 'hugs', 'hugging', 'hugged'] },
+  pat:      { busca: 'head pat', dice: ['pat', 'pats', 'patting', 'headpat'] },
+  punch:    { busca: 'punch', dice: ['punch', 'punches', 'punching', 'punched'] },
+  slap:     { busca: 'slap', dice: ['slap', 'slaps', 'slapping', 'slapped'] },
+  kick:     { busca: 'kick', dice: ['kick', 'kicks', 'kicking', 'kicked'] },
+  bonk:     { busca: 'bonk', dice: ['bonk', 'bonks', 'bonked', 'bonking'] },
+  stare:    { busca: 'stare', dice: ['stare', 'stares', 'staring'] },
+  laugh:    { busca: 'laughing', dice: ['laugh', 'laughs', 'laughing', 'lol', 'lmao'] },
+  sleep:    { busca: 'sleeping', dice: ['sleep', 'sleeps', 'sleeping', 'asleep', 'nap', 'napping'] },
+  pout:     { busca: 'pout', dice: ['pout', 'pouts', 'pouting', 'sulk', 'sulking'] },
+  facepalm: { busca: 'facepalm', dice: ['facepalm', 'face palm'] },
+  bleh:     { busca: 'tongue out', dice: ['tongue', 'bleh', 'blep'] },
+  smug:     { busca: 'smug', dice: ['smug', 'smirk', 'smirking'] },
+  yeet:     { busca: 'throw', dice: ['yeet', 'yeeted', 'throw', 'throws', 'throwing', 'thrown', 'toss'] },
+};
+
+// Las series: lo que se busca y los nombres por los que se la reconoce. Solo
+// nombres que no se confunden con otra cosa: «bubbles» o «panda» casan con
+// cualquier gif, y «dexter» con la serie del asesino.
+const SERIES = [
+  { busca: 'spongebob', es: ['spongebob', 'sponge bob', 'squidward', 'patrick star', 'bob esponja'] },
+  { busca: 'gumball', es: ['gumball', 'amazing world of gumball'] },
+  { busca: 'adventure time', es: ['adventure time', 'finn the human', 'jake the dog'] },
+  { busca: 'regular show', es: ['regular show', 'mordecai', 'rigby'] },
+  { busca: 'powerpuff girls', es: ['powerpuff'] },
+  { busca: 'courage the cowardly dog', es: ['courage the cowardly dog', 'cowardly dog'] },
+  { busca: "dexter's laboratory", es: ["dexter's laboratory", 'dexters laboratory', "dexter's lab", 'dexters lab'] },
+  { busca: 'ed edd n eddy', es: ['ed edd n eddy', 'ed edd and eddy', 'ed edd eddy'] },
+  { busca: 'johnny bravo', es: ['johnny bravo'] },
+  { busca: 'we bare bears', es: ['we bare bears', 'ice bear'] },
+  { busca: 'steven universe', es: ['steven universe'] },
+  { busca: 'fairly oddparents', es: ['fairly oddparents', 'fairly odd parents', 'timmy turner', 'cosmo and wanda'] },
+  { busca: 'hey arnold', es: ['hey arnold'] },
+  { busca: 'rugrats', es: ['rugrats'] },
+  { busca: 'jimmy neutron', es: ['jimmy neutron'] },
+  { busca: 'the loud house', es: ['loud house'] },
+  { busca: 'teen titans go', es: ['teen titans'] },
+  { busca: 'tom and jerry', es: ['tom and jerry', 'tom & jerry'] },
+];
+
+// ¿Dice el gif lo que se pide? Título, slug y etiquetas, en minúsculas, y las
+// palabras enteras: «pat» no puede casar con «patrick».
+const escaparRx = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function diceLoQueSePide(item, accion, serie) {
+  const partes = [item?.title, item?.slug, ...(Array.isArray(item?.tags) ? item.tags : [])];
+  const texto = ` ${partes.filter((x) => typeof x === 'string').join(' ').toLowerCase().replace(/[-_]+/g, ' ')} `;
+  const tiene = (frase) => new RegExp(`(^|[^a-z0-9])${escaparRx(frase)}($|[^a-z0-9])`).test(texto);
+  return accion.dice.some(tiene) && serie.es.some(tiene);
+}
+
+// El mp4 mediano si cabe, si no el pequeño, y el gif si no hay mp4. El mp4 no
+// pasa por ffmpeg: en el único core de la VPS eso es lo que más cuesta.
+function enlaceDelDibujo(item) {
+  for (const t of ['md', 'sm', 'hd']) {
+    for (const f of ['mp4', 'gif']) {
+      const x = item?.file?.[t]?.[f];
+      if (x?.url && (!x.size || x.size <= TOPE_DESCARGA)) return x.url;
+    }
+  }
+  return null;
+}
+
+// Un gif de dibujos para esta acción, o null si no hay uno que diga lo que se
+// pide (o no hay clave, o KLIPY está apartado). Hasta tres series por petición.
+// La clave va DENTRO del enlace de KLIPY: el enlace no se escribe nunca en el log.
+async function pedirDibujo(cat, clave) {
+  const accion = DIBUJOS[cat];
+  if (!KLIPY_KEY || !accion || estaApartada(KLIPY)) return null;
+  for (const serie of barajar(SERIES).slice(0, 3)) {
+    let items;
+    try {
+      const res = await axios.get(`${KLIPY}/${encodeURIComponent(KLIPY_KEY)}/gifs/search`, {
+        timeout: 8000,
+        params: {
+          q: `${serie.busca} ${accion.busca}`, per_page: 30, page: 1,
+          content_filter: 'high', format_filter: 'mp4,gif', customer_id: 'daddysbot',
+        },
+      });
+      items = res.data?.data?.data;
+    } catch (e) {
+      // Clave mala: seis horas fuera. El tope de la clave de pruebas (100 por
+      // hora): una hora. Mientras tanto, anime.
+      const st = e.response?.status;
+      if (st === 401 || st === 403) apartar(KLIPY);
+      else if (st === 429) apartar(KLIPY, 60 * 60 * 1000);
+      else if (st >= 500) apartar(KLIPY, APARTADA_500_MS);
+      logger.unaVez('dibujos (KLIPY)', { message: st ? `contesta ${st}` : (e.code || 'sin respuesta') });
+      return null;
+    }
+    const buenos = (Array.isArray(items) ? items : [])
+      .filter((it) => diceLoQueSePide(it, accion, serie))
+      .map((it) => ({ url: enlaceDelDibujo(it), titulo: String(it.title || ''), serie: serie.busca }))
+      .filter((x) => x.url && urlSegura(x.url) && !yaSalio(clave, x.url));
+    if (buenos.length) return buenos[Math.floor(Math.random() * buenos.length)];
+  }
+  return null;
+}
+
 // LA CACHE POR URL SE QUITO, y conviene saber por que estaba y por que ya no.
 //
 // Guardaba hasta cuarenta MP4 ya convertidos indexados por su direccion, para
@@ -640,8 +772,13 @@ function enFondo(fn) {
 // La clave ya no lleva la web: desde que una accion tira de varias, su cola
 // mezcla gifs de todas a proposito. Lleva si es explicita con fuente puesta,
 // para que un cambio en el .env no sirva gifs de la otra mitad.
+//
+// Y UNA EXPLÍCITA SIN WEB PROPIA TIENE SU COLA, aunque tire de la misma
+// categoría que una normal (!spank de `slap`). La cola normal lleva dibujos, y
+// a una explícita no puede llegarle un dibujo ni por la despensa.
 function claveDespensa(cat, nsfw, catNsfw) {
   const conFuente = nsfw && FUENTES_NSFW.length > 0;
+  if (nsfw && !conFuente) return `explicita|${cat}`;
   return `${conFuente ? 'nsfw' : 'sfw'}|${conFuente ? (catNsfw || cat) : cat}`;
 }
 
@@ -1016,12 +1153,18 @@ async function traerAccion(cat, nsfw, catNsfw, deDespensa = false) {
   //
   // La memoria es por CATEGORIA y no por grupo: lo que se esta evitando es que
   // la fuente sirva lo mismo, y eso no depende de quien lo pida.
-  let data = await pedir();
+  //
+  // Y DE DIBUJOS, una parte de las veces (ver DIBUJOS): nunca en una explícita,
+  // solo en las acciones de la tabla y solo con clave. Si no hay uno que diga
+  // lo que se pide, de anime como siempre.
+  const conDibujo = !nsfw && Boolean(DIBUJOS[cat]) && Boolean(KLIPY_KEY) && Math.random() < PARTE_DIBUJOS;
+  const pedirUno = async () => (conDibujo && await pedirDibujo(cat, clave)) || pedir();
+  let data = await pedirUno();
   for (let intento = 0; intento < 2; intento++) {
     const dir = direccionDelGif(data)?.url;
     if (!dir || !yaSalio(clave, dir)) break;
     logger.info(`accion ${cual}: la web repitió gif; pido otro`);
-    data = await pedir();
+    data = await pedirUno();
   }
   const elegido = direccionDelGif(data)?.url;
   if (elegido) apuntarGif(clave, elegido);
@@ -1317,4 +1460,4 @@ async function ejecutarAccion(escrito, sock, msg, args, groupMeta) {
   return hacer ? hacer(sock, msg, args, groupMeta) : undefined;
 }
 
-module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, ejecutarAccion, calentarDespensa, _restaurarDespensa: restaurarDespensa, _guardarEnDespensa: guardarEnDespensa, _sacarDeDespensa: sacarDeDespensa, get _DESPENSA_DIR() { return DESPENSA_DIR; }, _usarDirectorio: (dir) => { DESPENSA_DIR = dir; }, _fondo: () => fondoEnCurso, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, _yaSalio: yaSalio, _apuntarGif: apuntarGif, _gifsRecientes: gifsRecientes, _fuentesDe: fuentesDe, _FUENTES: FUENTES, _CATALOGO: CATALOGO, _apartadas: apartadas, _RECIENTES_POR_CAT: RECIENTES_POR_CAT, _direccionDe: direccionDe, _direccionDelGif: direccionDelGif, ...comandos, _turnoRoast: turnoRoast };
+module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, ejecutarAccion, calentarDespensa, _restaurarDespensa: restaurarDespensa, _guardarEnDespensa: guardarEnDespensa, _sacarDeDespensa: sacarDeDespensa, get _DESPENSA_DIR() { return DESPENSA_DIR; }, _usarDirectorio: (dir) => { DESPENSA_DIR = dir; }, _fondo: () => fondoEnCurso, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, _yaSalio: yaSalio, _apuntarGif: apuntarGif, _gifsRecientes: gifsRecientes, _fuentesDe: fuentesDe, _FUENTES: FUENTES, _CATALOGO: CATALOGO, _apartadas: apartadas, _RECIENTES_POR_CAT: RECIENTES_POR_CAT, _direccionDe: direccionDe, _direccionDelGif: direccionDelGif, _DIBUJOS: DIBUJOS, _SERIES: SERIES, _diceLoQueSePide: diceLoQueSePide, _pedirDibujo: pedirDibujo, _PARTE_DIBUJOS: PARTE_DIBUJOS, ...comandos, _turnoRoast: turnoRoast };

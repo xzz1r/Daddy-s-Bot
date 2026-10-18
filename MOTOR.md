@@ -297,6 +297,30 @@ está caído. Las explícitas salen de las webs que diga `ACCION_NSFW_API` en el
 `.env`, que admite varias separadas por espacio o coma; `npm run acciones`
 dice qué categorías tiene cada una.
 
+**Y dibujos, no solo anime** (dueño, 18 oct). Con `KLIPY_API_KEY` en el `.env`,
+una parte de los gifs (un tercio; `ACCION_DIBUJOS` lo cambia, de 0 a 1) sale
+de KLIPY, un buscador de gifs: Bob Esponja, Gumball, Hora de Aventura, Un Show
+Más, Tom y Jerry… Tenor era la opción natural y Google la cerró el 30 de junio
+de 2026. Lo que se cuida, porque un buscador no tiene categorías:
+
+- **Que sea lo que se pide.** Se busca «serie + acción» y solo vale un gif cuyo
+  título o etiquetas digan la acción y la serie, palabra entera («pat» no casa
+  dentro de «patrick»). Hasta tres series por gif; si ninguna trae uno así,
+  sale de anime.
+- **Solo en las acciones que no van de piel:** `!slap`, `!punch`, `!kick`,
+  `!bonk`, `!hug`, `!pat`, `!stare`, `!laugh`, `!sleep`, `!pout`, `!facepalm`,
+  `!bleh`, `!smug` y `!yeet`. Las series son infantiles, y las frases de
+  `!kiss`, `!lick`, `!cuddle` o `!bite` van con doble sentido.
+- **Nunca en las explícitas**, ni por la despensa: una explícita sin web propia
+  tiene su cola aparte aunque tire de la misma categoría (`!spank` de `slap`).
+- **Filtro de contenido de KLIPY al máximo** (`high`).
+- Sale el mp4 tal cual, sin pasar por ffmpeg. La clave de pruebas da 100
+  peticiones por hora; si se agota o falla, KLIPY se aparta un rato y todo
+  sale de anime. La clave va dentro del enlace y no se escribe en el log.
+
+`npm run acciones -- --dibujos` pide uno de cada acción por el mismo camino que
+el bot y enseña el título del elegido. La capa 128 lo vigila.
+
 ---
 
 ## El cartel del día
