@@ -126,16 +126,39 @@ se espera a que terminen: un envío colgado no deja mudo al bot. El visto y el
 ## La versión de WhatsApp Web
 
 Al conectar, el bot (y el guardián) se presentan con una versión de WhatsApp
-Web, y WhatsApp **cierra la conexión a las viejas**. El 19 oct el bot se quedó
-en bucle por eso: abría la conexión cada doce segundos, sin QR, sin código y
-sin un error, porque se presentaba con la que trae Baileys y publica en GitHub
-(2.3000.1043857760) cuando WhatsApp Web iba ya por la 1050789799.
+Web, y WhatsApp **cierra la conexión a las viejas** con un 405. Hasta el 19 oct
+se presentaban con la que trae Baileys y publica en GitHub (2.3000.1043857760),
+cuando WhatsApp Web iba ya por la 1050789799.
 
 Ahora se le pregunta a WhatsApp Web (su `sw.js` lleva la revisión) y a GitHub
 a la vez, y se usa la más nueva (`src/utils/versionWA.js`). Si WhatsApp cierra
 con un 405 («cliente demasiado viejo»), el bot la vuelve a preguntar antes de
 reconectar. Y el motivo de cada cierre sale en el log, una vez por motivo. La
 capa 129 lo vigila.
+
+## Cuando WhatsApp no deja entrar: 402, 403, 406
+
+El 19 oct el bot se quedó en bucle: abría la conexión cada doce segundos, sin
+QR, sin código y sin un error. Se sospechó de la versión, pero con la versión
+al día el log dijo el motivo de verdad: `403 Connection Failure`. WhatsApp ya
+no aceptaba la sesión guardada en `data/auth`, y el bot reintentaba para
+siempre, porque todo lo que no era un 401 se tomaba por un corte de red. Y con
+`--codigo` no salía ningún código, porque con una sesión guardada no se pide.
+
+Con estos tres códigos el bot se para, como con los 401 seguidos: deja
+`data/parado.json`, que `npm run estado` canta en rojo, y dice qué ha pasado,
+con las palabras de WhatsApp si las manda, y qué hacer
+(`src/utils/rechazoWA.js`). El guardián sale con 78 y pm2 lo deja parado.
+
+| código | qué es | qué hacer |
+|---|---|---|
+| 402 | bloqueo por un tiempo; dice por qué y cuánto queda | esperar y `pm2 restart bot`, sin volver a vincular |
+| 403 | la sesión guardada ya no vale: el número se registró en otro teléfono, se reinstaló WhatsApp o bloquearon la cuenta | mirar el teléfono; si va normal, apartar `data/auth` y vincular otra vez |
+| 406 | sesión cerrada sin motivo; WhatsApp Web lo llama cuenta bloqueada | lo mismo que con el 403 |
+
+Qué es cada código sale de whatsmeow, que lo sacó de WhatsApp Web. La sesión
+vieja se aparta con `mv`, no se borra. Y con `--codigo` y una sesión guardada,
+el bot ahora avisa de que no pide código. La capa 130 lo vigila.
 
 ## El guardián
 
@@ -175,7 +198,7 @@ reinicios que existía para cazar.
 
 Así que ahora el guardián deja escrito él mismo cuándo nace y cómo muere, en
 `data/guardianVidas.json` (las últimas 20 vidas, con la RSS de cada final). Son
-cuatro finales y se distinguen entre sí:
+cinco finales y se distinguen entre sí:
 
 | final | qué fue |
 |---|---|
@@ -183,6 +206,7 @@ cuatro finales y se distinguen entre sí:
 | `SIGTERM` con la RAM baja | un despliegue o un `pm2 restart` |
 | excepción sin capturar | un fallo de verdad, con su línea |
 | sesión cerrada desde el teléfono | hay que volver a vincular |
+| cuenta rechazada por WhatsApp (402, 403, 406) | mirar el teléfono del guardián |
 
 Un proceso al que pm2 mata por memoria **no escribe ni un error**: se lee igual
 que un reinicio limpio, y por eso hacía falta que lo apuntara el propio proceso.

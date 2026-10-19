@@ -737,6 +737,7 @@ if (errLog) {
     [/Sesión cerrada \d+ veces seguidas/, 'WhatsApp cerró la sesión varias veces: puede haber una restricción en la cuenta', 'revisa el teléfono → Dispositivos vinculados'],
     [/No se pudo reconectar/,             'se agotaron los intentos de reconexión', 'pm2 restart bot'],
     [/Sesión rechazada \(401\)/,          'WhatsApp rechazó la sesión (401) en algún momento', 'si se repite, revisa el teléfono'],
+    [/\((402|403|406)\)\. Dejo de reintentar/, 'WhatsApp no deja entrar a la cuenta del bot (402, 403 o 406)', 'mira el teléfono del bot: avisos de bloqueo y Dispositivos vinculados'],
     [/JavaScript heap out of memory/,     'se quedó sin memoria', 'pm2 start ecosystem.config.js  (pone el tope de RAM)'],
     [/ENOSPC|no space left/i,             'DISCO LLENO: es lo que corrompe la sesión de WhatsApp', 'pm2 flush && rm -rf temp/*'],
   ];

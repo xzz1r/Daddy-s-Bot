@@ -179,6 +179,7 @@ const { recordar: recordarMensaje, recuperar: recuperarMensaje } = require('./ut
 const { recordar: recordarHistorial, ingestarEvento: ingestarHistorial, flush: flushHistorial } = require('./utils/historialGrupo');
 const logger = require('./utils/logger');
 const { versionWA } = require('./utils/versionWA');
+const { explicarRechazo } = require('./utils/rechazoWA');
 const { ponerRitmo } = require('./utils/ritmo');
 
 const AUTH_DIR = path.join(__dirname, '../data/auth');
@@ -854,6 +855,11 @@ async function connectToWhatsApp() {
     return;
   }
   pidiendoCodigo = Boolean(numeroPar);
+  // --codigo con una sesión ya guardada no pide nada: entra con la que hay. Se
+  // dice, porque desde fuera se ve igual que un código que no llega (19 oct).
+  if (numeroPar && sock.authState?.creds?.registered) {
+    logger.unaVez('--codigo', { message: 'ya hay una sesión guardada en data/auth: entro con ella y no pido código' });
+  }
   if (numeroPar && !sock.authState?.creds?.registered) {
     if (codigosPedidos >= MAX_CODIGOS) {
       logger.error(
@@ -999,6 +1005,24 @@ async function connectToWhatsApp() {
           reconnectAttempts = 0;
           scheduleReconnect(2000);
         }
+        return;
+      }
+
+      // WHATSAPP NO DEJA ENTRAR A LA CUENTA (402, 403, 406). Se para como con
+      // los 401 seguidos, se dice qué ha pasado con las palabras de WhatsApp si
+      // las manda, y qué hacer. Ver utils/rechazoWA.js.
+      const rechazo = explicarRechazo(statusCode, lastDisconnect?.error?.data);
+      if (rechazo) {
+        logger.error(`${rechazo.que} (${statusCode}). Dejo de reintentar.`);
+        if (rechazo.dice) logger.error(`WhatsApp dice: ${rechazo.dice}`);
+        logger.error(rechazo.haz);
+        anotarParada('cuenta-rechazada',
+          `${rechazo.que} (${statusCode}).${rechazo.dice ? ` WhatsApp dice: ${rechazo.dice}.` : ''} ${rechazo.haz}`);
+        detenido = true;
+        try { sock.ev.removeAllListeners(); } catch {}
+        try { sock.end(); } catch {}
+        sock = null;
+        pararLatidoPresencia();
         return;
       }
 

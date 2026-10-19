@@ -22060,8 +22060,9 @@ const bajadoDesde = (i) => pedidas.slice(i).filter((p) => p.tipo === 'arraybuffe
   //
   // 19 oct: el bot en bucle, abriendo la conexión cada doce segundos y sin un
   // solo error. Se presentaba con la versión que trae Baileys y publica en
-  // GitHub, y WhatsApp Web iba siete millones de revisiones por delante:
-  // cerraba cada conexión. Se prueba la elección con fuentes de mentira —nada
+  // GitHub, y WhatsApp Web iba siete millones de revisiones por delante. El
+  // motivo de verdad era un 403 (capa 130), pero con una versión vieja se
+  // llega al 405. Se prueba la elección con fuentes de mentira —nada
   // sale a la red— y que el bot y el guardián la usen, que un 405 haga volver
   // a preguntar, y que el motivo del cierre salga en el log.
   {
@@ -22093,6 +22094,63 @@ const bajadoDesde = (i) => pedidas.slice(i).filter((p) => p.tipo === 'arraybuffe
     exige(/logger\.unaVez\('conexión cerrada'/.test(bot129),
       'el motivo de la conexión cerrada vuelve a no salir en el log: un bucle sin una línea de error');
     if (fallos === antes129) console.log(verde('   ✓ la versión sale de WhatsApp Web si es la más nueva, un 405 la vuelve a pedir y el motivo del cierre queda en el log'));
+  }
+
+  // ── 130. CUANDO WHATSAPP NO DEJA ENTRAR, SE PARA Y LO DICE ────────────────
+  //
+  // 19 oct: con la versión ya al día, el bucle seguía, y el log por fin dijo
+  // por qué: `403 Connection Failure`. WhatsApp rechazaba la sesión guardada y
+  // el bot reintentaba para siempre, porque todo lo que no era un 401 se tomaba
+  // por un corte de red. Se prueba qué códigos cierran la puerta, que lo que
+  // dice WhatsApp llegue en una línea, que el consejo aparte la sesión en vez
+  // de borrarla, que el bot y el guardián se paren con ellos y que `npm run
+  // estado` reconozca la línea que deja el bot.
+  {
+    console.log('\n130. CUANDO WHATSAPP NO DEJA ENTRAR, SE PARA Y LO DICE');
+    const antes130 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { explicarRechazo } = require(path.join(R, 'src/utils/rechazoWA'));
+    for (const c of [402, 403, 406, '403']) {
+      exige(explicarRechazo(c, {}), `un ${c} no se toma por cuenta rechazada: el bot vuelve a reintentar para siempre`);
+    }
+    // El 401 tiene su camino (tres intentos y vincular otra vez), el 405 vuelve
+    // a pedir la versión, y el resto son cortes o reinicios que sí se arreglan
+    // solos.
+    for (const c of [401, 405, 408, 428, 440, 500, 503, 515, undefined]) {
+      exige(explicarRechazo(c, {}) === null, `un ${c} se toma por cuenta rechazada: el bot se pararía por algo que se arregla solo`);
+    }
+    const con403 = explicarRechazo(403, { reason: '403', logout_message_header: 'Cuenta\nbloqueada', logout_message_subtext: '  pide una revisión ' });
+    exige(con403 && con403.dice === 'Cuenta bloqueada · pide una revisión',
+      `lo que dice WhatsApp con el 403 no llega, o llega partido en líneas: «${con403 && con403.dice}»`);
+    exige(con403 && /mv data\/auth /.test(con403.haz) && !/\brm\b/.test(con403.haz) && /--codigo <numero>/.test(con403.haz),
+      'el consejo del 403 ya no aparta la sesión vieja: la borra, no dice cómo volver a vincular o lleva un número de verdad');
+    const con402 = explicarRechazo(402, { reason: '402', code: '104', expire: '7200' });
+    exige(con402 && /mismo mensaje/.test(con402.dice) && /2 h/.test(con402.dice) && !/mv data\/auth/.test(con402.haz),
+      'el 402 no dice por qué ni cuánto queda, o manda volver a vincular una sesión que sigue valiendo');
+    exige(explicarRechazo(406, null)?.dice === '', 'sin datos de WhatsApp, el 406 se inventa lo que dice');
+
+    const bot130 = soloCodigo('src/bot.js'), guardian130 = soloCodigo('src/guardian.js');
+    const rechazoBot = bot130.indexOf('explicarRechazo(statusCode');
+    const paradaBot = bot130.indexOf("anotarParada('cuenta-rechazada'", rechazoBot);
+    exige(rechazoBot > 0 && paradaBot > rechazoBot
+      && /detenido = true;/.test(bot130.slice(paradaBot, paradaBot + 400))
+      && rechazoBot < bot130.indexOf("logger.unaVez('conexión cerrada'"),
+      'el bot ya no se para cuando WhatsApp rechaza la cuenta: vuelve a caer en el reintento de siempre');
+    exige(/logger\.unaVez\('--codigo'/.test(bot130),
+      'con --codigo y una sesión guardada, el bot vuelve a callarse que no pide código: se ve igual que un código que no llega');
+    const rechazoGuardian = guardian130.indexOf('code === 402 || code === 403 || code === 406');
+    exige(rechazoGuardian > 0 && /process\.exit\(SALIDA_SESION_MUERTA\)/.test(guardian130.slice(rechazoGuardian, rechazoGuardian + 1200)),
+      'el guardián vuelve a reintentar cuando WhatsApp rechaza su cuenta, en vez de salir con 78 y quedarse parado');
+    exige(/sesión cerrada\|cuenta rechazada\|/.test(guardian130),
+      'si pm2 vuelve a levantar al guardián con la cuenta rechazada, ya no espera antes de insistir');
+    // La línea del bot, tal y como la escribe, contra la señal de estado.js.
+    const estado130 = fs.readFileSync(path.join(R, 'scripts/estado.js'), 'utf8');
+    const señal = estado130.match(/\[(\/[^\n]*Dejo de reintentar\/),/);
+    let reconoce = false;
+    try { reconoce = Boolean(señal) && new Function(`return ${señal[1]}`)().test(`${explicarRechazo(403).que} (403). Dejo de reintentar.`); } catch {}
+    exige(reconoce && /\(\$\{statusCode\}\)\. Dejo de reintentar\./.test(bot130),
+      'npm run estado ya no reconoce la línea que deja el bot cuando WhatsApp rechaza la cuenta');
+    if (fallos === antes130) console.log(verde('   ✓ con 402, 403 o 406 el bot y el guardián se paran, dicen lo que dice WhatsApp y qué hacer, y estado lo canta'));
   }
 
   }

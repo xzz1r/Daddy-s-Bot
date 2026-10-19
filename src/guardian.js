@@ -254,8 +254,9 @@ function esperaAntesDeInsistir() {
     // el estar esperando a que alguien pida vincular. La primera version solo
     // miraba la sesion cerrada, asi que con la puerta de vinculacion puesta el
     // proceso volvia a arrancar cada cinco segundos: no mandaba codigos —para
-    // eso esta la puerta— pero se pasaba el dia naciendo y muriendo.
-    if (!ultimo || !/sesión cerrada|esperando a que alguien pida vincular/.test(ultimo.que)) return 0;
+    // eso esta la puerta— pero se pasaba el dia naciendo y muriendo. Y desde el
+    // 19 oct, una tercera: la cuenta rechazada por WhatsApp (402, 403, 406).
+    if (!ultimo || !/sesión cerrada|cuenta rechazada|esperando a que alguien pida vincular/.test(ultimo.que)) return 0;
     if (Date.now() - ultimo.ts > 10 * 60 * 1000) return 0;
     return 5 * 60 * 1000;
   } catch { return 0; }
@@ -1053,6 +1054,24 @@ async function conectar() {
         // las credenciales y volver a vincular, a mano— así que el bucle solo
         // quemaba CPU y log: mil doscientos reinicios en siete horas, tres por
         // minuto, en una máquina de un core.
+        process.exit(SALIDA_SESION_MUERTA);
+      }
+      // WHATSAPP NO DEJA ENTRAR A ESTA CUENTA (19 oct). 402 es un bloqueo por
+      // un tiempo, 403 una sesión que ya no vale (el número pasó a otro
+      // teléfono, se reinstaló WhatsApp o bloquearon la cuenta) y 406 lo que
+      // WhatsApp Web llama cuenta bloqueada. Reintentar no lo arregla: como
+      // arriba, sale con 78. La versión larga está en utils/rechazoWA.js, que
+      // el guardián no carga.
+      if (code === 402 || code === 403 || code === 406) {
+        const datos = lastDisconnect?.error?.data || {};
+        const dice = [datos.logout_message_header, datos.logout_message_subtext]
+          .filter((t) => typeof t === 'string' && t.trim())
+          .map((t) => t.replace(/\s+/g, ' ').trim().slice(0, 200))
+          .join(' · ');
+        logger.error(`guardián: WhatsApp no deja entrar a esta cuenta (${code}). Dejo de reintentar.${dice ? ` WhatsApp dice: ${dice}` : ''}`);
+        apuntarVida(`cuenta rechazada por WhatsApp (${code})`, code === 402
+          ? 'bloqueada por un tiempo: cuando se levante, pm2 restart guardian'
+          : 'mira el teléfono del guardián; si funciona normal, aparta data/authGuardian y vuelve a vincular');
         process.exit(SALIDA_SESION_MUERTA);
       }
       logger.warn(`guardián: conexión caída (${code || '?'}), reintento en ${Math.round(espera / 1000)}s`);

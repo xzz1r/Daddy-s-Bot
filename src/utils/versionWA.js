@@ -5,10 +5,11 @@
 // 19 oct: el bot se quedó en bucle. Abría la conexión, WhatsApp la cerraba a
 // los pocos segundos y vuelta a empezar, sin QR, sin código y sin una sola
 // línea de error. Se presentaba con la versión que trae Baileys dentro, que es
-// también la que publica en GitHub (fetchLatestBaileysVersion lee esa).
-// WhatsApp Web iba ya siete millones de revisiones por delante y había dejado
-// de aceptar la vieja. Baileys no la había actualizado, y el bot no la miraba
-// en otro sitio.
+// también la que publica en GitHub (fetchLatestBaileysVersion lee esa), y
+// WhatsApp Web iba ya siete millones de revisiones por delante. Se sospechó
+// de eso, pero no era: con la versión al día, el log dijo el motivo de verdad,
+// un 403 (ver rechazoWA.js). Esto se queda, porque presentarse con una versión
+// vieja es como se llega al 405, «cliente demasiado viejo».
 //
 // Ahora se le pregunta a WhatsApp Web (su sw.js lleva la revisión del cliente)
 // y a GitHub a la vez, y se usa la MÁS NUEVA de las que contesten. Si no
