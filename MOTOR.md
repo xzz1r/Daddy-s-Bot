@@ -123,6 +123,20 @@ se espera a que terminen: un envío colgado no deja mudo al bot. El visto y el
 «en línea» quedan fuera a propósito: el dueño los quiere como estaban. La capa
 123 lo vigila.
 
+## La versión de WhatsApp Web
+
+Al conectar, el bot (y el guardián) se presentan con una versión de WhatsApp
+Web, y WhatsApp **cierra la conexión a las viejas**. El 19 oct el bot se quedó
+en bucle por eso: abría la conexión cada doce segundos, sin QR, sin código y
+sin un error, porque se presentaba con la que trae Baileys y publica en GitHub
+(2.3000.1043857760) cuando WhatsApp Web iba ya por la 1050789799.
+
+Ahora se le pregunta a WhatsApp Web (su `sw.js` lleva la revisión) y a GitHub
+a la vez, y se usa la más nueva (`src/utils/versionWA.js`). Si WhatsApp cierra
+con un 405 («cliente demasiado viejo»), el bot la vuelve a preguntar antes de
+reconectar. Y el motivo de cada cierre sale en el log, una vez por motivo. La
+capa 129 lo vigila.
+
 ## El guardián
 
 **Vincular el guardián se pide a mano, y esto le pasó a una persona.** Con la

@@ -80,9 +80,29 @@ const {
   default: makeWASocket,
   useMultiFileAuthState,
   makeCacheableSignalKeyStore,
+  fetchLatestWaWebVersion,
   fetchLatestBaileysVersion,
   DisconnectReason,
 } = require('@whiskeysockets/baileys');
+
+// LA VERSIÓN DE WHATSAPP WEB, la más nueva entre lo que dice WhatsApp Web y lo
+// que publica Baileys en GitHub (19 oct). Con la de GitHub sola, WhatsApp
+// cerraba cada conexión del bot: se había quedado vieja. Es la misma cuenta que
+// utils/versionWA.js, copiada a propósito, porque el guardián no carga nada del
+// repositorio. Cada consulta con su tope: una colgada no cuelga el arranque.
+async function versionWA(espera = 10000) {
+  const conTope = (p) => new Promise((resolve) => {
+    const t = setTimeout(() => resolve(null), espera);
+    p.then((r) => { clearTimeout(t); resolve(r); }, () => { clearTimeout(t); resolve(null); });
+  });
+  const respuestas = await Promise.all([fetchLatestWaWebVersion, fetchLatestBaileysVersion]
+    .map((f) => conTope(Promise.resolve().then(() => f()))));
+  return respuestas
+    .filter((r) => r && r.isLatest && Array.isArray(r.version))
+    .map((r) => r.version)
+    .sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2])
+    .pop();
+}
 
 // OPCIONALES, LAS TRES. Están en el repositorio del bot y no tienen por qué
 // estar fuera. Ninguna hace falta para lo que este proceso hace.
@@ -888,9 +908,8 @@ async function conectar() {
   await limpiarCredencialesAMedias();
 
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
-  let version;
-  try { ({ version } = await fetchLatestBaileysVersion()); }
-  catch (e) { logger.unaVez('guardian: version de baileys', e); }
+  const version = await versionWA();
+  if (!version) logger.unaVez('guardian: version de whatsapp', new Error('no contesta nadie; sigo con la de Baileys'));
 
   sock = makeWASocket({
     version,

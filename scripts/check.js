@@ -22056,6 +22056,45 @@ const bajadoDesde = (i) => pedidas.slice(i).filter((p) => p.tipo === 'arraybuffe
     if (fallos === antes128) console.log(verde('   ✓ dibujos solo si dicen la acción y la serie, con el filtro al máximo; nunca en las explícitas ni en las de piel; si no, anime'));
   }
 
+  // ── 129. LA VERSIÓN DE WHATSAPP: LA QUE DICE WHATSAPP WEB, NO LA DE GITHUB ──
+  //
+  // 19 oct: el bot en bucle, abriendo la conexión cada doce segundos y sin un
+  // solo error. Se presentaba con la versión que trae Baileys y publica en
+  // GitHub, y WhatsApp Web iba siete millones de revisiones por delante:
+  // cerraba cada conexión. Se prueba la elección con fuentes de mentira —nada
+  // sale a la red— y que el bot y el guardián la usen, que un 405 haga volver
+  // a preguntar, y que el motivo del cierre salga en el log.
+  {
+    console.log('\n129. LA VERSIÓN DE WHATSAPP: LA QUE DICE WHATSAPP WEB, NO LA DE GITHUB');
+    const antes129 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { versionWA } = require(path.join(R, 'src/utils/versionWA'));
+    const contesta = (v) => async () => ({ version: v, isLatest: true });
+    const deDentro = (v) => async () => ({ version: v, isLatest: false });
+    const WEB = [2, 3000, 900], GH = [2, 3000, 800];
+    exige(String(await versionWA({ fuentes: [contesta(WEB), contesta(GH)] })) === String(WEB)
+      && String(await versionWA({ fuentes: [contesta(GH), contesta(WEB)] })) === String(WEB),
+      'con WhatsApp Web y GitHub contestando no se queda con la más nueva: WhatsApp cierra la conexión a la vieja');
+    exige(String(await versionWA({ fuentes: [deDentro(GH), contesta(GH)] })) === String(GH),
+      'la versión de dentro de Baileys (isLatest en false) cuenta como respuesta, y es justo la que se queda vieja');
+    exige(await versionWA({ fuentes: [async () => { throw new Error('sin red'); }, deDentro(GH)] }) === undefined,
+      'sin ninguna respuesta buena no deja que Baileys use la suya');
+    const t0 = Date.now();
+    const conColgada = await versionWA({ espera: 300, fuentes: [() => new Promise(() => {}), contesta(GH)] });
+    exige(String(conColgada) === String(GH) && Date.now() - t0 < 3000,
+      'una consulta que no contesta deja el arranque esperando: así se colgó una vez sin un error');
+    const bot129 = soloCodigo('src/bot.js'), guardian129 = soloCodigo('src/guardian.js');
+    exige(/versionWA\(/.test(bot129) && !/fetchLatestBaileysVersion\(/.test(bot129),
+      'el bot vuelve a preguntar la versión solo a GitHub');
+    exige(/versionWA\(/.test(guardian129) && /fetchLatestWaWebVersion/.test(guardian129),
+      'el guardián vuelve a preguntar la versión solo a GitHub');
+    exige(/statusCode === 405\) _baileysVersion = null/.test(bot129),
+      'un 405 (cliente demasiado viejo) no hace volver a preguntar la versión: el bot reconecta con la misma para siempre');
+    exige(/logger\.unaVez\('conexión cerrada'/.test(bot129),
+      'el motivo de la conexión cerrada vuelve a no salir en el log: un bucle sin una línea de error');
+    if (fallos === antes129) console.log(verde('   ✓ la versión sale de WhatsApp Web si es la más nueva, un 405 la vuelve a pedir y el motivo del cierre queda en el log'));
+  }
+
   }
 
   if (BREVE) {

@@ -2,7 +2,6 @@ const {
   default: makeWASocket,
   useMultiFileAuthState,
   DisconnectReason,
-  fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
   getBinaryNodeChild,
   getHistoryMsg,
@@ -179,6 +178,7 @@ const { VF_STATIC } = require('./utils/sticker');
 const { recordar: recordarMensaje, recuperar: recuperarMensaje } = require('./utils/mensajesRecientes');
 const { recordar: recordarHistorial, ingestarEvento: ingestarHistorial, flush: flushHistorial } = require('./utils/historialGrupo');
 const logger = require('./utils/logger');
+const { versionWA } = require('./utils/versionWA');
 const { ponerRitmo } = require('./utils/ritmo');
 
 const AUTH_DIR = path.join(__dirname, '../data/auth');
@@ -589,21 +589,18 @@ async function sancionarPorAñadir(sock, groupJid, autor, meta, aDedo) {
   }));
 }
 
+// Y SE LE PREGUNTA A WHATSAPP WEB, no solo a GitHub (19 oct): ver
+// utils/versionWA.js. La de GitHub se quedó vieja y WhatsApp cerraba cada
+// conexión a los pocos segundos.
 async function getBaileysVersion() {
   if (_baileysVersion) return _baileysVersion;
-  try {
-    const version = await withTimeout(
-      fetchLatestBaileysVersion().then(r => r.version),
-      ESPERA_VERSION_MS,
-    );
-    _baileysVersion = version;
-    return version;
-  } catch (err) {
-    logger.warn(
-      `No pude consultar la versión de WhatsApp (${err.message}). ` +
-      `Sigo con la que trae Baileys: el bot arranca igual.`);
+  const version = await versionWA({ espera: ESPERA_VERSION_MS });
+  if (!version) {
+    logger.warn('No pude consultar la versión de WhatsApp. Sigo con la que trae Baileys: el bot arranca igual.');
     return undefined;
   }
+  _baileysVersion = version;
+  return version;
 }
 
 async function connectToWhatsApp() {
@@ -1004,6 +1001,15 @@ async function connectToWhatsApp() {
         }
         return;
       }
+
+      // EL MOTIVO, EN EL LOG (19 oct). El bucle de conexiones que se caían sin
+      // decir por qué no dejaba ni una línea: solo se veía «abriendo la
+      // conexión» cada doce segundos. Una vez por motivo, para que un corte de
+      // red largo no llene el log.
+      logger.unaVez('conexión cerrada', { message: `${statusCode || '?'} ${lastDisconnect?.error?.message || ''}`.trim() });
+      // 405 es «cliente demasiado viejo»: la versión que se anunció ya no
+      // vale. Se olvida para que la reconexión la pregunte otra vez.
+      if (statusCode === 405) _baileysVersion = null;
 
       // Cualquier otra desconexión: reconectar con backoff, SIN rendirse nunca.
       //
