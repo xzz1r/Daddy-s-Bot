@@ -217,7 +217,7 @@ const AL_BOT = [
   'Querías a otra persona y me has mencionado a mí. Tu IQ entero en una sola cagada.',
   'Ni el dedo te obedece, subnormal. Has mencionado al bot.',
   'Responder al mensaje equivocado es lo único que se te da bien.',
-  'A mí no, cabeza hueca. Menciona a quien querías, si te acuerdas de quién era.',
+  'A mí no, retrasado de mierda. Menciona a quien querías, si te acuerdas de quién era.',
   'De todos los mensajes del chat, has respondido al del bot. Talento.',
   'Ni para señalar sirves. Has apuntado al bot, gilipoyas.',
   'Con esa puntería no atinas ni a borrar un mensaje.',
