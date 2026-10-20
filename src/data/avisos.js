@@ -212,23 +212,45 @@ const A_TI_MISMO = [
 // siempre porque ha respondido a un mensaje del bot en vez de al de quien
 // queria. Lo pidio el dueño: que el bot no se insulte ni se robe a si mismo,
 // y que en vez de eso se le ataque la inteligencia al que no sabe mencionar.
-// Van detras de su @. En baraja: salen las quince antes de repetir ninguna.
+// Van detras de su @. En baraja: salen todas antes de repetir ninguna.
+//
+// CLARAS Y A LA CABEZA (dueño, 20 oct): «no son lo suficientemente claras ni
+// hacen ataques directos; ni atacan la inteligencia de forma directa ni
+// vulgar». Cada frase dice lo que ha hecho y le da en la inteligencia sin
+// rodeos. Responder al mensaje del bot y mencionarlo son dos despistes
+// distintos, y por eso dos pools: «has respondido al bot» a quien lo ha
+// mencionado no se entiende. «A mí no, retrasado de mierda» es del dueño y
+// se queda tal cual.
 const AL_BOT = [
-  'Joder, qué inútil. Dos toques para mencionar a alguien y la cagas en los dos.',
-  'Esa mención no iba para mí, imbécil. Ni apuntar sabes.',
-  'Con esa puntería de mierda, a mí no me apuntes, anormal.',
-  'Hostia, que no sabes ni responder al mensaje correcto. Y así vas por la vida.',
-  'Querías a otra persona y me has mencionado a mí. Tu IQ entero en una sola cagada.',
-  'Ni el dedo te obedece, subnormal. Has mencionado al bot.',
-  'Responder al mensaje equivocado es lo único que se te da bien.',
   'A mí no, retrasado de mierda. Menciona a quien querías, si te acuerdas de quién era.',
+  'Has respondido a un mensaje del bot, gilipoyas. Responde al de la persona, joder.',
+  'Le has respondido al bot, pedazo de imbécil. El comando es para una persona, no para mí.',
+  'Respondes a mi mensaje para darle a otra persona. Así de mierda te funciona la cabeza.',
   'De todo el chat, has respondido al del bot. Hay que ser subnormal de cojones.',
-  'Ni para señalar sirves. Hay que ser gilipoyas para apuntar al bot.',
-  'Con esa puntería no atinas ni a borrar un mensaje.',
-  'El bot no se roba ni se insulta. Has apuntado a quien no era, y el ridículo es tuyo.',
-  'Has respondido al bot. Ni leer quién escribe sabes.',
-  'Mencionar a alguien es lo más fácil del grupo y a ti se te ha atragantado.',
-  'Me has mencionado a mí. A ver si miras a quién le das, pequeña.',
+  'Has apuntado al bot respondiendo a su mensaje. Hay que tener el puto cerebro de adorno.',
+  'Me has respondido a mí y no a la persona. Tienes la cabeza llena de mierda.',
+  'El mensaje al que respondes es mío, imbécil. Ni leer de quién es te da el cerebro.',
+  'Respondiste al bot, anormal. Hasta el comando sabe que no iba para mí, y tú no.',
+  'Responder al mensaje equivocado es de subnormal. Tú has respondido al bot: de premio.',
+  'Tu cerebro de mierda le ha respondido al bot. Responde a la persona que querías.',
+  'Has respondido al bot. Con una puta neurona más lo habrías visto, y no la tienes.',
+  'A mi mensaje no, subnormal: responde al de la persona. Ni eso te entra en la puta cabeza.',
+  'Respondes al bot sin mencionar a nadie, idiota. Lo básico no te cabe en el cerebro.',
+  'Me has respondido a mí, que soy el bot. Tienes el puto cerebro apagado, pequeña.',
+];
+
+// El mismo aviso cuando lo que ha hecho es MENCIONAR al bot.
+const AL_BOT_MENCION = [
+  'Has mencionado al bot, subnormal. Menciona a la persona, que no tiene ciencia.',
+  'La mención era para otra persona y me la has hecho a mí. Tienes el cerebro de mierda.',
+  'De todo el grupo, has ido a mencionar al bot. Hay que ser imbécil, y lo eres de sobra.',
+  'Mencionas al bot para darle a otra persona. Esa neurona tuya no da para más, joder.',
+  'Has puesto mi nombre en la mención, gilipoyas. Al bot no se le tiran comandos.',
+  'Solo tenías que mencionar a alguien, anormal, y vas y mencionas al puto bot.',
+  'Me mencionas a mí, que soy el bot. Ni el nombre de quien querías te cabe en el cerebro.',
+  'Has mencionado al bot. Con medio cerebro habrías elegido bien, y ni medio tienes, joder.',
+  'A mí no me menciones, imbécil de mierda. Menciona a quien querías darle.',
+  'Te equivocas de mención y eliges al bot. Ese cerebro de mierda no da ni para eso.',
 ];
 
 // El objetivo es un admin y quien lo intenta no llega. Se lee en el grupo, y
@@ -575,4 +597,4 @@ module.exports = {
   OBJETIVO_DIA_CARTEL,
   VER_UNA_VEZ, PURGE_UNO, PURGE_VARIOS,
   cabeceraDe,
-  MAL_ESCRITO, SOLO_GRUPOS, SIN_PERMISO, SIN_PERMISO_ADMIN, SOLO_ADMINS, PURGA_ADMIN, SIN_ACCESO, A_TI_MISMO, AL_BOT, CONTRA_UN_ADMIN, DUELO_AJENO };
+  MAL_ESCRITO, SOLO_GRUPOS, SIN_PERMISO, SIN_PERMISO_ADMIN, SOLO_ADMINS, PURGA_ADMIN, SIN_ACCESO, A_TI_MISMO, AL_BOT, AL_BOT_MENCION, CONTRA_UN_ADMIN, DUELO_AJENO };

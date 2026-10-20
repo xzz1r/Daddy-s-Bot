@@ -20579,6 +20579,23 @@ const manda = async (quien, tipo, opciones) => {
       exige(AL_BOT.length >= 15, `solo hay ${AL_BOT.length} frases para quien apunta al bot`);
       exige(AL_BOT.every((f) => /menci[oó]n|menciona|respond|señal|apunt|dedo|puntería/i.test(f)),
         'alguna frase para quien apunta al bot no le dice que ha apuntado mal: el ataque es a que no sabe mencionar');
+      // Y DOS POOLS, UNO POR DESPISTE (dueño, 20 oct: «no son lo suficientemente
+      // claras ni hacen ataques directos»). A quien ha mencionado al bot no se
+      // le dice que ha respondido, ni al reves, y todas le dan en la cabeza.
+      const { AL_BOT_MENCION } = require(path.join(R, 'src/data/avisos'));
+      exige(Array.isArray(AL_BOT_MENCION) && AL_BOT_MENCION.length >= 8, 'no hay frases propias para quien menciona al bot');
+      exige((AL_BOT_MENCION || []).every((f) => /menci/i.test(f) && !/respond/i.test(f)),
+        'una frase para quien ha MENCIONADO al bot le habla de responder, o no le dice que lo ha mencionado');
+      exige(AL_BOT.every((f) => !/(?:has|me) mencionado|mencionas al bot|mencionado al bot/i.test(f)),
+        'una frase para quien ha RESPONDIDO al bot le dice que lo ha mencionado');
+      const CABEZA = /subnormal|imb[eé]cil|gilipoyas|anormal|idiota|retrasad|cerebro|neurona|cabeza/i;
+      const blandas = [...AL_BOT, ...(AL_BOT_MENCION || [])].filter((f) => !CABEZA.test(f));
+      exige(!blandas.length, `una frase para quien apunta al bot no le ataca la inteligencia de frente: «${(blandas[0] || '').slice(0, 80)}»`);
+      exige(/mencionaAlBot\(sock, msg\)\s*\?\s*pickBaraja\(AL_BOT_MENCION/.test(src),
+        'el aviso ya no elige la frase según haya mencionado al bot o respondido a su mensaje');
+      const m116 = mh116._mencionaAlBot;
+      exige(typeof m116 === 'function' && m116(sock, responde('!puta @bot', OTRO, [BOT])) === true && m116(sock, responde('!puta', BOT)) === false,
+        'no se distingue haber mencionado al bot de haber respondido a su mensaje');
     }
     // El reset limpia la espera del top.
     //

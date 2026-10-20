@@ -34,7 +34,7 @@ const logger = require('../utils/logger');
 const bitacoraEstados = require('../utils/bitacoraEstados');
 
 const { clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa, PERMISO_ENLACE, puedeAnunciar, anotarTropiezo, perfilMirado } = require('../utils/antilink');
-const { MAL_ESCRITO, OBJETIVO_DIA_CARTEL, AL_BOT, VER_UNA_VEZ } = require('../data/avisos');
+const { MAL_ESCRITO, OBJETIVO_DIA_CARTEL, AL_BOT, AL_BOT_MENCION, VER_UNA_VEZ } = require('../data/avisos');
 const { cartelDelDia } = require('../utils/objetivoDia');
 const { aviso, pickBaraja } = require('../utils/helpers');
 
@@ -841,16 +841,18 @@ function marcarVisto(sock, msg, { verUnaVez = false } = {}) {
 // registro dice cuales van contra alguien. Con 'mencion' solo cuenta haber
 // mencionado al bot a proposito: *!contrarobo* se escribe respondiendo al
 // aviso del bot, y eso es justo como tiene que usarse.
+function mencionaAlBot(sock, msg) {
+  const menciones = [];
+  for (const v of Object.values(msg.message || {})) {
+    if (v && typeof v === 'object' && Array.isArray(v.contextInfo?.mentionedJid)) menciones.push(...v.contextInfo.mentionedJid);
+  }
+  return menciones.some((j) => isBotJid(sock, j));
+}
+
 function apuntaAlBot(sock, msg, command) {
   const modo = LISTAS.A_OTRO.get(command);
   if (!modo) return false;
-  if (modo === 'mencion') {
-    const menciones = [];
-    for (const v of Object.values(msg.message || {})) {
-      if (v && typeof v === 'object' && Array.isArray(v.contextInfo?.mentionedJid)) menciones.push(...v.contextInfo.mentionedJid);
-    }
-    return menciones.some((j) => isBotJid(sock, j));
-  }
+  if (modo === 'mencion') return mencionaAlBot(sock, msg);
   return isBotJid(sock, getTarget(msg));
 }
 
@@ -2723,8 +2725,13 @@ async function handleMessage(sock, msg, opciones = {}) {
   // inteligencia a quien lo escribio, que es lo que pidio el dueño. Va antes
   // del «escribiendo…» y del cobro por eso mismo: aqui no se trabaja nada.
   if (apuntaAlBot(sock, msg, command)) {
+    // Y la frase dice cuál de los dos despistes ha sido: mencionar al bot o
+    // responder a su mensaje (lo pidió el dueño, 20 oct: que se entienda).
+    const frase = mencionaAlBot(sock, msg)
+      ? pickBaraja(AL_BOT_MENCION, `${jid}|albot-mencion`)
+      : pickBaraja(AL_BOT, `${jid}|albot`);
     await sock.sendMessage(jid, {
-      text: `@${String(sender).split('@')[0]} ${pickBaraja(AL_BOT, `${jid}|albot`)}`,
+      text: `@${String(sender).split('@')[0]} ${frase}`,
       mentions: [sender],
     }, { quoted: msg }).catch(() => {});
     return;
@@ -2930,6 +2937,7 @@ module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGro
   _sugerenciasComando: sugerenciasComando,
   _marcarVisto: marcarVisto,
   _apuntaAlBot: apuntaAlBot,
+  _mencionaAlBot: mencionaAlBot,
   // Las listas por comando, VIVAS. La puerta las lee de aqui en vez de
   // parsear el texto del fichero con regex.
   _listas: { NEEDS_META, COBRO_CENTRAL, LENTOS, COBRAN_SOLOS, CMDS_AURA, SOLO_CONSULTA, MEDIA_CMDS, CMDS_PORCENTAJE },
