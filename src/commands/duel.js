@@ -71,7 +71,7 @@ let DUEL_WIN = [
   '%W cobra el duelo con la calma de quien cobra lo suyo. %L paga con la cara colorada.',
   '%L ha perdido y ahora tiene dos opciones: pedir la revancha o callarse. Las dos le van a salir mal.',
   'Duelo resuelto y humillación servida. %W ni lo celebra y %L no lo supera.',
-  '%L vino a por aura y se va sin la suya. Gran negocio, fenómeno.',
+  '%L vino a por aura y se va sin la suya. Gran negocio de gilipoyas.',
   '%W le ha quitado a %L el aura, las ganas y el derecho a hablar de duelos en una semana.',
   'Cuando %L diga que tiene mala suerte, que alguien le enseñe este duelo contra %W.',
   '%W gana limpio y %L pierde con la boca abierta.',

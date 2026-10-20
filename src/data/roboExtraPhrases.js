@@ -73,7 +73,7 @@ const BOTE_FALLA = [
 const BOTE_VACIO = [
   'No llega al mínimo. El bote se alimenta de fracasos y este grupo todavía no ha juntado bastante.',
   'Por debajo del mínimo. Si te pones a asaltarlo ahora, robas calderilla, rata.',
-  'Genio, eso todavía no se puede reventar. Ahí dentro no tienes casi nada que llevarte.',
+  'Pedazo de imbécil, eso todavía no se puede reventar. Ahí dentro no tienes casi nada que llevarte.',
   'No da para abrir. Ahí dentro hay cuatro monedas y una pelusa.',
   'Vienes a asaltar un bote que no llega ni al mínimo. Hasta para robar hay que esperar turno, muerto de hambre.',
   'Aquí dentro hay calderilla y polvo. Con eso no se atraca, se barre.',

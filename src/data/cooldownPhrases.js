@@ -213,7 +213,7 @@ const ROBO = [
   'Las manos quietas un rato. Sé que te cuesta, que en casa también te las vigilan.',
   'Todavía te huelen los dedos al último bolsillo. Espera a que se te vaya el olor, pequeña.',
   'El robo no es una tragaperras. No sale más botín por darle más veces, imbécil.',
-  'Te acaban de ver robar y ya quieres repetir delante de los mismos testigos. Genio del crimen.',
+  'Te acaban de ver robar y ya quieres repetir delante de los mismos testigos. Rata, y de las más tontas.',
   'Tu próxima víctima todavía no ha bajado la guardia. Tú tampoco has subido el nivel.',
   'Vuelves a por otro robo con la misma cara con la que saliste del anterior: la de no haber aprendido nada.',
   'Si robar fuera cuestión de insistir, estarías forrado. Mira tu saldo.',
