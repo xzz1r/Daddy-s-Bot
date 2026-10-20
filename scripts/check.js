@@ -22195,7 +22195,12 @@ let actual = '-';
 // puede tapar a otro distinto que sale en uno solo.
 const quejas = [];
 const porClase = {};
-const queja = (clase, q) => { porClase[clase] = (porClase[clase] || 0) + 1; if (porClase[clase] <= 10) quejas.push(q); };
+// Mientras una prueba rompe algo A PROPÓSITO, ese fallo no cuenta.
+let roturaEsperada = false;
+const queja = (clase, q) => {
+  if (roturaEsperada && (clase === 'revienta' || clase === 'petado')) return;
+  porClase[clase] = (porClase[clase] || 0) + 1; if (porClase[clase] <= 10) quejas.push(q);
+};
 process.on('unhandledRejection', (e) => queja('promesa', actual + ': promesa sin capturar: ' + String((e && e.message) || e).slice(0, 140)));
 process.on('uncaughtException', (e) => queja('excepcion', actual + ': excepción sin capturar: ' + String((e && e.message) || e).slice(0, 140)));
 const logger = require('./src/utils/logger');
@@ -22251,6 +22256,27 @@ function mensaje(quien, texto, ctx, grupo = G) {
 }
 const conTope = (p, ms) => Promise.race([p, new Promise((r) => setTimeout(() => r('COLGADO'), ms))]);
 (async () => {
+  // UNA APUESTA A MEDIAS NO CUESTA (20 oct). Lo que se arriesga se cobra al
+  // sentarse; si algo revienta antes de pagar, se devuelve. Va lo primero:
+  // aura.js se carga al primer uso y se queda con el addAura que vea entonces.
+  {
+    const quien = '34600000727@s.whatsapp.net';
+    await auraStore.addAura(G, quien, 1000 - (await auraStore.getAura(G, quien)));
+    const original = auraStore.addAura;
+    let rota = false;
+    auraStore.addAura = async (g, u, d) => { if (d > 0 && !rota) { rota = true; throw new Error('fallo de mentira al pagar'); } return original(g, u, d); };
+    const azarReal = Math.random;
+    Math.random = () => 0;
+    actual = 'apuesta a medias';
+    roturaEsperada = true;
+    try { await mh.handleMessage(sock, mensaje(quien, config.prefix + 'apostar 300')); } catch {}
+    roturaEsperada = false;
+    Math.random = azarReal;
+    auraStore.addAura = original;
+    const queda = await auraStore.getAura(G, quien);
+    if (!rota) queja('medias', 'la prueba de la apuesta a medias no llegó a romper el pago: no prueba nada');
+    else if (queda !== 1000) queja('medias', 'una apuesta que revienta al pagar deja ' + queda + ' de 1000: lo apostado no se devuelve');
+  }
   const nombres = [...mh._reparto.EJECUTA.keys()].filter((c) => c !== 'off');
   let probados = 0;
   for (const yo of [MIEMBRO, OWNER]) {
@@ -22348,6 +22374,41 @@ const conTope = (p, ms) => Promise.race([p, new Promise((r) => setTimeout(() => 
       fs.rmSync(caja131, { recursive: true, force: true });
     }
   }
+  // ── 132. LA VELOCIDAD QUE DA LA VPS: yt-dlp ─────────────────────────────
+  //
+  // 20 oct, segunda pasada a fondo. Medido en un núcleo:
+  //
+  //   · arrancar yt-dlp: 0,15 s el de pipx, 0,55 s la zipapp y 1 s el binario
+  //     autónomo, que descomprime Python entero en CADA llamada. Se paga en
+  //     cada !tt, !ig, !x y !pin. `npm run estado` lo dice y setup.sh ya no lo
+  //     instala;
+  //   · un vídeo HLS de 40 trozos con 150 ms de latencia: 7,97 s de uno en uno,
+  //     3,31 s con cuatro a la vez, y el mismo fichero byte a byte.
+  {
+    console.log('\n132. LA VELOCIDAD QUE DA LA VPS: yt-dlp');
+    const antes132 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const dl = require(path.join(R, 'src/utils/downloader'));
+    const dir132 = fs.mkdtempSync(path.join(os.tmpdir(), 'capa132-'));
+    try {
+      const elf = path.join(dir132, 'autonomo'), guion = path.join(dir132, 'pip');
+      fs.writeFileSync(elf, Buffer.concat([Buffer.from([0x7f]), Buffer.from('ELF'), Buffer.alloc(60)]));
+      fs.writeFileSync(guion, '#!/usr/bin/python3\nimport yt_dlp\n');
+      exige(typeof dl.esYtDlpAutonomo === 'function' && dl.esYtDlpAutonomo(elf) === true,
+        'el binario autónomo de yt-dlp ya no se reconoce: estado deja de avisar de que cuesta más de un segundo por vídeo');
+      exige(dl.esYtDlpAutonomo(guion) === false && dl.esYtDlpAutonomo(path.join(dir132, 'no-existe')) === false,
+        'un yt-dlp de pip (o uno que no existe) se toma por el binario autónomo: estado avisaría sin motivo');
+    } finally { fs.rmSync(dir132, { recursive: true, force: true }); }
+    exige(/esYtDlpAutonomo\(/.test(fs.readFileSync(path.join(R, 'scripts/estado.js'), 'utf8')),
+      'npm run estado ya no mira qué yt-dlp usa el bot');
+    const setup = fs.readFileSync(path.join(R, 'setup.sh'), 'utf8').split('\n').filter((l) => !/^\s*#/.test(l)).join('\n');
+    exige(!/yt-dlp_linux/.test(setup) && /pipx install yt-dlp/.test(setup),
+      'setup.sh vuelve a instalar el binario autónomo de yt-dlp en vez del de pipx: un segundo más en cada vídeo');
+    exige(/'--concurrent-fragments',\s*'\d+'/.test(soloCodigo('src/utils/redes.js')),
+      'yt-dlp vuelve a bajar los trozos de un HLS de uno en uno: un vídeo de X o Pinterest tarda más del doble');
+    if (fallos === antes132) console.log(verde('   ✓ estado distingue el yt-dlp lento, setup.sh instala el rápido y los vídeos por trozos bajan de cuatro en cuatro'));
+  }
+
 
   }
 

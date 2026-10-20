@@ -2681,6 +2681,12 @@ async function porYtDlp(url, plataforma, soltarHueco = null) {
   const args = [
     '-f', PLATAFORMAS[plataforma].formato,
     '--no-playlist', '--no-warnings', '--no-progress',
+    // CUATRO TROZOS A LA VEZ (20 oct). Lo que piden X y Pinterest suele ser
+    // HLS: el vídeo llega en decenas de trozos y yt-dlp los baja de uno en uno,
+    // pagando el viaje de ida y vuelta en cada uno. Con cuatro en paralelo,
+    // como hace un navegador, el viaje se solapa. Un fichero entero (TikTok)
+    // no tiene trozos y no cambia nada.
+    '--concurrent-fragments', '4',
     // El tope va aquí y no después de bajar: cortar a los 40 MB cuando ya están
     // en disco es gastar el ancho de banda igual.
     '--max-filesize', `${Math.floor(TOPE_BAJADA / 1048576)}M`,

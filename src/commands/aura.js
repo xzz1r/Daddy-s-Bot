@@ -725,6 +725,9 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
   const { clave } = juntarEnMapa(ultimaApuesta, clavesMapa(`${BOLSA}|`, sender));
   if (apuestaEnCurso.has(clave)) return;   // ya hay uno en vuelo
   apuestaEnCurso.add(clave);
+  // Lo cobrado al sentarse y aún sin liquidar. Si algo revienta entre el cobro
+  // y el pago, el finally lo devuelve: una apuesta a medias no puede costar.
+  let sinLiquidar = 0;
 
   try {
     // Cooldown propio. Es el unico freno que necesita: encadenar apuestas arruina
@@ -786,6 +789,7 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
     // no se juega, no se gasta el amuleto y el reloj de la apuesta vuelve atrás.
     const enJuego = Math.max(0, Math.min(apuesta, saldo - APUESTA.suelo));
     const reserva = await spendAura(jid, sender, enJuego, APUESTA.suelo);
+    if (reserva.ok) sinLiquidar = enJuego;
     if (!reserva.ok) {
       if (cooldownAnterior) ultimaApuesta.set(clave, cooldownAnterior);
       else ultimaApuesta.delete(clave);
@@ -844,6 +848,7 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
     // solo vuelve lo que devuelva el seguro.
     const vuelve = delta + enJuego;
     const current = vuelve > 0 ? (await addAura(jid, sender, vuelve)).current : reserva.current;
+    sinLiquidar = 0;
 
     // Perder en la mesa alimenta el bote del robo. Una cuarta parte, no más: el
     // grueso se sigue destruyendo, que es lo que hace de esto un sumidero. Pero
@@ -884,6 +889,9 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
 
     return sock.sendMessage(jid, { text, mentions: [sender] }, { quoted: msg });
   } finally {
+    if (sinLiquidar > 0) {
+      await addAura(jid, sender, sinLiquidar).catch((e) => logger.unaVez('aura: devolver una apuesta a medias', e));
+    }
     apuestaEnCurso.delete(clave);
   }
 }

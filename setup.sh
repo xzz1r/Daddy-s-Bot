@@ -33,20 +33,27 @@ fi
 echo "    Node: $(node -v)"
 
 echo "==> [4/7] Instalando/actualizando yt-dlp (música, TikTok, Instagram)..."
-ARCH="$(uname -m)"
-if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
-  YTDLP_BIN="yt-dlp_linux_aarch64"
-else
-  YTDLP_BIN="yt-dlp_linux"
+# CON pipx, Y NO CON EL BINARIO AUTÓNOMO (20 oct). `yt-dlp_linux` lleva Python
+# dentro y lo descomprime entero en cada llamada: medido en un núcleo, solo
+# arrancar le cuesta 1 s, contra 0,15 s del de pipx. Se paga en cada !tt, !ig,
+# !x y !pin. pipx lo deja en ~/.local/bin, que es donde el bot mira primero.
+if ! command -v pipx >/dev/null 2>&1; then
+  sudo apt-get install -y pipx >/dev/null 2>&1 || true
 fi
-sudo curl -fL "https://github.com/yt-dlp/yt-dlp/releases/latest/download/${YTDLP_BIN}" -o /usr/local/bin/yt-dlp
-sudo chmod a+rx /usr/local/bin/yt-dlp
-echo "    yt-dlp: $(/usr/local/bin/yt-dlp --version)"
-# El bot busca primero ~/.local/bin/yt-dlp (lo que deja pip). Si hay una copia
-# vieja ahí, ganaría a la que se acaba de bajar.
-if [ -x "$HOME/.local/bin/yt-dlp" ]; then
-  echo "    OJO: hay otro yt-dlp en ~/.local/bin y el bot usará ESE."
-  echo "         Actualízalo con:  pip install -U yt-dlp"
+if command -v pipx >/dev/null 2>&1; then
+  pipx install yt-dlp >/dev/null 2>&1 || pipx upgrade yt-dlp >/dev/null 2>&1 || true
+  echo "    yt-dlp (pipx): $("$HOME/.local/bin/yt-dlp" --version 2>/dev/null || echo 'no se pudo instalar')"
+else
+  # Sin pipx, la zipapp: usa el Python de la máquina y arranca en la mitad.
+  sudo curl -fL "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp" -o /usr/local/bin/yt-dlp
+  sudo chmod a+rx /usr/local/bin/yt-dlp
+  echo "    yt-dlp: $(/usr/local/bin/yt-dlp --version)"
+  # El bot busca primero ~/.local/bin/yt-dlp (lo que deja pip). Si hay una copia
+  # vieja ahí, ganaría a la que se acaba de bajar.
+  if [ -x "$HOME/.local/bin/yt-dlp" ]; then
+    echo "    OJO: hay otro yt-dlp en ~/.local/bin y el bot usará ESE."
+    echo "         Actualízalo con:  pipx upgrade yt-dlp  (o: pip install -U yt-dlp)"
+  fi
 fi
 
 echo "==> [5/7] Comprobando pm2..."

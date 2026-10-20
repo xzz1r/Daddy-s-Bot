@@ -203,7 +203,13 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
   // coge sin un await por medio y se suelta si no llega a usarse: sin saldo,
   // o con la cola llena más abajo. Sigue sin castigar a quien no ocupa nada.
   marcarUso(quien);
-  const pago = await cobrar(jid, quien, 'redes', { fromMe: msg.key.fromMe, groupMeta });
+  let pago;
+  try {
+    pago = await cobrar(jid, quien, 'redes', { fromMe: msg.key.fromMe, groupMeta });
+  } catch (e) {
+    olvidarUso(quien);
+    throw e;
+  }
   if (!pago.ok) {
     olvidarUso(quien);
     return sock.sendMessage(jid, { text: textoSinSaldo('redes', pago, jid) }, { quoted: msg });

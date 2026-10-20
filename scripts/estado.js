@@ -332,9 +332,11 @@ if (!bot) {
   // que no, y las dos cosas eran verdad. Una comprobacion que mira un sitio
   // distinto del que mira el bot no comprueba nada.
   let donde = null;
+  let autonomo = false;
   try {
     const dl = require(path.join(RAIZ, 'src/utils/downloader'));
     donde = dl.hayYtDlp() ? dl.YT_DLP : null;
+    autonomo = Boolean(donde) && dl.esYtDlpAutonomo(donde);
   } catch { donde = sh('command -v yt-dlp 2>/dev/null'); }
   if (!donde) {
     // QUE FALTE NO ES LO MISMO PARA TODOS. Quien tenga API de terceros puesta en
@@ -375,6 +377,13 @@ if (!bot) {
       aviso(`yt-dlp es de hace ${dias} días (${v}): va tocando, antes de que empiece a fallar`,
         'pipx upgrade yt-dlp   (o: pip install -U yt-dlp)');
     } else bien(`yt-dlp ${v || 'presente'}`);
+    // Y CUÁL DE LOS TRES. El binario autónomo descomprime Python entero en cada
+    // llamada: más de un segundo por vídeo solo en arrancar (ver
+    // esYtDlpAutonomo). El de pipx va en ~/.local/bin, que el bot mira primero.
+    if (autonomo) {
+      aviso('yt-dlp es el binario autónomo: descomprime Python entero en cada !tt, !ig, !x y !pin, y eso es más de un segundo por vídeo antes de empezar',
+        'sudo apt install -y pipx && pipx install yt-dlp && pm2 restart bot');
+    }
   }
 }
 

@@ -164,6 +164,33 @@ Lo encontró una simulación de conversación con cuatro personas y miles de
 comandos de dinero cruzados. Las mismas pruebas, con el código de antes, salen
 en rojo.
 
+Y en la segunda pasada, un hueco en el propio arreglo de `!apostar`: si algo
+reventaba entre cobrar al sentarse y pagar, lo apostado no volvía (700 de
+1.000). Ahora se devuelve, y la capa 131 lo prueba rompiendo el pago a
+propósito.
+
+## La velocidad que da la VPS: yt-dlp
+
+Medido en un núcleo (20 oct). Lo que más pesa en `!tt`, `!ig`, `!x` y `!pin`
+fuera de la red es yt-dlp, y hay dos cosas que dependen de nosotros:
+
+- **Cuál se instala.** Solo arrancar (`--version`) cuesta 0,15 s el de pipx,
+  0,55 s la zipapp y **1 s el binario autónomo** (`yt-dlp_linux`), que
+  descomprime Python entero en cada llamada. Se paga en cada vídeo, y en la
+  VPS varias veces más. El bot mira primero `~/.local/bin`, que es donde lo
+  deja pipx; `setup.sh` ya instala con pipx (o la zipapp si no hay pipx), y
+  `npm run estado` avisa si el que se usa es el autónomo.
+- **Los trozos.** Lo que piden X y Pinterest suele ser HLS: decenas de trozos
+  que se bajaban de uno en uno. Con `--concurrent-fragments 4`, un vídeo de 40
+  trozos con 150 ms de latencia pasa de 7,97 s a 3,31 s, con el mismo fichero
+  byte a byte. A un vídeo entero (TikTok) no le cambia nada.
+
+Lo que NO se tocó, también medido: la caché de compilación de Node (el arranque
+pasa de unos 600 ms a unos 595) y el formato de píxel del sticker animado
+(`yuva420p` en vez de `rgba` gana un 7 % y pesa un 1 % más). La codificación
+WebP es el 85 % del sticker animado y no baja sin bajar calidad. La capa 132
+vigila lo de yt-dlp.
+
 ## Cuando WhatsApp no deja entrar: 402, 403, 406
 
 El 19 oct el bot se quedó en bucle: abría la conexión cada doce segundos, sin

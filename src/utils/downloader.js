@@ -90,6 +90,22 @@ function hayYtDlp() {
 
 const YT_DLP = detectYtDlp();
 
+// EL BINARIO AUTÓNOMO ES EL LENTO (20 oct). `yt-dlp_linux` lleva Python dentro y
+// lo descomprime entero en CADA llamada. Medido en un núcleo, solo arrancar
+// (--version) le cuesta 1 s; el de pipx, 0,15 s, y la zipapp, 0,55 s. Se paga
+// en cada !tt, !ig, !x y !pin, y en la VPS varias veces más. Se reconoce por la
+// cabecera: un ejecutable ELF, donde los otros dos son guiones de Python.
+function esYtDlpAutonomo(ruta = YT_DLP) {
+  try {
+    const fd = fs.openSync(ruta, 'r');
+    try {
+      const b = Buffer.alloc(4);
+      fs.readSync(fd, b, 0, 4, 0);
+      return b[0] === 0x7f && b.toString('latin1', 1, 4) === 'ELF';
+    } finally { fs.closeSync(fd); }
+  } catch { return false; }
+}
+
 // Proveedores de la API de terceros. RAPIDAPI_KEY admite VARIAS keys separadas
 // por coma para SUMAR cupos gratis y ganar tolerancia a fallos: si una key agota
 // su cuota mensual (o falla), el bot rota a la siguiente automáticamente. Cada
@@ -639,6 +655,6 @@ module.exports = {
   downloadAudio, ordenDeKeys, sinCuota, PROVIDERS,
   _repartoDe: repartoDe,
   _conBajador: (f) => { const antes = bajarUna; bajarUna = f; return () => { bajarUna = antes; }; },
-  acquireDownloadSlot, releaseDownloadSlot, ytdlp, downloadUrlToFile, hayYtDlp,
+  acquireDownloadSlot, releaseDownloadSlot, ytdlp, downloadUrlToFile, hayYtDlp, esYtDlpAutonomo,
   YT_DLP, MAX_BYTES, TEMP_DIR,
 };
