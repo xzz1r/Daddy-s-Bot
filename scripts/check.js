@@ -6557,6 +6557,42 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
         const sinEco = [...pobre, ...rico].filter((f) => !ECO.test(f));
         exige(sinEco.length === 0, `hay frases de ganar que no hablan de su economia: "${sinEco[0] || ''}"`);
       }
+
+      // LOS EJEMPLOS DEL DUEÑO NO SE TOCAN. Cinco por tramo, marcados
+      // «intocables» en el propio fichero, y aun asi la revision del 20 oct
+      // reescribio dos para quitarles la coletilla. Volvieron tal cual; esto
+      // es lo que impide que pase otra vez. Si el dueño cambia uno, se cambia
+      // aqui tambien.
+      const INTOCABLES = {
+        blessed: [
+          'Nadie sabía cómo quitarte el respeto que acabas de ganar.',
+          'Por una vez no fuiste el chiste del grupo.',
+          'Sacaste un número que obligó a esta gente a tragar saliva.',
+          'Tu tirada ha dejado al grupo sin nada que decir.',
+          'Hoy el aura ha caído de tu lado.',
+        ],
+        loss: [
+          'Bajaste y nadie se inmutó. Ya es parte del puto paisaje verte perder aura.',
+          'Se te escurrió un poco más de presencia. El grupo ni parpadeó, pringado.',
+          'Ni siquiera generas gracia. Esa cara de obvio. Qué asco de previsible.',
+          'Te han quitado aura sin ganas, como quien espanta una mosca.',
+          'Hoy el puto grupo te bajó un escalón más y ni se molestó en reírse.',
+        ],
+        cursed: [
+          'Perdiste tanta mierda que el silencio posterior fue puro cringe.',
+          'El aura te ha puesto de ejemplo delante del puto grupo. Todos han tomado nota.',
+          'Bajaste tan fuerte que hasta tus habituales defensores se hicieron los locos, cabrón.',
+          'Fue el chat recordándote, sin filtro, que sigues siendo un puto desastre.',
+          'Solo quedó esa mezcla de pena y alivio de no ser tú. Qué asco de suerte la tuya.',
+        ],
+      };
+      for (const [tramo, frases] of Object.entries(INTOCABLES)) {
+        const m = au.match(new RegExp(`\\n  ${tramo}: \\[\\n    // ── Ejemplos del usuario \\(intocables\\) ──\\n((?:    '.*',\\n){5})`));
+        const hay = m ? [...m[1].matchAll(/^    '(.*)',$/gm)].map((x) => x[1]) : [];
+        const tocadas = frases.filter((f, i) => hay[i] !== f);
+        exige(tocadas.length === 0,
+          `los ejemplos del dueño en ${tramo} se han tocado: "${tocadas[0] || ''}" ya no esta tal cual, y son intocables`);
+      }
     }
 
     // ── EL ADMIN PAGA MENOS. TODO. ────────────────────────────────────────
@@ -8825,12 +8861,31 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       // Y quedan fuera los comandos que van DE genero a proposito —masculinidad,
       // feminidad, gay, maricon, femboy, puta, guarra—, donde decir "tio" es el
       // tema y no un descuido.
+      //
+      // Y EL ARTICULO (20 oct). «Un cabrón como tú», «eres un pringado», «eres
+      // el inútil que»: el insulto puede no tener genero, pero el articulo es
+      // de tio. Entraron dieciseis en la revision a fondo, al sacar la
+      // coletilla de detras de la frase, y habia tres de antes en los avisos.
+      // Lo neutro es un sustantivo que no cambia con quien lo lee —una rata,
+      // un parasito, un estorbo, un cero a la izquierda, escoria— o el
+      // vocativo suelto. Y se mira tambien en los pools que viven en
+      // src/commands y src/utils (!aura, !iq, !roast, el cobro), que es donde
+      // estaban la mitad.
       {
-        const TEMATICOS = /^(masculinidad|feminidad|gay|maricon|femboy|puta|guarra|linda|lindo|gorda|zorra|virgen)\b/;
+        const TEMATICOS = /^(masculinidad|feminidad|gay|maricon|femboy|puta|guarra|linda|lindo|fea|gorda|zorra|virgen|incel)\b/;
+        const INSULTO = '(?:cabron|pringado|fracasado|gilipoyas|gilipollas|imbecil|inutil|subnormal|idiota|tonto'
+          + '|desgraciado|payaso|capullo|retrasado|anormal|muerto de hambre|don nadie|perdedor|mierdas|cobarde|miserable)';
         const ROTAS = [
           [/\beres\s+el\s+que\b/i, 'eres el que  →  eres quien'],
           [/\beres\s+(?:el|un|otro|ese|este)\s+(?:t[íi]o|tipo|chaval|pavo|colega)\s+que\b/i, 'eres el tipo que  →  eres de esa gente que'],
+          [new RegExp(`\\b(?:un|este|ese)\\s+(?:puto\\s+)?${INSULTO}\\s+como\\s+(?:tu|%[avn])(?![a-z])`, 'i'), 'un cabrón como tú  →  una rata como tú'],
+          [new RegExp(`\\beres\\s+(?:un|el)\\s+(?:puto\\s+)?${INSULTO}(?![a-z])`, 'i'), 'eres un pringado  →  eres escoria'],
+          [new RegExp(`\\beres\\s+el\\s+(?:puto\\s+)?(?:${INSULTO}|unico|primero|ultimo|tipico)\\s+que\\b`, 'i'), 'eres el inútil que  →  eres quien'],
         ];
+        // Sin tildes, como `npm run frases`: en JavaScript «ú» no es letra
+        // para \b, y «como tú.» no casaria nunca.
+        const pelar = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        const rota = (t) => ROTAS.find(([rx]) => rx.test(pelar(t)));
         const dir = path.join(R, 'src/data');
         const malas = [];
         for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.js'))) {
@@ -8839,15 +8894,40 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
             if (d > 3) return;
             if (Array.isArray(o) && o.length && o.every((x) => typeof x === 'string')) {
               if (TEMATICOS.test(ruta)) return;
-              o.forEach((t, i) => { for (const [rx, como] of ROTAS) if (rx.test(t)) malas.push(`${f}:${ruta}[${i}] (${como})`); });
+              o.forEach((t, i) => { const r = rota(t); if (r) malas.push(`${f}:${ruta}[${i}] (${r[1]})`); });
               return;
             }
             if (o && typeof o === 'object') for (const k of Object.keys(o)) rec(o[k], ruta ? `${ruta}.${k}` : k, d + 1);
           };
           rec(mod, '', 0);
         }
+        // Los pools de dentro de los comandos se leen como texto: hacer
+        // require de un comando arrastra medio bot. !mog va de genero a
+        // proposito y se queda fuera.
+        for (const sub of ['src/commands', 'src/utils']) {
+          for (const f of fs.readdirSync(path.join(R, sub)).filter((x) => x.endsWith('.js') && x !== 'mog.js')) {
+            fs.readFileSync(path.join(R, sub, f), 'utf8').split('\n').forEach((l, i) => {
+              if (!/^\s*['"`]/.test(l)) return;
+              const r = rota(l);
+              if (r) malas.push(`${sub}/${f}:${i + 1} (${r[1]})`);
+            });
+          }
+        }
         exige(malas.length === 0,
           `frases que dan por hecho que quien las lee es un tio (${malas.length}): ${malas.slice(0, 3).join(' · ')}`);
+
+        const cebosArticulo = [
+          'Hasta un cabrón como tú sabe esperar.',
+          'Ni tocas ese comando, eres un pringado.',
+          'No es cariño: es dejadez, y tú eres el inútil que la aprovecha.',
+        ];
+        const ciegosArticulo = cebosArticulo.filter((c) => !rota(c));
+        exige(ciegosArticulo.length === 0,
+          `la regla del articulo ya no ve lo que tiene que ver: "${ciegosArticulo[0]}" le pasa por delante`);
+        const neutras = ['Eso no lo toca una rata como tú.', 'Eres un puto cero a la izquierda.', 'Tú eres el chiste del grupo.'];
+        const cantadas = neutras.filter((c) => rota(c));
+        exige(cantadas.length === 0,
+          `la regla del articulo canta frases neutras: "${cantadas[0]}" no da por hecho nada`);
       }
 
       if (fallos === antes) console.log(verde('   \u2713 ninguna frase del bot da por hecho el genero de quien la manda ni de quien la recibe'));
@@ -22407,6 +22487,35 @@ const conTope = (p, ms) => Promise.race([p, new Promise((r) => setTimeout(() => 
     exige(/'--concurrent-fragments',\s*'\d+'/.test(soloCodigo('src/utils/redes.js')),
       'yt-dlp vuelve a bajar los trozos de un HLS de uno en uno: un vídeo de X o Pinterest tarda más del doble');
     if (fallos === antes132) console.log(verde('   ✓ estado distingue el yt-dlp lento, setup.sh instala el rápido y los vídeos por trozos bajan de cuatro en cuatro'));
+  }
+  // ── 133. EL STICKER DE UNA FOTO, Y LA VPS MEDIDA EN LA VPS ─────────────
+  //
+  // 20 oct, tercera pasada. El sticker de una foto codifica con el esfuerzo 4
+  // y no con el 6: la mitad de tiempo en un núcleo, un 2-3 % más de peso. Y si
+  // con el 4 no cabe, repite la MISMA calidad con el 6 antes de bajarla, para
+  // que la velocidad no cueste calidad. `npm run medir` mide la VPS contra los
+  // topes del propio bot, no contra una copia que se quedaría vieja.
+  {
+    console.log('\n133. EL STICKER DE UNA FOTO, MÁS RÁPIDO Y CON LA MISMA CALIDAD; LA VPS SE MIDE EN LA VPS');
+    const antes133 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const st = soloCodigo('src/utils/sticker.js');
+    exige(/function encodeStaticWebp\([^)]*esfuerzo = 4\)/.test(st) && /'-compression_level', String\(esfuerzo\)/.test(st),
+      'el sticker de una foto ya no codifica con el esfuerzo 4: vuelve a tardar el doble en un núcleo');
+    exige(/for \(const esfuerzo of \[4, 6\]\)/.test(st),
+      'si con el esfuerzo 4 no cabe, ya no se prueba la misma calidad con el 6: un 2-3 % de peso pasa a costar un escalón de calidad');
+    const S = require(path.join(R, 'src/utils/sticker'));
+    exige(Number.isFinite(S.FFMPEG_TIMEOUT_MS) && Number.isFinite(S.TOPE_ANIMADO_S),
+      'sticker.js ya no exporta FFMPEG_TIMEOUT_MS y TOPE_ANIMADO_S: npm run medir no puede comparar con los topes de verdad');
+    const rutaMedir = path.join(R, 'scripts/medir.js');
+    const medir = fs.existsSync(rutaMedir) ? fs.readFileSync(rutaMedir, 'utf8') : '';
+    const pkg = JSON.parse(fs.readFileSync(path.join(R, 'package.json'), 'utf8'));
+    exige(!!medir && pkg.scripts && pkg.scripts.medir === 'node scripts/medir.js',
+      'npm run medir ha desaparecido: no hay forma de saber qué da de sí la VPS');
+    exige(/S\.FFMPEG_TIMEOUT_MS/.test(medir) && /S\.TOPE_ANIMADO_S/.test(medir),
+      'medir.js compara con topes copiados a mano: se quedan viejos el día que cambian en sticker.js');
+    exige(!medir || spawnSync(process.execPath, ['--check', rutaMedir]).status === 0, 'scripts/medir.js no compila');
+    if (fallos === antes133) console.log(verde('   ✓ la foto sale en la mitad de tiempo sin perder calidad, y npm run medir compara con los topes de verdad'));
   }
 
 

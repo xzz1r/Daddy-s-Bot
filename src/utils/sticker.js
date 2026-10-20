@@ -538,13 +538,20 @@ const STATIC_TARGET_BYTES = 100 * 1024;
 // calidad para ahorrar ocho kilobytes que nadie estaba pidiendo.
 const STATIC_QUALITY_TIERS = [100, 90, 80, 65, 50, 35];
 
-function encodeStaticWebp(inputFile, outputFile, quality) {
+function encodeStaticWebp(inputFile, outputFile, quality, esfuerzo = 4) {
   return runFfmpeg(inputFile, outputFile, [
     '-vf', VF_STATIC,
     '-c:v', 'libwebp',
     '-frames:v', '1',
     '-q:v', String(quality),
-    '-compression_level', '6', // single frame: worth spending more CPU for a smaller file
+    // EL 4 Y NO EL 6 (20 oct). Es el esfuerzo del compresor, no la calidad: la
+    // calidad la pone -q:v. Medido en un núcleo con q100 sobre dos fotos de
+    // 1080x1350: el 6 tarda 190-240 ms y el 4 tarda 80-135, con el fichero un
+    // 2-3 % más grande (19,2 → 19,6 KB y 49,8 → 51,3 KB). Por debajo del 4 ya
+    // engorda un 60-80 % y deja de compensar. Y ese 2-3 % no puede costar
+    // calidad: si con el 4 no cabe, imageToSticker repite la misma calidad
+    // con el 6 antes de bajar un escalón.
+    '-compression_level', String(esfuerzo),
     '-an',
     '-y',
   ]);
@@ -565,13 +572,17 @@ async function imageToSticker(imageBuffer, author) {
     let out = null;
     let smallest = null;
     for (const quality of STATIC_QUALITY_TIERS) {
-      try {
-        await encodeStaticWebp(inputFile, outputFile, quality);
-      } catch { continue; }
-      const buf = await fs.readFile(outputFile);
-      if (buf.length < 100) continue;
-      if (!smallest || buf.length < smallest.length) smallest = buf;
-      if (buf.length <= STATIC_TARGET_BYTES) { out = buf; break; }
+      for (const esfuerzo of [4, 6]) {
+        let buf;
+        try {
+          await encodeStaticWebp(inputFile, outputFile, quality, esfuerzo);
+          buf = await fs.readFile(outputFile);
+        } catch { continue; }
+        if (buf.length < 100) continue;
+        if (!smallest || buf.length < smallest.length) smallest = buf;
+        if (buf.length <= STATIC_TARGET_BYTES) { out = buf; break; }
+      }
+      if (out) break;
     }
     const result = out || smallest;
     if (!result) throw new Error('Sticker generado vacío');
@@ -900,4 +911,4 @@ async function gifToSticker(gifBuffer, author, rutaOrigen = null) {
   return videoToSticker(gifBuffer, author, rutaOrigen);
 }
 
-module.exports = { _VF_ANIM: VF_ANIM, detectExt, desmontarWebpAnimado, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC };
+module.exports = { _VF_ANIM: VF_ANIM, FFMPEG_TIMEOUT_MS, TOPE_ANIMADO_S, detectExt, desmontarWebpAnimado, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC };

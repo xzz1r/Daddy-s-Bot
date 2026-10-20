@@ -95,7 +95,7 @@ function getActivityPhrases(count) {
     return [
       `${c} mensajes, %N. Sostienes tú este grupo de mierda y nadie te da ni las gracias.`,
       `%N, ${c} mensajes. Empujas tú este grupo y los demás van montados encima sin dar un puto palo.`,
-      `${c} mensajes, %N. Si mañana no apareces, el chat se queda en coma, y un cabrón como tú lo sabe.`,
+      `${c} mensajes, %N. Si mañana no apareces, el chat se queda en coma. Eso da poder, cabrón, y lo sabes.`,
       `%N, ${c}. Tú escribes y los demás leen, así va la cadena alimenticia de este grupo.`,
       `${c} mensajes, %N. Para roastearte habría que buscar lo que no has dicho, y no queda mucho.`,
       `%N, ${c} mensajes. Das la cara más que nadie, y con la cara que tienes, eso tiene mérito.`,

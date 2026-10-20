@@ -467,8 +467,11 @@ género a propósito (`!masculinidad`, `!feminidad`, `!gay`, `!maricon`,
 `!cum` y `!spank`, y los piropos de `!piropo`, que el dueño quiere así. La capa
 44 del check se queda corta: en las acciones mira
 «%V se queda quieto» y el «lo» que va por %V, pero no el «la», y en el resto
-solo caza «eres el que» y «eres el tío que», y solo en `src/data/`. Lo demás lo
-tiene que ver quien escribe.
+caza «eres el que», «eres el tío que» y el artículo de tío delante de un
+insulto («un cabrón como tú», «eres un pringado», «eres el inútil que»),
+también en los pools de `src/commands/` y `src/utils/`. Lo neutro es un
+sustantivo que no cambia con quien lo lee (una rata, un parásito, un estorbo,
+escoria) o el vocativo suelto. Lo demás lo tiene que ver quien escribe.
 
 **El plural es vosotros.** Cuando el bot le habla a varios (un !kick de dos,
 el bote, !inactivos) es «os echan», «lleváis», «largaos», nunca «ustedes». Lo
@@ -825,17 +828,18 @@ defectos:
 
 | familia | qué es | al medirlo | 20 oct |
 |---|---|---|---|
-| `nadie` | la frase no menciona a la persona: vale para cualquiera | 1046 | 476 |
+| `nadie` | la frase no menciona a la persona: vale para cualquiera | 1046 | 245 |
 | `analogia` | el chiste es el objeto («tu lealtad es como el wifi del vecino») | 68 | 6 |
-| `coletilla` | frase neutra y el insulto pegado detrás con una coma | 601 | 21 |
+| `coletilla` | frase neutra y el insulto pegado detrás con una coma | 601 | 23 |
 | `eco` | abre repitiendo la etiqueta del comando («Rata que…» en `!rata`) | 12 | 1 |
 | `molde` | cuatro o más del mismo pool empiezan igual | 725 | 66 |
 | `enlatado` | el mismo bloque de cinco palabras en cuatro frases o más | 415 | 127 |
 | `roto` | daño mecánico de una edición masiva anterior | 2 | 2 |
 
-Las 21 coletillas que quedan son a propósito: los avisos de `!kick`, que
+Las 23 coletillas que quedan son a propósito: los avisos de `!kick`, que
 cierran con «Fuera, X.», los piropos, «Hoy cenas, muerto de hambre.»,
-«Borrado, gilipoyas.» y el roast del dueño. Casi todo el `enlatado` y el
+«Borrado, gilipoyas.», el roast del dueño y dos de sus ejemplos de `!aura`,
+que son intocables. Casi todo el `enlatado` y el
 `molde` que queda son las acciones, donde «%A le azota el culo a %V» se repite
 porque es lo que pasa.
 

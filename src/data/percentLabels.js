@@ -227,7 +227,7 @@ const LABELS = {
       '[nombre], cero pómulo, cero borde y cero sombra. Todo blando y redondo, y nada que la luz pueda salvar.',
     ],
     mid: [
-      'Regular con días buenos. Los días buenos son pocos y encima nunca coinciden con las fotos importantes.',
+      'Regular con días buenos. Tus días buenos son pocos y encima nunca coinciden con las fotos importantes.',
       'Tienes un rasgo bueno rodeado de rasgos normales. Ese rasgo está haciendo un esfuerzo enorme, dale las gracias, muñeca.',
       'Sales bien en las fotos de grupo porque siempre hay alguien peor al lado. Sola en la foto es otra historia.',
       'Tienes una cara de «con buena luz»: con buena luz, con buen ángulo y con alguien que no mire mucho.',
@@ -1030,7 +1030,7 @@ const LABELS = {
       'Nadie ha dependido de ti y le ha salido bien, ni una sola vez. No hace falta ni insultarte.',
       '[nombre], eres quien pide ayuda antes de intentarlo. Y a veces sin intentarlo siquiera. Ni la pereza justifica ese nivel de mierda.',
       'En cualquier proyecto tu nombre sale en la portada y en ningún otro sitio. Crédito de adorno y trabajo de mierda.',
-      'El grupo te aguanta porque quitarte da más pereza que soportarte. No es cariño: es dejadez, y tú eres el inútil que la aprovecha.',
+      'El grupo te aguanta porque quitarte da más pereza que soportarte. No es cariño: es dejadez, y tu inutilidad vive de ella.',
       'Llevas años sin una responsabilidad real y te quejas de que no confían en ti. La desconfianza te la ganaste.',
       'Nadie te pregunta ya cómo va lo tuyo: mal, tarde y a medias. Preguntar sería perder el tiempo con un inútil.',
       'Tu forma de contribuir es asentir a lo que deciden otros y apuntarte el mérito. Firma ajena y cara de parásito.',

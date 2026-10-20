@@ -153,7 +153,7 @@ let GHOST_ROASTS = [
   'Vive en visto. Campeón de dejar a todo el mundo esperando una respuesta que no llega.',
   'El grupo es su Netflix: lo abre, consume lo que otros se curran y nunca deja reseña. Parásito de entretenimiento ajeno, fantasma.',
   'Ve los memes y jamás hace uno. Consumidor crónico y productor cero, y ahí tienes su cifra.',
-  'Lleva tanto en silencio que ya nadie le espera respuesta. Es un perdedor con forma de "te leo luego", y el "luego" no llega jamás.',
+  'Lleva tanto en silencio que ya nadie le espera respuesta. Es un "te leo luego" con patas, y el "luego" no llega jamás.',
   'Entra, lee, se ríe por dentro y se larga. El grupo le entretiene gratis y a cambio recibe silencio.',
   'Tiene el micrófono apagado desde que entró. Por lo que se ve, no lo echa de menos nadie.',
   'Si mañana se le cae el móvil al váter, el grupo no se entera ni en un mes.',

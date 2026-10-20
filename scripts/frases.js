@@ -134,7 +134,13 @@ const POOLS_MODO = args.includes('--pools');
 // segunda pasada, el ship perfecto, el remate del robo fallido, la bio vacía,
 // el admin de recados, los cierres del sorteo y un «En privado» que yo mismo
 // había repetido: molde 66.
-const TECHO = { nadie: 476, analogia: 6, coletilla: 21, eco: 1, molde: 66, enlatado: 127, roto: 2 };
+// Y en la tercera pasada: el detector no conocía muchas formas de segunda
+// persona (tuyo, vais, irías, llévalo…) ni el vocativo a media frase, y 78
+// frases de !ship, !iq, saldo, esperas y !aura pasan a hablarle a la persona:
+// nadie 245. La coletilla SUBE a 23, y no por frases malas: son dos de los
+// ejemplos del dueño en !aura, marcados intocables, que la revisión a fondo
+// había reescrito. Vuelven tal cual y el check los vigila.
+const TECHO = { nadie: 245, analogia: 6, coletilla: 23, eco: 1, molde: 66, enlatado: 127, roto: 2 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();
@@ -271,8 +277,25 @@ const PERSONA = new RegExp(
   + '|\\b(?:eres|estas|tienes|vas|has|habias|puedes|sabes|quieres|sigues|acabas|vienes'
   + '|haces|dices|llevas|pareces|mereces|necesitas|crees|vives|sales|pides|miras|buscas'
   + '|juegas|apuestas|aprende|relaja|mira|cuenta|deja|para|vete|calla)\\b'
+  // LAS QUE SE LE ESCAPABAN (20 oct): segunda persona que el detector no
+  // conocía, sacada de las propias frases marcadas. Con ellas, «cada mensaje
+  // tuyo» o «Vais a discutir» ya no cuentan como frases que no hablan a nadie.
+  // Lista a mano y no por terminación: «ganas», «cuentas» o «tonterías» son
+  // también sustantivos, y una regla por terminación las daría por buenas.
+  + '|\\b(?:tuyo|tuya|tuyos|tuyas|vais|compartis|seguis|juntaros'
+  + '|llegas|escribes|vuelves|hablas|pones|pagas|cambias|llamas|entras|mandas|aguantas|pegas|cenas|subes'
+  + '|pierdes|piensas|entiendes|borras|preguntas|arriesgas|picas|generas|consigues|gastas|compras|atinas'
+  + '|tocas|confirmas|robas|compartes|confundes|gritas|opinas|tomas|cometes|terminas|corriges|sueltas'
+  + '|relees|dejas|firmas|entregas|evitas|levantas|disfrutas|eliges|hueles|cancelas|prometes|sostienes'
+  + '|anuncias|friegas|follas|arreglas|lloras|abres|cruzas|contestas|callas|empeoras|das|ves'
+  + '|estarias|irias|sacarias|celebrarias|guardarias|pondrias|podrias|podias|querias|estabas|quisieras'
+  + '|siguieras|tendras|puedas|tengas|respondas|abras|pegues|toques|apuntes'
+  + '|pruebalo|llevalo|sacalo|ahorrate|apanatelas|compruebalo|enmarcalo|canjealos'
+  + '|buscate|rebatirte|mirarte|asumelo|robad|atracas|follaros|intentes|salis|rozas)\\b'
   + '|\\b\\w+(?:aste|iste)\\b'
-  + `|,\\s*(?:${EPITETOS.map((e) => e.replace(/ /g, '\\s+')).join('|')})\\s*[.!?]?\\s*$`);
+  // El vocativo le habla a la persona esté donde esté: al final («…, cabrón.»),
+  // en medio («…, imbécil: no sale más botín») o abriendo («Cabrón, …»).
+  + `|(?:,|^)\\s*(?:${EPITETOS.map((e) => e.replace(/ /g, '\\s+')).join('|')})\\s*(?:[,:;.!?]|$)`);
 
 // ─── familia: eco ──────────────────────────────────────────────────────────
 // Para los pools que llevan el nombre del comando (`rata.high`), mirar si la

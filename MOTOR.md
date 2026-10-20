@@ -191,6 +191,22 @@ pasa de unos 600 ms a unos 595) y el formato de píxel del sticker animado
 WebP es el 85 % del sticker animado y no baja sin bajar calidad. La capa 132
 vigila lo de yt-dlp.
 
+Y en la tercera pasada:
+
+- **El sticker de una foto.** `compression_level` 4 en vez de 6. Es el
+  esfuerzo del compresor, no la calidad, que la pone `-q:v`. En un núcleo pasa
+  de 190-240 ms a 80-135 ms por foto, con el fichero un 2-3 % más grande. Si
+  con el 4 no cabe en los 100 KB, se repite la misma calidad con el 6 antes de
+  bajar un escalón: la calidad que sale es la de antes.
+- **`npm run medir`.** Todo lo de arriba se midió en otra máquina, y los topes
+  del bot (45 s por sticker animado, 10 s de vídeo como mucho) se pusieron con
+  esos números. Esto mide en la VPS el núcleo, un sticker de una foto y uno
+  animado (con el peor caso contra el tope), el arranque de yt-dlp y cuál es,
+  lo que tarda en cargar el bot, el disco y el «steal», que es lo que se queda
+  el hipervisor. Tarda un minuto, no toca `data/` y no sale a internet. Lo que
+  diga en la VPS es lo que manda para ajustar esos topes. La capa 133 vigila
+  las dos cosas.
+
 ## Cuando WhatsApp no deja entrar: 402, 403, 406
 
 El 19 oct el bot se quedó en bucle: abría la conexión cada doce segundos, sin
