@@ -253,13 +253,12 @@ async function cmdDuel(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: aviso(A_TI_MISMO, jid, 'yo') }, { quoted: msg });
   }
 
+  const yaPendiente = (d) => sock.sendMessage(jid, {
+    text: `Ya hay un duelo pendiente: @${d.challenger.split('@')[0]} vs @${d.target.split('@')[0]}. Espera a que se resuelva${apel('muñeca')}.`,
+    mentions: [d.challenger, d.target],
+  }, { quoted: msg });
   const existing = getPending(jid);
-  if (existing) {
-    return sock.sendMessage(jid, {
-      text: `Ya hay un duelo pendiente: @${existing.challenger.split('@')[0]} vs @${existing.target.split('@')[0]}. Espera a que se resuelva${apel('muñeca')}.`,
-      mentions: [existing.challenger, existing.target],
-    }, { quoted: msg });
-  }
+  if (existing) return yaPendiente(existing);
 
   // Apuesta: primer argumento numerico despues de la mencion. Mismo parser
   // que el robo: si no, un telefono sin @ o una marca bidi se comen la cifra.
@@ -289,6 +288,13 @@ async function cmdDuel(sock, msg, args, groupMeta) {
       text: `Con ese saldo no te da para un duelo${apel('pequeña')}.`,
     }, { quoted: msg });
   }
+
+  // Y OTRA VEZ, JUSTO ANTES DE APUNTARLO (20 oct). Entre la mirada de arriba y
+  // esta línea se leen dos saldos, y en esa espera se colaba otro reto del
+  // mismo grupo: cinco *!duel* a la vez lanzaban cuatro duelos, y el último
+  // pisaba a los demás. Sin un await por medio, ya no se puede pisar.
+  const seColo = getPending(jid);
+  if (seColo) return yaPendiente(seColo);
 
   // Store canonical (phone-JID) forms so accept/reject comparisons work in
   // LID groups where getTarget() and getSender() may return different JID formats.

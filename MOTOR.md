@@ -136,6 +136,34 @@ con un 405 («cliente demasiado viejo»), el bot la vuelve a preguntar antes de
 reconectar. Y el motivo de cada cierre sale en el log, una vez por motivo. La
 capa 129 lo vigila.
 
+## La batería de comandos (capa 131)
+
+Revisión a fondo del 20 oct, que pidió el dueño. Cada comando del registro pasa
+por el manejador de verdad con quince mensajes raros: sin nada detrás, con
+texto, con números negativos o enormes, mencionando a otro, a sí mismo o al
+bot, citando un mensaje o una foto, con letras de adorno y con un texto
+larguísimo. Como miembro y como dueño, unos 9.000 mensajes en una copia
+aparte y sin red, en unos 25 segundos. Sale en rojo si algo revienta, aunque
+el reparto se lo trague y conteste «Eso ha petado»; si algo se cuelga; si una
+respuesta lleva `undefined`, `NaN` o un `%A` sin sustituir; si un @número sale
+sin su mención; o si un asterisco o un guion bajo se quedan sin pareja.
+
+Y prueba lo que solo se ve con prisa, cuando llegan varios mensajes a la vez:
+
+- **`!apostar` con otro comando de dinero.** Leía el saldo al empezar y lo
+  movía al final, con esperas por medio. Con 650, `!dar 400` y `!apostar` a la
+  vez dejaron −98, por debajo del suelo de 150. Ahora lo que se arriesga se
+  cobra al sentarse, de golpe y antes del dado (`spendAura`). Si ya no llega,
+  no se juega.
+- **Cinco `!duel` a la vez** lanzaban cuatro duelos, y el último pisaba a los
+  demás. Se vuelve a mirar si hay uno pendiente justo antes de apuntarlo.
+- **Cinco `!tt` a la vez** hacían cuatro cobros y cuatro descargas. El turno de
+  cada persona se coge antes de cobrar y se suelta si no llega a usarse.
+
+Lo encontró una simulación de conversación con cuatro personas y miles de
+comandos de dinero cruzados. Las mismas pruebas, con el código de antes, salen
+en rojo.
+
 ## Cuando WhatsApp no deja entrar: 402, 403, 406
 
 El 19 oct el bot se quedó en bucle: abría la conexión cada doce segundos, sin

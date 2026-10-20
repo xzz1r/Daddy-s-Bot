@@ -50,7 +50,7 @@ function tirarIQ() {
 // %IQ se sustituye por la cifra que salió, para que la frase pueda jugar con
 // ella ("tienes 62 y el termostato de tu casa tiene 68").
 const ABISMO = [
-  'Con %IQ el listón no está bajo: está enterrado, con lápida y con flores. Descanse en paz tu capacidad de razonar, inútil.',
+  'Con %IQ el listón no está bajo: está enterrado, con lápida y con flores. Aquí descansa tu cabeza de inútil.',
   'Con %IQ ni el corrector automático te salva. Ese pobre lleva años intentando entenderte y se ha rendido.',
   '%IQ. Con esa cifra no apruebas ni existir, y aun así aquí estás, opinando.',
   'Con %IQ eres el eslabón que la evolución dejó por error. Y la evolución no suele dejar cabos sueltos.',
@@ -85,7 +85,7 @@ const ABISMO = [
 const BAJO = [
   '%IQ. Por debajo de la media, pringado, y cada vez que opinas alguien contesta «¿qué cojones dices?».',
   'Con %IQ entiendes los chistes tres segundos después que el resto y aun así te ríes por si acaso.',
-  'Con %IQ te manejas en lo básico y te pierdes en cuanto la conversación pasa de dos ideas seguidas, cabrón.',
+  'Con %IQ te manejas en lo básico. A la segunda idea seguida, un cabrón como tú ya se ha perdido.',
   '%IQ. Por debajo de la media, por encima del suelo, y a gusto de cojones ahí abajo.',
   'Con %IQ tomas decisiones rápidas, gilipoyas, malas pero rápidas, y encima las llamas instinto.',
   'Con %IQ funcionas bien mientras nadie te cambie nada. En cuanto cambia algo, se te ve el cartón.',
@@ -105,10 +105,10 @@ const BAJO = [
   '%IQ. Te preguntan la hora, contestas el tiempo que hace y encima te mosqueas si te corrigen.',
   'Con %IQ te apañas. Apañarse es lo que hace la gente que no llega y llevas años apañándote, mi niña.',
   '%IQ de IQ. Justo lo que hace falta para funcionar sin que nadie te pregunte nunca la opinión.',
-  '%IQ. El número que sale cuando alguien tiene ganas pero no herramientas. Y tú ni las ganas, la verdad, pringado.',
+  '%IQ. El número que sale cuando alguien tiene ganas pero no herramientas. Y a un pringado como tú le faltan hasta las ganas.',
   '%IQ de IQ. Te da para discutir de oídas y para callarte en cuanto llega un dato.',
   '%IQ. Un escalón por debajo de tomar nota, y encima te ofendes si te la toman. Qué asco de orgullo.',
-  'Con %IQ vas tirando hasta que hay que leer el segundo párrafo. Ahí se te acaba el combustible, pringado.',
+  'Con %IQ vas tirando hasta que hay que leer el segundo párrafo. Ahí se te acaba la cabeza de pringado.',
   '%IQ. Te falta un hervor y te sobra seguridad. Mala mezcla para abrir la boca en el grupo.',
   'Con %IQ te enteras de los planes cuando ya se han cancelado, chiquitina.',
   '%IQ de IQ. No te da ni para ganar una discusión ni para perderla con dignidad.',
@@ -118,7 +118,7 @@ const BAJO = [
 const MEDIO = [
   '%IQ. Tienes los cojones de ser exactamente igual que todo el mundo y encima no te da vergüenza.',
   '%IQ. Eres tan puñeteramente medio que si te clonaran cien veces no cambiaría ni la estadística ni el ambiente.',
-  '%IQ de IQ. Si la mediocridad pagara impuestos tú solo financiarías una autopista, cabrón.',
+  '%IQ de IQ. Si la mediocridad pagara impuestos, un cabrón como tú financiaría una autopista sin ayuda.',
   '%IQ. Rotas las mismas cuatro frases de siempre y en años nadie se ha dado ni puta cuenta.',
   '%IQ de IQ. Mierda, eres tan promedio que si buscas tu nombre en Google sale "quizás quisiste decir otro".',
   '%IQ de IQ. Coño, eres tan del promedio que si te pusieras de perfil intelectualmente desaparecerías.',
@@ -150,7 +150,7 @@ const MEDIO = [
 
 const ALTO = [
   'Con %IQ podrías estar resolviendo ecuaciones y estás resolviendo si contestar o no a un mensaje con un puto emoji.',
-  '%IQ. Tienes la cabeza de alguien que podría cambiar las cosas y el culo pegado al sofá como todos los demás, cabrón.',
+  '%IQ. Tienes cabeza para cambiar las cosas y culo de cabrón pegado al sofá, como todos los demás.',
   '%IQ. Tienes buena cabeza de verdad, qué pena que la gastes discutiendo en un grupo de WhatsApp.',
   'Con %IQ ves venir las tonterías del grupo antes que nadie. Y aun así te metes, chiquitina.',
   '%IQ de IQ. Tienes de las mejores cabezas de aquí, que con este nivel tampoco es decir mucho.',

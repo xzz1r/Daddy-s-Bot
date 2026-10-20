@@ -124,7 +124,14 @@ const POOLS_MODO = args.includes('--pools');
 // Y el 18 oct, al quitarle el veneno a lo que se le dice a la peña activa
 // (rachas, bonos, relevancia alta, duelos ajustados, podio): nadie 479,
 // coletilla 89.
-const TECHO = { nadie: 479, analogia: 6, coletilla: 89, eco: 4, molde: 151, enlatado: 127, roto: 2 };
+// Y el 20 oct, en la revisión a fondo: 68 coletillas con el insulto metido en
+// el golpe (quedan las de los avisos de !kick, que cierran con «Fuera, X.», los
+// piropos, «Hoy cenas, muerto de hambre.», «Borrado, gilipoyas.» y el roast
+// del dueño) y tres ecos fuera: nadie 477, coletilla 21, eco 1. Y los
+// arranques calcados de ocho pools (el aviso del privado, las amenazas a los
+// fantasmas, el bote, la ganzúa, el inventario, la caja, la mesa y la subida de
+// los ricos), a tres como mucho por pool: nadie 476, molde 96.
+const TECHO = { nadie: 476, analogia: 6, coletilla: 21, eco: 1, molde: 96, enlatado: 127, roto: 2 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();

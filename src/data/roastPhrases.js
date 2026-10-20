@@ -205,7 +205,7 @@ const BIO_FULL = [
   'Con «%B» en la bio, %N, ya no hacía falta roast. Te lo has hecho tú.',
   '%N, tu bio dice «%B» y tu historial en el grupo dice otra cosa. Adivina a cuál se cree todo el mundo.',
   '«%B». %N quería que eso se supiera, y ahora se sabe que es gilipoyas.',
-  '%N, has tenido todas las palabras del idioma a tu disposición y has elegido «%B». Enhorabuena por la puntería, gilipoyas.',
+  '%N, has tenido todas las palabras del idioma a tu disposición y has elegido «%B». Puntería de gilipoyas.',
   'La bio de %N: «%B». Alguien debería revisarle el perfil antes de que lo vea más gente.',
   '%N, «%B» no te describe, te delata.',
   '%N se ha puesto «%B» de bio y se ha quedado a gusto. El grupo, no tanto.',

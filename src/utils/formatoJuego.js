@@ -90,13 +90,17 @@ function bloqueCooldown({ que, titulo, frase, queda, cola = '' }) {
 // final, que es donde el ojo lo va a buscar después de leerlo diez veces.
 //
 // El signo es el menos de verdad (−, U+2212) y no un guion: al lado de un +
-// del mismo alto, un guion corto se lee como un separador.
+// del mismo alto, un guion corto se lee como un separador. Y también en el
+// saldo, que con !aura puede quedar en números rojos: salía «−34 → -34», con
+// los dos menos distintos en la misma línea (20 oct).
 function lineaAura(quien, delta, total, { negrita = false } = {}) {
   const n = Number(delta) || 0;
   const movimiento = n === 0
     ? 'sin cambios'
     : `${n > 0 ? '+' : '−'}${fmt(Math.abs(n))}`;
-  const cuerpo = `${quien ? `${quien}  ` : ''}${movimiento} → ${negrita ? '' : '*'}${fmt(total)}${negrita ? '' : '*'}`;
+  const t = Number(total) || 0;
+  const saldo = t < 0 ? `−${fmt(Math.abs(t))}` : fmt(total);
+  const cuerpo = `${quien ? `${quien}  ` : ''}${movimiento} → ${negrita ? '' : '*'}${saldo}${negrita ? '' : '*'}`;
   return negrita ? `*${cuerpo}*` : cuerpo;
 }
 

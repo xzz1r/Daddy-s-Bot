@@ -197,8 +197,15 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
     }, { quoted: msg });
   }
 
+  // EL RELOJ SE COGE YA, antes de esperar al cobro (20 oct). Se miraba aquí y
+  // se marcaba después del cobro, y en esa espera cabían más: cinco *!tt*
+  // iguales a la vez pasaban cuatro, y eran cuatro cobros y cuatro vídeos. Se
+  // coge sin un await por medio y se suelta si no llega a usarse: sin saldo,
+  // o con la cola llena más abajo. Sigue sin castigar a quien no ocupa nada.
+  marcarUso(quien);
   const pago = await cobrar(jid, quien, 'redes', { fromMe: msg.key.fromMe, groupMeta });
   if (!pago.ok) {
+    olvidarUso(quien);
     return sock.sendMessage(jid, { text: textoSinSaldo('redes', pago, jid) }, { quoted: msg });
   }
   const devolverAura = () => devolver(jid, quien, pago, 'redes').catch((e) => logger.unaVez('redes: devolver', e));
@@ -238,10 +245,9 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
     }).catch(() => {});
   }
 
-  // AQUI SE MARCA EL RELOJ, y no al entrar. De aqui no se sale sin ocupar un
-  // hueco de descarga: el enlace es bueno, la plataforma esta, y el aura ya
-  // esta cobrada. Lo de antes castigaba por intentarlo.
-  marcarUso(quien);
+  // El reloj ya está cogido desde antes del cobro (ver arriba). De aquí no se
+  // sale sin ocupar un hueco de descarga: el enlace es bueno, la plataforma
+  // está, y el aura ya está cobrada.
 
   let traido = null;
   const t0 = Date.now();
@@ -292,8 +298,11 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
           : `${num} no he podido traerlo de ${nombre}. No te he cobrado.`;
     // La busqueda no borra el mensaje, asi que el aviso puede citarlo y no
     // hace falta la mencion.
+    // Sin la mención por delante, la frase empezaba en minúscula: «no he
+    // podido buscar en Pinterest…» (20 oct). Se le sube la primera letra.
+    const sinNum = texto.replace(`${num} `, '');
     return busqueda
-      ? sock.sendMessage(jid, { text: texto.replace(`${num} `, '') }, { quoted: msg })
+      ? sock.sendMessage(jid, { text: sinNum.charAt(0).toUpperCase() + sinNum.slice(1) }, { quoted: msg })
       : sock.sendMessage(jid, { text: texto, ...deQuien });
   }
 

@@ -24,14 +24,14 @@ const GUARDADO = [
   'A cubierto. Guardar aura es admitir que te da miedo el grupo.',
   'Bajo llave. Y con el resto a la vista, que algo hay que dejar.',
   'Escondido, rata. Cuatro duros bajo llave y ya vas de millonario.',
-  'Bajo llave. Ahora ya se puede dormir, con el candado debajo de la almohada.',
+  'Guardado. Ahora ya se puede dormir, con el candado debajo de la almohada.',
   'A cubierto. Ahora quien venga a robarte tiene que traer algo más que ganas.',
   'Candado puesto, y a la vista de todo el grupo. Ahora todos saben que tienes algo.',
   'Hecho. Lo sensato, que es justo por lo que das tanto coñazo.',
   'Cerrado. Ahora puedes cagarte de miedo con algo más de calma.',
   'Bajo llave. Casi a salvo: con *!robarbanco* todavía te lo pueden reventar.',
   'Bajo llave y fuera de la mesa. Esa aura ya no juega y tú tampoco con ella, pequeña.',
-  'Bajo llave. Sacarlo va a doler, y lo sabes.',
+  'Ya está dentro. Sacarlo va a doler, y lo sabes.',
   'Cerrado. Muy prudente y muy inútil, todo a la vez.',
 ];
 

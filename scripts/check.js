@@ -22153,6 +22153,202 @@ const bajadoDesde = (i) => pedidas.slice(i).filter((p) => p.tipo === 'arraybuffe
     if (fallos === antes130) console.log(verde('   ✓ con 402, 403 o 406 el bot y el guardián se paran, dicen lo que dice WhatsApp y qué hacer, y estado lo canta'));
   }
 
+  // ── 131. CADA COMANDO, CON MENSAJES RAROS, POR EL MANEJADOR DE VERDAD ─────
+  //
+  // 20 oct, revisión a fondo que pidió el dueño. Las demás capas miran las
+  // frases sueltas o un comando cada una; nada pasaba TODOS los comandos por
+  // el manejador entero con lo que escribe la gente de verdad: sin nada
+  // detrás, con texto, con números raros, mencionando a otro o a sí mismo,
+  // citando un mensaje o una foto, con letras de adorno y con un texto
+  // larguísimo, o apuntando al propio bot. Como miembro con saldo y como
+  // dueño, unos 9.000 mensajes.
+  //
+  // En una copia aparte (el aura y los contadores escriben en data/) y sin red:
+  // todo lo que sale falla al momento, que es también lo que pasa cuando una
+  // web se cae. Lo que no puede salir nunca:
+  //
+  //   · un comando que revienta o se queda colgado;
+  //   · basura de una plantilla mal montada: undefined, NaN, [object Object],
+  //     un %A o un ${ sin sustituir;
+  //   · un @número sin su mención, que WhatsApp enseña como texto y no avisa;
+  //   · un asterisco o un guion bajo sin pareja en una línea, que sale tal cual
+  //     en vez de poner la negrita o la cursiva.
+  //
+  // La primera pasada no encontró nada de eso; sí una respuesta que empezaba
+  // en minúscula (!pin sin red) y un saldo negativo con guion en vez de menos.
+  // Y con varios comandos a la vez, una carrera en !apostar que dejaba el
+  // saldo bajo el suelo: va al final, con su propia prueba.
+  {
+    console.log('\n131. CADA COMANDO, CON MENSAJES RAROS, POR EL MANEJADOR DE VERDAD');
+    const antes131 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const guion = String.raw`
+const path = require('path');
+const http = require('http'), https = require('https'), net = require('net'), tls = require('tls'), dns = require('dns');
+const sinRed = () => { throw Object.assign(new Error('sin red en la capa 131'), { code: 'ECONNREFUSED' }); };
+http.request = http.get = https.request = https.get = sinRed;
+net.connect = net.createConnection = tls.connect = sinRed;
+dns.lookup = (h, o, cb) => { const f = typeof o === 'function' ? o : cb; process.nextTick(() => f(Object.assign(new Error('sin dns'), { code: 'ENOTFOUND' }))); };
+if (global.fetch) global.fetch = async () => sinRed();
+let actual = '-';
+// Diez por cada clase de fallo: un fallo que se repite en cien comandos no
+// puede tapar a otro distinto que sale en uno solo.
+const quejas = [];
+const porClase = {};
+const queja = (clase, q) => { porClase[clase] = (porClase[clase] || 0) + 1; if (porClase[clase] <= 10) quejas.push(q); };
+process.on('unhandledRejection', (e) => queja('promesa', actual + ': promesa sin capturar: ' + String((e && e.message) || e).slice(0, 140)));
+process.on('uncaughtException', (e) => queja('excepcion', actual + ': excepción sin capturar: ' + String((e && e.message) || e).slice(0, 140)));
+const logger = require('./src/utils/logger');
+for (const k of ['warn', 'info', 'paso']) logger[k] = () => {};
+logger.unaVez = () => {};
+// El reparto se traga la excepción de un comando: contesta «Eso ha petado» y
+// la deja en el log. Sin mirar el log, un comando roto pasaría por bueno.
+logger.error = (m) => { if (/^Command \S+ (error|de )/.test(String(m))) queja('revienta', actual + ': revienta por dentro: ' + String(m).split(/\n/)[0].slice(0, 140)); };
+const mh = require('./src/handlers/messageHandler');
+const config = require('./src/config');
+const auraStore = require('./src/utils/auraStore');
+const BOT = '549000000001@s.whatsapp.net', OWNER = '34600000909@s.whatsapp.net';
+const MIEMBRO = '34600000101@s.whatsapp.net', OTRO = '34600000303@s.whatsapp.net', ADMIN = '34600000505@s.whatsapp.net';
+const APOSTADOR = '34600000707@s.whatsapp.net';
+const G = '120000131@g.us';
+let n = 0, enviados = 0;
+let registro = null;
+const sock = {
+  user: { id: BOT, lid: '99999999999999@lid' },
+  authState: { creds: { me: { id: BOT } } },
+  ev: { on() {}, off() {}, emit() {} },
+  sendMessage: async (jid, c) => { enviados++; revisar(c); if (registro) registro.push(c); return { key: { id: 'B' + (++n), remoteJid: jid, fromMe: true }, message: {} }; },
+  readMessages: async () => {}, sendPresenceUpdate: async () => {}, presenceSubscribe: async () => {},
+  groupParticipantsUpdate: async (g, ps) => ps.map((p) => ({ status: '200', jid: p })),
+  groupSettingUpdate: async () => {}, groupFetchAllParticipating: async () => ({}),
+  groupInviteCode: async () => 'ABCDEF', groupRequestParticipantsList: async () => [],
+  groupMetadata: async (id) => ({ id, subject: 'Grupo', owner: OWNER, desc: '', creation: 1700000000, size: 5,
+    participants: [{ id: BOT, admin: 'admin' }, { id: OWNER, admin: 'superadmin' }, { id: ADMIN, admin: 'admin' }, { id: MIEMBRO, admin: null }, { id: OTRO, admin: null }, { id: APOSTADOR, admin: null }] }),
+  profilePictureUrl: async () => { throw Object.assign(new Error('item-not-found'), { output: { statusCode: 404 } }); },
+  fetchStatus: async () => [], onWhatsApp: async (...j) => j.map((x) => ({ jid: x, exists: true })),
+  getBusinessProfile: async () => null, updateMediaMessage: async () => { throw new Error('sin resubida'); },
+};
+const BASURA = /\bundefined\b|\bNaN\b|\[object Object\]|%[A-Z]{1,3}\b|\$\{|\[nombre\]|\bInfinity\b|\bnull\b/;
+function revisar(c) {
+  const txt = (c && (c.text || c.caption)) || '';
+  if (!txt) return;
+  const corto = txt.replace(/\s+/g, ' ').slice(0, 110);
+  if (/Eso ha petado/.test(txt)) queja('petado', actual + ': contesta «Eso ha petado»');
+  const b = txt.match(BASURA);
+  if (b) queja('basura', actual + ': sale «' + b[0] + '»: ' + corto);
+  for (const m of txt.matchAll(/@(\d{6,})/g)) {
+    if (!(c.mentions || []).some((j) => String(j).split('@')[0].split(':')[0] === m[1])) queja('mencion', actual + ': @' + m[1] + ' sin su mención: ' + corto);
+  }
+  for (const linea of txt.split('\n')) {
+    const ast = (linea.match(/\*/g) || []).length, gb = (linea.replace(/\w_\w/g, '').match(/_/g) || []).length;
+    if (ast % 2 || gb % 2) { queja('formato', actual + ': formato sin pareja: ' + linea.slice(0, 110)); break; }
+  }
+}
+function mensaje(quien, texto, ctx, grupo = G) {
+  return { key: { remoteJid: grupo, participant: quien, fromMe: false, id: 'C' + (++n) },
+    message: ctx ? { extendedTextMessage: { text: texto, contextInfo: ctx } } : { conversation: texto },
+    pushName: 'Fulano', messageTimestamp: Math.floor(Date.now() / 1000) };
+}
+const conTope = (p, ms) => Promise.race([p, new Promise((r) => setTimeout(() => r('COLGADO'), ms))]);
+(async () => {
+  const nombres = [...mh._reparto.EJECUTA.keys()].filter((c) => c !== 'off');
+  let probados = 0;
+  for (const yo of [MIEMBRO, OWNER]) {
+    for (const cmd of nombres) {
+      const p = config.prefix + cmd;
+      const variantes = [
+        [p], [p + ' hola que tal'], [p + ' 100'], [p + ' -50'], [p + ' 99999999999999999999'],
+        [p + ' @' + OTRO.split('@')[0], { mentionedJid: [OTRO] }],
+        [p + ' @' + OTRO.split('@')[0] + ' 50', { mentionedJid: [OTRO] }],
+        [p + ' @' + yo.split('@')[0], { mentionedJid: [yo] }],
+        // Contra el propio bot: mencionándolo y respondiendo a un mensaje suyo.
+        [p + ' @' + BOT.split('@')[0], { mentionedJid: [BOT] }],
+        [p, { stanzaId: 'Q0', participant: BOT, quotedMessage: { conversation: 'lo que dijo el bot' } }],
+        [p, { stanzaId: 'Q1', participant: OTRO, quotedMessage: { conversation: 'mensaje citado' } }],
+        [p, { stanzaId: 'Q2', participant: OTRO, quotedMessage: { imageMessage: { mimetype: 'image/jpeg', url: 'https://mmg.whatsapp.net/x', directPath: '/x', mediaKey: Buffer.alloc(32, 1) } } }],
+        [p + ' 𝕳𝖔𝖑𝖆 🔥​ ' + 'ñ'.repeat(40)],
+        [p + ' ' + 'palabra '.repeat(500)],
+        [p + ' <script> ../../etc/passwd \' " \x60'],
+      ];
+      for (const [i, [texto, ctx]] of variantes.entries()) {
+        actual = (yo === OWNER ? 'dueño' : 'miembro') + ' !' + cmd + ' #' + i;
+        try { if ((await auraStore.getAura(G, yo)) < 50000) await auraStore.addAura(G, yo, 100000); } catch {}
+        try {
+          if ((await conTope(mh.handleMessage(sock, mensaje(yo, texto, ctx)), 20000)) === 'COLGADO') queja('colgado', actual + ': se queda colgado más de 20 s');
+        } catch (e) { queja('revienta', actual + ': revienta: ' + String((e && e.message) || e).slice(0, 140)); }
+        await new Promise((r) => setImmediate(r));
+        probados++;
+      }
+    }
+  }
+  // LA CARRERA DE !apostar (20 oct). Leía el saldo al empezar y lo movía al
+  // final, con esperas por medio: con 650, *!dar 400* y *!apostar 300* a la vez
+  // dejaron −98. Con el dado trucado a perder, nadie acaba bajo el suelo.
+  {
+    const { APUESTA } = require('./src/utils/economia');
+    await auraStore.addAura(G, APOSTADOR, 650 - (await auraStore.getAura(G, APOSTADOR)));
+    const azarReal = Math.random;
+    Math.random = () => 0.999;
+    actual = 'carrera !apostar + !dar';
+    try {
+      await Promise.all([
+        mh.handleMessage(sock, mensaje(APOSTADOR, config.prefix + 'apostar 300')),
+        mh.handleMessage(sock, mensaje(APOSTADOR, config.prefix + 'dar @' + OTRO.split('@')[0] + ' 400', { mentionedJid: [OTRO] })),
+      ]);
+    } finally { Math.random = azarReal; }
+    const queda = await auraStore.getAura(G, APOSTADOR);
+    if (queda < APUESTA.suelo) queja('carrera', '!apostar y !dar a la vez dejan ' + queda + ' de saldo, por debajo del suelo de ' + APUESTA.suelo + ': la apuesta cobra sobre un saldo que ya no existe');
+  }
+  // EL MISMO COMANDO CINCO VECES A LA VEZ (20 oct). Se miraba si ya había un
+  // duelo o si tocaba esperar, y se apuntaba después de una espera: cinco
+  // *!duel* lanzaban cuatro duelos y cinco *!tt* hacían cuatro cobros y cuatro
+  // descargas. Solo puede pasar uno.
+  for (const [cmd, cuenta] of [
+    ['duel @' + OTRO.split('@')[0] + ' 100', (cs) => cs.filter((c) => /DUELO LANZADO/.test((c && c.text) || '')).length],
+    ['tt https://www.tiktok.com/@x/video/1', (cs) => cs.filter((c) => c && c.delete).length],
+  ]) {
+    // En un grupo aparte: en el de la batería ya queda un duelo pendiente, y
+    // con él los cinco chocarían contra ese y la prueba no probaría nada.
+    const G2 = cmd.startsWith('duel') ? '120000132@g.us' : '120000133@g.us';
+    const quien = cmd.startsWith('duel') ? '34600000808@s.whatsapp.net' : '34600000818@s.whatsapp.net';
+    await auraStore.addAura(G2, quien, 5000);
+    registro = [];
+    actual = 'cinco !' + cmd.split(' ')[0] + ' a la vez';
+    await Promise.all([0, 1, 2, 3, 4].map(() => mh.handleMessage(sock, mensaje(quien, config.prefix + cmd, cmd.startsWith('duel') ? { mentionedJid: [OTRO] } : undefined, G2)).catch(() => {})));
+    await new Promise((r) => setTimeout(r, 50));
+    const pasan = cuenta(registro);
+    registro = null;
+    if (pasan > 1) queja('doble', actual + ': pasan ' + pasan + ', y solo puede pasar uno');
+  }
+  console.log('CAPA131:' + JSON.stringify({ quejas, probados, comandos: nombres.length, enviados }));
+  process.exit(0);
+})();
+`;
+    const caja131 = fs.mkdtempSync(path.join(os.tmpdir(), 'capa131-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja131, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja131, 'data'));
+      fs.mkdirSync(path.join(caja131, 'temp'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja131, 'node_modules'), 'dir');
+      fs.writeFileSync(path.join(caja131, 'p.js'), guion);
+      // Sin el .env de la máquina: ni una clave de API dentro de la copia.
+      const out = spawnSync(process.execPath, ['p.js'], { cwd: caja131, encoding: 'utf8', timeout: 300000,
+        env: { PATH: process.env.PATH, HOME: process.env.HOME, NODE_ENV: 'test', OWNER_NUMBER: '34600000909', CO_OWNERS: '' } });
+      const linea = String(out.stdout || '').split('\n').reverse().find((l) => l.startsWith('CAPA131:'));
+      exige(Boolean(linea), `la batería de comandos no terminó: ${String(out.stderr || out.stdout || '').slice(-300).trim()}`);
+      if (linea) {
+        const r = JSON.parse(linea.slice('CAPA131:'.length));
+        // Que no se quede ciega: si deja de llegar a los comandos, no prueba nada.
+        exige(r.comandos >= 250 && r.probados >= 7000 && r.enviados >= 5000,
+          `la batería solo ha probado ${r.probados} mensajes de ${r.comandos} comandos (${r.enviados} respuestas): se ha quedado ciega`);
+        for (const q of r.quejas) exige(false, q);
+        if (fallos === antes131) console.log(verde(`   ✓ ${r.comandos} comandos × 15 mensajes raros × 2 personas: nada revienta, nada se cuelga y ninguna respuesta sale rota (${r.enviados} respuestas)`));
+      }
+    } finally {
+      fs.rmSync(caja131, { recursive: true, force: true });
+    }
+  }
+
   }
 
   if (BREVE) {

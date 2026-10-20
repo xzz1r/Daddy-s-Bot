@@ -823,17 +823,23 @@ sirviendo de puerta.
 pools del bot, sin que nadie haya tenido que etiquetar nada. Busca siete
 defectos:
 
-| familia | qué es | hoy |
-|---|---|---|
-| `nadie` | la frase no menciona a la persona: vale para cualquiera | 1046 |
-| `analogia` | el chiste es el objeto («tu lealtad es como el wifi del vecino») | 68 |
-| `coletilla` | frase neutra y el insulto pegado detrás con una coma | 601 |
-| `eco` | abre repitiendo la etiqueta del comando («Rata que…» en `!rata`) | 12 |
-| `molde` | cuatro o más del mismo pool empiezan igual | 725 |
-| `enlatado` | el mismo bloque de cinco palabras en cuatro frases o más | 415 |
-| `roto` | daño mecánico de una edición masiva anterior | 2 |
+| familia | qué es | al medirlo | 20 oct |
+|---|---|---|---|
+| `nadie` | la frase no menciona a la persona: vale para cualquiera | 1046 | 476 |
+| `analogia` | el chiste es el objeto («tu lealtad es como el wifi del vecino») | 68 | 6 |
+| `coletilla` | frase neutra y el insulto pegado detrás con una coma | 601 | 21 |
+| `eco` | abre repitiendo la etiqueta del comando («Rata que…» en `!rata`) | 12 | 1 |
+| `molde` | cuatro o más del mismo pool empiezan igual | 725 | 96 |
+| `enlatado` | el mismo bloque de cinco palabras en cuatro frases o más | 415 | 127 |
+| `roto` | daño mecánico de una edición masiva anterior | 2 | 2 |
 
-Son 2.556 frases distintas con al menos un defecto: el **32 %** del bot. Esta
+Las 21 coletillas que quedan son a propósito: los avisos de `!kick`, que
+cierran con «Fuera, X.», los piropos, «Hoy cenas, muerto de hambre.»,
+«Borrado, gilipoyas.» y el roast del dueño. Casi todo el `enlatado` y el
+`molde` que queda son las acciones, donde «%A le azota el culo a %V» se repite
+porque es lo que pasa.
+
+Al medirlo eran 2.556 frases distintas con al menos un defecto: el **32 %** del bot. Esta
 guía decía 22 %, pero se medía sobre 6.208 frases: el informe se dejaba fuera
 los pools que viven en `src/commands/` y los avisos de `!kick`, y no veía las
 coletillas con tilde («, cabrón.», «, inútil.»). No ha entrado ninguna frase

@@ -1,7 +1,7 @@
 const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameUser, soloMiembros } = require('../utils/wa');
 const { apel } = require('../utils/vocativo');
 const { pickFresh, fmt, parseCantidad, resolverCantidad, etiquetaRiesgo } = require('../utils/helpers');
-const { getAura, addAura, getAuraRanking, flushAura, BOLSA } = require('../utils/auraStore');
+const { getAura, addAura, spendAura, getAuraRanking, flushAura, BOLSA } = require('../utils/auraStore');
 const { resetearEconomia } = require('../utils/reinicioEconomia');
 const { getUserCount } = require('../utils/messageCounter');
 const { getName, recordName, cargar: cargarNombres } = require('../utils/nombreStore');
@@ -237,14 +237,14 @@ const AURA = {
     'Fortuna en puntos. Canjéalos por respeto, que aquí se aceptan.',
     'Tienes una fortuna que no sirve para nada útil. Como tú.',
     'Rico aquí. Que te dure, porque ahí fuera nadie te va a creer.',
-    'Más aura para un saldo que ya estaba gordo. Ni un euro, pero gordo.',
+    'Tu saldo ya estaba gordo y engorda más. Ni un euro, pero gordo.',
     'Tu saldo da vértigo y tu cartera, risa.',
-    'Rico en aura. Los ladrones del grupo ya te tienen apuntado.',
+    'Tanta aura junta y los ladrones del grupo ya te tienen apuntado.',
   ],
   loss: [
     // ── Ejemplos del usuario (intocables) ──
     'Bajaste y nadie se inmutó. Ya es parte del puto paisaje verte perder aura.',
-    'Se te escurrió un poco más de presencia. El grupo ni parpadeó, pringado.',
+    'Se te escurrió un poco más de presencia, y por un pringado el grupo ni parpadea.',
     'Ni siquiera generas gracia. Esa cara de obvio. Qué asco de previsible.',
     'Te han quitado aura sin ganas, como quien espanta una mosca.',
     'Hoy el puto grupo te bajó un escalón más y ni se molestó en reírse.',
@@ -253,20 +253,20 @@ const AURA = {
     'Pierdes un poco, desgraciado, y ni perdiendo consigues ser noticia.',
     'Fallaste en algo fácil, gilipoyas, y a nadie le ha sorprendido.',
     'Bajaste otro escalón sin que nadie te empujara. El mérito es tuyo entero.',
-    'Perdiste aura como quien pierde un botón: sin enterarte, pringado.',
+    'Perdiste aura sin enterarte, que es como lo pierde todo un pringado.',
     'Pierdes con la misma energía con la que vives: ninguna.',
     'Te baja el aura. A ti te duele y al grupo le da igual, como todo lo tuyo.',
     'Ni la suerte te tiene respeto: te quita y ni se despide. Qué asco de trato, muñeca.',
     'Has perdido lo justo para que nadie se entere y a ti te joda la tarde.',
     'Era lo que todos esperaban, y has cumplido. Cutre y puntual.',
     'Pierdes poco y lo lloras como si fuera mucho. Así eres con todo.',
-    'El grupo te archivó en "recuerdos". Ahí no entra nadie a mirar, cabrón.',
+    'El grupo te archivó en "recuerdos", la carpeta de cabrones que nadie abre.',
     'Tiras para ganar y acabas pagando. Tu suerte trabaja para los demás.',
     'Tirada en rojo. Nadie lo comenta porque ya nadie comenta lo tuyo.',
     'El ranking no se ha movido. Para moverse haría falta que importaras, princesa.',
     'Pierdes, sigues tirando, y nadie viene a salvarte. Ni va a venir.',
     'Te han quitado aura porque estabas ahí. Ni siquiera por algo.',
-    'El aura te ha puesto un "ok" en rojo. Ni sticker. Ni pena. Ok, fracasado.',
+    'El aura te deja un "ok" en rojo: lo que se le contesta a un fracasado.',
     'Pierdes poco, rata. Poco, para quien tenía tan poco, es casi todo.',
     'Una bajada igual de insignificante que tú en este grupo.',
     'Con lo que te queda, mejor ni lo mires. Ya lo ha mirado el grupo por ti.',
@@ -295,7 +295,7 @@ const AURA = {
     'Llevas tanto en negativo que salir de ahí sería la noticia del día.',
     'Esperas suerte en rojo, joder. La suerte te ve venir y cruza de acera.',
     'En rojo y tirando otra vez, joder. La vergüenza la perdiste antes que el aura.',
-    'Estás cavando y lo llamas jugar. El puto grupo lo ve, tú no, fracasado.',
+    'Estás cavando y lo llamas jugar. Lo ve todo el grupo menos el fracasado de la pala.',
     'Otra bajada en rojo. Mala suerte es una vez, lo tuyo ya es vicio de pringado.',
     'Rojo sobre rojo. A estas alturas tu saldo es una deuda con el grupo.',
     'Nadie te va a decir que pares. Es demasiado entretenido verte seguir.',
@@ -311,7 +311,7 @@ const AURA = {
     // ── Ejemplos del usuario (intocables) ──
     'Perdiste tanta mierda que el silencio posterior fue puro cringe.',
     'El aura te ha puesto de ejemplo delante del puto grupo. Todos han tomado nota.',
-    'Bajaste tan fuerte que hasta tus habituales defensores se hicieron los locos, cabrón.',
+    'Bajaste tanto que hasta quien defiende a un cabrón como tú se hizo el loco.',
     'Fue el chat recordándote, sin filtro, que sigues siendo un puto desastre.',
     'Solo quedó esa mezcla de pena y alivio de no ser tú. Qué asco de suerte la tuya.',
     // ── Reescritas y nuevas ──
@@ -696,7 +696,7 @@ const apuestaEnCurso = new Set();
 const APUESTA_POBRE = [
   'Con esa mierda de saldo no llegas ni a la barra, cojones.',
   'Esa miseria no vale ni para limpiarme el culo, no te digo ya para apostar.',
-  'La mesa tiene un mínimo y tú tienes menos que eso, gilipoyas.',
+  'La mesa tiene un mínimo, y un gilipoyas con tu saldo no llega ni a sentarse.',
   'Con lo que tienes no apuestas, mendigas. Y aquí no se reparte caridad.',
   'Joder, qué vergüenza ajena da tu saldo. Vuelve cuando no seas un puto pordiosero.',
   'Aquí se apuesta con cojones, no con las migajas que te quedan.',
@@ -754,6 +754,7 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
     // Se reclama el cooldown ANTES de mover nada.
     if (ultimaApuesta.size >= 2000) ultimaApuesta.delete(ultimaApuesta.keys().next().value);
     ultimaApuesta.set(clave, Date.now());
+    const cooldownAnterior = ultimo;
 
     const esOwner = isOwner(sender, msg.key.fromMe, groupMeta);
     const esOwnerPrincipal = isMainOwner(sender, msg.key.fromMe, groupMeta);
@@ -770,6 +771,28 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
       suelo: APUESTA.apuestaMin,
       porDefecto: Math.floor(saldo * APUESTA.fraccion),
     });
+
+    // LO QUE SE PUEDE PERDER SE COBRA AL SENTARSE, Y DE GOLPE (20 oct).
+    //
+    // Se leía el saldo arriba y se movía al final, con dos esperas por medio
+    // (el amuleto y el seguro). Si en ese hueco entraba otro comando de la
+    // misma persona —un *!dar*, una compra—, la pérdida se calculaba sobre un
+    // saldo que ya no existía: con 650, *!dar 400* y *!apostar* a la vez
+    // dejaron −98, por debajo del suelo que la apuesta promete no cruzar.
+    //
+    // Ahora la parte que se arriesga se descuenta antes del dado, en el mismo
+    // bloque que comprueba que llega (spendAura). Es la misma cifra que se
+    // perdía antes: lo apostado, sin bajar del suelo. Si el saldo ya no llega,
+    // no se juega, no se gasta el amuleto y el reloj de la apuesta vuelve atrás.
+    const enJuego = Math.max(0, Math.min(apuesta, saldo - APUESTA.suelo));
+    const reserva = await spendAura(jid, sender, enJuego, APUESTA.suelo);
+    if (!reserva.ok) {
+      if (cooldownAnterior) ultimaApuesta.set(clave, cooldownAnterior);
+      else ultimaApuesta.delete(clave);
+      return sock.sendMessage(jid, {
+        text: `${pickFresh(APUESTA_POBRE, `${jid}|apuesta|pobre`)}\n_Mínimo *${fmt(APUESTA.minimo)}*. Tienes *${fmt(reserva.saldo)}*._`,
+      }, { quoted: msg });
+    }
 
     const fraccion = saldo > 0 ? apuesta / saldo : 0;
     // exento, no suave: el owner no se penaliza por lo que pida, igual que en
@@ -800,10 +823,9 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
     const riesgo = saldo > 0 ? Math.min(1, apuesta / saldo / APUESTA.fraccionRiesgo) : 0;
     const mult = APUESTA.multiplicador +
       (APUESTA.multiplicadorMax - APUESTA.multiplicador) * riesgo;
-    const objetivo = gana
-      ? saldo + Math.round(apuesta * (mult - 1))
-      : Math.max(APUESTA.suelo, saldo - apuesta);
-    let delta = objetivo - saldo;
+    // Ganar paga lo de siempre sobre lo apostado; perder cuesta lo que ya se
+    // cobró al sentarse.
+    let delta = gana ? Math.round(apuesta * (mult - 1)) : -enJuego;
 
     // SEGURO: devuelve la mitad de lo perdido, con tope. El tope no es un
     // detalle: sin el, el seguro vale mas cuanto mas apuestas y comprarlo por
@@ -818,7 +840,10 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
       delta += devuelto;
     }
 
-    const { current } = await addAura(jid, sender, delta);
+    // Lo cobrado al sentarse vuelve si gana, junto con el premio; si pierde,
+    // solo vuelve lo que devuelva el seguro.
+    const vuelve = delta + enJuego;
+    const current = vuelve > 0 ? (await addAura(jid, sender, vuelve)).current : reserva.current;
 
     // Perder en la mesa alimenta el bote del robo. Una cuarta parte, no más: el
     // grueso se sigue destruyendo, que es lo que hace de esto un sumidero. Pero
