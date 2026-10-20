@@ -44,13 +44,13 @@ let MOG_PHRASES = [
   '%L necesita rinoplastia, genioplastia, lefort III y un milagro para llegar a donde %M empieza recién levantado.',
   'A %M le aguantan la mirada por gusto. A %L se la apartan a la primera, por higiene.',
   'No hay filtro, ángulo ni luz que meta a %L en el universo de %M. La física se rinde antes que %L.',
-  '%L es la razón por la que existe la palabra subhuman. %M es la razón por la que existe la palabra Chad.',
+  '%L es la razón por la que existe la palabra subhuman, y %M, la de Chad.',
   'Moggeo total e inapelable: %M ni miró, y %L no se recupera de esta con un cambio de tema.',
   'Este mog se queda fijado en el grupo. %M de leyenda y %L de ejemplo de lo que nadie quiere ser.',
   '%L puede ir al gym, leer libros y trabajar la actitud. Seguiría siendo %L. El óseo no se levanta a press.',
   '%L cree que juega en otra liga. %L ni juega: le dejan pintar las rayas del campo.',
   'Cuando %M entra a un sitio la temperatura cambia. Cuando %L entra nadie levanta la vista. Presencia genética.',
-  '%M es la persona a quien todos quieren hablar sin saber por qué. %L es la persona a quien todos confunden con el mobiliario.',
+  '%M es la persona con la que todos quieren hablar sin saber por qué. %L, la que todos confunden con el mobiliario.',
 ];
 
 async function cmdMog(sock, msg, groupMeta) {

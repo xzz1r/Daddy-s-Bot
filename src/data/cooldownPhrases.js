@@ -273,7 +273,7 @@ const ROBO_GUARDIA = [
   'Le han robado hace minutos. Si vas ahora, el grupo te va a llamar buitre, y va a tener razón.',
   'La víctima de hoy ya ha pagado su cuota. Búscate otra, carroña.',
   'Esa cartera está en cuarentena un rato. No la toques.',
-  'Ahí ya ha entrado alguien antes que tú. Hasta para robar llegas el segundo.',
+  'Ahí ya ha entrado alguien antes que tú. Hasta para robar llegas tarde.',
   'Quieres robar a quien todavía está temblando. Muy de buitre.',
   'Llegas a robar lo que otro ya ha robado. Pringado hasta para delinquir.',
   'No se puede. A esa persona la han robado hace nada, y tú llegas a oler el rastro.',

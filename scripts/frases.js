@@ -140,7 +140,11 @@ const POOLS_MODO = args.includes('--pools');
 // nadie 245. La coletilla SUBE a 23, y no por frases malas: son dos de los
 // ejemplos del dueño en !aura, marcados intocables, que la revisión a fondo
 // había reescrito. Vuelven tal cual y el check los vigila.
-const TECHO = { nadie: 245, analogia: 6, coletilla: 23, eco: 1, molde: 66, enlatado: 127, roto: 2 };
+// Y el mismo día, al quitarle el género al podio de !count: los dos «rotos»
+// de !mog eran paralelos a propósito, pero uno tenía «a quien todos quieren
+// hablar»; y el eco de !ganador abría con su propia etiqueta. Eco 0, roto 0,
+// nadie 244.
+const TECHO = { nadie: 244, analogia: 6, coletilla: 23, eco: 0, molde: 66, enlatado: 127, roto: 0 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();

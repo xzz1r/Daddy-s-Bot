@@ -291,7 +291,7 @@ const AURA = {
     'Joder, si esto fuera un trabajo te habrían echado en la primera semana.',
     'Joder, ni el bot finge ya sorpresa. Sale tu nombre y sale el menos.',
     'Otra abajo. A este ritmo el cero te va a parecer una meta ambiciosa.',
-    'Tiras con el saldo en rojo y sueltas un «va la buena». Sale peor y te quedas callado.',
+    'Tiras con el saldo en rojo y sueltas un «va la buena». Sale peor y no dices ni mu.',
     'Llevas tanto en negativo que salir de ahí sería la noticia del día.',
     'Esperas suerte en rojo, joder. La suerte te ve venir y cruza de acera.',
     'En rojo y tirando otra vez, joder. La vergüenza la perdiste antes que el aura.',

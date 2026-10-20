@@ -8881,6 +8881,7 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
           [new RegExp(`\\b(?:un|este|ese)\\s+(?:puto\\s+)?${INSULTO}\\s+como\\s+(?:tu|%[avn])(?![a-z])`, 'i'), 'un cabrón como tú  →  una rata como tú'],
           [new RegExp(`\\beres\\s+(?:un|el)\\s+(?:puto\\s+)?${INSULTO}(?![a-z])`, 'i'), 'eres un pringado  →  eres escoria'],
           [new RegExp(`\\beres\\s+el\\s+(?:puto\\s+)?(?:${INSULTO}|unico|primero|ultimo|tipico)\\s+que\\b`, 'i'), 'eres el inútil que  →  eres quien'],
+          [/\b(?:vas|llegas|sales|quedas|acabas)\s+(?:el\s+)?(?:primero|segundo|tercero|ultimo)\b(?!\s+(?:puesto|lugar))/i, 'llegas el segundo  →  llegas tarde, vas en plata'],
         ];
         // Sin tildes, como `npm run frases`: en JavaScript «ú» no es letra
         // para \b, y «como tú.» no casaria nunca.
@@ -8915,6 +8916,21 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
         }
         exige(malas.length === 0,
           `frases que dan por hecho que quien las lee es un tio (${malas.length}): ${malas.slice(0, 3).join(' · ')}`);
+
+        // EL PODIO TAMPOCO (20 oct). «Segundo.», «Tercero del grupo» o «Vas
+        // primero» le llegan con su nombre delante, y el puesto es de tio; y
+        // «el primero escribe más» habla de quien va arriba, que tambien puede
+        // ser una tia. Lo neutro es el metal (oro, plata, bronce), el puesto
+        // («Segundo puesto», «Tercera plaza») o «quien va primero».
+        const cnt44 = require(path.join(R, 'src/commands/count'));
+        const podio44 = [...cnt44.MEMBER_PHRASES.flat(), ...cnt44.ADMIN_PHRASES.flat(), ...Object.values(cnt44.DISTANCIA).flat()];
+        const PUESTO = /(?:^|[.:;!?]\s+)(?:primero|segundo|tercero)\b(?!\s+(?:puesto|lugar))|\b(?:el|al|del)\s+(?:primero|segundo|tercero)\b(?!\s+(?:puesto|lugar))|\b(?:el|al|del)\s+de\s+(?:arriba|abajo)\b|\b(?:del|al)\s+siguiente\b/;
+        const conPuesto = podio44.filter((f) => PUESTO.test(pelar(f)));
+        exige(podio44.length >= 100 && conPuesto.length === 0,
+          `el podio de !count vuelve a dar por hecho que es un tio (${conPuesto.length}): «${(conPuesto[0] || '').slice(0, 80)}»`);
+        const cebosPodio = ['Segundo. Escribes menos que nadie.', 'Plata. El primero escribe más.', 'Bronce, a %G del de arriba.'];
+        exige(cebosPodio.every((c) => PUESTO.test(pelar(c))) && !PUESTO.test(pelar('Segundo puesto, a %G del oro.')),
+          'la regla del podio ya no ve «Segundo.» o «el primero», o canta «Segundo puesto», que es neutro');
 
         const cebosArticulo = [
           'Hasta un cabrón como tú sabe esperar.',

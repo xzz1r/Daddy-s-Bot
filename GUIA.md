@@ -469,7 +469,9 @@ género a propósito (`!masculinidad`, `!feminidad`, `!gay`, `!maricon`,
 «%V se queda quieto» y el «lo» que va por %V, pero no el «la», y en el resto
 caza «eres el que», «eres el tío que» y el artículo de tío delante de un
 insulto («un cabrón como tú», «eres un pringado», «eres el inútil que»),
-también en los pools de `src/commands/` y `src/utils/`. Lo neutro es un
+también en los pools de `src/commands/` y `src/utils/`, y el puesto en el
+podio de `!count` («Segundo.», «Vas tercero», «el primero escribe más»: oro,
+plata, bronce, «Segundo puesto» o «quien va primero»). Lo neutro es un
 sustantivo que no cambia con quien lo lee (una rata, un parásito, un estorbo,
 escoria) o el vocativo suelto. Lo demás lo tiene que ver quien escribe.
 
@@ -828,13 +830,13 @@ defectos:
 
 | familia | qué es | al medirlo | 20 oct |
 |---|---|---|---|
-| `nadie` | la frase no menciona a la persona: vale para cualquiera | 1046 | 245 |
+| `nadie` | la frase no menciona a la persona: vale para cualquiera | 1046 | 244 |
 | `analogia` | el chiste es el objeto («tu lealtad es como el wifi del vecino») | 68 | 6 |
 | `coletilla` | frase neutra y el insulto pegado detrás con una coma | 601 | 23 |
-| `eco` | abre repitiendo la etiqueta del comando («Rata que…» en `!rata`) | 12 | 1 |
+| `eco` | abre repitiendo la etiqueta del comando («Rata que…» en `!rata`) | 12 | 0 |
 | `molde` | cuatro o más del mismo pool empiezan igual | 725 | 66 |
 | `enlatado` | el mismo bloque de cinco palabras en cuatro frases o más | 415 | 127 |
-| `roto` | daño mecánico de una edición masiva anterior | 2 | 2 |
+| `roto` | daño mecánico de una edición masiva anterior | 2 | 0 |
 
 Las 23 coletillas que quedan son a propósito: los avisos de `!kick`, que
 cierran con «Fuera, X.», los piropos, «Hoy cenas, muerto de hambre.»,

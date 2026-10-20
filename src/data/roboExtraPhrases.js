@@ -194,7 +194,7 @@ const COMPRA_CEBO = [
   'Solo se lo va a creer quien sea lo bastante gilipoyas, y a esa gente va dirigido. %N ya ha puesto el anzuelo.',
   'Cebo montado: %N acaba de convertir su saldo en una trampa, y ahora a esperar.',
   'La tienda vende cebos, no dignidad. %N se ha llevado lo que había.',
-  '%N sale el primero en la lista, pero de alquiler. En %H horas se acaba.',
+  '%N sale en lo alto de la lista, pero de alquiler. En %H horas se acaba.',
   'Durante %H horas, %N vale más de lo que vale. Récord personal.',
   'Quien robe a %N en las próximas %H horas va a ver un saldo hinchado y llevarse aura de verdad. %N lo sabe y se ríe.',
   '%N ha gastado %C en fingir que tiene más, y ahora tiene %C menos. Las cuentas de %N.',
