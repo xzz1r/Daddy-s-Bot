@@ -55,7 +55,7 @@ const VERDICTS = {
     'Match perfecto. Os aguantaríais lo que no aguanta nadie, y eso aquí es amor.',
     'Cien. Si lo vuestro acaba en boda, el discurso ya lo tiene escrito el bot.',
     'Cien. Nadie sabe qué coño os veis, y aun así el número no deja dudas.',
-    'Match perfecto. Os vais a hacer la vida imposible y no vais a saber vivir de otra manera.',
+    'Pareja de manual: os vais a hacer la vida imposible y no vais a saber vivir de otra manera.',
     'Cien. Sois la prueba de que hay alguien para todo el mundo, hasta para la gente que da asco.',
     'Cien por cien. Si de esto sale una criatura, que Dios la pille confesada.',
   ],

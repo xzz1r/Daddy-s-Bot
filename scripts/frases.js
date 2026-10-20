@@ -130,8 +130,11 @@ const POOLS_MODO = args.includes('--pools');
 // del dueño) y tres ecos fuera: nadie 477, coletilla 21, eco 1. Y los
 // arranques calcados de ocho pools (el aviso del privado, las amenazas a los
 // fantasmas, el bote, la ganzúa, el inventario, la caja, la mesa y la subida de
-// los ricos), a tres como mucho por pool: nadie 476, molde 96.
-const TECHO = { nadie: 476, analogia: 6, coletilla: 21, eco: 1, molde: 96, enlatado: 127, roto: 2 };
+// los ricos), a tres como mucho por pool: nadie 476, molde 96. Y en la
+// segunda pasada, el ship perfecto, el remate del robo fallido, la bio vacía,
+// el admin de recados, los cierres del sorteo y un «En privado» que yo mismo
+// había repetido: molde 66.
+const TECHO = { nadie: 476, analogia: 6, coletilla: 21, eco: 1, molde: 66, enlatado: 127, roto: 2 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();

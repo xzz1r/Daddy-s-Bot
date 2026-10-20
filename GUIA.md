@@ -829,7 +829,7 @@ defectos:
 | `analogia` | el chiste es el objeto («tu lealtad es como el wifi del vecino») | 68 | 6 |
 | `coletilla` | frase neutra y el insulto pegado detrás con una coma | 601 | 21 |
 | `eco` | abre repitiendo la etiqueta del comando («Rata que…» en `!rata`) | 12 | 1 |
-| `molde` | cuatro o más del mismo pool empiezan igual | 725 | 96 |
+| `molde` | cuatro o más del mismo pool empiezan igual | 725 | 66 |
 | `enlatado` | el mismo bloque de cinco palabras en cuatro frases o más | 415 | 127 |
 | `roto` | daño mecánico de una edición masiva anterior | 2 | 2 |
 

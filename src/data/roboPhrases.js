@@ -29,7 +29,7 @@ const ROBO_FALLO_REMATE = [
   'y llenó el chat de «es que» con la multa ya cobrada',
   'y acabó mirando su saldo con cara de gilipoyas',
   'y la víctima ni se despeinó',
-  'y volvió a su sitio, que está bastante abajo',
+  'y regresó a su sitio, que está bastante abajo',
   'y pagó por aprender algo que no va a aprender',
   'y se quedó a medio camino entre el ridículo y la ruina. Llegó a los dos',
   'y se quedó en el intento, que es donde vive',

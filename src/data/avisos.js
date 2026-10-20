@@ -53,7 +53,7 @@ const SOLO_GRUPOS = [
   'El marcador solo se mueve en el grupo. Llévalo allí.',
   'Eso necesita público. El grupo lo tiene, esto no.',
   'En el grupo. Aquí no hay nada en juego.',
-  'En privado, nada. En el grupo, todo.',
+  'Nada aquí. En el grupo, todo.',
   'Esto va en el grupo, que aquí no te ve nadie.',
   'A solas no tiene sentido. Sácalo al grupo.',
 ];
@@ -108,7 +108,7 @@ const SIN_PERMISO_ADMIN = [
   'Decidiendo cosas de mayores con un rango de mierda. Siéntate.',
   'Tu rango no te convierte en alguien, solo te da botones. Y ni esos sabes usar.',
   'Ni con el cargo puesto dejas de chupar del grupo. Esto no es para ti.',
-  'Eres admin de recados. Esto está por encima de ti, y de tus recados.',
+  'Para recados te sobra el rango. Esto está por encima de ti, y de tus recados.',
   'Con rango o sin él, das la misma puta pena. Y esto no es para ti, reina.',
 ];
 

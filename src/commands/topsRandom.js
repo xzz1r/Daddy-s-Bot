@@ -56,11 +56,11 @@ const CIERRES = [
   'Los {N} de hoy, servidos. Los demás, que no se rían tan alto.',
   '{N} nombres metidos en el mismo saco, y el saco huele.',
   'El título da igual. Lo que se va a recordar es que os tocó a vosotros, los {N}.',
-  'Los {N} en el cartel. A partir de ahora, esto es lo que se recuerda de vosotros.',
+  'En el cartel, los {N}. A partir de ahora, esto es lo que se recuerda de vosotros.',
   'Tanta gente en el grupo y han salido justo estos {N}. Qué puntería.',
   'Reclamad lo que queráis, los {N}. El bot se limpia el culo con eso.',
-  'Los {N}, apuntados con arroba. Así no se escapa ni uno.',
-  'Los {N}, enhorabuena. Es lo más cerca de un premio que vais a estar en la vida.',
+  'Apuntados con arroba, los {N}. Así no se escapa ni uno.',
+  'Enhorabuena a los {N}: es lo más cerca de un premio que vais a estar en la vida.',
 ];
 
 function rellenar(plantilla, picked) {

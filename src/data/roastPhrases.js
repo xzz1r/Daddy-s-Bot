@@ -189,10 +189,10 @@ const BIO_EMPTY = [
   'Ni bio. El mínimo de WhatsApp es poner una frase, y no llegas ni al mínimo.',
   'Sin bio. No te has molestado ni en copiar una frase de otro, que es lo que hace todo el mundo.',
   'Tu perfil no tiene nada que contar y ni lo disimula. Honestidad de pobre.',
-  'Bio vacía. Ni para presumir de algo que no tienes te ha dado la cabeza.',
+  'Ni para presumir de algo que no tienes te ha dado la cabeza: la bio, vacía.',
   'Sin descripción. Si alguien quiere saber de ti, que te pregunte, aunque nadie lo va a hacer.',
   'Tu bio no dice nada. Como tú en el grupo.',
-  'Sin bio. Hasta el campo de descripción ha tirado la toalla contigo.',
+  'Hasta el campo de descripción ha tirado la toalla contigo: ni una línea.',
 ];
 
 const BIO_FULL = [
