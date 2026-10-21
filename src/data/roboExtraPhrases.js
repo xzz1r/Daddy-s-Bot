@@ -543,7 +543,7 @@ const DIANA_GOLPE = [
 // puede ser el mismo que el de dejar sin nada al que te robo.
 const CONTRA_DEMOLEDOR = [
   '%A pilló %C prestados y ha soltado hasta el sofá. %V se lo lleva todo.',
-  '%V le ha sacado %C a %A y le ha dejado el bolsillo del revés y la cara de gilipoyas puesta.',
+  '%V le ha sacado %C a %A y le ha dejado el bolsillo vacío y la cara de gilipoyas puesta.',
   '%A se llevó calderilla y ha pagado la puta hipoteca: %C para %V.',
   'A %A le han devuelto el golpe con intereses y por escrito. −%C.',
   '%V ha entrado a por lo suyo y ha salido con lo de %A también. %C, así de fácil.',
@@ -568,7 +568,7 @@ const CONTRA_DEMOLEDOR = [
   '%A ha robado a %V y %V le ha cobrado la multa, las costas y el disgusto: %C.',
   '%A robó con prisas y paga sin ellas: %C para %V.',
   '%V ha contraatacado como si llevara días esperando. %A suelta %C y se queda mirando el saldo.',
-  '%A había hecho la jugada de su vida. %V se la ha cobrado con %C y le ha dejado el bolsillo del revés.',
+  '%A había hecho la jugada de su vida. %V se la ha cobrado con %C y le ha dejado el bolsillo vacío.',
   '%V ha respondido en caliente y ha cobrado en frío: %C de %A.',
   '%A pensaba que %V no iba a contestar. %V ha contestado con %C.',
   '%A ha elegido a la persona más rencorosa del grupo, y esa persona acaba de cobrarle %C.',

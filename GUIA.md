@@ -528,9 +528,11 @@ tildes puestas y la sintaxis correcta a propósito: es un narrador, no un miembr
 más del grupo escribiendo con prisa. Un bot que escribe "q" y "xq" no parece más
 humano: parece un bot imitando a un humano, que es peor.
 
-Y tres palabras van como las quiere el dueño: la familia de «gilipoyas» se
-escribe con y, hay otra que mandó quitar de todo el bot, y **«teclear» no se
-usa**: en el grupo se escribe. Las vigilan las capas 117 y 114 del check.
+Y cuatro cosas van como las quiere el dueño: la familia de «gilipoyas» se
+escribe con y, hay otra que mandó quitar de todo el bot, **«teclear» no se
+usa** (en el grupo se escribe) y **los bolsillos van vacíos, nunca «del
+revés»** ni «dados la vuelta» (21 oct). Las vigilan las capas 117 y 114 del
+check.
 
 **Que suene a hoy.** El dueño (12 oct): «¿Esto es 1980?». Nada de teclados que
 se aporrean, teclas que se pulsan, teles viejas, mandos de la tele, telediarios

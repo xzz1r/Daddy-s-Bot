@@ -126,7 +126,7 @@ const ROB_MAESTRO = [
   'Lo de %A ha sido tan limpio que %V todavía está buscando por dónde le han entrado.',
   '%A ha vaciado a %V con una sonrisa y sin una gota de sudor. Así se roba a un don nadie.',
   'A partir de hoy, cuando %V hable de aura, el grupo le va a preguntar cuánta le dejó %A.',
-  '%A ha vuelto con los bolsillos reventando. Los de %V, dados la vuelta.',
+  '%A ha vuelto con los bolsillos reventando. Los de %V, vacíos.',
   'Lo que le queda a %V en el saldo da vergüenza hasta leerlo en voz alta.',
   '%A ha dado el golpe del día y %V ha puesto la cara. Cada uno aporta lo que sabe.',
   '%V ni ha visto venir el golpe. %A ya estaba fuera cuando se dio cuenta.',

@@ -253,7 +253,7 @@ const MISERIA = [
   'Menuda puta miseria de cuenta. Aquí se viene llorado y con dinero.',
   'No cubres el precio y vienes a gastar. Así has llegado a tener lo que tienes: nada.',
   'Con ese saldo no compras ni el silencio del bot, y eso es gratis.',
-  'No hay pasta. Hay una ruina andante mirando un escaparate con los bolsillos del revés: tú.',
+  'No hay pasta. Hay una ruina andante mirando un escaparate con los bolsillos vacíos: tú.',
   'Ese saldo da para mirarlo y llorar. Igual que tu perfil.',
   'Mucha ambición y la cuenta seca. Vuelve cuando sea al revés.',
   'Mierda de saldo. Hasta el bot tiene más aura que tú, y el bot no participa.',

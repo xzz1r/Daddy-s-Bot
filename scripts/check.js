@@ -20490,7 +20490,27 @@ const manda = async (quien, tipo, opciones) => {
       mira(path.join(R, f), f !== 'MOTOR.md');
     }
     if (conTecle.length) { fallos++; console.log(rojo(`   ✗ vuelve a salir «teclear», que el dueño mando cambiar por «escribir»: ${conTecle.join(', ')}`)); }
-    if (fallos === antes114) console.log(verde('   ✓ ni rastro de «bardear» ni de «teclear»'));
+
+    // Y LOS BOLSILLOS VAN VACIOS, NO «DEL REVES» (21 oct). El dueño, con el
+    // aviso de saldo delante: «"Bolsillos del revés", creí que ya habías
+    // quitado esa expresión. Debería ser "bolsillos vacíos"». Se quito de las
+    // frases de Grok el 9 oct y se quedaron cuatro fuera. Ni en singular, ni
+    // en plural, ni «dados la vuelta».
+    const BOLSILLO = /bolsillos?\s+(?:del\s+rev[eé]s|dados?\s+(?:la\s+)?vuelta)|bolsillos?[^.]{0,40}\.\s*[^.]{0,20}\bdados?\s+la\s+vuelta/i;
+    const conBolsillo = [];
+    const miraB = (d) => {
+      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const f = path.join(d, e.name);
+        if (e.isDirectory()) miraB(f);
+        else if (/\.(js|json)$/.test(e.name)) {
+          const m = fs.readFileSync(f, 'utf8').match(BOLSILLO);
+          if (m) conBolsillo.push(`${path.relative(R, f)} («${m[0].slice(0, 50)}»)`);
+        }
+      }
+    };
+    miraB(path.join(R, 'src'));
+    if (conBolsillo.length) { fallos++; console.log(rojo(`   ✗ vuelven los bolsillos «del revés», que el dueño quiere vacíos: ${conBolsillo.join(', ')}`)); }
+    if (fallos === antes114) console.log(verde('   ✓ ni rastro de «bardear» ni de «teclear», y los bolsillos van vacíos'));
   }
 
   // ── 115. LOS AUDIOS SE MARCAN ESCUCHADOS Y LO DE «VER UNA VEZ», ABIERTO ──
