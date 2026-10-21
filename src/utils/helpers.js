@@ -469,11 +469,28 @@ function createSemaphore(limit) {
 // El tope de 2 se queda: por encima de eso lo que falta en una maquina de 1 GB
 // no es CPU, es memoria, y seis ffmpeg a la vez la tumban tenga los cores que
 // tenga.
+//
+// Y LA VPS NO TIENE UN CORE: TIENE DOS HILOS DE UNO (21 oct). `npm run medir`
+// en la VPS: Node ve 2 nucleos (AMD EPYC) y el hipervisor se queda el 35 % del
+// tiempo en cuanto hay trabajo seguido. Es la instancia gratuita de Oracle,
+// 1/8 de OCPU, y una OCPU de AMD son los dos hilos de un mismo nucleo. Con la
+// cuenta de antes eso daba 2 plazas, y pasaba lo de la tabla: dos ffmpeg
+// repartiendose el mismo nucleo frenado, y el primero esperando el doble.
+//
+// Asi que se cuentan nucleos de verdad: con uno o dos hilos, una plaza; la
+// segunda llega con cuatro o mas. Si en otra maquina `npm run medir` dice que
+// dos a la vez SI adelantan, FFMPEG_PLAZAS=2 en el .env manda (1 o 2, nada
+// mas: el tope de memoria de arriba sigue en pie).
 const NUCLEOS = (() => {
   try { return require('os').availableParallelism?.() || require('os').cpus().length || 1; }
   catch { return 1; }
 })();
-const ffmpegSemaphore = createSemaphore(Math.max(1, Math.min(2, NUCLEOS)));
+function plazasFfmpeg(nucleos, pedido = process.env.FFMPEG_PLAZAS) {
+  const n = Number(pedido);
+  if (n === 1 || n === 2) return n;
+  return nucleos >= 4 ? 2 : 1;
+}
+const ffmpegSemaphore = createSemaphore(plazasFfmpeg(NUCLEOS));
 
 // Run ffmpeg reading `input` (a Buffer, or null) from stdin and resolving its
 // stdout as a Buffer. Two things every ad-hoc ffmpeg spawn MUST have but the
@@ -959,4 +976,4 @@ module.exports = {
   // necesite la comprobacion tiene tieneArsenal, que ya lo hace bien.
   tieneArsenal,
   parseCantidad, resolverCantidad, etiquetaRiesgo, limpiarToken,
-  fmt, ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, pickBaraja, withTimeout, shuffle, streamToBuffer, atomicWriteJson, readJsonOrEnoent, barrerHuerfanos, MAX_DOWNLOAD_BYTES, MAX_MEDIA_BYTES, createSemaphore, ffmpegSemaphore, ffmpegToBuffer, createDebouncedSaver };
+  fmt, ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, pickBaraja, withTimeout, shuffle, streamToBuffer, atomicWriteJson, readJsonOrEnoent, barrerHuerfanos, MAX_DOWNLOAD_BYTES, MAX_MEDIA_BYTES, createSemaphore, ffmpegSemaphore, plazasFfmpeg, ffmpegToBuffer, createDebouncedSaver };

@@ -8972,8 +8972,8 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       const antes = fallos;
       const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   \u2717 ${queja}`)); } };
       const src = soloCodigo('src/utils/helpers.js');
-      exige(/createSemaphore\(Math\.max\(1, Math\.min\(2, NUCLEOS\)\)\)/.test(src),
-        'el semaforo de ffmpeg volvio a un numero fijo de plazas: en la VPS de un core, dos plazas hacen que el primero espere el doble');
+      exige(/createSemaphore\(plazasFfmpeg\(NUCLEOS\)\)/.test(src),
+        'el semaforo de ffmpeg volvio a un numero fijo de plazas: en la VPS, dos plazas hacen que el primero espere el doble');
       exige(/availableParallelism/.test(src),
         'el numero de plazas ya no sale de los cores que ve el proceso');
 
@@ -8983,8 +8983,16 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       // capas de este validador corren en paralelo y la de stickers puede tener
       // una cogida justo en este instante. Escrito con `_libres` fallaba a
       // ratos, que es la peor clase de validador: el que a veces acusa.
-      exige(h.ffmpegSemaphore._plazas === Math.max(1, Math.min(2, nucleos)),
-        `el semaforo tiene ${h.ffmpegSemaphore._plazas} plazas y esta maquina ${nucleos} core(s): con mas plazas que cores solo se reparten el mismo core y todos esperan mas`);
+      exige(h.ffmpegSemaphore._plazas === h.plazasFfmpeg(nucleos),
+        `el semaforo tiene ${h.ffmpegSemaphore._plazas} plazas y esta maquina ${nucleos} core(s): con mas plazas que nucleos de verdad solo se reparten el mismo y todos esperan mas`);
+      // LA VPS SON DOS HILOS DE UN NUCLEO FRENADO (npm run medir, 21 oct): dos
+      // hilos son una plaza, y la segunda llega con cuatro. FFMPEG_PLAZAS manda,
+      // pero solo 1 o 2.
+      const pf = h.plazasFfmpeg;
+      exige(typeof pf === 'function' && pf(1, '') === 1 && pf(2, '') === 1 && pf(4, '') === 2 && pf(64, '') === 2,
+        `las plazas por nucleos no son las medidas (1 y 2 hilos: una; cuatro o mas: dos): ${typeof pf === 'function' ? [1, 2, 4, 64].map((n) => pf(n, '')).join(', ') : 'no hay funcion'}`);
+      exige(typeof pf === 'function' && pf(2, '2') === 2 && pf(8, '1') === 1 && pf(2, '6') === 1 && pf(2, 'x') === 1,
+        'FFMPEG_PLAZAS no manda, o deja pasar algo que no es 1 ni 2: seis ffmpeg a la vez tumban una maquina de 1 GB');
 
       // Y EL CONTADOR TIENE QUE CUADRAR. Un semaforo que se queda con plazas de
       // menos no da un error: solo va cada vez mas lento hasta que un dia no
@@ -22553,6 +22561,11 @@ const conTope = (p, ms) => Promise.race([p, new Promise((r) => setTimeout(() => 
     exige(/S\.FFMPEG_TIMEOUT_MS/.test(medir) && /S\.TOPE_ANIMADO_S/.test(medir),
       'medir.js compara con topes copiados a mano: se quedan viejos el día que cambian en sticker.js');
     exige(!medir || spawnSync(process.execPath, ['--check', rutaMedir]).status === 0, 'scripts/medir.js no compila');
+    // Y la prueba de «dos a la vez» (21 oct): es la que dice si la segunda
+    // plaza de ffmpeg adelanta algo en ESA maquina. Lee el .env del bot para
+    // enseñar las plazas que usa de verdad, no las de serie.
+    exige(/DOS A LA VEZ/.test(medir) && /FFMPEG_PLAZAS/.test(medir) && /require\('dotenv'\)/.test(medir),
+      'npm run medir ya no prueba dos ffmpeg a la vez, o no lee el .env del bot: no hay forma de saber cuantas plazas le van a la VPS');
     if (fallos === antes133) console.log(verde('   ✓ la foto sale en la mitad de tiempo sin perder calidad, y npm run medir compara con los topes de verdad'));
   }
   // ── 134. EL BANCO COBRA AL METER Y AL SACAR, Y SE VE EN EL SALDO Y EN EL CASO ─

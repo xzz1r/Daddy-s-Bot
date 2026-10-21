@@ -207,6 +207,42 @@ Y en la tercera pasada:
   diga en la VPS es lo que manda para ajustar esos topes. La capa 133 vigila
   las dos cosas.
 
+### La VPS, medida en la VPS (21 oct)
+
+Lo que dijo `npm run medir` en la máquina del bot, con el bot corriendo:
+
+| | la VPS | la de referencia |
+|---|---|---|
+| núcleos que ve Node | 2 (AMD EPYC 7742) | — |
+| bucle de prueba | 409 ms (×1,4) | 300 ms |
+| sticker de una foto | 265 ms | 120 ms |
+| sticker animado, por fotograma | 32,4 ms | 12,7 ms |
+| vídeo de 10 s, una pasada | 7,8 s, contra el tope de 45 s | — |
+| arrancar yt-dlp (pipx) | 495 ms | 150 ms |
+| cargar el bot | 1,4 s | 0,55 s |
+| disco | 53 MB/s, 32 GB libres | — |
+| steal | **35 %** | 0 % |
+
+Lo que se hizo con eso:
+
+- **ffmpeg, una plaza y no dos.** Los dos núcleos son los dos hilos de un mismo
+  núcleo, y encima frenado: es la instancia gratuita de AMD de Oracle, 1/8 de
+  OCPU, y el hipervisor se queda el 35 % del tiempo en cuanto hay trabajo
+  seguido. La cuenta de plazas daba 2 por ver dos núcleos, y dos ffmpeg
+  repartiéndose el mismo núcleo solo hacen esperar al primero el doble. Ahora
+  se cuentan núcleos de verdad: con uno o dos hilos, una plaza; con cuatro o
+  más, dos. `npm run medir` lo prueba en la máquina («dos a la vez») y, si dice
+  otra cosa, `FFMPEG_PLAZAS` en el `.env` manda. La capa 45 lo vigila.
+- **Los topes se quedan.** El peor sticker animado (10 s) es 7,8 s por pasada,
+  y el tope de 45 s es por pasada: casi seis veces de margen. El arranque de
+  yt-dlp ya es el rápido (pipx) y se lanza una vez por vídeo: no hay llamadas
+  que juntar.
+- **Lo que no arregla el código es el steal.** Un tercio del tiempo de CPU se
+  lo queda Oracle, y con trabajo seguido todo va más lento de lo que dice el
+  núcleo. La salida de verdad es otra máquina: la Ampere A1 del mismo plan
+  gratuito (ARM, hasta 4 OCPU y 24 GB) no tiene ese freno. Es una mudanza
+  (`data/`, `.env`, la sesión) y la decide el dueño.
+
 ## Cuando WhatsApp no deja entrar: 402, 403, 406
 
 El 19 oct el bot se quedó en bucle: abría la conexión cada doce segundos, sin

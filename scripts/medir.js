@@ -16,9 +16,13 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { spawnSync } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 
 const RAIZ = path.resolve(__dirname, '..');
+// El .env del bot, antes de cargar nada del bot: FFMPEG_PLAZAS se lee al
+// cargar helpers.js, y sin esto aqui saldrian las plazas de serie y no las que
+// usa el bot de verdad.
+try { require('dotenv').config({ path: path.join(RAIZ, '.env') }); } catch { /* sin dotenv */ }
 
 // La máquina donde se calibraron los números del bot, en un solo núcleo
 // (taskset -c 0), con ESTE mismo guion: la mediana de tres pasadas en caliente.
@@ -56,6 +60,17 @@ function bucle() {
   let s = 0;
   for (let i = 1; i < 30e6; i++) s += Math.sqrt(i) % 7;
   return [ms(t0), s];
+}
+
+// Un proceso y lo que tarda, sin bloquear: para lanzar dos a la vez.
+function correr(bin, args) {
+  return new Promise((resolve) => {
+    const t0 = process.hrtime.bigint();
+    let p;
+    try { p = spawn(bin, args, { stdio: 'ignore' }); } catch { return resolve(NaN); }
+    p.on('error', () => resolve(NaN));
+    p.on('close', (code) => resolve(code === 0 ? ms(t0) : NaN));
+  });
 }
 
 function ffmpegBin() {
@@ -137,6 +152,49 @@ function ffmpegBin() {
           'pégale esto a quien mantenga el bot');
         conclusiones.push('el sticker animado de un vídeo largo va justo de tiempo');
       } else bien(`un vídeo de ${S.TOPE_ANIMADO_S} s cabe con margen en el tope de ${TIMEOUT_STICKER_MS / 1000} s`);
+    }
+
+    // ─── DOS A LA VEZ ────────────────────────────────────────────────────
+    //
+    // ¿Dos ffmpeg a la vez van en paralelo de verdad en esta maquina? Dos
+    // stickers animados de 2 s, primero uno detras de otro y luego los dos
+    // juntos. Si juntos tardan casi lo mismo que seguidos, la segunda plaza no
+    // adelanta a nadie y solo hace esperar al primero el doble (helpers.js).
+    if (fs.existsSync(video)) {
+      titulo('DOS A LA VEZ (ffmpeg)');
+      const H = require(path.join(RAIZ, 'src/utils/helpers'));
+      const plazas = H.ffmpegSemaphore._plazas;
+      dato('plazas que usa el bot', `${plazas}${process.env.FFMPEG_PLAZAS ? ' (puestas con FFMPEG_PLAZAS)' : ' (de serie)'}`);
+      const vf2 = 'fps=24,scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=0x00000000,setsar=1,format=rgba';
+      const args2 = (salida) => ['-loglevel', 'error', '-y', '-t', '2', '-i', video, '-map', '0:v:0', '-vf', vf2,
+        '-c:v', 'libwebp', '-loop', '0', '-an', '-q:v', '60', '-compression_level', '2', salida];
+      const seguidos = (await correr(ff, args2(path.join(tmp, 's1.webp')))) + (await correr(ff, args2(path.join(tmp, 's2.webp'))));
+      const t0 = process.hrtime.bigint();
+      const fines = [];
+      await Promise.all([1, 2].map((i) => correr(ff, args2(path.join(tmp, `p${i}.webp`))).then(() => fines.push(ms(t0)))));
+      const [primero, ultimo] = fines.sort((x, y) => x - y);
+      if (![seguidos, primero, ultimo].every(Number.isFinite)) {
+        aviso('no se ha podido medir: ffmpeg ha fallado en la prueba');
+      } else {
+        dato('uno detrás de otro', `${(seguidos / 1000).toFixed(1)} s los dos`);
+        dato('los dos a la vez', `el primero en ${(primero / 1000).toFixed(1)} s · el último en ${(ultimo / 1000).toFixed(1)} s`);
+        // Lo que adelanta ir a la vez: con paralelo de verdad, los dos juntos
+        // acaban en la mitad de tiempo (×2); sin el, en el mismo (×1).
+        const ganancia = seguidos / ultimo;
+        dato('lo que adelanta ir a la vez', `×${ganancia.toFixed(2)}`);
+        const conviene = ganancia >= 1.6 ? 2 : ganancia <= 1.3 ? 1 : plazas;
+        if (conviene === plazas) {
+          bien(plazas === 1
+            ? 'una plaza de ffmpeg es lo que va mejor aquí: a la vez no se gana casi nada'
+            : 'dos plazas de ffmpeg van bien aquí: a la vez van en paralelo de verdad');
+        } else {
+          aviso(conviene === 1
+            ? 'aquí dos ffmpeg a la vez se reparten el mismo núcleo: con una plaza el primero no espera el doble'
+            : 'aquí dos ffmpeg a la vez van en paralelo de verdad: con dos plazas nadie hace cola',
+          `pon FFMPEG_PLAZAS=${conviene} en el .env y luego: pm2 restart bot`);
+          conclusiones.push(`ffmpeg va mejor con ${conviene} plaza${conviene === 1 ? '' : 's'}`);
+        }
+      }
     }
 
     // ─── yt-dlp ──────────────────────────────────────────────────────────
