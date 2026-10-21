@@ -86,9 +86,11 @@ const API_DE = {
   // descargadores de TikTok e Instagram. Mandarle un tuit a uno de esos no es
   // un respaldo: es una peticion que no entiende, que tarda sus veinte segundos
   // de timeout y que se cuela POR DELANTE de la ficha publica de X, que es la
-  // que si sabe leer un tuit. El dueño tiene TIKTOK_API e INSTAGRAM_API puestas
-  // en su .env; si ahi hubiera tambien una REDES_API, *!x* se estaria yendo a
-  // pedirle tuits a un servicio de TikTok antes de mirar donde tiene que mirar.
+  // que si sabe leer un tuit. Si en el .env hubiera una REDES_API, *!x* se
+  // estaria yendo a pedirle tuits a un servicio de TikTok antes de mirar donde
+  // tiene que mirar. (Aqui ponia que el dueño tenia INSTAGRAM_API puesta: el
+  // 21 oct `npm run enlace` en la VPS dijo que no, y por eso *!ig* no sacaba
+  // nada hasta los espejos.)
   //
   // Para X hay que ponerla a proposito: X_API o TWITTER_API, las dos formas
   // porque el sitio cambio de nombre y un .env viejo lleva la otra escrita.

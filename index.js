@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 
 // Antes de cargar nada de Baileys: libsignal vuelca sus sesiones por
 // console.info y ahoga el log entero. Ver src/utils/silenciarSignal.js.

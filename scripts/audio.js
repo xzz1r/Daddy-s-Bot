@@ -17,7 +17,7 @@
 // un vídeo correcto puede sonar bajo AL LADO de ellos.
 'use strict';
 
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 const fs = require('fs-extra');
 const { spawnSync } = require('child_process');
 const { ffmpegPath } = require('../src/utils/ffmpeg');

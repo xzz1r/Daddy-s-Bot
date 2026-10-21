@@ -12,7 +12,7 @@
 //
 //   npm run acciones
 'use strict';
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 const axios = require('axios');
 // LA FUENTE SE LE PREGUNTA AL BOT, no se vuelve a escribir aqui.
 //

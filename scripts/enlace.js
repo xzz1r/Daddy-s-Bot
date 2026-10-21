@@ -21,7 +21,7 @@
 // dice si está puesta; de cada medio, el servidor y la extensión. Es lo que
 // hace falta para arreglarlo y nada de lo que no se puede pegar en un chat.
 'use strict';
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 const axios = require('axios');
 const fs = require('fs-extra');
 const redes = require('../src/utils/redes');

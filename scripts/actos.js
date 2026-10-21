@@ -19,7 +19,7 @@
 //   npm run actos            solo el resumen
 //   npm run actos -- --ver   y las frases mudas, para arreglarlas
 'use strict';
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 
 const verde = (t) => `\x1b[32m${t}\x1b[0m`;
 const rojo = (t) => `\x1b[31m${t}\x1b[0m`;

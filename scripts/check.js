@@ -22769,6 +22769,35 @@ const redes=require(path.join(ROOT,'src/utils/redes'));
     } finally { fs.rmSync(dir135, { recursive: true, force: true }); }
     if (fallos === antes135) console.log(verde('   ✓ !ig sale por los espejos cuando no hay API, sin tocar yt-dlp, y si fallan se dice por qué'));
   }
+  // ── 136. EL .env SE CARGA SIN ANUNCIOS ────────────────────────────────────
+  //
+  // dotenv 17 escribe una línea cada vez que carga el .env —«◇ injected env (8)
+  // from .env // tip: …»—, a veces con publicidad. Salía en el log del bot, en
+  // `npm run medir`, en `npm run enlace` y en el resumen de cada `npm run
+  // update` (21 oct). Con `quiet: true` no dice nada; aquí se vigila que todo
+  // el que lo cargue lo lleve, también un script nuevo.
+  {
+    console.log('\n136. EL .env SE CARGA SIN ANUNCIOS');
+    const antes136 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const ruidosos = [];
+    const mira136 = (d) => {
+      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        if (['node_modules', 'data', 'temp', '.git'].includes(e.name)) continue;
+        const f = path.join(d, e.name);
+        if (e.isDirectory()) { mira136(f); continue; }
+        if (!e.name.endsWith('.js')) continue;
+        fs.readFileSync(f, 'utf8').split('\n').forEach((l, i) => {
+          if (/dotenv/.test(l) && /\.config\(/.test(l) && !/^\s*\/\//.test(l) && !/quiet:\s*true/.test(l)) {
+            ruidosos.push(`${path.relative(R, f)}:${i + 1}`);
+          }
+        });
+      }
+    };
+    mira136(R);
+    exige(ruidosos.length === 0, `cargan el .env sin quiet y vuelve la línea de dotenv: ${ruidosos.slice(0, 4).join(', ')}`);
+    if (fallos === antes136) console.log(verde('   ✓ el bot y los scripts cargan el .env sin escribir nada'));
+  }
 
 
   }

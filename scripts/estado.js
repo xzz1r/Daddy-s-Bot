@@ -22,7 +22,7 @@ const path = require('path');
 // yt-dlp a quien ya lo tenia resuelto por fuera.
 //
 // No pisa lo que ya venga del entorno: dotenv solo rellena lo que falta.
-try { require('dotenv').config({ path: path.join(__dirname, '../.env') }); } catch { /* sin dotenv o sin .env: se sigue igual */ }
+try { require('dotenv').config({ path: path.join(__dirname, '../.env'), quiet: true }); } catch { /* sin dotenv o sin .env: se sigue igual */ }
 
 const RAIZ = path.join(__dirname, '..');
 // Todo lleva timeout: si la red va mal, `git fetch` puede quedarse colgado

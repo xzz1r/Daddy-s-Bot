@@ -22,7 +22,7 @@ const RAIZ = path.resolve(__dirname, '..');
 // El .env del bot, antes de cargar nada del bot: FFMPEG_PLAZAS se lee al
 // cargar helpers.js, y sin esto aqui saldrian las plazas de serie y no las que
 // usa el bot de verdad.
-try { require('dotenv').config({ path: path.join(RAIZ, '.env') }); } catch { /* sin dotenv */ }
+try { require('dotenv').config({ path: path.join(RAIZ, '.env'), quiet: true }); } catch { /* sin dotenv */ }
 
 // La máquina donde se calibraron los números del bot, en un solo núcleo
 // (taskset -c 0), con ESTE mismo guion: la mediana de tres pasadas en caliente.

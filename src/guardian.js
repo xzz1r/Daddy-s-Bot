@@ -111,7 +111,7 @@ const opcional = (m) => { try { return require(m); } catch { return null; } };
 // dotenv: sin él se leen las variables del entorno a secas, o de un .env al
 // lado con un lector de cuatro líneas. No merece una dependencia.
 const dotenv = opcional('dotenv');
-if (dotenv) dotenv.config();
+if (dotenv) dotenv.config({ quiet: true });
 else {
   try {
     for (const l of fs.readFileSync(path.join(process.cwd(), '.env'), 'utf8').split('\n')) {
