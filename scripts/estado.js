@@ -415,12 +415,16 @@ if (!bot) {
     if (desdeElArranque && f.ts < desdeElArranque) continue;
     const cuando = new Date(f.ts).toLocaleString('es-ES');
     const variable = `${red.toUpperCase()}_API`;
+    // Instagram tiene ademas los espejos (21 oct): si tampoco lo dieron, el
+    // arreglo es otro y se dice cual.
+    const espejos = red === 'instagram' && /los espejos:/.test(f.motivo || '')
+      ? ' Y los espejos tampoco: si se repite, hay que cambiar ESPEJOS_IG en src/utils/redes.js' : '';
     if (!hayApi(red)) {
       aviso(`${COMANDO[red] || red} falló: ${f.motivo} (${cuando})`,
-        `pon ${variable} en el .env: desde una VPS estas webs no se dejan`);
+        `pon ${variable} en el .env: desde una VPS estas webs no se dejan.${espejos}`);
     } else {
       mal(`${COMANDO[red] || red} falló CON su API puesta: ${f.motivo} (${cuando})`,
-        `comprueba ${variable}: el servicio puede haber cambiado o caducado`);
+        `comprueba ${variable}: el servicio puede haber cambiado o caducado.${espejos}`);
     }
   }
 }

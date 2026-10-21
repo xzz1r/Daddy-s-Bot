@@ -22663,6 +22663,112 @@ const foto=async()=>[await a.getAura(G,U),await a.verCaja(G,U),await rs.verBote(
     } finally { fs.rmSync(dir134, { recursive: true, force: true }); }
     if (fallos === antes134) console.log(verde('   ✓ guardar cuesta, sacar cuesta más, todo al bote y al punto, y el banco sale en !saldo, !aura @alguien y !caso'));
   }
+  // ── 135. !ig SIN API NI SESIÓN: LOS ESPEJOS ANTES QUE YT-DLP ──────────────
+  //
+  // El dueño, 21 oct: «el bot está teniendo problemas pasando cualquier video
+  // de !ig». Desde un servidor, Instagram le contesta 429 a yt-dlp y la página
+  // incrustada sale sin el vídeo. Los espejos (kkinstagram, eeinstagram) sí lo
+  // dan. Se prueba con la red fingida y en una copia aparte: el enlace como lo
+  // pegó el dueño, el primer espejo caído y el segundo bueno, que yt-dlp ni se
+  // toque si el espejo lo da, que una página de error no pase por vídeo y que
+  // el motivo final diga lo de los espejos.
+  {
+    console.log('\n135. !ig SIN API NI SESIÓN: LOS ESPEJOS ANTES QUE YT-DLP');
+    const antes135 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    // El orden, en el código: API, espejos, yt-dlp.
+    const rd135 = soloCodigo('src/utils/redes.js');
+    const iT = rd135.indexOf('async function traer(');
+    const [iApi, iEsp, iYt] = ['porApi(url', 'porEspejoIg(url', 'porYtDlp(url'].map((s) => rd135.indexOf(s, iT));
+    exige(iT > 0 && iApi > iT && iEsp > iApi && iYt > iEsp,
+      'en traer() los espejos de Instagram ya no van entre la API y yt-dlp: desde la VPS, yt-dlp sin sesión está bloqueado');
+    const dir135 = fs.mkdtempSync(path.join(os.tmpdir(), 'capa135-'));
+    try {
+      const guion = path.join(dir135, 'ig.js');
+      fs.writeFileSync(guion, `
+process.env.INSTAGRAM_API=''; process.env.REDES_API='';
+const fs=require('fs'),os=require('os'),path=require('path');
+const ROOT=fs.mkdtempSync(path.join(os.tmpdir(),'ig135-'));
+fs.cpSync(${json(path.join(R, 'src'))},path.join(ROOT,'src'),{recursive:true});
+fs.mkdirSync(path.join(ROOT,'data'));
+fs.mkdirSync(path.join(ROOT,'temp'));   // el bot la crea al arrancar (ensureTemp)
+try{fs.symlinkSync(${json(path.join(R, 'node_modules'))},path.join(ROOT,'node_modules'),'dir');}catch{}
+const {execFileSync}=require('child_process');
+const {ffmpegPath}=require(path.join(ROOT,'src/utils/ffmpeg'));
+const clip=path.join(ROOT,'c.mp4'), pagina=path.join(ROOT,'p.html');
+execFileSync(ffmpegPath,['-hide_banner','-loglevel','error','-y','-f','lavfi','-i','testsrc=s=480x854:d=2',
+  '-f','lavfi','-i','sine=f=440:d=2','-c:v','libx264','-preset','veryfast','-crf','30','-c:a','aac','-shortest',clip]);
+fs.writeFileSync(pagina,'<html><body>Este espejo no está disponible</body></html>'.repeat(60));
+const rutaDl=require.resolve(path.join(ROOT,'src/utils/downloader'));
+const dlReal=require(rutaDl);
+// Los espejos contestan por axios (el salto) y lo de verdad se baja del CDN.
+// cae: no hay espejo · video: salto a un vídeo · pagina: salto a algo que no es
+// un vídeo · html: contesta 200 con su página de error.
+const pedidos=[], bajados=[]; let ytdlpLlamado=0; let modo={};
+// El mismo axios que va a usar redes.js: el de la copia, no uno de al lado.
+const axios=require(require.resolve('axios',{paths:[path.join(ROOT,'src/utils')]}));
+axios.get=async(url)=>{
+  const host=new URL(url).host; pedidos.push(url);
+  const m=modo[host]||'cae';
+  if(m==='cae'){const e=new Error('getaddrinfo ENOTFOUND '+host); e.code='ENOTFOUND'; throw e;}
+  if(m==='html') return {status:200,headers:{'content-type':'text/html'},data:{destroy(){}}};
+  return {status:302,headers:{location:m==='video'?'https://cdn.invalid/v.mp4':'https://cdn.invalid/error.html'},data:{destroy(){}}};
+};
+require.cache[rutaDl].exports=Object.assign({},dlReal,{
+  acquireDownloadSlot:async()=>{}, releaseDownloadSlot:()=>{}, hayYtDlp:()=>false,
+  ytdlp:async()=>{ytdlpLlamado++;throw new Error('Unable to download webpage: HTTP Error 403: Forbidden');},
+  downloadUrlToFile:async(url,dest)=>{
+    bajados.push(url);
+    fs.copyFileSync(/v\.mp4$/.test(url)?clip:pagina,dest);
+  },
+});
+const redes=require(path.join(ROOT,'src/utils/redes'));
+(async()=>{
+  const r={};
+  const url=redes.enlaceDe('1https://www.instagram.com/reel/AbC123_x/?vrfl=MWY0cnpveHp0MWgzZQ==','instagram');
+  r.url=url; r.codigos=['https://www.instagram.com/p/Zz9/','https://instagram.com/usuario/reel/Yy8/','https://www.instagram.com/tv/Xx7/','https://www.instagram.com/frndzz_b']
+    .map((u)=>redes._codigoIg(u));
+  r.hay=redes.hayComoTraer('instagram');
+  // A. El primero caído, el segundo con el vídeo.
+  modo={'kkinstagram.com':'cae','eeinstagram.com':'video'};
+  try{const t=await redes.traer(url,'instagram'); r.a={tipo:t.tipo,bytes:t.bytes}; fs.rmSync(t.fichero,{force:true});}
+  catch(e){r.a={error:e.message};}
+  r.pedidosA=pedidos.splice(0); r.bajadosA=bajados.splice(0); r.ytA=ytdlpLlamado;
+  // B. Uno salta a algo que no es un vídeo y el otro contesta con su página:
+  // nada pasa por vídeo, y se prueba yt-dlp.
+  modo={'kkinstagram.com':'pagina','eeinstagram.com':'html'}; ytdlpLlamado=0;
+  try{await redes.traer(url,'instagram'); r.b={error:null};}catch(e){r.b={error:e.message};}
+  r.pedidosB=pedidos.splice(0); r.ytB=ytdlpLlamado;
+  console.log(JSON.stringify(r));
+  try{fs.rmSync(ROOT,{recursive:true,force:true});}catch{}
+  process.exit(0);
+})().catch((e)=>{console.log(JSON.stringify({error:String((e&&e.stack)||e)}));try{fs.rmSync(ROOT,{recursive:true,force:true});}catch{}process.exit(0);});
+`);
+      const r = JSON.parse(execSync(`node ${guion}`, { encoding: 'utf8', timeout: 120000, cwd: dir135 }).trim().split('\n').pop());
+      exige(!r.error, `la prueba de los espejos revento: ${String(r.error || '').split('\n')[0]}`);
+      if (!r.error) {
+        exige(r.url === 'https://www.instagram.com/reel/AbC123_x/',
+          `el enlace pegado como lo pegó el dueño («1https://…?vrfl=…») no se entiende: sale ${r.url}`);
+        exige(JSON.stringify(r.codigos) === JSON.stringify(['Zz9', 'Yy8', 'Xx7', null]),
+          `el código de la publicación no se saca bien: ${JSON.stringify(r.codigos)}`);
+        exige(r.hay === true, 'sin API ni yt-dlp, *!ig* se da por cerrado, y los espejos no piden nada instalado');
+        exige(r.a && r.a.tipo === 'video' && r.a.bytes > 0,
+          `con el primer espejo caído y el segundo bueno no llega el vídeo: ${JSON.stringify(r.a)}`);
+        exige(JSON.stringify(r.pedidosA) === JSON.stringify(['https://kkinstagram.com/videos/AbC123_x/1', 'https://eeinstagram.com/videos/AbC123_x/1']),
+          `los espejos no se piden en orden y con el código: ${JSON.stringify(r.pedidosA)}`);
+        exige(JSON.stringify(r.bajadosA) === JSON.stringify(['https://cdn.invalid/v.mp4']),
+          `lo que se baja no es el salto del espejo al CDN: ${JSON.stringify(r.bajadosA)}`);
+        exige(r.ytA === 0, 'con el vídeo ya traído por un espejo, yt-dlp se lanza igual: medio segundo de VPS para nada');
+        exige(r.b && r.b.error && /los espejos/.test(r.b.error) && /no era un vídeo/.test(r.b.error)
+          && /contesta 200/.test(r.b.error) && /yt-dlp/.test(r.b.error),
+          `con dos espejos sin vídeo el motivo no lo dice entero: ${JSON.stringify(r.b)}`);
+        exige(r.ytB === 1, `si los espejos no lo dan, yt-dlp tiene que probarse una vez (${r.ytB})`);
+      }
+    } catch (e) {
+      exige(false, `no pude probar los espejos de Instagram: ${String(e.message).split('\n')[0]}`);
+    } finally { fs.rmSync(dir135, { recursive: true, force: true }); }
+    if (fallos === antes135) console.log(verde('   ✓ !ig sale por los espejos cuando no hay API, sin tocar yt-dlp, y si fallan se dice por qué'));
+  }
 
 
   }

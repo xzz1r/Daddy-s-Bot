@@ -210,6 +210,66 @@ function conSesion(args, url) {
   return ['--cookies', COOKIES_IG, ...args];
 }
 
+// ─── INSTAGRAM SIN API NI SESIÓN: LOS ESPEJOS ───────────────────────────────
+//
+// 21 oct, el dueño: «el bot está teniendo problemas pasando cualquier video de
+// !ig». Desde la IP de un servidor Instagram ya no suelta nada sin sesión: a
+// yt-dlp le contesta 429 y la página incrustada sale sin el vídeo dentro. Si la
+// API se cae, no quedaba nada.
+//
+// Lo que sí funciona desde un datacenter son los espejos que usan Discord y
+// Telegram para previsualizar reels (InstaFix). Piden el reel por su cuenta y
+// contestan con un salto a la dirección firmada del CDN de Instagram, y ese CDN
+// sí le entrega el mp4 a un servidor. Es la misma idea que la ficha pública de
+// *!x*. Probado el 21 oct con un reel de verdad: los dos daban el mismo
+// fichero, 1048x720, el que sirve Instagram, en un solo salto.
+//
+// Van detrás de la API y delante de yt-dlp, que sin sesión está bloqueado. Si
+// uno cae se prueba el otro, y si caen los dos se apunta para `npm run estado`.
+const ESPEJOS_IG = ['kkinstagram.com', 'eeinstagram.com'];
+
+// El código de la publicación, que es lo único que piden los espejos.
+function codigoIg(url) {
+  const m = /\/(?:p|reels?|tv)\/([\w-]+)/i.exec(String(url || ''));
+  return m ? m[1] : null;
+}
+
+async function porEspejoIg(url) {
+  const codigo = codigoIg(url);
+  if (!codigo) return null;
+  const motivos = [];
+  for (const host of ESPEJOS_IG) {
+    const espejo = `https://${host}/videos/${codigo}/1`;
+    const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.mp4`);
+    try {
+      // EL ESPEJO TIENE VEINTE SEGUNDOS PARA CONTESTAR, como la API. Lo que
+      // devuelve es un salto al CDN de Instagram, y la bajada de verdad va
+      // despues, con su tope de peso. Sin esto, un espejo colgado se comia los
+      // dos minutos de la bajada antes de pasar al otro.
+      const resp = await axios.get(espejo, { maxRedirects: 0, timeout: 20000, responseType: 'stream', validateStatus: () => true });
+      resp.data?.destroy?.();
+      const salto = resp.status >= 300 && resp.status < 400 && resp.headers?.location;
+      const destino = salto ? new URL(resp.headers.location, espejo).toString()
+        : resp.status === 200 && /^video\//i.test(String(resp.headers?.['content-type'] || '')) ? espejo : null;
+      if (!destino) { motivos.push(`${host}: contesta ${resp.status}`); continue; }
+      await downloadUrlToFile(destino, fichero, TOPE_BAJADA);
+      // QUE SEA UN VÍDEO DE VERDAD. Un espejo caído puede contestar 200 con su
+      // página de error, y una publicación de fotos no trae vídeo que dar.
+      const medio = await analizarMedio(fichero);
+      if (medio.probado && medio.video && !ESTATICOS.has(medio.video)) return fichero;
+      motivos.push(`${host}: no era un vídeo`);
+    } catch (e) {
+      await fs.remove(fichero).catch(() => {});
+      // Que no quepa es del vídeo, no del espejo: el otro daría lo mismo.
+      if (e.demasiadoGrande) throw e;
+      motivos.push(`${host}: ${String(e.message || e).slice(0, 60)}`);
+      continue;
+    }
+    await fs.remove(fichero).catch(() => {});
+  }
+  throw new Error(motivos.join(' · ') || 'ningún espejo contestó');
+}
+
 // ─── UN PERFIL NO ES UNA PUBLICACIÓN ─────────────────────────────────────────
 //
 // PASO EN EL GRUPO. Alguien pego `!ig https://instagram.com/frndzz_b?stkn=…`
@@ -325,7 +385,8 @@ function ultimosFallos() {
 // intentar: cobrar, esperar veinte segundos y devolver el aura es gastarle el
 // tiempo a alguien para acabar donde ya se sabía.
 function hayComoTraer(plataforma) {
-  return !!API_DE[plataforma] || hayYtDlp();
+  // Instagram siempre tiene por dónde: los espejos no piden nada instalado.
+  return !!API_DE[plataforma] || plataforma === 'instagram' || hayYtDlp();
 }
 
 // La extension REAL de una direccion, sin la interrogacion y sin el ancla. Los
@@ -2846,6 +2907,19 @@ async function traer(url, plataforma, { avisar = null } = {}) {
         logger.warn(`redes: pinterest por etiquetas falló: ${e.message}`);
       }
     }
+    // Instagram por los espejos, y antes que yt-dlp: desde un servidor y sin
+    // sesión, a yt-dlp Instagram le contesta 429 (ver porEspejoIg). Lo que
+    // digan va en el motivo final: `npm run estado` solo guarda el último.
+    let fallaEspejos = null;
+    if (!fichero && plataforma === 'instagram') {
+      try {
+        fichero = await porEspejoIg(url);
+      } catch (e) {
+        if (e.demasiadoGrande) throw e;
+        fallaEspejos = e.message;
+        logger.warn(`redes: los espejos de Instagram fallaron (${e.message.slice(0, 80)}); pruebo con yt-dlp`);
+      }
+    }
     // EL MOTIVO DE LA API NO LO TAPA EL DE YT-DLP. Con una API puesta, el fallo
     // que importa es el suyo: yt-dlp es el respaldo y se sabe que esta
     // bloqueado, asi que contar SOLO su mensaje decia «la web bloquea al
@@ -2862,7 +2936,8 @@ async function traer(url, plataforma, { avisar = null } = {}) {
         const fotos = await porFotosSueltas(url).catch(() => null);
         if (fotos) return { medios: fotos };
       }
-      throw new Error(fallaApi ? `${fallaApi} · y yt-dlp: ${e.message}` : e.message);
+      const antes = [fallaApi, fallaEspejos && `los espejos: ${fallaEspejos}`].filter(Boolean).join(' · ');
+      throw new Error(antes ? `${antes} · y yt-dlp: ${e.message}` : e.message);
     }
     if (!fichero) throw new Error(fallaApi || 'no pude sacar el vídeo de ahí');
 
@@ -2996,4 +3071,5 @@ module.exports = {
   _TOPE_WHATSAPP: TOPE_WHATSAPP,
   _TOPE_BAJADA: TOPE_BAJADA,
   esPerfil, traer, buscar, _aTandasDe: aTandasDe, _fotoEnteraPorBordes: fotoEnteraPorBordes, _tokenDeX: tokenDeX, buscarVarios, datosDeGif, prepararGif, _porFotosSueltas: porFotosSueltas, esAnimado, _porX: porX, _textoDeTuit: textoDeTuit, _mejorVariante: mejorVariante, _variantesMp4: variantesMp4, _varianteQueCabe: varianteQueCabe, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
+  _porEspejoIg: porEspejoIg, _codigoIg: codigoIg, ESPEJOS_IG,
   _montarPase: montarPase, _comoEnlaces: comoEnlaces, _porYtDlpFotos: porYtDlpFotos, _fotosDeFicha: fotosDeFicha, _esSinVideo: esSinVideo, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };

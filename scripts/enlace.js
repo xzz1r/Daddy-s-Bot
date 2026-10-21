@@ -66,9 +66,13 @@ function describe(valor, sangria = '  ') {
   // Los picos de un ejemplo escrito a mano (`<direccion>`) no llegan nunca
   // —la terminal los toma como redireccion y ni arranca esto— pero si llegan
   // pegados de otra forma, se quitan y ya.
+  //
+  // Y LA DIRECCIÓN SE BUSCA DENTRO, como hace el bot. Un enlace copiado con
+  // algo pegado delante —«1https://www.instagram.com/reel/…», que fue el del
+  // dueño el 21 oct— el bot lo entiende, y esto lo rechazaba.
   const url = process.argv.slice(2)
-    .map((a) => a.replace(/^[<"']+|[>"']+$/g, ''))
-    .find((a) => /^https?:\/\//i.test(a));
+    .map((a) => (a.match(/https?:\/\/[^\s<>"']+/i) || [])[0])
+    .find(Boolean);
   if (!url) {
     console.log('\n  Uso: npm run enlace -- "https://…"');
     console.log('  Con comillas: una dirección de Instagram lleva ? y & dentro, y sin');

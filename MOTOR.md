@@ -536,7 +536,8 @@ lo que quede atrás por un corte lo recoge el barrido horario de `temp`.
 
 **De dónde salen.** Primero la API de esa plataforma si está puesta en el
 `.env` (`TIKTOK_API`, `INSTAGRAM_API`, `PINTEREST_API`, o `REDES_API` para las
-tres), y si no, `yt-dlp`. Si la API falla se cae a `yt-dlp` sin ruido.
+tres), y si no, `yt-dlp`. Si la API falla se cae a `yt-dlp` sin ruido. Entre
+las dos, Instagram tiene sus espejos (abajo).
 
 **Solo TikTok necesita un tercero.** Medido desde una VPS con `yt-dlp` al día,
 y con enlaces **vivos**, que es donde me equivoqué dos veces:
@@ -559,6 +560,25 @@ fallan con un mensaje que culpa a la falta de sesión y no es eso. Repetidos
 unos segundos después salen a la primera. Eso explica lo que se veía desde
 fuera, «hay vídeos de IG que no envía», unos sí y otros no sin patrón. Se
 reintenta con espera creciente y los tres salen.
+
+**Y eso ya no vale (21 oct).** El dueño: «el bot está teniendo problemas
+pasando cualquier video de !ig». Desde una IP de servidor, Instagram le
+contesta **429** a yt-dlp a la primera, y la página incrustada del reel sale
+sin el vídeo dentro. Sin sesión ni API, no había nada.
+
+Lo que sí funciona desde un datacenter son los **espejos** que usan Discord y
+Telegram para previsualizar reels (InstaFix): `kkinstagram.com` y
+`eeinstagram.com`. Se les pide `/videos/<código>/1` y contestan con un salto a
+la dirección firmada del CDN de Instagram, que sí le da el mp4 a un servidor.
+Probado con un reel real: los dos dan el mismo fichero (1048×720, el que sirve
+Instagram) en un solo salto. Van después de la API y antes de yt-dlp; si uno
+cae se prueba el otro, y lo que contestó cada uno queda en el motivo que
+enseña `npm run estado`. Si un día caen los dos, se cambian en `ESPEJOS_IG`
+(`src/utils/redes.js`). La capa 135 lo vigila.
+
+Para ver qué pasa con un enlace concreto, en la VPS:
+`npm run enlace -- "<enlace>"`. Dice si la API está puesta, qué contesta por
+dentro y en qué acaba el camino entero.
 
 Así que Pinterest tiene vía propia y va antes que yt-dlp: se lee la página del
 pin y se saca el medio de sus etiquetas `og:`, que es lo que usa cualquier chat
