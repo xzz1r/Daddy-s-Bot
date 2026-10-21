@@ -180,7 +180,11 @@ async function cmdCaso(sock, msg, args, groupMeta) {
   const tag = `@${persona.split('@')[0]}`;
   const lineas = [`*EXPEDIENTE* · ${tag}`];
   lineas.push(`Mensajes: *${fmt(mensajes)}*${iM >= 0 ? ` · ${iM + 1}.º del grupo` : ''}`);
-  lineas.push(`Aura: *${fmt(aura)}*${iA >= 0 ? ` · ${iA + 1}.º` : ''}${caja > 0 ? ` · *${fmt(caja)}* en el banco` : ''}`);
+  lineas.push(`Aura: *${fmt(aura)}*${iA >= 0 ? ` · ${iA + 1}.º` : ''}`);
+  // EL BANCO, EN SU LINEA Y SIEMPRE (dueño, 21 oct). Iba pegado al aura y
+  // solo si habia algo dentro, y no se veia. A cero tambien se dice: que no
+  // tenga nada guardado es un dato del expediente.
+  lineas.push(`Banco: *${fmt(caja)}*`);
   // Sin golpes ni precio no hay linea: una fila de ceros es ruido.
   // Los golpes se podan a los siete dias (roboStore), asi que la linea lo dice:
   // «3 golpes» a secas sonaria a historial de toda la vida.

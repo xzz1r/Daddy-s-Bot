@@ -1,7 +1,7 @@
 const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameUser, soloMiembros } = require('../utils/wa');
 const { apel } = require('../utils/vocativo');
 const { pickFresh, fmt, parseCantidad, resolverCantidad, etiquetaRiesgo } = require('../utils/helpers');
-const { getAura, addAura, spendAura, getAuraRanking, flushAura, BOLSA } = require('../utils/auraStore');
+const { getAura, addAura, spendAura, getAuraRanking, flushAura, verCaja, BOLSA } = require('../utils/auraStore');
 const { resetearEconomia } = require('../utils/reinicioEconomia');
 const { getUserCount } = require('../utils/messageCounter');
 const { getName, recordName, cargar: cargarNombres } = require('../utils/nombreStore');
@@ -987,10 +987,12 @@ async function cmdAura(sock, msg, args, groupMeta) {
     // `sender` se declara mas abajo en esta funcion, asi que aqui todavia esta
     // en su zona muerta: leerlo revienta con "Cannot access 'sender' before
     // initialization". Se resuelve aparte.
+    // Y LO DEL BANCO TAMBIEN (dueño, 21 oct): el saldo a secas escondia la
+    // mitad de lo que tiene quien lo guarda casi todo.
     const quien = getSender(msg);
-    const mio = await getAura(jid, quien);
+    const [mio, guardado] = await Promise.all([getAura(jid, quien), verCaja(jid, quien)]);
     return sock.sendMessage(jid, {
-      text: `Tienes *${fmt(mio)}* de aura${apel(['pequeña', 'gatita', 'muñequita', 'princesa', 'reina', 'cosita'])}.`,
+      text: `Tienes *${fmt(mio)}* de aura a la vista y *${fmt(guardado)}* en el banco${apel(['pequeña', 'gatita', 'muñequita', 'princesa', 'reina', 'cosita'])}.`,
     }, { quoted: msg });
   }
 
@@ -1029,9 +1031,9 @@ async function cmdAura(sock, msg, args, groupMeta) {
   // modifica nada. Tirar (subir/bajar) siempre es sobre uno mismo.
   const mentioned = getTarget(msg);
   if (mentioned && !sameUser(mentioned, sender)) {
-    const aura = await getAura(jid, mentioned);
+    const [aura, guardado] = await Promise.all([getAura(jid, mentioned), verCaja(jid, mentioned)]);
     return sock.sendMessage(jid, {
-      text: `*@${mentioned.split('@')[0]}* tiene *${fmt(aura)}* de aura.`,
+      text: `*@${mentioned.split('@')[0]}* tiene *${fmt(aura)}* de aura a la vista y *${fmt(guardado)}* en el banco.`,
       mentions: [mentioned],
     }, { quoted: msg });
   }

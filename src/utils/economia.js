@@ -1527,13 +1527,26 @@ const REGALO_MIN = 1;
 //     Meter y sacar a demanda deja de salir barato.
 //  3. SE PUEDE REVENTAR. Ver `forzable`: un golpe maestro fuerza la caja.
 //     Esconder pasa de ser inmunidad a ser una capa mas de defensa.
+//
+// Y OTRA VEZ, 21 oct: «sube impuestos para meter y sacar del banco, la peña
+// sigue abusando de esto». Meter era GRATIS, asi que lo que convenia era
+// guardarlo todo en cuanto se cobraba y sacar solo lo que se iba a gastar:
+// se pagaba una vez y por la parte pequeña. Ahora:
+//
+//  · GUARDAR CUESTA un 10 %, que sale de lo que se mete.
+//  · SACAR SUBE del 22 % al 30 %.
+//  · PAGAR CON LO GUARDADO paga lo mismo que sacar (impuestoPago, abajo). Si
+//    se quedaba en el 22, pagar desde el banco seria la salida barata.
+//
+// Las tres van enteras al bote. Ida y vuelta, de 100 guardados vuelven 63.
 const CAJA = {
   capacidad: 1200,        // una caja tiene fondo, no es una cámara acorazada
-  comision: 0.22,         // lo que cuesta abrirla (el impuesto normal es 0,12)
-  comisionMinima: 1,      // sacar algo siempre cuesta algo
+  comision: 0.30,         // lo que cuesta abrirla (el impuesto normal es 0,12)
+  comisionGuardar: 0.10,  // y lo que cuesta cerrarla: esconderse ya no es gratis
+  comisionMinima: 1,      // meter o sacar algo siempre cuesta algo
   minimoGuardar: 50,      // por debajo de esto no merece la pena ni cerrarla
   enfriamientoMs: 3 * 3600000,   // tres horas entre cierre y cierre
-  alBote: 1,              // la comisión entera va al bote: no se destruye aura
+  alBote: 1,              // las comisiones enteras van al bote: no se destruye aura
 
   // LO QUE SE LLEVA UN GOLPE MAESTRO DE DENTRO DE LA CAJA.
   //
@@ -1543,12 +1556,20 @@ const CAJA = {
   // salvo pase lo que pase. Si te la fuerzan, se lo lleva el ladron entero: no
   // se destruye nada.
   forzable: 0.30,
-
-  // Y EL IMPUESTO DE PAGAR CON LO GUARDADO. Ver cobrarDeCaja: cuando no llega
-  // el suelto, el precio sale de la caja pagando esto. Es la misma comision de
-  // abrirla, porque es exactamente lo que se esta haciendo.
-  impuestoPago: 0.22,
 };
+
+// Y EL IMPUESTO DE PAGAR CON LO GUARDADO. Ver pagarConCaja: cuando no llega el
+// suelto, el precio sale de la caja pagando esto. Es la misma comision de
+// abrirla, porque es exactamente lo que se esta haciendo, y sale de ella para
+// que no se queden en dos cifras distintas: con el 22 aqui y el 30 al sacar,
+// pagar desde el banco se convertia en la forma barata de sacarlo.
+CAJA.impuestoPago = CAJA.comision;
+
+// Lo que cobra la cerradura por mover una cantidad, al meter o al sacar. Una
+// sola cuenta para el almacen, el aviso y la vista del banco.
+function comisionCaja(cantidad, tasa) {
+  return Math.max(CAJA.comisionMinima, Math.round(cantidad * tasa));
+}
 
 // ─── EL DESCUENTO DE LOS ADMINS ─────────────────────────────────────────────
 //
@@ -1617,7 +1638,7 @@ function tirar([min, max]) {
 }
 
 module.exports = {
-  CAJA, ADMIN, BUTRON,
+  CAJA, comisionCaja, ADMIN, BUTRON,
   MILLONARIO, ARRANQUE, SUELO_TODOS,
   TIRADA, TIRADA_MIN, TIRADA_MAX, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE,
   PRIMERA_DEL_DIA, HITOS, CONTADOR, DIA,

@@ -4,19 +4,19 @@
 // subcomando cuando lo que piensa es un verbo:
 //
 //   !vault             ver lo que tienes dentro
-//   !lock <cantidad>   meterlo (gratis, con enfriamiento)
+//   !lock <cantidad>   meterlo (con comisión al bote y enfriamiento)
 //   !unlock <cantidad> sacarlo (con comisión al bote)
 //
 // !safe y !stash valen igual.
 //
-// LA COMISIÓN VA AL BOTE, no se destruye. Si se evaporase, cada uso de la caja
+// LAS COMISIONES VAN AL BOTE, no se destruyen. Si se evaporasen, cada uso de la caja
 // encogería la economía del grupo un poco, y a los meses eso se nota en el
 // ranking sin que nadie sepa por qué. Yendo al bote, el aura sigue en el grupo
 // y encima engorda el premio de !asalto: lo que uno paga por esconderse acaba
 // siendo el botín de otro.
 const { verCaja, esperaCaja, meterEnCaja, sacarDeCaja, getAura, flushAura } = require('../utils/auraStore');
 const { aportarAlBote } = require('../utils/roboStore');
-const { CAJA } = require('../utils/economia');
+const { CAJA, comisionCaja } = require('../utils/economia');
 const { getSender } = require('../utils/wa');
 const { pickFresh, fmt, aviso, parseCantidad, resolverCantidad } = require('../utils/helpers');
 const { SOLO_GRUPOS } = require('../data/avisos');
@@ -36,6 +36,22 @@ const frase = (pool, jid, clave, datos = {}) =>
     .replace(/%C/g, datos.C === undefined ? '' : fmt(datos.C))
     .replace(/%Z/g, datos.Z === undefined ? '' : fmt(datos.Z))
     .replace(/%S/g, datos.S === undefined ? '' : fmt(datos.S));
+
+const pct = (tasa) => Math.round(tasa * 100);
+
+// Las comisiones al bote. Si falla, el aura ya se ha movido y la persona ya
+// tiene lo suyo: se anota y se sigue. Perder la aportacion es un error menor;
+// deshacer el movimiento entero por esto seria mucho peor.
+//
+// La caja vive en aura.json y el bote en robo.json, que se guarda antes: se
+// vuelca el aura primero para que un corte no deje la comision en el bote y la
+// caja sin descontar.
+async function alBote(jid, comision) {
+  if (!(comision > 0) || !(CAJA.alBote > 0)) return;
+  await flushAura().catch(() => {});
+  await aportarAlBote(jid, Math.round(comision * CAJA.alBote))
+    .catch((e) => logger.warn(`vault: la comision no llego al bote: ${e.message}`));
+}
 
 // Los verbos. Se comparan aqui dentro y no solo en el dispatcher a proposito:
 // ver el comentario del freno, mas abajo.
@@ -101,12 +117,16 @@ async function cmdVault(sock, msg, args, groupMeta) {
       }, { quoted: msg });
     }
 
+    // Guardar ya no es gratis (dueño, 21 oct): la comision sale de lo que se
+    // mete y va al bote, igual que la de sacar.
+    await alBote(jid, r.comision);
     return sock.sendMessage(jid, {
       text: `*BAJO LLAVE*\n\n` +
-        `${nm} guarda *${fmt(r.guardado)}*.\n` +
+        `${nm} guarda *${fmt(r.guardado)}* y entran *${fmt(r.entra)}*.\n` +
+        `_La cerradura se queda *${fmt(r.comision)}* (${pct(CAJA.comisionGuardar)} %), que van al bote._\n` +
         `_Dentro *${fmt(r.dentro)}* · a la vista *${fmt(r.saldo)}*` +
         (r.hueco > 0 ? ` · cabe *${fmt(r.hueco)}* más_` : ` · el banco está lleno_`) + `\n\n` +
-        frase(RX.GUARDADO, jid, 'ok', { N: nm, C: r.guardado, Z: r.dentro, S: r.saldo }),
+        frase(RX.GUARDADO, jid, 'ok', { N: nm, C: r.entra, Z: r.dentro, S: r.saldo }),
       mentions: [sender],
     }, { quoted: msg });
   }
@@ -132,22 +152,12 @@ async function cmdVault(sock, msg, args, groupMeta) {
       }, { quoted: msg });
     }
 
-    // La comisión al bote. Si falla, el aura ya salió de la caja y el usuario ya
-    // la tiene: se anota y se sigue. Perder la aportación es un error menor;
-    // devolver el movimiento entero por esto sería mucho peor.
-    if (r.comision > 0 && CAJA.alBote > 0) {
-      // La caja vive en aura.json y el bote en robo.json, que se guarda antes:
-      // se vuelca el aura primero para que un corte no deje la comision en el
-      // bote y la caja sin descontar.
-      flushAura().catch(() => {})
-        .then(() => aportarAlBote(jid, Math.round(r.comision * CAJA.alBote)))
-        .catch((e) => logger.warn(`vault: la comision no llego al bote: ${e.message}`));
-    }
+    await alBote(jid, r.comision);
 
     return sock.sendMessage(jid, {
       text: `*FUERA DEL BANCO*\n\n` +
         `${nm} saca *${fmt(r.sacado)}* y le llegan *${fmt(r.neto)}*.\n` +
-        `_La cerradura se queda *${fmt(r.comision)}* (${Math.round(CAJA.comision * 100)} %), que van al bote._\n` +
+        `_La cerradura se queda *${fmt(r.comision)}* (${pct(CAJA.comision)} %), que van al bote._\n` +
         `_Queda dentro *${fmt(r.dentro)}* · a la vista *${fmt(r.saldo)}*_\n\n` +
         frase(RX.SACADO, jid, 'ok', { N: nm, C: r.neto, Z: r.dentro, S: r.saldo }),
       mentions: [sender],
@@ -159,20 +169,20 @@ async function cmdVault(sock, msg, args, groupMeta) {
   if (dentro <= 0) {
     return sock.sendMessage(jid, {
       text: `*TU BANCO*\n${frase(RX.VACIO, jid, 'vacio')}\n\n` +
-        `_Se guarda con *!lock <cantidad>*. Cabe hasta *${fmt(CAJA.capacidad)}*._`,
+        `_Se guarda con *!lock <cantidad>*, y la cerradura se queda un ${pct(CAJA.comisionGuardar)} %. Cabe hasta *${fmt(CAJA.capacidad)}*._`,
       mentions: [sender],
     }, { quoted: msg });
   }
 
   const saldo = await getAura(jid, sender);
   const espera = await esperaCaja(jid, sender);
-  const coste = Math.max(CAJA.comisionMinima, Math.round(dentro * CAJA.comision));
+  const coste = comisionCaja(dentro, CAJA.comision);
 
   return sock.sendMessage(jid, {
     text: `*TU BANCO*\n\n` +
       `Dentro: *${fmt(dentro)}* de *${fmt(CAJA.capacidad)}*\n` +
       `A la vista: *${fmt(saldo)}* — esto te lo roba cualquiera. El banco, solo un golpe maestro o un *!robarbanco*.\n\n` +
-      `_Sacarlo todo costaría *${fmt(coste)}*._\n` +
+      `_Sacarlo todo costaría *${fmt(coste)}*. Guardar cuesta un ${pct(CAJA.comisionGuardar)} % y sacar un ${pct(CAJA.comision)} %, y todo va al bote._\n` +
       (espera > 0
         ? `_No puedes volver a guardar hasta dentro de *${duracion(espera)}*._`
         : `_Puedes guardar más cuando quieras._`),

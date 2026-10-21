@@ -144,7 +144,9 @@ const POOLS_MODO = args.includes('--pools');
 // de !mog eran paralelos a propósito, pero uno tenía «a quien todos quieren
 // hablar»; y el eco de !ganador abría con su propia etiqueta. Eco 0, roto 0,
 // nadie 244.
-const TECHO = { nadie: 244, analogia: 6, coletilla: 23, eco: 0, molde: 66, enlatado: 127, roto: 0 };
+// Y el 21 oct, con las comisiones del banco: «Guardado. Miedo con forma de
+// candado.» pasa a hablarle a quien guarda. Nadie 243.
+const TECHO = { nadie: 243, analogia: 6, coletilla: 23, eco: 0, molde: 66, enlatado: 127, roto: 0 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();

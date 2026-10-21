@@ -830,7 +830,7 @@ defectos:
 
 | familia | qué es | al medirlo | 20 oct |
 |---|---|---|---|
-| `nadie` | la frase no menciona a la persona: vale para cualquiera | 1046 | 244 |
+| `nadie` | la frase no menciona a la persona: vale para cualquiera | 1046 | 243 |
 | `analogia` | el chiste es el objeto («tu lealtad es como el wifi del vecino») | 68 | 6 |
 | `coletilla` | frase neutra y el insulto pegado detrás con una coma | 601 | 23 |
 | `eco` | abre repitiendo la etiqueta del comando («Rata que…» en `!rata`) | 12 | 0 |
@@ -1003,14 +1003,17 @@ Solo lo que cambia cómo se escriben sus frases. Lo demás está en `MOTOR.md`.
 - **Robo** (`!robo`): tiene los pools más grandes del bot (`ROB_FAIL`, 268
   frases).
 - **La caja** (`!vault` · `!lock` · `!unlock`): se guarda aura donde no se puede
-  robar, con un enfriamiento al meter y una comisión al sacar que va al bote.
+  robar, con un enfriamiento entre cierres y una comisión al meter (10 %) y otra
+  al sacar (30 %), las dos al bote. Las subió el dueño el 21 oct: guardar era
+  gratis y se abusaba. Pagar con lo guardado paga lo mismo que sacar.
   Sus frases están en `src/data/vaultPhrases.js` y su registro es propio: **no
   es un banco**. Aquí nadie "realiza una operación": se echa el candado y se
   mira por encima del hombro. El bot no felicita al que guarda: le recuerda que
   esconder es de cobardes y que sacarlo va a costarle dinero.
 - **Expediente** (`!caso` · `!expediente`): no tira dados. Junta lo que el bot
-  ya guarda de alguien (mensajes, aura y caja, robos de la semana, precio en la
-  cabeza, veto de la tienda, objetivo del día, último día que escribió) y dicta
+  ya guarda de alguien (mensajes, aura, el banco en su línea aunque esté a cero,
+  robos de la semana, precio en la cabeza, veto de la tienda, objetivo del día,
+  último día que escribió) y dicta
   UN veredicto por orden de gravedad: la inactividad primero, luego las deudas y
   los robos, y rico o pobre al final (rico es 1.500 o más contando la caja). Los
   veredictos están en `src/commands/caso.js` y siguen dos reglas: **sin género**

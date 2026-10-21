@@ -14,7 +14,7 @@
 // Lo ha guardado. Se lee en el grupo.
 const GUARDADO = [
   'Guardadito. Que nadie diga que no sabes cuidar tus cuatro duros.',
-  'Guardado. Miedo con forma de candado.',
+  'Guardado, y la cerradura ya ha cobrado su parte. Tu miedo empieza a salir caro.',
   'Al banco. El grupo entero sabe que hay algo ahí, eso sí.',
   'Con dos vueltas de llave. Ya no es tuyo del todo, pero es tuyo.',
   'Guardado. Un golpe redondo se lleva una parte de dentro. Tú, de momento, aguantas el resto.',
@@ -44,7 +44,7 @@ const SACADO = [
   'Sacado del banco. Menos de lo que metiste, como te dijeron.',
   'Fuera. Y de paso ya sabe todo el grupo que tenías banco.',
   'Sacado. Vuelve a la mesa, vuelve a ser carne.',
-  'Fuera. Guardarlo era gratis, pero abrirlo se paga, y acabas de pagarlo.',
+  'Fuera. Pagaste por guardarlo y ahora por sacarlo: doble peaje por tu propio miedo.',
   'Abierto con tu propia llave. La cerradura también cobra.',
   'En la mano. Ese pellizco de menos es lo que vale la tranquilidad.',
   'Abierto. Y ahora a gastarlo rápido, no vaya a ser.',

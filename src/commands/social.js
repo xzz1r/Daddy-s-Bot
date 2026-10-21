@@ -253,7 +253,7 @@ const AURA_LINES = [
   'Escribe hoy, cobra hoy. Mañana es otra racha, si la aguantas, y no la aguantas.',
   'El aura es lo único de este grupo que no se puede fingir. Tu sonrisa en las fotos, sí.',
   'Si quieres subir rápido, escribe, y si quieres bajar rápido, apuesta. Ya sabemos qué vas a hacer.',
-  'El banco te cobra comisión al sacar. Ni escondiendo tus cuatro duros te libras de pagar.',
+  'El banco te cobra al meter y al sacar. Ni escondiendo tus cuatro duros te libras de pagar.',
 ];
 
 // !casino / !aura hoy — progreso diario de aura del que lo pide

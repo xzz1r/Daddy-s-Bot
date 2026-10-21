@@ -14,7 +14,7 @@ const AURA_FILE = path.join(__dirname, '../../data/aura.json');
 // son 100, o sea un 2 %" y las tres cifras se quedaron viejas a la vez en
 // cuanto se reequilibró la economía. Un comentario con números de otro fichero
 // es una copia que nadie actualiza.
-const { ARRANQUE: STARTING_AURA, SUELO_TODOS, CAJA } = require('./economia');
+const { ARRANQUE: STARTING_AURA, SUELO_TODOS, CAJA, comisionCaja } = require('./economia');
 
 // Escalas anteriores, necesarias para reescalar lo que ya está guardado.
 // Cada entrada es el salto DESDE esa versión a la siguiente.
@@ -509,8 +509,19 @@ async function esperaCaja(groupJid, userJid) {
   return Math.max(0, CAJA.enfriamientoMs - (Date.now() - t));
 }
 
-// METER. Saldo -> caja. Atomico: las dos mitades dentro del mismo bloque
-// serializado, porque un corte entre ellas duplicaria o evaporaria aura.
+// Lo mas que se puede meter para que lo que ENTRA quepa. La comision sale de
+// lo que se mete, asi que con 100 de hueco caben 111 (11 se quedan por el
+// camino).
+function brutoQueCabe(hueco) {
+  let b = Math.floor(hueco / (1 - CAJA.comisionGuardar)) + 2;
+  while (b > 0 && b - comisionCaja(b, CAJA.comisionGuardar) > hueco) b--;
+  return b;
+}
+
+// METER. Saldo -> caja, menos comision. Atomico: las dos mitades dentro del
+// mismo bloque serializado, porque un corte entre ellas duplicaria o
+// evaporaria aura. `guardado` es lo que sale del saldo, `entra` lo que llega
+// a la caja y `comision` la diferencia, que quien llama manda al bote.
 async function meterEnCaja(groupJid, userJid, cuanto) {
   await load();
   const qKey = canonicalJid(userJid);
@@ -533,19 +544,21 @@ async function meterEnCaja(groupJid, userJid, cuanto) {
     const kA = foldPerson(g, userJid);
     const saldo = g[kA] === undefined ? STARTING_AURA : g[kA];
 
-    // Lo que de verdad entra: ni mas de lo que cabe, ni mas de lo que hay.
-    const real = Math.min(n, hueco, saldo);
+    // Lo que de verdad se mete: ni mas de lo que cabe, ni mas de lo que hay.
+    const real = Math.min(n, brutoQueCabe(hueco), saldo);
     if (real < CAJA.minimoGuardar) {
       return saldo < CAJA.minimoGuardar
         ? { ok: false, motivo: 'sinsaldo', saldo }
         : { ok: false, motivo: 'lleno', dentro };
     }
 
+    const comision = comisionCaja(real, CAJA.comisionGuardar);
+    const entra = real - comision;
     g[kA] = saldo - real;
-    z[kZ] = dentro + real;
+    z[kZ] = dentro + entra;
     ts[kTs] = Date.now();
     scheduleSave();
-    return { ok: true, guardado: real, dentro: z[kZ], saldo: g[kA], hueco: CAJA.capacidad - z[kZ] };
+    return { ok: true, guardado: real, comision, entra, dentro: z[kZ], saldo: g[kA], hueco: CAJA.capacidad - z[kZ] };
   });
 }
 
@@ -565,7 +578,7 @@ async function sacarDeCaja(groupJid, userJid, cuanto) {
     // Se saca lo que se pida o lo que haya, lo que sea menor: pedir de mas no
     // es un error del que escribe, es que ya no se acuerda de cuanto guardo.
     const sacado = Math.min(pedido, dentro);
-    const comision = Math.max(CAJA.comisionMinima, Math.round(sacado * CAJA.comision));
+    const comision = comisionCaja(sacado, CAJA.comision);
     const neto = sacado - comision;
     if (neto <= 0) return { ok: false, motivo: 'migaja', sacado, comision };
 

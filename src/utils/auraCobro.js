@@ -160,7 +160,7 @@ async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta
   //
   // Antes daba igual lo guardado: el cobro miraba el suelto, no llegaba y
   // salia el «no te llega» con 1.200 dentro de la caja. Para gastarlos habia
-  // que acordarse de *!unlock*, pagar el 22 % y volver a escribir el comando.
+  // que acordarse de *!unlock*, pagar la comision y volver a escribir el comando.
   //
   // Ahora se tapa el hueco solo, y CUESTA: sale de la caja lo que falta mas el
   // impuesto, que es la misma comision de abrirla —porque es exactamente lo
@@ -198,8 +198,8 @@ async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta
 //
 // Acepta el numero de siempre o el objeto entero de `cobrar`, y con el objeto
 // DEVUELVE CADA COSA A SU SITIO. Lo pidio el dueño: si el comando se pago con
-// el banco, antes se devolvia solo el precio y a la vista —el 22 % de
-// impuesto se perdia y lo del banco quedaba a tiro de cualquier robo—. Ahora
+// el banco, antes se devolvia solo el precio y a la vista —el impuesto de
+// la caja se perdia y lo del banco quedaba a tiro de cualquier robo—. Ahora
 // lo suelto vuelve suelto, lo del banco vuelve entero al banco, y el impuesto
 // sale del bote, que es donde habia ido.
 async function devolver(groupJid, senderJid, pago, concepto = null) {

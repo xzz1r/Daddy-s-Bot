@@ -56,6 +56,15 @@ recompensas, tiradas del día, diana, esperas y duelos pendientes. La lista
 entera vive en `src/utils/reinicioEconomia.js`: un almacén o un reloj nuevo
 del aura se apunta ahí, o el reset lo deja vivo. La capa 12i lo comprueba.
 
+## El banco cobra al meter y al sacar
+
+Lo pidió el dueño (21 oct): «la peña sigue abusando». Guardar cuesta un 10 %,
+sacar un 30 % y pagar con lo guardado lo mismo que sacar, y todo va al bote.
+Las cifras viven en `CAJA` (`src/utils/economia.js`); `impuestoPago` sale de
+`comision` para que pagar desde el banco no sea la salida barata. `!saldo`,
+`!aura @alguien` y `!caso` enseñan lo que hay en el banco, `!caso` en su línea
+aunque esté a cero. La capa 134 no deja bajar las comisiones.
+
 ## Frases de porcentaje y de !rizz: 25 · 10 · 10
 
 Lo fijó el dueño: 25 frases en el tramo de la paliza y 10 en cada uno de los

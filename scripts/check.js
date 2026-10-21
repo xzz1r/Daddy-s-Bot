@@ -7144,15 +7144,19 @@ const G='120@g.us', V='34622222222@s.whatsapp.net';
   const d=await a.sacarDeCaja(G,V,500);
   const despuesSacar=await total();
   console.log(JSON.stringify({
-    t0, trasGuardar, guardado:e.guardado, cap:CAJA.capacidad,
+    t0, trasGuardar, guardado:e.guardado, entra:e.entra, comisionGuardar:e.comision, cap:CAJA.capacidad,
     segundo:e2.ok, motivo2:e2.motivo, cajaTrasRobo,
     antesSacar, despuesSacar, comision:d.comision,
   }));
 })();
 `);
       const r = JSON.parse(execSync(`node ${guion}`, { encoding: 'utf8', timeout: 60000 }).trim().split('\n').pop());
-      exige(r.trasGuardar === r.t0,
-        `guardar cambio el total: ${r.t0} -> ${r.trasGuardar}. La caja esta creando o destruyendo aura`);
+      // GUARDAR CUESTA desde el 21 oct: el total baja justo la comision, que el
+      // comando manda al bote. Ni un punto mas ni uno menos.
+      exige(r.comisionGuardar > 0 && r.entra === r.guardado - r.comisionGuardar,
+        `guardar ${r.guardado} ha metido ${r.entra} con una comision de ${r.comisionGuardar}: o no cobra o no cuadra`);
+      exige(r.trasGuardar === r.t0 - r.comisionGuardar,
+        `guardar cambio el total: ${r.t0} -> ${r.trasGuardar} con ${r.comisionGuardar} de comision. La caja esta creando o destruyendo aura`);
       // EL TOPE SE MIDE CONTRA ALGO DE FUERA, no contra si mismo. Escribi
       // `guardado <= capacidad` y la guarda pasaba en verde con la capacidad
       // puesta en cien millones: comparaba la constante consigo misma. El limite
@@ -7161,12 +7165,12 @@ const G='120@g.us', V='34622222222@s.whatsapp.net';
       const TOPE_CAJA = 20 * ARRANQUE_AURA;
       exige(r.cap > 0 && r.cap <= TOPE_CAJA,
         `la caja admite ${r.cap} (el limite razonable son ${TOPE_CAJA}, veinte veces el arranque): con una caja asi nadie vuelve a ser robable`);
-      exige(r.guardado <= r.cap,
-        `se han guardado ${r.guardado} con una capacidad de ${r.cap}: el tope no se esta aplicando`);
+      exige(r.entra <= r.cap && r.entra >= r.cap - 1,
+        `han entrado ${r.entra} con una capacidad de ${r.cap} y saldo de sobra: el tope no se esta aplicando, o se queda corto`);
       exige(r.segundo === false && r.motivo2 === 'enfriamiento',
         'se puede guardar dos veces seguidas: esconderse a la carrera vuelve a ser gratis y el robo pasa a ser un juego de reflejos');
-      exige(r.cajaTrasRobo === r.guardado,
-        `el robo se ha llevado lo guardado (quedaban ${r.cajaTrasRobo} de ${r.guardado}): la caja no sirve para nada`);
+      exige(r.cajaTrasRobo === r.entra,
+        `el robo se ha llevado lo guardado (quedaban ${r.cajaTrasRobo} de ${r.entra}): la caja no sirve para nada`);
       exige(r.despuesSacar === r.antesSacar - r.comision,
         `sacar descuadra: ${r.antesSacar} - ${r.comision} deberia dar ${r.antesSacar - r.comision} y da ${r.despuesSacar}`);
       exige(r.comision > 0,
@@ -20075,17 +20079,18 @@ const manda = async (quien, tipo, opciones) => {
       const saldoL = await A.getAura(G, L), saldoT = await A.getAura(G, T);
       WA.rememberMapping(L, T);
       const dentro = await A.verCaja(G, T);
-      exige(dentro === 500,
-        `guardó 300 con el @lid y 200 con el telefono y la caja dice ${dentro}: ${dentro < 500 ? 'se evapora' : 'se crea'} aura al juntarla`);
-      exige(await A.verCaja(G, L) === 500, 'leida por el @lid, la caja no da lo mismo que por el telefono');
+      const metido = r1.entra + r2.entra;
+      exige(dentro === metido,
+        `metió ${r1.entra} con el @lid y ${r2.entra} con el telefono y la caja dice ${dentro}: ${dentro < metido ? 'se evapora' : 'se crea'} aura al juntarla`);
+      exige(await A.verCaja(G, L) === metido, 'leida por el @lid, la caja no da lo mismo que por el telefono');
       exige(await A.esperaCaja(G, L) > 0 && await A.esperaCaja(G, T) > 0,
         'tras juntar las dos formas la caja se puede volver a cerrar sin esperar');
       const fila = (await A.getAuraRanking(G)).filter((r) => WA.sameUser(r.jid, T));
       const saldo = await A.getAura(G, T);
       exige(saldo === saldoL + saldoT - A.STARTING_AURA,
         `el saldo suelto al juntar da ${saldo} y tenía que dar ${saldoL + saldoT - A.STARTING_AURA}`);
-      exige(fila.length === 1 && fila[0].aura === saldo + 500,
-        `en el top cuenta ${JSON.stringify(fila)} y tenía que ser una fila con suelto + caja = ${saldo + 500}`);
+      exige(fila.length === 1 && fila[0].aura === saldo + metido,
+        `en el top cuenta ${JSON.stringify(fila)} y tenía que ser una fila con suelto + caja = ${saldo + metido}`);
     }
 
     // Y la espera entre cierres, cuando solo cerró con una forma: la de la
@@ -22549,6 +22554,101 @@ const conTope = (p, ms) => Promise.race([p, new Promise((r) => setTimeout(() => 
       'medir.js compara con topes copiados a mano: se quedan viejos el día que cambian en sticker.js');
     exige(!medir || spawnSync(process.execPath, ['--check', rutaMedir]).status === 0, 'scripts/medir.js no compila');
     if (fallos === antes133) console.log(verde('   ✓ la foto sale en la mitad de tiempo sin perder calidad, y npm run medir compara con los topes de verdad'));
+  }
+  // ── 134. EL BANCO COBRA AL METER Y AL SACAR, Y SE VE EN EL SALDO Y EN EL CASO ─
+  //
+  // El dueño, 21 oct: «sube impuestos para meter y sacar del banco, la peña
+  // sigue abusando de esto», y que el caso y el saldo enseñen lo del banco.
+  // Meter era gratis; ahora cuesta un 10 %, sacar pasa del 22 % al 30 % y pagar
+  // con lo guardado paga lo mismo que sacar. Se prueba por los comandos de
+  // verdad y en una copia aparte: las cuentas al punto, las comisiones en el
+  // bote, y el banco a la vista en !saldo, !aura @alguien y !caso.
+  {
+    console.log('\n134. EL BANCO COBRA AL METER Y AL SACAR, Y SE VE EN EL SALDO Y EN EL CASO');
+    const antes134 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { fmt: fmt134 } = require(path.join(R, 'src/utils/helpers'));
+    const dir134 = fs.mkdtempSync(path.join(os.tmpdir(), 'capa134-'));
+    try {
+      const guion = path.join(dir134, 'banco.js');
+      fs.writeFileSync(guion, `
+const fs=require('fs'),os=require('os'),path=require('path');
+const ROOT=fs.mkdtempSync(path.join(os.tmpdir(),'banco134-'));
+fs.cpSync(${json(path.join(R, 'src'))},path.join(ROOT,'src'),{recursive:true});
+fs.mkdirSync(path.join(ROOT,'data'));
+try{fs.symlinkSync(${json(path.join(R, 'node_modules'))},path.join(ROOT,'node_modules'),'dir');}catch{}
+const a=require(path.join(ROOT,'src/utils/auraStore'));
+const rs=require(path.join(ROOT,'src/utils/roboStore'));
+const {CAJA,comisionCaja}=require(path.join(ROOT,'src/utils/economia'));
+const {cmdVault}=require(path.join(ROOT,'src/commands/vault'));
+const {cmdAura}=require(path.join(ROOT,'src/commands/aura'));
+const {cmdCaso}=require(path.join(ROOT,'src/commands/caso'));
+const G='120363000000134@g.us',BOT='34600000134@s.whatsapp.net',U='34600001341@s.whatsapp.net',O='34600001342@s.whatsapp.net';
+const meta={id:G,subject:'prueba',participants:[{id:BOT,admin:'admin'},{id:U},{id:O}]};
+const dicho=[];
+const sock={user:{id:BOT},sendMessage:async(j,c)=>{dicho.push(c.text||'');return {key:{id:'x'}};}};
+let n=0;
+const msg=(texto,de,menciones)=>({key:{remoteJid:G,participant:de,id:'M134'+(n++),fromMe:false},pushName:'x',
+  message:{extendedTextMessage:{text:texto,contextInfo:{mentionedJid:menciones||[]}}}});
+const ultimo=()=>dicho[dicho.length-1]||'';
+const foto=async()=>[await a.getAura(G,U),await a.verCaja(G,U),await rs.verBote(G)];
+(async()=>{
+  await a.addAura(G,U,2000-(await a.getAura(G,U)));
+  const [s0,c0,b0]=await foto();
+  await cmdVault(sock,msg('!lock 500',U),['lock','500'],meta);
+  const tLock=ultimo();
+  const [s1,c1,b1]=await foto();
+  await cmdVault(sock,msg('!unlock 200',U),['unlock','200'],meta);
+  const tUnlock=ultimo();
+  const [s2,c2,b2]=await foto();
+  await cmdVault(sock,msg('!banco',U),[],meta); const tVer=ultimo();
+  await cmdAura(sock,msg('!saldo',U),['saldo'],meta); const tSaldo=ultimo();
+  await a.addAura(G,O,300-(await a.getAura(G,O)));
+  await cmdAura(sock,msg('!aura',O,[U]),[],meta); const tOtro=ultimo();
+  await cmdCaso(sock,msg('!caso',O,[U]),[],meta); const tCaso=ultimo();
+  await cmdCaso(sock,msg('!caso',U,[O]),[],meta); const tCasoVacio=ultimo();
+  console.log(JSON.stringify({s0,c0,b0,s1,c1,b1,s2,c2,b2,tLock,tUnlock,tVer,tSaldo,tOtro,tCaso,tCasoVacio,
+    tasaGuardar:CAJA.comisionGuardar,tasaSacar:CAJA.comision,tasaPago:CAJA.impuestoPago,
+    feeG:comisionCaja(500,CAJA.comisionGuardar),feeS:comisionCaja(200,CAJA.comision)}));
+  try{fs.rmSync(ROOT,{recursive:true,force:true});}catch{}
+  process.exit(0);
+})().catch((e)=>{console.log(JSON.stringify({error:String((e&&e.stack)||e)}));try{fs.rmSync(ROOT,{recursive:true,force:true});}catch{}process.exit(0);});
+`);
+      const r = JSON.parse(execSync(`node ${guion}`, { encoding: 'utf8', timeout: 60000 }).trim().split('\n').pop());
+      exige(!r.error, `la prueba del banco revento: ${String(r.error || '').split('\n')[0]}`);
+      if (!r.error) {
+        const pct = (x) => Math.round(x * 100);
+        // Las cifras que pidio el dueño, y que no se cuelen de vuelta.
+        exige(r.tasaGuardar >= 0.10, `guardar cuesta un ${pct(r.tasaGuardar)} %: el dueño lo subió del 0 al 10 % para que esconderse no saliera gratis`);
+        exige(r.tasaSacar >= 0.30, `sacar cuesta un ${pct(r.tasaSacar)} %: el dueño lo subió al 30 %`);
+        exige(r.tasaPago === r.tasaSacar,
+          `pagar con lo guardado cuesta un ${pct(r.tasaPago)} % y sacar un ${pct(r.tasaSacar)} %: la mas barata es la puerta por la que se saca todo`);
+        // !lock 500: salen 500 del saldo, entran 500 menos la comision, y la comision al bote.
+        exige(r.feeG > 0 && r.s0 - r.s1 === 500 && r.c1 - r.c0 === 500 - r.feeG && r.b1 - r.b0 === r.feeG,
+          `guardar 500 no cuadra: saldo −${r.s0 - r.s1}, banco +${r.c1 - r.c0}, bote +${r.b1 - r.b0} (comision ${r.feeG})`);
+        exige(/entran/.test(r.tLock) && r.tLock.includes(`*${fmt134(r.feeG)}*`) && r.tLock.includes(`${pct(r.tasaGuardar)} %`),
+          `el aviso de guardar no dice cuanto entra ni cuanto se queda la cerradura: «${r.tLock.slice(0, 120)}»`);
+        // !unlock 200: salen 200 del banco, llegan 200 menos la comision, y la comision al bote.
+        exige(r.c1 - r.c2 === 200 && r.s2 - r.s1 === 200 - r.feeS && r.b2 - r.b1 === r.feeS,
+          `sacar 200 no cuadra: banco −${r.c1 - r.c2}, saldo +${r.s2 - r.s1}, bote +${r.b2 - r.b1} (comision ${r.feeS})`);
+        exige(r.tUnlock.includes(`*${fmt134(r.feeS)}*`) && r.tUnlock.includes(`${pct(r.tasaSacar)} %`),
+          `el aviso de sacar no dice la comision: «${r.tUnlock.slice(0, 120)}»`);
+        exige(r.tVer.includes(`${pct(r.tasaGuardar)} %`) && r.tVer.includes(`${pct(r.tasaSacar)} %`),
+          `*!banco* no dice lo que cuesta meter y sacar: «${r.tVer.slice(0, 160)}»`);
+        // Y el banco a la vista donde se mira el dinero.
+        exige(r.tSaldo.includes(`*${fmt134(r.s2)}*`) && r.tSaldo.includes(`*${fmt134(r.c2)}* en el banco`),
+          `*!saldo* no enseña lo del banco: «${r.tSaldo}»`);
+        exige(r.tOtro.includes(`*${fmt134(r.c2)}* en el banco`),
+          `*!aura @alguien* no enseña lo que tiene en el banco: «${r.tOtro}»`);
+        exige(r.tCaso.includes(`\nBanco: *${fmt134(r.c2)}*`) && /\nAura: \*/.test(r.tCaso),
+          `*!caso* no enseña el banco en su linea: «${r.tCaso.slice(0, 160)}»`);
+        exige(r.tCasoVacio.includes('\nBanco: *0*'),
+          `*!caso* de alguien sin nada guardado se calla el banco, y a cero tambien es un dato: «${r.tCasoVacio.slice(0, 160)}»`);
+      }
+    } catch (e) {
+      exige(false, `no pude probar el banco: ${String(e.message).split('\n')[0]}`);
+    } finally { fs.rmSync(dir134, { recursive: true, force: true }); }
+    if (fallos === antes134) console.log(verde('   ✓ guardar cuesta, sacar cuesta más, todo al bote y al punto, y el banco sale en !saldo, !aura @alguien y !caso'));
   }
 
 
