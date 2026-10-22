@@ -88,9 +88,8 @@ async function cmdScan(sock, msg, groupMeta) {
   // *!scan* Y *!antiempresa scan* TIENEN QUE VER LO MISMO.
   //
   // Aqui solo se consultaba el perfil, y solo de los que tienen telefono. El
-  // otro acepta ademas el hecho YA OBSERVADO —que WhatsApp le adjuntara un
-  // nombre verificado de negocio a un mensaje suyo— y mira tambien a los que
-  // llegan solo como @lid.
+  // otro acepta ademas el hecho YA COMPROBADO —su perfil de empresa, mirado
+  // este mes— y mira tambien a los que llegan solo como @lid.
   //
   // Resultado: mismo grupo, mismo minuto, dos listas distintas. Y como el purge
   // expulsa la lista del otro, el admin que corria *!scan* veia un numero y la
@@ -100,9 +99,12 @@ async function cmdScan(sock, msg, groupMeta) {
   // La prueba observada va primero porque es gratis: esta en disco y no gasta
   // una consulta de red.
   const pasadaBiz = async () => {
+    // Solo una comprobación de perfil de este mes. La ficha vieja por el
+    // nombre verificado ya no cuenta: lo lleva también quien usa la app
+    // Business con «No es una empresa» (ver businessCheck.js).
     const porFacts = async (id, phone) => {
       const f = await getMemberFacts([id, phone].filter(Boolean)).catch(() => null);
-      return f?.biz ? ['nombre verificado de negocio'] : null;
+      return f?.empresa ? f.empresa.campos : null;
     };
     for (let i = 0; i < phoneJids.length; i += BIZ_CONC) {
       const chunk = phoneJids.slice(i, i + BIZ_CONC);
@@ -156,7 +158,7 @@ async function cmdScan(sock, msg, groupMeta) {
   if (bizCount > 0) {
     const bizLines = [...bizMap.entries()]
       .map(([j, fields]) => `• @${(phoneToId.get(j) || j).split('@')[0]} — ${fields.join(', ')}`);
-    text += `*Cuentas Business (${bizCount}):*\n${bizLines.join('\n')}\n\n`;
+    text += `*Cuentas de empresa (${bizCount}):*\n${bizLines.join('\n')}\n\n`;
   }
 
   // "Sin foto" va como cifra, no como lista: expulsar por esto es cosa de

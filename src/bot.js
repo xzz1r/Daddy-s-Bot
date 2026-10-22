@@ -139,7 +139,7 @@ const STUB_SOLICITUD = new Set([144, 172]);
 const autoAcceptPendiente = new Map();
 const { handleMessage, invalidateGroupMeta, getGroupMeta, metaParaBaileys, sembrarGrupos, reabrirPendientes } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, isAutoAceptarEnabled, flushState, vistoActivo } = require('./utils/state');
-const { isOwner, sameUser, isBotAdmin, phoneMatch, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto } = require('./utils/wa');
+const { isOwner, sameUser, isBotAdmin, phoneMatch, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto, resolverLid } = require('./utils/wa');
 const { anotarDeuda, cobrarDeuda, flushDeuda } = require('./utils/adminDeuda');
 // anotarAlta apunta el motivo de cada alta; motivoDelAlta lo consulta cuando hay
 // que decidir si un alta fue a dedo (la unica que se sanciona).
@@ -1400,9 +1400,12 @@ async function connectToWhatsApp() {
       // era publicar en el grupo el nombre real de quien no lo ha dado nunca.
       //
       // Tampoco verifiedName: ese rotulo lleva el nombre fiscal de la cuenta.
+      //
+      // Y de verifiedName TAMPOCO se saca ya que sea empresa (22 oct). Lo lleva
+      // toda cuenta de la app Business, tambien quien la usa de WhatsApp normal
+      // con la categoria «No es una empresa», y fichar por eso echaba a gente
+      // que no lo era. Lo que decide es su perfil (businessCheck.js).
       const nombre = c?.notify;
-      // verifiedName solo lo lleva una cuenta Business: prueba directa.
-      const biz = Boolean(c?.verifiedName) || undefined;
       // imgUrl: null o 'removed' = sin foto; 'changed' o una url = con foto.
       const photo = c?.imgUrl === null || c?.imgUrl === 'removed' ? 'no'
                   : (typeof c?.imgUrl === 'string' && c.imgUrl) ? 'si' : undefined;
@@ -1414,10 +1417,10 @@ async function connectToWhatsApp() {
       // recordName ya guarda bajo todas las formas que se le pasen, asi que va
       // una sola llamada con las tres.
       if (nombre) recordName([c.id, c.lid, c.phoneNumber], nombre).catch(() => {});
-      if (!biz && !photo) continue;
+      if (!photo) continue;
       n++;
       for (const jid of [c.id, c.lid, c.phoneNumber]) {
-        if (jid) recordFacts(jid, { biz, photo }).catch(() => {});
+        if (jid) recordFacts(jid, { photo }).catch(() => {});
       }
     }
     return n;
@@ -1445,7 +1448,7 @@ async function connectToWhatsApp() {
   sock.ev.on('messaging-history.set', ({ contacts, lidPnMappings }) => {
     const n = guardarContactos(contacts);
     const k = guardarMapeos(lidPnMappings);
-    if (n) logger.info(`cuentas: ${n} fichas (business/foto) aprendidas de la sincronizacion de WhatsApp`);
+    if (n) logger.info(`cuentas: ${n} fichas de foto aprendidas de la sincronizacion de WhatsApp`);
     if (k) logger.info(`jid: ${k} correspondencias LID-teléfono aprendidas de WhatsApp`);
     // Se dice en voz alta porque es lo que decide si el top en gris sale con
     // nombres o con huecos, y no hay forma de verlo desde el grupo sin esperar
@@ -1462,7 +1465,7 @@ async function connectToWhatsApp() {
 //
 // Dos reintentos, a los 5 y a los 30 segundos. No es un bucle: si a los treinta
 // sigue sin saberse, se abandona y lo recoge la guarda del primer mensaje, que
-// tiene mas informacion (el propio mensaje puede traer el nombre verificado).
+// tiene mas informacion (el mensaje trae su telefono aunque el grupo lo oculte).
 //
 // Se ficha ANTES de echar por lo mismo que en el join: si el kick falla, la
 // prueba tiene que sobrevivir.
@@ -1483,10 +1486,13 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
     try {
       const ev = await businessEvidence(sock, phoneJid);
       if (ev.estado === 'desconocido') return reintentarBusiness(sock, groupJid, kickId, phoneJid, intento + 1);
-      if (ev.estado !== 'biz') return;
+      if (ev.estado !== 'biz') {
+        // Lo dice ahora su perfil: una ficha de antes, si la hubiera, se va.
+        for (const forma of new Set([kickId, phoneJid])) await recordFacts(forma, { empresa: false }).catch(() => {});
+        return;
+      }
 
-      await recordFacts(kickId, { biz: true }).catch(() => {});
-      if (phoneJid && phoneJid !== kickId) await recordFacts(phoneJid, { biz: true }).catch(() => {});
+      for (const forma of new Set([kickId, phoneJid])) await recordFacts(forma, { empresa: ev.fields }).catch(() => {});
 
       const meta = await withTimeout(sock.groupMetadata(groupJid), TOPE_RED).catch(() => null);
       if (!await aplicarAUno(sock, groupJid, kickId, 'remove', meta)) {
@@ -1495,7 +1501,7 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
 
       await banAccount(allForms(kickId, meta), `cuenta business al entrar en ${groupJid} (${ev.fields.join(', ')})`, 'auto').catch(() => {});
       sock.sendMessage(groupJid, {
-        text: `*Anti-empresa:* @${kickId.split('@')[0]} es cuenta de WhatsApp Business. Expulsada y vetada.`,
+        text: `*Anti-empresa:* @${kickId.split('@')[0]} es una cuenta de empresa (${ev.fields.join(', ')}). Expulsada y vetada.`,
         mentions: [kickId],
       }).catch(() => {});
     } catch (e) {
@@ -1612,28 +1618,35 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
           // entra igual en la lista: la prueba observada (getMemberFacts) NO
           // necesita telefono, y solo la consulta de perfil lo pide.
           if (!phoneJid) {
-            logger.info(`Anti-empresa: ${obj.id} sin telefono resoluble; se comprueba solo con lo ya observado`);
+            logger.info(`Anti-empresa: ${obj.id} sin telefono en el evento; se busca en la sesion`);
           }
           candidates.push({ kickId: obj.id, phoneJid, participante: obj });
         }
 
         await Promise.all(candidates.map(async ({ kickId, phoneJid, participante }) => {
-          // LA ENTRADA MIRA LO MISMO QUE EL SCAN, y antes no.
-          //
-          // Aqui solo se consultaba el perfil. El scan, en cambio, acepta DOS
-          // pruebas: el perfil relleno y el hecho ya observado —que WhatsApp le
-          // adjuntara un nombre verificado de negocio a un mensaje suyo, visto
-          // en este grupo o en cualquier otro—. O sea que una cuenta que el bot
-          // YA tenia fichada como Business entraba por la puerta sin que nadie
-          // la mirara, y solo caia despues, si le daba por escribir.
-          //
-          // La prueba observada va primero ademas porque es gratis: esta en
-          // disco y no gasta una consulta de red.
+          // LA ENTRADA MIRA LO MISMO QUE EL SCAN Y QUE LA GUARDA DE MENSAJES:
+          // el perfil de hoy y, si no se puede preguntar, la ficha de este mes.
           const facts = await getMemberFacts([
             kickId, phoneJid, participante?.id, participante?.lid, participante?.phoneNumber,
           ]).catch(() => null);
-          let biz = !!facts?.biz;
-          let evidencia = biz ? ['ya fichada como cuenta de negocio'] : [];
+          // EL PERFIL DE HOY MANDA SOBRE LA FICHA. La ficha (una comprobacion
+          // de este mes; la vieja por el nombre verificado ya no cuenta) solo
+          // decide cuando no se puede preguntar: sin telefono, o si la
+          // consulta no contesta. Con telefono se mira el perfil, que puede
+          // haber pasado a «No es una empresa» desde que se apunto.
+          let biz = false;
+          let evidencia = [];
+          let deFicha = false;
+          const porFicha = () => {
+            if (!facts?.empresa) return false;
+            biz = true;
+            deFicha = true;
+            evidencia = facts.empresa.campos;
+            return true;
+          };
+          // Sin telefono en el evento ni en el mapa, se le pregunta a la sesion.
+          if (!phoneJid) phoneJid = await resolverLid(sock, kickId).catch(() => null);
+          if (!phoneJid) porFicha();
 
           // businessEvidence, NO isBusiness. Y la diferencia es todo el asunto:
           // isBusiness() aplana los tres estados a un si/no, asi que un IQ que
@@ -1649,7 +1662,10 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
               ev = { estado: 'desconocido', fields: [] };
             }
             if (ev.estado === 'biz') { biz = true; evidencia = ev.fields; }
-            else if (ev.estado === 'desconocido') {
+            else if (ev.estado === 'personal') {
+              // Lo dice ahora su perfil: una ficha de antes, si la hubiera, se va.
+              for (const forma of new Set([kickId, phoneJid])) await recordFacts(forma, { empresa: false }).catch(() => {});
+            } else if (ev.estado === 'desconocido' && !porFicha()) {
               // NO SE DEJA PASAR LO QUE NO SE SABE. Se reintenta a los 5 y a
               // los 30 segundos: en un join recien hecho la consulta de perfil
               // falla mucho, y treinta segundos despues suele ir. Si sigue sin
@@ -1664,8 +1680,12 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
           // WhatsApp lo rechaza— la prueba tiene que quedar guardada igual: si
           // no, el mensaje siguiente de esa cuenta no se entera de nada y hay
           // que volver a descubrirlo desde cero.
-          await recordFacts(kickId, { biz: true }).catch(() => {});
-          if (phoneJid && phoneJid !== kickId) await recordFacts(phoneJid, { biz: true }).catch(() => {});
+          //
+          // Solo lo que se acaba de comprobar: echar por la ficha no la renueva,
+          // o no caducaria nunca sin que nadie volviera a mirar el perfil.
+          if (!deFicha) {
+            for (const forma of new Set([kickId, phoneJid].filter(Boolean))) await recordFacts(forma, { empresa: evidencia }).catch(() => {});
+          }
 
           try {
             // WhatsApp responde por participante. Sin mirarlo, el bot anunciaba
@@ -1680,7 +1700,7 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
             await banAccount(allForms(kickId, meta), `cuenta business al entrar en ${groupJid} (${evidencia.join(', ') || 'perfil'})`, 'auto').catch(() => {});
             const num = kickId.split('@')[0];
             sock.sendMessage(groupJid, {
-              text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada y vetada.`,
+              text: `*Anti-empresa:* @${num} es una cuenta de empresa (${evidencia.join(', ')}). Expulsada y vetada.`,
               mentions: [kickId],
             }).catch((e) => logger.warn(`Anti-empresa: send fallo en ${groupJid}: ${e.message}`));
           } catch (err) {

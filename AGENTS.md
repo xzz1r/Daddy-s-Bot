@@ -101,6 +101,17 @@ el orden (cerrar antes de avisar, echar antes de anunciar) viven en
 `src/utils/spamTexto.js` y en `castigarSpamTexto`. Las frases están en
 `src/data/spamPhrases.js`. La capa 125 lo vigila. Ver `MOTOR.md`.
 
+## El anti-empresa echa empresas, no la app
+
+Lo pidió el dueño (22 oct): «hay veces que también expulsa cuentas que no lo
+son». Usar la app WhatsApp Business no es ser una empresa: mucha gente la usa
+de WhatsApp normal con la categoría «No es una empresa». Decide el perfil
+(`src/utils/businessCheck.js`): categoría de verdad, dirección, horario, y
+correo o web si no ha dicho que no es una empresa. Ni el nombre verificado de
+sus mensajes ni la descripción echan a nadie. Lo comprobado vale 30 días, y
+un veto viejo del anti-empresa se revisa al volver a entrar. Capas 9 y 137.
+Ver `MOTOR.md`.
+
 ## La peña activa se halaga, sin veneno
 
 Lo pidió el dueño (18 oct): a quien escribe, el bot lo halaga por su actividad,

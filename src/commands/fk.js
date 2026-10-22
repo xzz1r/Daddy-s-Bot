@@ -3,16 +3,17 @@ const axios = require('axios');
 require('../utils/redSegura');
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const {
-  getSender, isOwner, isMainOwner, isGroupAdmin, isBotJid, canonicalJid, bareJid, sameUser, fetchAbout, fetchPfpUrl,
+  getSender, isOwner, isMainOwner, isGroupAdmin, isBotJid, canonicalJid, bareJid, sameUser, fetchAbout, fetchPfpUrl, resolverLid,
 } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { streamToBuffer, MAX_MEDIA_BYTES } = require('../utils/helpers');
 const { resolveTarget, extractNumber } = require('./pfp');
 const { computeHash } = require('../utils/phash');
 const { recordAndMatch, matchOnly, markFake } = require('../utils/pfpStore');
-const { banAccount, unbanAccount, isBanned, banCount, listBanned } = require('../utils/banlist');
+const { banAccount, unbanAccount, isBanned, vetoDe, banCount, listBanned } = require('../utils/banlist');
 const { businessEvidence } = require('../utils/businessCheck');
 const { aplicarAUno } = require('../utils/participantes');
+const { recordFacts } = require('../utils/nickStore');
 const { isAntiFakeEnabled, toggleAntiFake } = require('../utils/state');
 const { faceSearch: lensoSearch, hasKey: lensoEnabled } = require('../utils/lenso');
 const { faceSearch: facecheckSearch, hasKey: facecheckEnabled } = require('../utils/facecheck');
@@ -404,9 +405,9 @@ async function cmdFk(sock, msg, args, groupMeta) {
   // suma, que es la diferencia entre informar y acusar.
   if (biz?.estado === 'biz') {
     score += 2;
-    lines.push(`*Cuenta WhatsApp Business* (${biz.fields.join(', ')}).`);
+    lines.push(`*Cuenta de empresa* (${biz.fields.join(', ')}).`);
   } else if (biz?.estado === 'desconocido') {
-    lines.push(`Business: sin comprobar (no responde o el número está oculto).`);
+    lines.push(`Empresa: sin comprobar (no responde o el número está oculto).`);
   }
 
   // Número oculto (solo LID, sin mapeo a teléfono conocido).
@@ -686,6 +687,32 @@ async function cmdAntiFake(sock, msg, args, groupMeta) {
 //
 // Devuelve el conjunto de los que echo, para que la parte de la huella no
 // gaste una consulta de foto en alguien que ya esta fuera.
+// ─── UN VETO DEL ANTI-EMPRESA SE VUELVE A MIRAR (22 oct) ────────────────────
+//
+// Hasta hoy el anti-empresa echaba y vetaba a toda cuenta de la app WhatsApp
+// Business, también a quien la usa de WhatsApp normal con la categoría «No es
+// una empresa». Esos vetos siguen en la lista negra, que vale para todos los
+// grupos, y sin esto esa gente no podía volver a entrar nunca.
+//
+// Así que un veto puesto por el anti-empresa no se cumple a ciegas: se mira el
+// perfil otra vez con la regla de ahora. Si no es una empresa, se levanta y se
+// queda dentro. Si lo es, o no se puede saber, el veto sigue como estaba. Los
+// vetos puestos a mano, o por otra guarda, no se tocan.
+const esVetoDeEmpresa = (v) => v?.by === 'auto' && /^cuenta business/i.test(String(v.reason || ''));
+
+async function vetoDeEmpresaSigue(sock, obj, veto, forms) {
+  const candidatos = [obj.phoneNumber, ...forms, ...(veto.aka || [])].filter(Boolean).map(bareJid);
+  let tel = candidatos.find((f) => f.endsWith('@s.whatsapp.net'));
+  if (!tel) tel = await resolverLid(sock, obj.id).catch(() => null);
+  if (!tel) return true;
+  const ev = await businessEvidence(sock, tel).catch(() => ({ estado: 'desconocido' }));
+  if (ev.estado !== 'personal') return true;
+  await unbanAccount([...forms, ...(veto.aka || []), tel]).catch(() => {});
+  for (const f of new Set([...forms, tel])) await recordFacts(f, { empresa: false }).catch(() => {});
+  logger.info(`Anti-empresa: levanto el veto de ${tel} (${veto.reason}): su perfil no es de empresa`);
+  return false;
+}
+
 async function vetadosAlEntrar(sock, groupJid, joiners, groupMeta) {
   const echados = new Set();
   for (const p of joiners) {
@@ -702,6 +729,8 @@ async function vetadosAlEntrar(sock, groupJid, joiners, groupMeta) {
 
     const bannedAs = await isBanned(forms).catch(() => null);
     if (!bannedAs) continue;
+    const veto = await vetoDe(forms).catch(() => null);
+    if (esVetoDeEmpresa(veto) && !await vetoDeEmpresaSigue(sock, obj, veto, forms).catch(() => true)) continue;
     echados.add(obj.id);
     // ─── Y SE VA SIN QUE NADIE SE ENTERE ──────────────────────────────────
     //

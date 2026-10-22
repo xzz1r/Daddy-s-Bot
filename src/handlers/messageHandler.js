@@ -28,7 +28,7 @@ const { isMuted } = require('../commands/group');
 const { maybeIndex } = require('../utils/pfpIndexer');
 const acciones = require('../commands/acciones');
 const { construirListas, cargarComando } = require('./comandos');
-const { isOwner, isMainOwner, isGroupAdmin, isAdmin, isBotAdmin, isBotJid, esBotCreador, extractText, getSender, getTarget, canonicalJid, sameUser, indexGroupMeta } = require('../utils/wa');
+const { isOwner, isMainOwner, isGroupAdmin, isAdmin, isBotAdmin, isBotJid, esBotCreador, extractText, getSender, getTarget, canonicalJid, sameUser, indexGroupMeta, resolverLid } = require('../utils/wa');
 const { sinApelativo } = require('../utils/vocativo');
 const logger = require('../utils/logger');
 const bitacoraEstados = require('../utils/bitacoraEstados');
@@ -526,12 +526,10 @@ function claveDePersona(sender, meta) {
   return canon || sender;
 }
 
-// Expulsa a una cuenta Business detectada por su propio mensaje.
-//
-// Se apoya en `verifiedBizName`, que WhatsApp adjunta al mensaje de una cuenta
-// Business verificada: es prueba directa, sin consultar el perfil, y llega
-// igual en grupos LID (donde getBusinessProfile no sirve porque no acepta
-// LIDs). Cubre justo el hueco de la comprobación de entrada.
+// Expulsa a una cuenta de empresa detectada al escribir: su perfil de empresa
+// tiene datos de negocio (businessCheck.js), comprobados ahora o hace menos de
+// un mes. Cubre a quien ya estaba dentro antes de encender el modo o a quien
+// no se pudo comprobar al entrar.
 //
 // Mismas garantías que el resto de la moderación: solo si el modo está
 // encendido, nunca al owner tier ni a un admin ni al bot, y hace falta ser
@@ -565,7 +563,11 @@ async function expulsarBusinessDetectado(sock, jid, sender, msg, motivo = 'cuent
       .catch((e) => logger.unaVez('vetar cuenta business', e));
     if (puedeAnunciar(jid, sender)) {
       sock.sendMessage(jid, {
-        text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada y vetada.`,
+        // CON EL PORQUÉ. «Es cuenta de WhatsApp Business» a secas lo decía
+        // también de quien usa la app con «No es una empresa», y nadie en el
+        // grupo podía ver qué la delataba. La categoría la ve cualquiera en su
+        // perfil, así que decirla no destapa nada.
+        text: `*Anti-empresa:* @${num} es una cuenta de empresa (${motivo}). Expulsada y vetada.`,
         mentions: [sender],
       }).catch(() => {});
     }
@@ -2101,70 +2103,62 @@ async function handleMessage(sock, msg, opciones = {}) {
         })
         .catch((e) => logger.warn(`cartel del dia en ${jid}: ${e?.message || e}`));
     });
-    // verifiedBizName solo viaja en mensajes de cuentas Business: se anota como
-    // prueba directa para !antiempresa, sin gastar una consulta de perfil.
+    // ─── ANTI-EMPRESA: SE ECHA POR EL PERFIL, NO POR EL NOMBRE VERIFICADO ──
     //
-    // Del owner tier NO se anota: esa ficha es justo la que alimenta la purga de
-    // !antiempresa, y con el gate de arriba (isMainOwner, para el ranking) los
-    // co-owners si quedaban fichados. El owner esta por encima tambien de esto.
-    // EL BADGE NO PUEDE SER LA UNICA PUERTA, y esto era el agujero de fondo.
+    // Hasta el 22 oct, el nombre verificado de negocio que WhatsApp pone en el
+    // mensaje (msg.verifiedBizName) era prueba directa: se fichaba a la cuenta
+    // en cualquier grupo, con el modo encendido o no, y se la echaba y vetaba.
+    // Pero ese nombre lo lleva TODA cuenta de la app WhatsApp Business, y
+    // mucha gente la usa como su WhatsApp de diario con la categoría «No es
+    // una empresa». El dueño: «hay veces que también expulsa cuentas que no lo
+    // son».
     //
-    // `verifiedBizName` solo lo lleva una cuenta Business VERIFICADA. El que
-    // usa Business para suplantar a alguien —abrir con la app, dejar la ficha
-    // vacia a proposito y entrar como una persona cualquiera— no lo lleva
-    // nunca. O sea que la guarda estaba encendida contra las marcas y apagada
-    // contra el suplantador, que es a quien se quiere echar.
+    // Ahora el nombre verificado solo dice que hay que mirar, y lo que decide
+    // es el perfil (businessCheck.js): una categoría de verdad, una dirección,
+    // un horario. Sin teléfono no hay consulta, y sin consulta no se echa a
+    // nadie: se espera a otro mensaje.
     //
-    // Ahora hay dos disparadores: el badge (prueba directa, se anota y se echa)
-    // y la FICHA YA GUARDADA. Si a esa cuenta se le vio un nombre de negocio en
-    // cualquier grupo, aqui vale igual aunque este mensaje no traiga nada: la
-    // prueba no caduca porque cambie de sala.
-    if (msg.verifiedBizName && !isOwner(sender, msg.key.fromMe, peekGroupMeta(jid))) {
-      recordFacts(sender, { biz: true }).catch(() => {});
-      // Y ADEMÁS se actúa, no solo se anota.
-      //
-      // El anti-empresa solo miraba las ENTRADAS. Una cuenta Business que ya
-      // estuviera dentro antes de encender el modo, o cuya comprobación de
-      // entrada fallara (timeout, sin teléfono resoluble, el bot recién
-      // arrancado), se quedaba para siempre aunque cada mensaje suyo trajera
-      // la prueba encima. Eso es exactamente lo que se coló.
-      //
-      // `verifiedBizName` es prueba DIRECTA de WhatsApp: viaja en el propio
-      // mensaje, no hace falta ninguna consulta de perfil y funciona igual con
-      // @lid, que es donde la comprobación de entrada era ciega.
-      expulsarBusinessDetectado(sock, jid, sender, msg, 'nombre verificado de negocio')
-        .catch((e) => logger.unaVez('expulsar business', e));
-    } else if (isAntiBusinessEnabled(jid) && !isOwner(sender, msg.key.fromMe, peekGroupMeta(jid))) {
-      // Sin badge: se mira lo ya fichado. Es una lectura de disco, no una
-      // consulta de red, asi que puede correr en cada mensaje sin coste.
-      // Con el modo apagado no se consulta: expulsarBusinessDetectado volvería
-      // a salir en la primera línea y era un getMemberFacts por mensaje muerto.
+    // Del owner tier no se mira nada: está por encima también de esto. Y con
+    // el modo apagado tampoco: ya no se ficha a nadie «por si acaso».
+    if (isAntiBusinessEnabled(jid) && !isOwner(sender, msg.key.fromMe, peekGroupMeta(jid))) {
+      // EL PERFIL DE HOY MANDA SOBRE LA FICHA. La ficha (una comprobación de
+      // este mes) solo decide cuando no se puede preguntar: sin teléfono, o si
+      // la consulta no contesta. Con teléfono se mira el perfil, que puede
+      // haber pasado a «No es una empresa» desde que se apuntó.
       getMemberFacts([sender, canonicalJid(sender)]).then(async (f) => {
-        if (f?.biz) return expulsarBusinessDetectado(sock, jid, sender, msg, 'ya estaba fichada como cuenta de negocio');
+        const porFicha = () => (f?.empresa
+          ? expulsarBusinessDetectado(sock, jid, sender, msg, f.empresa.campos.join(', '))
+          : null);
 
-        // Y SI NO HAY FICHA, SE MIRA EL PERFIL UNA VEZ. Este es el hueco que
-        // quedaba: a quien entro cuando la consulta no respondio —o antes de
-        // encender el modo— nadie lo volvia a mirar nunca. Se quedaba dentro
-        // para siempre salvo que alguien se acordara de correr un scan.
-        //
-        // UNA vez por persona y grupo, no en cada mensaje: consultar el perfil
-        // en cada linea es la forma mas rapida de que WhatsApp te limite el
-        // socket. Y solo si el modo esta encendido, que si no es red gastada
-        // para nada.
-        const tel = canonicalJid(sender);
-        if (!tel || !tel.endsWith('@s.whatsapp.net')) return;
+        // Sin el número en el mapa se le pregunta a la sesión, que lo sabe de
+        // casi todo el que escribe.
+        let tel = canonicalJid(sender);
+        if (!tel || !tel.endsWith('@s.whatsapp.net')) tel = await resolverLid(sock, sender).catch(() => null);
+        if (!tel || !tel.endsWith('@s.whatsapp.net')) return porFicha();
+
+        // UNA consulta por persona y grupo, no una por mensaje: consultar el
+        // perfil en cada línea es la forma más rápida de que WhatsApp te
+        // limite el socket. Ya mirado, decide lo que se apuntó entonces (si
+        // era empresa y el kick falló, se reintenta; el freno de diez minutos
+        // está en expulsarBusinessDetectado).
         const clave = `${jid}|${tel}`;
-        if (perfilMirado.has(clave)) return;
+        if (perfilMirado.has(clave)) return porFicha();
         if (perfilMirado.size >= 5000) perfilMirado.delete(perfilMirado.keys().next().value);
         perfilMirado.add(clave);
 
         const ev = await businessEvidence(sock, tel).catch(() => ({ estado: 'desconocido' }));
+        if (ev.estado === 'desconocido') {
+          // Si no se supo, se deja que otro mensaje lo reintente más adelante.
+          perfilMirado.delete(clave);
+          return porFicha();
+        }
         if (ev.estado !== 'biz') {
-          // Si no se supo, se deja que otro mensaje lo reintente mas adelante.
-          if (ev.estado === 'desconocido') perfilMirado.delete(clave);
+          // Lo dice ahora su perfil: una ficha de antes, si la hubiera, se va.
+          for (const forma of new Set([sender, tel])) await recordFacts(forma, { empresa: false }).catch(() => {});
+          if (msg.verifiedBizName) logger.info(`Anti-empresa: ${tel} usa WhatsApp Business pero su perfil no es de empresa; se queda`);
           return;
         }
-        await recordFacts(sender, { biz: true }).catch(() => {});
+        for (const forma of new Set([sender, tel])) await recordFacts(forma, { empresa: ev.fields }).catch(() => {});
         return expulsarBusinessDetectado(sock, jid, sender, msg, ev.fields.join(', '));
       }).catch(() => {});
     }

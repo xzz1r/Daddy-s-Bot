@@ -1657,24 +1657,39 @@ const di=async(quien,texto,extra)=>{
       ['solo wid es cuenta normal',   { wid: 'x' }, 'personal'],
       ['objeto vacio',                {}, 'personal'],
       ['con categoria',               { wid: 'x', category: 'Tienda' }, 'biz'],
+      ['categoria «Otros negocios»',  { wid: 'x', category: 'Otros negocios' }, 'biz'],
+      ['categoria sin animo de lucro',{ wid: 'x', category: 'Organización sin ánimo de lucro' }, 'biz'],
+      ['categoria Non-profit',        { wid: 'x', category: 'Non-profit organization' }, 'biz'],
       ['con email',                   { wid: 'x', email: 'a@b.com' }, 'biz'],
       ['con web',                     { wid: 'x', website: ['http://x.com'] }, 'biz'],
-      ['con descripcion',             { wid: 'x', description: 'vendemos cosas' }, 'biz'],
-      ['campos vacios no cuentan',    { wid: 'x', category: '', email: '', description: '   ' }, 'personal'],
-      // El suplantador: Business con la ficha en blanco a proposito.
-      ['ficha vacia pero con portada',{ wid: 'x', cover_photo: 'a.jpg' }, 'biz'],
-      ['ficha vacia con opciones',    { wid: 'x', profile_options: { cart_enabled: true } }, 'biz'],
+      ['con direccion',               { wid: 'x', address: 'Calle Mayor 1' }, 'biz'],
       ['horario con entradas',        { wid: 'x', business_hours: { business_config: [{ day: 'mon' }] } }, 'biz'],
+      ['campos vacios no cuentan',    { wid: 'x', category: '', email: '', description: '   ' }, 'personal'],
+      // «NO ES UNA EMPRESA» NO ES UNA EMPRESA (22 oct). El dueño: «hay veces
+      // que también expulsa cuentas que no lo son». Quien usa la app Business
+      // de WhatsApp normal marca esa categoría, y se le echaba por tenerla.
+      ['«Not a Business»',            { wid: 'x', category: 'Not a Business' }, 'personal'],
+      ['«No es una empresa»',         { wid: 'x', category: 'No es una empresa' }, 'personal'],
+      ['«No es un negocio»',          { wid: 'x', category: 'No es un negocio' }, 'personal'],
+      ['«Não é uma empresa»',         { wid: 'x', category: 'Não é uma empresa' }, 'personal'],
+      ['NOT_A_BIZ',                   { wid: 'x', category: 'NOT_A_BIZ' }, 'personal'],
+      ['UNDEFINED',                   { wid: 'x', category: 'UNDEFINED' }, 'personal'],
+      ['«No es una empresa» con su frase, correo e Instagram',
+        { wid: 'x', category: 'No es una empresa', description: 'la vida es bella', email: 'yo@gmail.com', website: ['https://instagram.com/yo'] }, 'personal'],
+      ['«No es una empresa» pero con dirección', { wid: 'x', category: 'Not a Business', address: 'Calle Mayor 1' }, 'biz'],
+      ['«No es una empresa» pero con horario', { wid: 'x', category: 'Not a Business', business_hours: { business_config: [{ day: 'mon' }] } }, 'biz'],
+      // La descripción ocupa en la app Business el sitio del «info»: una
+      // persona pone ahí su frase. Sola no es un negocio.
+      ['solo descripcion',            { wid: 'x', description: 'vendemos cosas' }, 'personal'],
+      // Lo que Baileys no trae nunca no decide nada, ni a favor ni en contra.
+      ['portada sola',                { wid: 'x', cover_photo: 'a.jpg' }, 'personal'],
+      ['opciones solas',              { wid: 'x', profile_options: { cart_enabled: true } }, 'personal'],
       // LOS FALSOS POSITIVOS QUE CASI ME COMO. En JavaScript `{}` es verdadero,
       // asi que una comprobacion `if (profile[campo])` marcaba como negocio a
-      // una cuenta NORMAL que trajera un business_hours o un profile_options
-      // vacios. Tres casos medidos, y expulsan gente de verdad. Existir no es
+      // una cuenta NORMAL que trajera un business_hours vacio. Existir no es
       // tener contenido.
       ['horario vacio NO es negocio', { wid: 'x', business_hours: {} }, 'personal'],
       ['config vacio NO es negocio',  { wid: 'x', business_hours: { business_config: [] } }, 'personal'],
-      ['opciones vacias NO son negocio', { wid: 'x', profile_options: {} }, 'personal'],
-      ['comercio vacio NO es negocio',{ wid: 'x', commerce_experience: {} }, 'personal'],
-      ['portada vacia NO es negocio', { wid: 'x', cover_photo: '' }, 'personal'],
       // Y lo que NO se sabe.
       ['la consulta no responde',     undefined, 'desconocido'],
       ['devuelve algo que no es objeto', 'nada', 'desconocido'],
@@ -1715,11 +1730,9 @@ const di=async(quien,texto,extra)=>{
     exige(/getMemberFacts/.test(grpSrc),  '*!antiempresa scan* dejo de mirar el hecho observado');
     exige(/getMemberFacts/.test(botSrc),  'la entrada al grupo no mira el hecho observado: una Business ya fichada entra por la puerta');
 
-    // La guarda de mensajes no puede volver a exigir el badge. El suplantador
-    // no lo lleva NUNCA: si esa es la unica puerta, el modo esta apagado justo
-    // contra quien se quiere echar.
+    // La guarda de mensajes mira lo ya comprobado de quien escribe.
     exige(/getMemberFacts\(\[sender/.test(mhSrc),
-      'la guarda de mensajes vuelve a exigir verifiedBizName: el suplantador no lo lleva nunca y se cuela');
+      'la guarda de mensajes dejo de mirar lo ya comprobado de quien escribe');
 
     // Y echar sin vetar es una puerta giratoria: con el enlace del grupo, vuelve
     // a entrar. Es la unica guarda grave que no baneaba.
@@ -1749,9 +1762,12 @@ const di=async(quien,texto,extra)=>{
       let vetada = false;
       try {
         if (!estabaAB) st.toggleAntiBusiness(GB, true);
+        // EL PERFIL DECIDE, no el nombre verificado del mensaje: este dice
+        // «Tienda», que es una categoría de negocio.
         const sk = { user: { id: '549199@s.whatsapp.net' },
           sendMessage: async () => ({}), readMessages: async () => {},
           groupMetadata: async () => metaB, sendPresenceUpdate: async () => {},
+          getBusinessProfile: async () => ({ wid: empresa, category: 'Tienda' }),
           groupParticipantsUpdate: async () => [{ status: '200' }] };
         await handleMessage(sk, {
           key: { remoteJid: GB, participant: empresa, fromMe: false, id: 'B' + Math.random() },
@@ -1806,7 +1822,7 @@ const di=async(quien,texto,extra)=>{
     // propia ficha por delante.
     let fichado = false, ordenOk = true, sitios = 0;
     for (const m of botSrc.matchAll(
-      /(await recordFacts\(kickId, \{ biz: true \}\))|(aplicarAUno\(sock, groupJid, kickId, 'remove')/g)) {
+      /(await recordFacts\(forma, \{ empresa: (?:ev\.fields|evidencia) \}\))|(aplicarAUno\(sock, groupJid, kickId, 'remove')/g)) {
       if (m[1]) { fichado = true; continue; }
       sitios++;
       if (!fichado) ordenOk = false;
@@ -22905,6 +22921,152 @@ const intento=async(url)=>{
     mira136(R);
     exige(ruidosos.length === 0, `cargan el .env sin quiet y vuelve la línea de dotenv: ${ruidosos.slice(0, 4).join(', ')}`);
     if (fallos === antes136) console.log(verde('   ✓ el bot y los scripts cargan el .env sin escribir nada'));
+  }
+  // ── 137. !antiempresa: SOLO EMPRESAS DE VERDAD ────────────────────────────
+  //
+  // El dueño, 22 oct: «hay veces que también expulsa cuentas que no lo son».
+  // Mucha gente usa la app WhatsApp Business de WhatsApp normal, con la
+  // categoría «No es una empresa», y el bot la echaba y la vetaba por el
+  // nombre verificado de sus mensajes o por tener categoría. Se prueba en una
+  // copia aparte, con su data/ y la red fingida:
+  //   · quien escribe con «No es una empresa» se queda, y una tienda se va,
+  //     con el porqué en el aviso;
+  //   · la ficha vieja (biz: true) ya no echa a nadie, y una comprobación de
+  //     hace más de un mes tampoco;
+  //   · un veto viejo del anti-empresa se levanta al volver si su perfil no es
+  //     de empresa, y los demás vetos siguen;
+  //   · el scan no lista a quien dice «No es una empresa».
+  {
+    console.log('\n137. !antiempresa: SOLO EMPRESAS DE VERDAD');
+    const antes137 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const dir137 = fs.mkdtempSync(path.join(os.tmpdir(), 'capa137-'));
+    try {
+      const guion = path.join(dir137, 'emp.js');
+      fs.writeFileSync(guion, `
+// El dueño de la prueba, el que pide el scan: config lo lee al importarse.
+process.env.OWNER_NUMBER='34600000000'; process.env.CO_OWNERS='';
+const fs=require('fs'),os=require('os'),path=require('path');
+const ROOT=fs.mkdtempSync(path.join(os.tmpdir(),'emp137-'));
+fs.cpSync(${json(path.join(R, 'src'))},path.join(ROOT,'src'),{recursive:true});
+fs.mkdirSync(path.join(ROOT,'data')); fs.mkdirSync(path.join(ROOT,'temp'));
+try{fs.symlinkSync(${json(path.join(R, 'node_modules'))},path.join(ROOT,'node_modules'),'dir');}catch{}
+const T=(n)=>'346000'+n+'@s.whatsapp.net';
+const BOT=T('99999'), PERSONA=T('11101'), TIENDA=T('11102'), VIEJA=T('11103'), CADUCA=T('11104'), CAMBIO=T('11105'), MUDA=T('11106');
+const VETO_P=T('11201'), VETO_T=T('11202'), VETO_MANO=T('11203'), VETO_NS=T('11204'), S_P=T('11301'), S_T=T('11302');
+const DIA=24*60*60*1000;
+// Lo que había en la VPS: la ficha vieja por el nombre verificado, una
+// comprobación de hace 40 días, y vetos del anti-empresa y a mano.
+fs.writeFileSync(path.join(ROOT,'data/nicks.json'),JSON.stringify({__global:{
+  [VIEJA]:{biz:true,ts:Date.now()-5*DIA},
+  [CADUCA]:{empresa:{ts:Date.now()-40*DIA,campos:['categoría «Tienda»']},ts:Date.now()-40*DIA},
+  // Comprobadas hace 5 días: una ha cambiado a «No es una empresa» y la otra
+  // no contesta hoy.
+  [CAMBIO]:{empresa:{ts:Date.now()-5*DIA,campos:['categoría «Tienda»']},ts:Date.now()-5*DIA},
+  [MUDA]:{empresa:{ts:Date.now()-5*DIA,campos:['categoría «Bar»']},ts:Date.now()-5*DIA}}}));
+const veto=(j,reason,by)=>({reason,at:Date.now()-3*DIA,by,aka:[j]});
+fs.writeFileSync(path.join(ROOT,'data/banlist.json'),JSON.stringify({accounts:{
+  [VETO_P]:veto(VETO_P,'cuenta business en 1@g.us (nombre verificado de negocio)','auto'),
+  [VETO_T]:veto(VETO_T,'cuenta business al entrar en 1@g.us (categoría)','auto'),
+  // A mano y con un motivo que se le parece: lo que manda es quién lo puso.
+  [VETO_MANO]:veto(VETO_MANO,'cuenta business que vende humo','34600000000@s.whatsapp.net'),
+  [VETO_NS]:veto(VETO_NS,'cuenta business (purga en 1@g.us)','auto')}}));
+// Los perfiles: «No es una empresa» y una tienda; el que no contesta, nada.
+const NOEMP={category:'Not a Business',description:'la vida es bella',email:'yo@gmail.com'};
+const perfiles={[PERSONA]:NOEMP,[TIENDA]:{category:'Tienda'},[VIEJA]:NOEMP,[CADUCA]:NOEMP,[CAMBIO]:NOEMP,[MUDA]:undefined,
+  [VETO_P]:NOEMP,[VETO_T]:{category:'Tienda',address:'Calle Mayor 1'},[VETO_MANO]:NOEMP,[VETO_NS]:undefined,
+  [S_P]:NOEMP,[S_T]:{category:'Ropa'}};
+const echados=[], textos=[];
+const G='120363000000137001@g.us', G2='120363000000137002@g.us';
+const miembros=(ids)=>[{id:BOT,admin:'admin'},...ids.map((id)=>({id,admin:null}))];
+const metas={[G]:{id:G,subject:'G',participants:miembros([PERSONA,TIENDA,VIEJA,CADUCA,CAMBIO,MUDA])},
+  [G2]:{id:G2,subject:'G2',participants:miembros([S_P,S_T])}};
+const sock={user:{id:BOT},ev:{on(){},off(){},emit(){}},
+  sendMessage:async(j,c)=>{if(c&&c.text)textos.push(c.text);return {key:{id:'M'+Math.random(),remoteJid:j,fromMe:true}};},
+  readMessages:async()=>{},sendPresenceUpdate:async()=>{},presenceSubscribe:async()=>{},
+  groupMetadata:async(j)=>metas[j],
+  getBusinessProfile:async(j)=>{const p=perfiles[j];return p?{wid:j,...p}:p;},
+  groupParticipantsUpdate:async(g,ps,acc)=>{if(acc==='remove')echados.push(...ps);return ps.map((p)=>({status:'200',jid:p}));},
+  profilePictureUrl:async()=>{throw new Error('item-not-found');},fetchStatus:async()=>[]};
+const st=require(path.join(ROOT,'src/utils/state'));
+const {handleMessage}=require(path.join(ROOT,'src/handlers/messageHandler'));
+const {getMemberFacts}=require(path.join(ROOT,'src/utils/nickStore'));
+const {isBanned}=require(path.join(ROOT,'src/utils/banlist'));
+const {vetadosAlEntrar}=require(path.join(ROOT,'src/commands/fk'));
+const {cmdAntiBusiness}=require(path.join(ROOT,'src/commands/group'));
+const espera=(ms)=>new Promise((r)=>setTimeout(r,ms));
+const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant:quien,fromMe:false,id:'X'+Math.random()},
+  pushName:'Alguien',messageTimestamp:Math.floor(Date.now()/1000),message:{conversation:'buenas'},...extra});
+(async()=>{
+  const r={};
+  st.toggleAntiBusiness(G,true); st.toggleAntiBusiness(G2,true);
+  r.factsAntes={vieja:await getMemberFacts([VIEJA]),caduca:await getMemberFacts([CADUCA])};
+  await escribe(PERSONA,{verifiedBizName:'Juan'});
+  await escribe(VIEJA); await escribe(CADUCA); await escribe(CAMBIO); await escribe(MUDA);
+  await escribe(TIENDA,{verifiedBizName:'Tienda SL'});
+  const t0=Date.now(); while(!((await isBanned([TIENDA]))&&(await isBanned([MUDA])))&&Date.now()-t0<8000) await espera(25);
+  await espera(600);
+  r.echados=echados.splice(0); r.textos=textos.splice(0);
+  r.vetados={persona:await isBanned([PERSONA]),tienda:await isBanned([TIENDA]),vieja:await isBanned([VIEJA]),caduca:await isBanned([CADUCA]),cambio:await isBanned([CAMBIO]),muda:await isBanned([MUDA])};
+  r.factsDespues={persona:await getMemberFacts([PERSONA]),tienda:await getMemberFacts([TIENDA]),caduca:await getMemberFacts([CADUCA]),cambio:await getMemberFacts([CAMBIO]),muda:await getMemberFacts([MUDA])};
+  r.cincoDias=Date.now()-5*DIA;
+  // Los vetos viejos, al volver a entrar.
+  const fuera=await vetadosAlEntrar(sock,G,[{id:VETO_P},{id:VETO_T},{id:VETO_MANO},{id:VETO_NS}],metas[G]);
+  r.fueraAlEntrar=[...fuera];
+  r.vetosDespues={p:await isBanned([VETO_P]),t:await isBanned([VETO_T]),mano:await isBanned([VETO_MANO]),ns:await isBanned([VETO_NS])};
+  // El scan.
+  textos.splice(0);
+  await cmdAntiBusiness(sock,{key:{remoteJid:G2,participant:'34600000000@s.whatsapp.net',fromMe:false,id:'S1'}},['scan'],metas[G2]);
+  r.scan=textos.splice(0).join('\\n---\\n');
+  console.log(JSON.stringify(r));
+  try{fs.rmSync(ROOT,{recursive:true,force:true});}catch{}
+  process.exit(0);
+})().catch((e)=>{console.log(JSON.stringify({error:String((e&&e.stack)||e)}));try{fs.rmSync(ROOT,{recursive:true,force:true});}catch{}process.exit(0);});
+`);
+      const r = JSON.parse(execSync(`node ${guion}`, { encoding: 'utf8', timeout: 120000, cwd: dir137 }).trim().split('\n').pop());
+      exige(!r.error, `la prueba del anti-empresa revento: ${String(r.error || '').split('\n')[0]}`);
+      if (!r.error) {
+        const n = (j) => `346000${j}@s.whatsapp.net`;
+        const PERSONA = n('11101'), TIENDA = n('11102'), VIEJA = n('11103'), CADUCA = n('11104');
+        exige(!r.factsAntes.vieja?.empresa && !r.factsAntes.vieja?.biz,
+          `la ficha vieja por el nombre verificado (biz: true) sigue contando como empresa: ${JSON.stringify(r.factsAntes.vieja)}`);
+        exige(!r.factsAntes.caduca?.empresa,
+          `una comprobación de empresa de hace 40 días sigue valiendo: ${JSON.stringify(r.factsAntes.caduca)}`);
+        exige(!r.echados.includes(PERSONA) && !r.vetados.persona,
+          'quien usa WhatsApp Business con «No es una empresa» se expulsa o se veta al escribir: es justo el falso positivo del dueño');
+        exige(!r.echados.includes(VIEJA) && !r.vetados.vieja,
+          'la ficha vieja por el nombre verificado echa a alguien cuyo perfil dice «No es una empresa»');
+        exige(!r.echados.includes(CADUCA) && !r.vetados.caduca,
+          'una comprobación caducada echa a alguien cuyo perfil de hoy no es de empresa');
+        const CAMBIO = n('11105'), MUDA = n('11106');
+        exige(!r.echados.includes(CAMBIO) && !r.vetados.cambio && !r.factsDespues.cambio?.empresa,
+          'una ficha de hace cinco días echa a quien hoy tiene «No es una empresa»: el perfil de hoy tiene que mandar sobre la ficha');
+        exige(r.echados.includes(MUDA) && r.vetados.muda,
+          'con la consulta sin contestar, una ficha de este mes no decide: la empresa ya comprobada se queda dentro');
+        exige(r.factsDespues.muda?.empresa && r.factsDespues.muda.empresa.ts <= r.cincoDias + 60000,
+          `echar por la ficha la renueva, y así no caduca nunca sin volver a mirar el perfil: ${JSON.stringify(r.factsDespues.muda)}`);
+        exige(r.echados.includes(TIENDA) && r.vetados.tienda,
+          `una tienda que escribe no se expulsa y veta: ${JSON.stringify({ echados: r.echados, vetado: r.vetados.tienda })}`);
+        const aviso = (r.textos || []).find((t) => /Anti-empresa/.test(t) && /11102/.test(t)) || '';
+        exige(/cuenta de empresa \(categoría «Tienda»\)/.test(aviso),
+          `el aviso no dice qué la delata: «${aviso}»`);
+        exige(r.factsDespues.tienda?.empresa && !r.factsDespues.persona?.empresa,
+          `la ficha de empresa no queda bien apuntada: ${JSON.stringify(r.factsDespues)}`);
+        exige(!r.fueraAlEntrar.includes(n('11201')) && !r.vetosDespues.p,
+          'un veto viejo del anti-empresa a quien dice «No es una empresa» no se levanta al volver: sigue fuera de todos los grupos');
+        exige(r.fueraAlEntrar.includes(n('11202')) && r.vetosDespues.t,
+          'el veto del anti-empresa a una tienda de verdad se levanta');
+        exige(r.fueraAlEntrar.includes(n('11203')) && r.vetosDespues.mano,
+          'un veto puesto a mano se toca al revisar los del anti-empresa');
+        exige(r.fueraAlEntrar.includes(n('11204')) && r.vetosDespues.ns,
+          'un veto del anti-empresa se levanta sin poder mirar el perfil: lo que no se sabe no absuelve');
+        exige(/346000?11302|11302/.test(r.scan) && !/11301/.test(r.scan),
+          `el scan lista a quien dice «No es una empresa», o no lista a la tienda: ${String(r.scan).replace(/\n/g, ' ').slice(0, 200)}`);
+      }
+    } catch (e) {
+      exige(false, `no pude probar el anti-empresa: ${String(e.message).split('\n')[0]}`);
+    } finally { fs.rmSync(dir137, { recursive: true, force: true }); }
+    if (fallos === antes137) console.log(verde('   ✓ el anti-empresa echa a las empresas, no a quien usa WhatsApp Business con «No es una empresa»'));
   }
 
 

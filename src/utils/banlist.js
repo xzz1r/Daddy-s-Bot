@@ -100,6 +100,14 @@ async function isBanned(forms) {
   return forms.filter(Boolean).map(bareJid).find(f => store.accounts[f]) || null;
 }
 
+// La ficha del veto (motivo, quién, cuándo, sus otras formas), para quien
+// necesite saber POR QUÉ está vetada una cuenta y no solo si lo está.
+async function vetoDe(forms) {
+  await load();
+  const f = forms.filter(Boolean).map(bareJid).find(x => store.accounts[x]);
+  return f ? { account: f, ...store.accounts[f] } : null;
+}
+
 async function banCount() {
   await load();
   return Object.keys(store.accounts).length;
@@ -124,4 +132,4 @@ async function flushBanlist() {
   }
 }
 
-module.exports = { banAccount, unbanAccount, isBanned, banCount, listBanned, flushBanlist };
+module.exports = { banAccount, unbanAccount, isBanned, vetoDe, banCount, listBanned, flushBanlist };

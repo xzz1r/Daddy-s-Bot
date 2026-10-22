@@ -392,6 +392,57 @@ prueban las capas 111 y 125.
 
 ---
 
+## El anti-empresa: empresas, no la app
+
+`!antiempresa` echa y veta a las cuentas de empresa. Hasta el 22 oct echaba
+también a gente que no lo era (el dueño: «hay veces que también expulsa
+cuentas que no lo son»), y era por dos cosas:
+
+- **La categoría «No es una empresa».** Mucha gente usa la app WhatsApp
+  Business como su WhatsApp de diario, sobre todo para llevar dos números en
+  un móvil, y al configurarla marca esa categoría (`NOT_A_BIZ` en la API de
+  Meta). El bot contaba cualquier categoría como prueba.
+- **El nombre verificado del mensaje** (`msg.verifiedBizName`). Lo lleva toda
+  cuenta de la app Business, sea una tienda o una persona, y se fichaba por
+  él en cualquier grupo, con el modo encendido o no, para siempre.
+
+Ahora decide el **perfil de empresa** (`src/utils/businessCheck.js`), y solo
+cuenta lo que rellena un negocio:
+
+| En el perfil | ¿Empresa? |
+|---|---|
+| una categoría de verdad («Tienda», «Ropa», «Otros negocios»…) | sí |
+| dirección u horario | sí, diga la categoría lo que diga |
+| correo o web | sí, salvo con «No es una empresa» |
+| «No es una empresa», sin dirección ni horario | no |
+| solo la descripción | no: en la app ocupa el sitio del «info» |
+
+- El nombre verificado del mensaje solo dice que hay que mirar el perfil. Sin
+  teléfono no hay consulta, y sin consulta no se echa a nadie: se busca el
+  número en la sesión (`resolverLid`) y, si no está, se espera a otro mensaje.
+- Lo comprobado se apunta como `empresa` (`nickStore.js`), con su fecha y los
+  campos que lo delatan, y **vale 30 días**. Si una consulta posterior dice
+  que no es una empresa, se borra. La ficha vieja `biz: true` sigue en
+  `data/nicks.json` y ya no se lee.
+- **El perfil de hoy manda sobre la ficha.** Al entrar, al escribir y en el
+  scan, con teléfono se mira el perfil; la ficha solo decide cuando no se
+  puede preguntar (sin número, o la consulta no contesta), y echar por ella
+  no la renueva.
+- **Los vetos viejos se revisan solos.** Un veto puesto por el anti-empresa
+  (`by: 'auto'`, motivo «cuenta business…») no se cumple a ciegas: cuando esa
+  persona vuelve a entrar o la meten, se le mira el perfil con la regla de
+  ahora y, si no es empresa, se levanta y se queda. Si lo es o no se puede
+  saber, sigue fuera. Los vetos puestos a mano no se tocan. `!fklist` los
+  enseña y `!fkunban` los quita a mano.
+- El aviso dice el porqué: «@x es una cuenta de empresa (categoría «Tienda»).
+  Expulsada y vetada». La categoría la ve cualquiera en su perfil.
+
+Lo que se pierde, a sabiendas: un suplantador que use la app Business y
+marque «No es una empresa» ya no cae por esto. Para eso están `!antifake` y
+`!fk`. Capas 9 (la regla, caso a caso) y 137 (el camino entero en una copia).
+
+---
+
 ## Las acciones por dentro
 
 Dos cosas del motor que conviene saber aunque no se toquen: el gif se prepara

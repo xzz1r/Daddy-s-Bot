@@ -24,10 +24,15 @@ const logger = require('./logger');
 //     veía el grupo. Guardarlo era escribir en disco en cada mensaje un dato que
 //     no se podía usar para nada.
 //
-// store = { __global: { [bareJid]: { biz, photo, ts } } }
-//   biz   → true si WhatsApp adjuntó un verified_name a alguno de sus mensajes.
-//           Eso solo lo lleva una cuenta Business, así que es prueba directa
-//           (Baileys lo expone como msg.verifiedBizName).
+// store = { __global: { [bareJid]: { empresa, photo, ts } } }
+//   empresa → { ts, campos }: su perfil de empresa se comprobó y tenía datos
+//           de negocio (businessCheck.js dice cuáles valen). Caduca a los 30
+//           días y se borra si una consulta posterior dice que no lo es.
+//   biz   → LO VIEJO, y ya no decide nada (22 oct). Se apuntaba al ver el
+//           nombre verificado que WhatsApp pone en los mensajes, y ese lo
+//           lleva TODA cuenta de la app Business, también quien la usa de
+//           WhatsApp normal y marca «No es una empresa». Echaba a gente que
+//           no era empresa. Se deja en el fichero y no se lee.
 //   photo → 'si' | 'no'. WhatsApp avisa cuando alguien pone o quita su foto
 //           (contacts.update con imgUrl 'changed' / 'removed', y null cuando
 //           nunca la ha puesto). Sirve para resolver a quien la tiene oculta
@@ -77,23 +82,30 @@ function scheduleSave() {
   }, 10000);
 }
 
-async function recordFacts(userJid, { biz, photo } = {}) {
+// `empresa`: la lista de campos que lo prueban (se apunta con la fecha), o
+// `false` cuando una consulta dice que ya no lo es (se borra). Es lo único que
+// se quita de esta ficha, y a propósito: una cuenta deja la app Business o
+// cambia su categoría, y una prueba que no caduca echa a quien ya no lo es.
+async function recordFacts(userJid, { empresa, photo } = {}) {
   if (!userJid) return;
-  if (biz !== true && photo !== 'si' && photo !== 'no') return; // nada que anotar
+  const esEmpresa = Array.isArray(empresa) && empresa.length > 0;
+  if (!esEmpresa && empresa !== false && photo !== 'si' && photo !== 'no') return; // nada que anotar
   await load();
   const key = bareJid(userJid);
   if (!store[GLOBAL]) store[GLOBAL] = {};
   const prev = store[GLOBAL][key] || {};
+  if (empresa === false && !prev.empresa && photo !== 'si' && photo !== 'no') return;
   const next = { ...prev };
 
-  if (biz === true) next.biz = true;             // solo se añade, nunca se quita
+  if (esEmpresa) next.empresa = { ts: Date.now(), campos: empresa.slice(0, 6) };
+  else if (empresa === false) delete next.empresa;
   if (photo === 'si' || photo === 'no') next.photo = photo;
 
-  if (next.biz === prev.biz && next.photo === prev.photo) return;
+  if (!esEmpresa && Boolean(next.empresa) === Boolean(prev.empresa) && next.photo === prev.photo) return;
   next.ts = Date.now();
   store[GLOBAL][key] = next;
 
-  // La ficha `biz` va a disco AL MOMENTO; la foto se queda con el retardo.
+  // La ficha de empresa va a disco AL MOMENTO; la foto se queda con el retardo.
   //
   // No son lo mismo. El hecho de que una cuenta sea business decide una
   // expulsion y se apunta JUSTO ANTES de echarla —para que la prueba sobreviva
@@ -104,7 +116,7 @@ async function recordFacts(userJid, { biz, photo } = {}) {
   // La foto es otra cosa: se anota en casi cada mensaje cuando el anti-fake
   // esta encendido. Esa SI necesita el debounce, o el bot escribe el fichero
   // entero cada dos por tres.
-  if (biz === true) await flushNicks();
+  if (esEmpresa || empresa === false) await flushNicks();
   else scheduleSave();
 }
 
@@ -140,6 +152,12 @@ async function dispositivosDesde() {
 // Los hechos se acumulan porque no se contradicen: si en algún sitio consta,
 // consta. El segundo argumento (groupJid) se acepta y se ignora: los hechos son
 // de la cuenta, no del grupo.
+// La comprobación de empresa vale un mes. Pasado eso no cuenta: si hay
+// teléfono se vuelve a preguntar, y si no, no se echa a nadie por lo que dijo
+// su perfil hace medio año.
+const EMPRESA_VALIDA_MS = 30 * 24 * 60 * 60 * 1000;
+const empresaVigente = (e) => Boolean(e && e.ts && Date.now() - e.ts < EMPRESA_VALIDA_MS);
+
 async function getMemberFacts(forms) {
   await load();
   const bucket = store[GLOBAL];
@@ -150,8 +168,14 @@ async function getMemberFacts(forms) {
     if (!f) continue;
     const rec = bucket[bareJid(f)];
     if (!rec) continue;
-    if (!out) { out = { ...rec, disp: rec.disp ? { ...rec.disp } : undefined }; continue; }
-    if (rec.biz) out.biz = true;
+    if (!out) {
+      const { biz: _viejo, empresa, ...resto } = rec;
+      out = { ...resto, disp: rec.disp ? { ...rec.disp } : undefined };
+      if (empresaVigente(empresa)) out.empresa = empresa;
+      continue;
+    }
+    // La más reciente de todas sus formas.
+    if (empresaVigente(rec.empresa) && (!out.empresa || rec.empresa.ts > out.empresa.ts)) out.empresa = rec.empresa;
     if (rec.photo) out.photo = rec.photo;
     // Los mensajes se SUMAN entre formas; el último es el más reciente de todas.
     if (rec.disp) {

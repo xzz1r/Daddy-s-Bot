@@ -1,5 +1,5 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { isOwner, isMainOwner, isAdmin, isBotJid, isBotAdmin, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser, esMiembroActual } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, isBotJid, isBotAdmin, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser, esMiembroActual, resolverLid } = require('../utils/wa');
 const { streamToBuffer, MAX_DOWNLOAD_BYTES, atomicWriteJson, readJsonOrEnoent, pickFresh, pickBaraja, withTimeout } = require('../utils/helpers');
 const path = require('path');
 const logger = require('../utils/logger');
@@ -954,26 +954,27 @@ async function detectBusinesses(sock, idToPhone) {
   for (let i = 0; i < entries.length; i += CONC) {
     const chunk = entries.slice(i, i + CONC);
     const results = await Promise.all(chunk.map(async ([kickId, phoneJid]) => {
-      // Sin teléfono no se puede consultar el perfil (getBusinessProfile no
-      // acepta LIDs), pero el hecho observado sí vale, así que estos NO se
-      // descartan: se saltan la consulta y se juzgan solo por lo que ya consta.
-      // El hecho observado va PRIMERO: es gratis, esta en disco y vale en LID.
-      // Antes se consultaba el perfil y solo se miraban los hechos si salia que
-      // no, o sea gastando una consulta de red para nada en el caso mas comun.
+      // EL PERFIL DE HOY MANDA SOBRE LA FICHA, igual que al entrar y al
+      // escribir. La ficha (una comprobación de este mes; la vieja por el
+      // nombre verificado ya no cuenta) solo decide si no se puede preguntar.
       const facts0 = await getMemberFacts([kickId, phoneJid]).catch(() => null);
-      if (facts0?.biz) return { kickId, ev: { estado: 'biz', fields: ['nombre verificado de negocio'] } };
+      const porFicha = (ev) => (facts0?.empresa
+        ? { kickId, ev: { estado: 'biz', fields: facts0.empresa.campos, deFicha: true } }
+        : { kickId, ev });
 
-      const ev = phoneJid
-        ? await businessEvidence(sock, phoneJid).catch(() => ({ estado: 'desconocido', fields: [] }))
-        : { estado: 'desconocido', fields: [], motivo: 'sin teléfono' };
-      if (ev.estado === 'biz') return { kickId, ev };
-      // WhatsApp adjunta un verified_name a los mensajes de las cuentas
-      // Business (Baileys lo expone como msg.verifiedBizName). Si se le ha
-      // visto uno, es Business aunque su perfil venga vacío en la consulta.
+      // Sin teléfono en la metadata se le pregunta a la sesión, que lo sabe
+      // de casi todo el que ha escrito: el número oculto no esconde nada aquí.
+      const tel = phoneJid || await resolverLid(sock, kickId).catch(() => null);
+      if (!tel) return porFicha({ estado: 'desconocido', fields: [], motivo: 'sin teléfono' });
+      const ev = await businessEvidence(sock, tel).catch(() => ({ estado: 'desconocido', fields: [] }));
+      if (ev.estado === 'desconocido') return porFicha(ev);
+      if (ev.estado === 'personal') {
+        for (const forma of new Set([kickId, tel])) await recordFacts(forma, { empresa: false }).catch(() => {});
+      }
       return { kickId, ev };
     }));
     for (const { kickId, ev } of results) {
-      if (ev.estado === 'biz') detected.push({ kickId, fields: ev.fields });
+      if (ev.estado === 'biz') detected.push({ kickId, fields: ev.fields, deFicha: Boolean(ev.deFicha) });
       // Los que no se pudieron comprobar se listan aparte. Antes se contaban
       // como personales y desaparecian del informe: quien lo leia creia que
       // estaban revisados.
@@ -989,12 +990,12 @@ async function scanBusinesses(sock, msg, groupJid, groupMeta) {
   if (!groupMeta?.participants?.length) {
     return sock.sendMessage(groupJid, { text: 'No pude obtener los miembros del grupo.' }, { quoted: msg });
   }
-  // Se escanea a TODOS, con teléfono o sin él getBusinessProfile no acepta
-  // LIDs, así que a los que solo tienen LID no se les puede consultar el
-  // perfil — pero si WhatsApp ya adjuntó un nombre verificado de negocio a
-  // alguno de sus mensajes, eso basta y no cuesta ninguna consulta. Antes se
-  // les filtraba ANTES de mirar ese dato, así que un Business escondido tras
-  // la privacidad de número no se detectaba jamás.
+  // Se escanea a TODOS, con teléfono o sin él. getBusinessProfile no acepta
+  // LIDs, pero el número de quien ya ha escrito lo sabe la sesión, y una
+  // comprobación de perfil de este mes vale sin consultar nada. Antes se les
+  // filtraba antes de mirar, así que una empresa escondida tras la privacidad
+  // de número no se detectaba jamás. Al que no se le encuentra el número sale
+  // en «sin comprobar», que no es lo mismo que limpio.
   const miembros = scannableMembers(sock, groupMeta);
   const idToPhone = new Map(miembros.map(m => [m.kickId, m.phoneJid || null]));
   const sinTelefono = miembros.filter(m => !m.phoneJid).length;
@@ -1004,7 +1005,7 @@ async function scanBusinesses(sock, msg, groupJid, groupMeta) {
 
   await sock.sendMessage(groupJid, {
     text: `Escaneo de *${idToPhone.size}* miembros...` +
-      (sinTelefono ? `\n_${sinTelefono} tienen el número oculto: a esos solo se les mira lo ya observado._` : ''),
+      (sinTelefono ? `\n_${sinTelefono} tienen el número oculto: a esos se les busca el número en lo que ya han escrito._` : ''),
   }, { quoted: msg });
 
   const { detected, sinComprobar } = await detectBusinesses(sock, idToPhone);
@@ -1020,14 +1021,14 @@ async function scanBusinesses(sock, msg, groupJid, groupMeta) {
 
   if (!detected.length) {
     return sock.sendMessage(groupJid, {
-      text: 'No se detectaron cuentas Business entre los miembros.' + pieDudas,
+      text: 'No se detectaron cuentas de empresa entre los miembros.' + pieDudas,
     });
   }
 
   const lines = detected.map(d => `@${d.kickId.split('@')[0]} — ${d.fields.join(', ')}`);
   return sock.sendMessage(groupJid, {
     text:
-      `*Business detectados (${detected.length})* — con su evidencia:\n\n` +
+      `*Cuentas de empresa (${detected.length})* — con su evidencia:\n\n` +
       lines.join('\n') + pieDudas +
       // EL SCAN DICE CUAL ES EL PASO SIGUIENTE. Decia "esto no expulsa a nadie"
       // y se quedaba ahi, sin nombrar *!antiempresa purge*, que es lo unico que
@@ -1052,7 +1053,7 @@ async function purgeBusinesses(sock, msg, groupJid, groupMeta) {
 
   if (!last.detected.length) {
     return sock.sendMessage(groupJid, {
-      text: 'El último scan no detectó ninguna cuenta Business. No hay nada que purgar.',
+      text: 'El último scan no detectó ninguna cuenta de empresa. No hay nada que purgar.',
     }, { quoted: msg });
   }
 
@@ -1069,7 +1070,9 @@ async function purgeBusinesses(sock, msg, groupJid, groupMeta) {
   // se veta a quien el servidor no llego a echar.
   for (const d of (r.done || [])) {
     await banAccount(allForms(d.kickId, groupMeta), `cuenta business (purga en ${groupJid})`, 'auto').catch(() => {});
-    await recordFacts(d.kickId, { biz: true }).catch(() => {});
+    // Echar por la ficha no la renueva: solo se apunta lo comprobado ahora.
+    const visto = last.detected.find((x) => x.kickId === d.kickId);
+    if (visto?.fields?.length && !visto.deFicha) await recordFacts(d.kickId, { empresa: visto.fields }).catch(() => {});
   }
 
   if (r.status === 'sin-metadata') {
@@ -1087,7 +1090,7 @@ async function purgeBusinesses(sock, msg, groupJid, groupMeta) {
     return sock.sendMessage(groupJid, {
       text: r.spared.length
         ? 'No queda nadie a quien expulsar: los detectados ya no se pueden tocar.'
-        : 'Los Business detectados ya no están en el grupo.',
+        : 'Las cuentas de empresa detectadas ya no están en el grupo.',
     }, { quoted: msg });
   }
 
