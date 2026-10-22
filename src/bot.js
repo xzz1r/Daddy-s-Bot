@@ -1292,6 +1292,10 @@ async function connectToWhatsApp() {
         timerSolicitudes.unref();
       }
 
+      // La precisión del anti-empresa: el bot la mide solo, una vez al día, y
+      // `npm run estado` la enseña. No sale en ningún grupo (dueño, 22 oct).
+      require('./utils/precisionEmpresa').programar(() => sock);
+
       // Precarga en idle de los comandos pesados (lazy en el dispatcher).
       // Uno cada 250 ms para no clavar el event loop de un golpe justo
       // después de conectar. Si un comando llega antes, lazyCmd lo carga igual.

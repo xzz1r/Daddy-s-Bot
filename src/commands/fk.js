@@ -699,7 +699,7 @@ async function cmdAntiFake(sock, msg, args, groupMeta) {
 // Si sigue siendo Business (también con «No es una empresa»), o no se puede
 // saber, el veto sigue. Los vetos puestos a mano, o por otra guarda, no se
 // tocan.
-const esVetoDeEmpresa = (v) => v?.by === 'auto' && /^cuenta business/i.test(String(v.reason || ''));
+const { esVetoDeEmpresa } = require('../utils/precisionEmpresa');
 
 async function vetoDeEmpresaSigue(sock, obj, veto, forms) {
   const candidatos = [obj.phoneNumber, ...forms, ...(veto.aka || [])].filter(Boolean).map(bareJid);

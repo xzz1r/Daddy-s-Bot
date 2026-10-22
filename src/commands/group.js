@@ -8,9 +8,9 @@ const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEna
 const { aceptarPendientes } = require('../utils/joinRequests');
 const { businessEvidence } = require('../utils/businessCheck');
 const { getMemberFacts, recordFacts } = require('../utils/nickStore');
-const { banAccount, unbanAccount, listBanned } = require('../utils/banlist');
+const { banAccount } = require('../utils/banlist');
 const { aplicarParticipantes, aplicarAUno } = require('../utils/participantes');
-const { allForms, shortAcc, esVetoDeEmpresa } = require('./fk');
+const { allForms } = require('./fk');
 const { allow, disallow, listAllowed, MAX_AVISOS, DURACION_MS } = require('../utils/linkPerms');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 const { AVISOS_KICK } = require('../data/kickPhrases');
@@ -910,11 +910,6 @@ async function cmdAntiBusiness(sock, msg, args, groupMeta) {
 
   if (arg === 'scan')  return scanBusinesses(sock, msg, jid, groupMeta);  // dry-run + guarda la lista
   if (arg === 'purge') return purgeBusinesses(sock, msg, jid, groupMeta); // expulsa la lista verificada
-  if (arg === 'precision' || arg === 'precisión') {
-    return (args[1] || '').toLowerCase() === 'levantar'
-      ? levantarFallos(sock, msg, jid)
-      : medirPrecision(sock, msg, jid);
-  }
 
   if (arg !== 'on' && arg !== 'off') {
     // EL ESTADO CON SUS DOS MITADES. Decia solo "(auto al entrar)", que es
@@ -924,8 +919,7 @@ async function cmdAntiBusiness(sock, msg, args, groupMeta) {
     const current = isAntiBusinessEnabled(jid) ? 'activado' : 'desactivado';
     return sock.sendMessage(jid, {
       text: `Anti-empresa: *${current}*\n\n` +
-        `_Actúa al entrar alguien, y también si ya estaba y escribe. A los que están callados no los toca: para esos, *!antiempresa scan* y luego *purge*._\n` +
-        `_Para ver cuánto ha acertado: *!antiempresa precision*._`,
+        `_Actúa al entrar alguien, y también si ya estaba y escribe. A los que están callados no los toca: para esos, *!antiempresa scan* y luego *purge*._`,
     }, { quoted: msg });
   }
 
@@ -1102,117 +1096,6 @@ async function purgeBusinesses(sock, msg, groupJid, groupMeta) {
   }
 
   return sock.sendMessage(groupJid, purgeReport('Anti-empresa', r));
-}
-
-// ─── !antiempresa precision: CUÁNTO HA ACERTADO ─────────────────────────────
-//
-// El dueño, 22 oct: «mide el % de precisión actual». Lo único que permite
-// medirlo es preguntarle a WhatsApp, y eso solo lo puede hacer el bot con su
-// sesión. Así que se mide aquí: a cada cuenta que el anti-empresa ha echado y
-// vetado se le mira el perfil HOY, con la regla de ahora (businessCheck.js).
-//
-//   acierto → sigue siendo cuenta de WhatsApp Business (cualquier dato de
-//             su perfil de empresa, «No es una empresa» incluida)
-//   fallo   → es una cuenta de WhatsApp normal: su perfil no tiene nada
-//   sin comprobar → número oculto o el perfil no contesta. No cuentan para el
-//                   porcentaje: no son ni lo uno ni lo otro.
-//
-// Precisión = aciertos / (aciertos + fallos). Los vetos puestos a mano no
-// entran: no los puso el anti-empresa. La lista negra es de todos los grupos,
-// así que la medida también.
-//
-// Va UNA A UNA y con el ritmo de getBusinessProfile (utils/ritmo.js): unos dos
-// o tres segundos por cuenta. Preguntar por cincuenta perfiles seguidos es lo
-// que hace un raspador.
-const PRECISION_VALIDA_MS = 10 * 60 * 1000;
-let ultimaPrecision = null; // { ts, fallos: [{ forms, cuenta, categoria }] }
-let midiendo = false;
-
-async function medirPrecision(sock, msg, jid) {
-  if (midiendo) return sock.sendMessage(jid, { text: 'Ya estoy midiendo. Espera a que termine.' }, { quoted: msg });
-  // Una persona puede tener varias formas vetadas (teléfono y LID): se agrupan
-  // por `aka`, como en *!fklist*.
-  const vistos = new Set();
-  const personas = [];
-  for (const c of await listBanned()) {
-    if (!esVetoDeEmpresa(c) || vistos.has(c.account)) continue;
-    const formas = [...new Set((c.aka && c.aka.length ? c.aka : [c.account]).map(bareJid))];
-    for (const f of formas) vistos.add(f);
-    personas.push({ cuenta: c.account, formas });
-  }
-  if (!personas.length) {
-    return sock.sendMessage(jid, { text: 'El anti-empresa no ha vetado a nadie todavía: no hay nada que medir.' }, { quoted: msg });
-  }
-
-  midiendo = true;
-  try {
-    const minutos = Math.max(1, Math.round(personas.length * 2.75 / 60));
-    await sock.sendMessage(jid, {
-      text: `Midiendo las *${personas.length}* cuentas que ha vetado el anti-empresa. Una a una, para no parecer un raspador: tarda ${minutos === 1 ? 'un minuto' : `unos ${minutos} minutos`}.`,
-    }, { quoted: msg });
-
-    const aciertos = [], fallos = [], dudas = [];
-    for (const p of personas) {
-      let tel = p.formas.find((f) => f.endsWith('@s.whatsapp.net')) || null;
-      if (!tel) {
-        for (const f of p.formas) { tel = await resolverLid(sock, f).catch(() => null); if (tel) break; }
-      }
-      const ev = tel
-        ? await businessEvidence(sock, tel).catch(() => ({ estado: 'desconocido', fields: [] }))
-        : { estado: 'desconocido', fields: [] };
-      const fila = { forms: [...new Set([...p.formas, tel].filter(Boolean))], cuenta: tel || p.cuenta, categoria: ev.categoria || '', fields: ev.fields || [] };
-      if (ev.estado === 'biz') aciertos.push(fila);
-      else if (ev.estado === 'personal') fallos.push(fila);
-      else dudas.push(fila);
-    }
-    ultimaPrecision = { ts: Date.now(), fallos };
-
-    const mirados = aciertos.length + fallos.length;
-    const pct = mirados ? Math.round((aciertos.length / mirados) * 100) : null;
-    const MAX = 20;
-    const lista = (filas, linea) => filas.slice(0, MAX).map(linea).join('\n')
-      + (filas.length > MAX ? `\n_y ${filas.length - MAX} más._` : '');
-
-
-    let texto = `*Anti-empresa: precisión*\n\n` +
-      `Ha vetado *${personas.length}* ${personas.length === 1 ? 'cuenta' : 'cuentas'}. Su perfil hoy:\n` +
-      `• Son WhatsApp Business: *${aciertos.length}*\n` +
-      `• Son WhatsApp normal: *${fallos.length}*\n` +
-      `• Sin comprobar: *${dudas.length}*` + (dudas.length ? ' _(número oculto o el perfil no contesta)_' : '') + `\n\n` +
-      (pct === null
-        ? '_No se ha podido mirar ningún perfil: no hay porcentaje que dar._'
-        : `*Precisión: ${pct} %* — ${aciertos.length} de las ${mirados} que se han podido mirar.`);
-    if (fallos.length) {
-      texto += `\n\n*Las que son WhatsApp normal:*\n` +
-        lista(fallos, (f) => shortAcc(f.cuenta)) +
-        `\n\n_O dejaron la app Business o nunca la tuvieron. Su veto se quita solo cuando vuelvan a entrar; para quitarlo ya: *!antiempresa precision levantar* (en ${Math.round(PRECISION_VALIDA_MS / 60000)} min)._`;
-    }
-    return sock.sendMessage(jid, { text: texto }, { quoted: msg });
-  } finally {
-    midiendo = false;
-  }
-}
-
-// Quita el veto a los fallos de la última medida, y solo a esos: lo que el
-// dueño acaba de ver en la lista, no un recálculo.
-async function levantarFallos(sock, msg, jid) {
-  if (!ultimaPrecision || Date.now() - ultimaPrecision.ts > PRECISION_VALIDA_MS) {
-    return sock.sendMessage(jid, { text: 'No hay ninguna medida reciente. Primero *!antiempresa precision*.' }, { quoted: msg });
-  }
-  const { fallos } = ultimaPrecision;
-  if (!fallos.length) {
-    return sock.sendMessage(jid, { text: 'En la última medida no salió ninguna cuenta normal. No hay veto que quitar.' }, { quoted: msg });
-  }
-  let quitados = 0;
-  for (const f of fallos) {
-    if (await unbanAccount(f.forms).catch(() => 0)) quitados++;
-    for (const forma of f.forms) await recordFacts(forma, { empresa: false }).catch(() => {});
-  }
-  ultimaPrecision = null;
-  logger.info(`Anti-empresa: veto quitado a ${quitados} cuentas normales (precision levantar)`);
-  return sock.sendMessage(jid, {
-    text: `Veto quitado a *${quitados}* ${quitados === 1 ? 'cuenta normal. Puede' : 'cuentas normales. Pueden'} volver a entrar.`,
-  }, { quoted: msg });
 }
 
 // !antilink on/off — solo owner. Se borra CUALQUIER enlace:

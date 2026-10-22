@@ -899,6 +899,25 @@ if (nodeMayor < 18) {
   bien(`Node ${process.versions.node}`);
 }
 
+// ─── El anti-empresa: cuánto acierta ─────────────────────────────────────────
+//
+// El bot lo mide solo una vez al día (src/utils/precisionEmpresa.js) y aquí se
+// enseña, también en el resumen de cada `npm run update`. El dueño lo quiere
+// en la VPS, no en el grupo (22 oct).
+{
+  try {
+    const p = require(path.join(RAIZ, 'src/utils/precisionEmpresa'));
+    const fs2 = require('fs');
+    let dato = null;
+    try { dato = JSON.parse(fs2.readFileSync(path.join(RAIZ, 'data/precisionEmpresa.json'), 'utf8')); } catch { dato = null; }
+    const l = p.lineaEstado(dato);
+    if (l.tipo === 'aviso') aviso(l.texto, l.arreglo);
+    else bien(l.texto, true);
+  } catch (e) {
+    aviso(`Anti-empresa: no pude leer la precisión (${e.message})`);
+  }
+}
+
 // ─── Veredicto ───────────────────────────────────────────────────────────────
 const B = '\x1b[1m', F = '\x1b[0m', VERDE = '\x1b[32m', ROJO = '\x1b[31m', AMBAR = '\x1b[33m', AZUL = '\x1b[36m';
 

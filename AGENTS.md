@@ -114,8 +114,9 @@ echar a «No es una empresa»: quedó deshecho y **no se vuelve a hacer**.
 Lo que sí se arregló es lo que echaba cuentas normales: la ficha caduca a los
 30 días, el perfil de hoy manda sobre ella (quien dejó la app Business es una
 cuenta normal), y un veto viejo del anti-empresa se revisa al volver a
-entrar. Cuánto acierta lo mide el bot: `!antiempresa precision`. Capas 9 y
-137. Ver `MOTOR.md`.
+entrar. Cuánto acierta lo mide el bot solo, una vez al día, y sale en `npm
+run estado` (y tras cada `npm run update`), nunca en el grupo: lo quiere
+interno (dueño, 22 oct). Capas 9 y 137. Ver `MOTOR.md`.
 
 ## La peña activa se halaga, sin veneno
 

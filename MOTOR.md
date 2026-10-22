@@ -435,20 +435,22 @@ El aviso en el grupo es corto: «@x es cuenta de WhatsApp Business. Expulsada
 y vetada». Lo que la delata (categoría, nombre verificado) va al log y al
 motivo del veto, no al grupo: ahí era ruido (dueño, 22 oct).
 
-**Medir cuánto acierta: `!antiempresa precision`** (dueño, en un grupo).
-Desde fuera no se puede: hace falta preguntarle a WhatsApp por cada perfil, y
-eso solo lo hace el bot con su sesión. A cada cuenta que el anti-empresa ha
-vetado (`by: 'auto'`; las vetadas a mano no cuentan) se le mira el perfil hoy:
+**Cuánto acierta: lo mide el bot, y sale en la VPS.** El dueño: «debe ser
+algo interno del bot, no algo que todo el mundo deba ver; que lo muestre tras
+cada `npm run update`». No hay comando en el grupo. El bot lo mide solo una
+vez al día (la primera, diez minutos después de conectar) en
+`src/utils/precisionEmpresa.js` y lo guarda en `data/precisionEmpresa.json`.
+`npm run estado`, que `npm run update` corre al final, lo enseña en el resumen:
 
-- **son WhatsApp Business** → acierto;
-- **son WhatsApp normal** → fallo: o dejaron la app o nunca la tuvieron;
-- **sin comprobar** → número oculto o el perfil no contesta. No entran en el
-  porcentaje.
+    ✔  Anti-empresa: 80 % de precisión (4 de 5; 3 sin comprobar) · hace 6 h
 
-Precisión = Business ÷ (Business + normales). Va una a una, con el ritmo de
-`getBusinessProfile`: unos tres segundos por cuenta.
-`!antiempresa precision levantar`, en los diez minutos siguientes, quita el
-veto a las normales, y solo a esas.
+A cada cuenta que el anti-empresa ha vetado (`by: 'auto'`; las vetadas a mano
+no cuentan) se le mira el perfil hoy: si sigue siendo WhatsApp Business es un
+acierto; si es una cuenta normal, un fallo; si no se puede mirar (número
+oculto, no contesta), no cuenta. Si hay vetadas que hoy son normales, la línea
+pasa a aviso con sus números: su veto se levanta solo cuando vuelvan a
+entrar, o a mano con `!fkunban`. Va una a una, con el ritmo de
+`getBusinessProfile`.
 
 Capas 9 (la regla, caso a caso) y 137 (el camino entero en una copia).
 

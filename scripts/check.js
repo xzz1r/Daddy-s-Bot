@@ -22928,7 +22928,8 @@ const intento=async(url)=>{
   //   · quien hoy es una cuenta normal se queda aunque tuviera ficha, y una
   //     ficha caducada no echa; sin poder preguntar, la ficha de este mes sí;
   //   · un veto viejo se levanta al volver solo si hoy es una cuenta normal;
-  //   · !antiempresa precision cuenta bien y «levantar» quita solo lo normal;
+  //   · la precisión la mide el bot por dentro (nada en el grupo) y la línea
+  //     de npm run estado cuenta bien;
   //   · el scan lista a las Business, «No es una empresa» incluida.
   {
     console.log('\n137. !antiempresa: TODA CUENTA BUSINESS, Y NINGUNA NORMAL');
@@ -23011,14 +23012,18 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
   const fuera=await vetadosAlEntrar(sock,G,[{id:VETO_P},{id:VETO_T},{id:VETO_MANO},{id:VETO_NS},{id:VETO_Q}],metas[G]);
   r.fueraAlEntrar=[...fuera];
   r.vetosDespues={p:await isBanned([VETO_P]),t:await isBanned([VETO_T]),mano:await isBanned([VETO_MANO]),ns:await isBanned([VETO_NS]),q:await isBanned([VETO_Q])};
-  // La precisión, y quitar el veto a las normales.
+  // La precisión: interna. En el grupo no sale nada de ella (dueño, 22 oct);
+  // la mide el bot y la enseña npm run estado.
   textos.splice(0);
   const pide=(args)=>cmdAntiBusiness(sock,{key:{remoteJid:G2,participant:'34600000000@s.whatsapp.net',fromMe:false,id:'P'+Math.random()}},args,metas[G2]);
   await pide(['precision']);
-  r.precision=textos.splice(0).join('\\n---\\n');
-  await pide(['precision','levantar']);
-  r.levantar=textos.splice(0).join('\\n');
-  r.vetoR=await isBanned([VETO_R]); r.vetoQ2=await isBanned([VETO_Q]); r.vetoMano2=await isBanned([VETO_MANO]);
+  r.enGrupo=textos.splice(0).join('\\n');
+  const PE=require(path.join(ROOT,'src/utils/precisionEmpresa'));
+  r.dato=await PE.medir(sock);
+  r.enDisco=JSON.parse(fs.readFileSync(path.join(ROOT,'data/precisionEmpresa.json'),'utf8'));
+  r.linea=PE.lineaEstado(r.enDisco);
+  r.lineaVacia=PE.lineaEstado(null);
+  r.enGrupoDespues=textos.splice(0).length;
   // El scan.
   textos.splice(0);
   await pide(['scan']);
@@ -23066,14 +23071,18 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
         exige(r.fueraAlEntrar.includes(n('11204')) && r.vetosDespues.ns, 'un veto se levanta sin poder mirar el perfil: lo que no se sabe no absuelve');
         // La precisión: 8 vetadas por el anti-empresa. Business: tienda vieja,
         // «No es una empresa» vieja, el catfish y la tienda de hoy (4). Normal:
-        // 1. Sin mirar: 3. 4 de 5 = 80 %. Sin desglose de categorías.
-        const P = String(r.precision || '');
-        exige(/Ha vetado \*8\* cuentas/.test(P) && /Son WhatsApp Business: \*4\*\n/.test(P) && !/categor|No es una empresa/i.test(P)
-          && /Son WhatsApp normal: \*1\*/.test(P) && /Sin comprobar: \*3\*/.test(P) && /Precisión: 80 %/.test(P),
-          `la medida de precisión no cuenta bien: ${linea(P)}`);
-        exige(/11206/.test(P) && !/11203/.test(P), `la lista de las normales no sale, o mete un veto puesto a mano: ${linea(P)}`);
-        exige(!r.vetoR && r.vetoQ2 && r.vetoMano2 && /Veto quitado a \*1\*/.test(r.levantar || ''),
-          `*!antiempresa precision levantar* no quita el veto solo a las normales: ${JSON.stringify({ r: r.vetoR, q: r.vetoQ2, mano: r.vetoMano2, txt: r.levantar })}`);
+        // 1. Sin mirar: 3. 4 de 5 = 80 %. Y nada de eso en el grupo.
+        exige(!/precisi/i.test(r.enGrupo || '') && !r.enGrupoDespues,
+          `la precisión sale en el grupo, y es interna del bot: ${linea(r.enGrupo)}`);
+        const D = r.enDisco || {};
+        exige(D.vetadas === 8 && D.business === 4 && D.sinComprobar === 3 && D.pct === 80
+          && JSON.stringify(D.normales) === JSON.stringify(['+34600011206']),
+          `la medida de precisión no cuenta bien: ${JSON.stringify(D)}`);
+        exige(r.linea && r.linea.tipo === 'aviso' && /80 % de precisión \(4 de 5; 3 sin comprobar\)/.test(r.linea.texto)
+          && /\+34600011206/.test(r.linea.texto) && !/11203/.test(r.linea.texto),
+          `la línea de npm run estado no lo dice bien: ${JSON.stringify(r.linea)}`);
+        exige(r.lineaVacia && /sin medir todavía/.test(r.lineaVacia.texto),
+          `sin medida, npm run estado no lo dice: ${JSON.stringify(r.lineaVacia)}`);
         // El scan.
         exige(/11301/.test(r.scan) && /11302/.test(r.scan) && !/11303/.test(r.scan),
           `el scan no lista a las Business («No es una empresa» incluida) o lista a una normal: ${linea(r.scan)}`);
