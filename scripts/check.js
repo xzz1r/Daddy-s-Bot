@@ -22953,7 +22953,7 @@ fs.mkdirSync(path.join(ROOT,'data')); fs.mkdirSync(path.join(ROOT,'temp'));
 try{fs.symlinkSync(${json(path.join(R, 'node_modules'))},path.join(ROOT,'node_modules'),'dir');}catch{}
 const T=(n)=>'346000'+n+'@s.whatsapp.net';
 const BOT=T('99999'), PERSONA=T('11101'), TIENDA=T('11102'), VIEJA=T('11103'), CADUCA=T('11104'), CAMBIO=T('11105'), MUDA=T('11106');
-const VETO_P=T('11201'), VETO_T=T('11202'), VETO_MANO=T('11203'), VETO_NS=T('11204'), S_P=T('11301'), S_T=T('11302');
+const VETO_P=T('11201'), VETO_T=T('11202'), VETO_MANO=T('11203'), VETO_NS=T('11204'), VETO_Q=T('11205'), S_P=T('11301'), S_T=T('11302');
 const DIA=24*60*60*1000;
 // Lo que había en la VPS: la ficha vieja por el nombre verificado, una
 // comprobación de hace 40 días, y vetos del anti-empresa y a mano.
@@ -22970,11 +22970,12 @@ fs.writeFileSync(path.join(ROOT,'data/banlist.json'),JSON.stringify({accounts:{
   [VETO_T]:veto(VETO_T,'cuenta business al entrar en 1@g.us (categoría)','auto'),
   // A mano y con un motivo que se le parece: lo que manda es quién lo puso.
   [VETO_MANO]:veto(VETO_MANO,'cuenta business que vende humo','34600000000@s.whatsapp.net'),
-  [VETO_NS]:veto(VETO_NS,'cuenta business (purga en 1@g.us)','auto')}}));
+  [VETO_NS]:veto(VETO_NS,'cuenta business (purga en 1@g.us)','auto'),
+  [VETO_Q]:veto(VETO_Q,'cuenta business en 1@g.us (nombre verificado de negocio)','auto')}}));
 // Los perfiles: «No es una empresa» y una tienda; el que no contesta, nada.
 const NOEMP={category:'Not a Business',description:'la vida es bella',email:'yo@gmail.com'};
 const perfiles={[PERSONA]:NOEMP,[TIENDA]:{category:'Tienda'},[VIEJA]:NOEMP,[CADUCA]:NOEMP,[CAMBIO]:NOEMP,[MUDA]:undefined,
-  [VETO_P]:NOEMP,[VETO_T]:{category:'Tienda',address:'Calle Mayor 1'},[VETO_MANO]:NOEMP,[VETO_NS]:undefined,
+  [VETO_P]:NOEMP,[VETO_T]:{category:'Tienda',address:'Calle Mayor 1'},[VETO_MANO]:NOEMP,[VETO_NS]:undefined,[VETO_Q]:{category:'No es una empresa'},
   [S_P]:NOEMP,[S_T]:{category:'Ropa'}};
 const echados=[], textos=[];
 const G='120363000000137001@g.us', G2='120363000000137002@g.us';
@@ -23014,6 +23015,15 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
   const fuera=await vetadosAlEntrar(sock,G,[{id:VETO_P},{id:VETO_T},{id:VETO_MANO},{id:VETO_NS}],metas[G]);
   r.fueraAlEntrar=[...fuera];
   r.vetosDespues={p:await isBanned([VETO_P]),t:await isBanned([VETO_T]),mano:await isBanned([VETO_MANO]),ns:await isBanned([VETO_NS])};
+  // La precisión: lo que ha vetado el anti-empresa, mirado hoy. Y quitar el
+  // veto a los que no lo eran.
+  textos.splice(0);
+  const pide=(args)=>cmdAntiBusiness(sock,{key:{remoteJid:G2,participant:'34600000000@s.whatsapp.net',fromMe:false,id:'P'+Math.random()}},args,metas[G2]);
+  await pide(['precision']);
+  r.precision=textos.splice(0).join('\\n---\\n');
+  await pide(['precision','levantar']);
+  r.levantar=textos.splice(0).join('\\n');
+  r.vetoQ=await isBanned([VETO_Q]); r.vetoT2=await isBanned([VETO_T]); r.vetoMano2=await isBanned([VETO_MANO]);
   // El scan.
   textos.splice(0);
   await cmdAntiBusiness(sock,{key:{remoteJid:G2,participant:'34600000000@s.whatsapp.net',fromMe:false,id:'S1'}},['scan'],metas[G2]);
@@ -23060,6 +23070,18 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
           'un veto puesto a mano se toca al revisar los del anti-empresa');
         exige(r.fueraAlEntrar.includes(n('11204')) && r.vetosDespues.ns,
           'un veto del anti-empresa se levanta sin poder mirar el perfil: lo que no se sabe no absuelve');
+        // 5 vetadas por el anti-empresa: la tienda vieja y la de hoy aciertan,
+        // la de «No es una empresa» falla, y dos no se pueden mirar. El veto a
+        // mano no cuenta. 2 de 3 = 67 %.
+        const P = String(r.precision || '');
+        exige(/Ha vetado \*5\* cuentas/.test(P) && /Eran empresa: \*2\*/.test(P) && /No lo eran: \*1\* \(1 con «No es una empresa»\)/.test(P)
+          && /Sin comprobar: \*2\*/.test(P) && /Precisión: 67 %/.test(P),
+          `la medida de precisión no cuenta bien: ${P.replace(/\n/g, ' ').slice(0, 260)}`);
+        exige(/11205 — «No es una empresa»/.test(P) && !/11203/.test(P),
+          `la lista de las que no lo eran no sale, o mete un veto puesto a mano: ${P.replace(/\n/g, ' ').slice(0, 260)}`);
+        exige(/Tienda 2/.test(P), `las que eran empresa no salen por categoría: ${P.replace(/\n/g, ' ').slice(0, 260)}`);
+        exige(!r.vetoQ && r.vetoT2 && r.vetoMano2 && /Veto quitado a \*1\*/.test(r.levantar || ''),
+          `*!antiempresa precision levantar* no quita el veto solo a las que no eran empresa: ${JSON.stringify({ q: r.vetoQ, t: r.vetoT2, mano: r.vetoMano2, txt: r.levantar })}`);
         exige(/346000?11302|11302/.test(r.scan) && !/11301/.test(r.scan),
           `el scan lista a quien dice «No es una empresa», o no lista a la tienda: ${String(r.scan).replace(/\n/g, ' ').slice(0, 200)}`);
       }

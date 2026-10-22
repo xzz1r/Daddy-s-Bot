@@ -109,8 +109,8 @@ de WhatsApp normal con la categoría «No es una empresa». Decide el perfil
 (`src/utils/businessCheck.js`): categoría de verdad, dirección, horario, y
 correo o web si no ha dicho que no es una empresa. Ni el nombre verificado de
 sus mensajes ni la descripción echan a nadie. Lo comprobado vale 30 días, y
-un veto viejo del anti-empresa se revisa al volver a entrar. Capas 9 y 137.
-Ver `MOTOR.md`.
+un veto viejo del anti-empresa se revisa al volver a entrar. Cuánto acierta
+lo mide el propio bot: `!antiempresa precision`. Capas 9 y 137. Ver `MOTOR.md`.
 
 ## La peña activa se halaga, sin veneno
 

@@ -806,4 +806,4 @@ async function guardOnJoin(sock, groupJid, joiners, groupMeta) {
   }
 }
 
-module.exports = { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdFkList, cmdAntiFake, guardOnJoin, vetadosAlEntrar, allForms, shortAcc };
+module.exports = { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdFkList, cmdAntiFake, guardOnJoin, vetadosAlEntrar, allForms, shortAcc, esVetoDeEmpresa };

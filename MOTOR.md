@@ -437,6 +437,24 @@ cuenta lo que rellena un negocio:
 - El aviso dice el porqué: «@x es una cuenta de empresa (categoría «Tienda»).
   Expulsada y vetada». La categoría la ve cualquiera en su perfil.
 
+**Medir cuánto acierta: `!antiempresa precision`** (dueño, en un grupo).
+Desde fuera no se puede: hace falta preguntarle a WhatsApp por cada perfil, y
+eso solo lo hace el bot con su sesión. A cada cuenta que el anti-empresa ha
+vetado (las de `by: 'auto'`; las vetadas a mano no cuentan) se le mira el
+perfil hoy con la regla de ahora:
+
+- **eran empresa** → tienen datos de negocio;
+- **no lo eran** → «No es una empresa» o nada de negocio;
+- **sin comprobar** → número oculto o el perfil no contesta. No entran en el
+  porcentaje.
+
+Precisión = eran empresa ÷ (eran empresa + no lo eran). Enseña también las
+categorías de las que sí lo eran, que es donde se vería un caso dudoso (una
+persona con «Otros negocios»), y la lista de las que no. Va una a una, con el
+ritmo de `getBusinessProfile`: unos tres segundos por cuenta.
+`!antiempresa precision levantar`, en los diez minutos siguientes, quita el
+veto a esas, y solo a esas.
+
 Lo que se pierde, a sabiendas: un suplantador que use la app Business y
 marque «No es una empresa» ya no cae por esto. Para eso están `!antifake` y
 `!fk`. Capas 9 (la regla, caso a caso) y 137 (el camino entero en una copia).

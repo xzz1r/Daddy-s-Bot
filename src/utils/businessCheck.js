@@ -127,9 +127,11 @@ async function businessEvidence(sock, jid) {
   // si algún día llegan, existir en una cuenta de la app Business no dice que
   // sea un negocio. Fuera.
 
+  // La categoría va siempre, también cuando no es empresa: *!antiempresa
+  // precision* la enseña para que se vea qué dice cada perfil.
   const value = fields.length
-    ? { estado: 'biz', fields }
-    : { estado: 'personal', fields: [] };
+    ? { estado: 'biz', fields, categoria }
+    : { estado: 'personal', fields: [], categoria };
   cacheSet(jid, value);
   return value;
 }
