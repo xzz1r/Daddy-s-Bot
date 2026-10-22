@@ -1063,8 +1063,9 @@ async function purgeBusinesses(sock, msg, groupJid, groupMeta) {
     }, { quoted: msg });
   }
 
-  // La evidencia de cada uno pasa a ser el "motivo" que muestra el informe.
-  const detected = last.detected.map(d => ({ kickId: d.kickId, reason: d.fields.join(', ') }));
+  // El informe de la expulsión va sin lo que tenía la cuenta: el dueño lo ve
+  // redundante (22 oct). La evidencia ya salió en el scan y va al veto.
+  const detected = last.detected.map(d => ({ kickId: d.kickId, reason: '' }));
   const r = await executePurge(sock, groupJid, detected, groupMeta);
 
   // EL PURGE TAMBIEN VETA. Era la tercera puerta del mismo modo y la unica que
