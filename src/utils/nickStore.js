@@ -25,14 +25,14 @@ const logger = require('./logger');
 //     no se podía usar para nada.
 //
 // store = { __global: { [bareJid]: { empresa, photo, ts } } }
-//   empresa → { ts, campos }: su perfil de empresa se comprobó y tenía datos
-//           de negocio (businessCheck.js dice cuáles valen). Caduca a los 30
-//           días y se borra si una consulta posterior dice que no lo es.
-//   biz   → LO VIEJO, y ya no decide nada (22 oct). Se apuntaba al ver el
-//           nombre verificado que WhatsApp pone en los mensajes, y ese lo
-//           lleva TODA cuenta de la app Business, también quien la usa de
-//           WhatsApp normal y marca «No es una empresa». Echaba a gente que
-//           no era empresa. Se deja en el fichero y no se lee.
+//   empresa → { ts, campos }: es cuenta de WhatsApp Business, y por qué se
+//           sabe (el nombre verificado de sus mensajes, o su perfil). Caduca
+//           a los 30 días, y se borra si su perfil de hoy es el de una cuenta
+//           normal: quien deja la app Business deja de serlo.
+//   biz   → la forma vieja de lo mismo (hasta el 22 oct): se lee como
+//           `empresa` con la fecha de la ficha, y caduca igual. Antes no
+//           caducaba nunca, y quien se pasaba a WhatsApp normal seguía
+//           expulsado para siempre.
 //   photo → 'si' | 'no'. WhatsApp avisa cuando alguien pone o quita su foto
 //           (contacts.update con imgUrl 'changed' / 'removed', y null cuando
 //           nunca la ha puesto). Sirve para resolver a quien la tiene oculta
@@ -94,14 +94,24 @@ async function recordFacts(userJid, { empresa, photo } = {}) {
   const key = bareJid(userJid);
   if (!store[GLOBAL]) store[GLOBAL] = {};
   const prev = store[GLOBAL][key] || {};
-  if (empresa === false && !prev.empresa && photo !== 'si' && photo !== 'no') return;
+  if (empresa === false && !prev.empresa && !prev.biz && photo !== 'si' && photo !== 'no') return;
+  // La misma prueba de hace menos de un día no se vuelve a escribir: el
+  // nombre verificado viaja en CADA mensaje de una cuenta Business, y sin
+  // esto era un fichero entero a disco por mensaje.
+  if (esEmpresa && photo !== 'si' && photo !== 'no' && prev.empresa
+      && Date.now() - prev.empresa.ts < 24 * 60 * 60 * 1000
+      && String(prev.empresa.campos) === String(empresa.slice(0, 6))) return;
   const next = { ...prev };
+  // La ficha vieja pasa a la forma nueva con SU fecha, antes de que `ts` se
+  // mueva por otra cosa (una foto) y la rejuvenezca.
+  if (next.biz && !next.empresa) next.empresa = { ts: prev.ts || 0, campos: ['nombre verificado de negocio'] };
+  delete next.biz;
 
   if (esEmpresa) next.empresa = { ts: Date.now(), campos: empresa.slice(0, 6) };
   else if (empresa === false) delete next.empresa;
   if (photo === 'si' || photo === 'no') next.photo = photo;
 
-  if (!esEmpresa && Boolean(next.empresa) === Boolean(prev.empresa) && next.photo === prev.photo) return;
+  if (!esEmpresa && Boolean(next.empresa) === Boolean(prev.empresa || prev.biz) && !prev.biz && next.photo === prev.photo) return;
   next.ts = Date.now();
   store[GLOBAL][key] = next;
 
@@ -157,6 +167,9 @@ async function dispositivosDesde() {
 // su perfil hace medio año.
 const EMPRESA_VALIDA_MS = 30 * 24 * 60 * 60 * 1000;
 const empresaVigente = (e) => Boolean(e && e.ts && Date.now() - e.ts < EMPRESA_VALIDA_MS);
+// La ficha vieja (`biz: true`) es la misma prueba, con la fecha de la ficha.
+const empresaDe = (rec) => rec.empresa
+  || (rec.biz ? { ts: rec.ts || 0, campos: ['nombre verificado de negocio'] } : null);
 
 async function getMemberFacts(forms) {
   await load();
@@ -169,13 +182,15 @@ async function getMemberFacts(forms) {
     const rec = bucket[bareJid(f)];
     if (!rec) continue;
     if (!out) {
-      const { biz: _viejo, empresa, ...resto } = rec;
+      const { biz: _viejo, empresa: _e, ...resto } = rec;
       out = { ...resto, disp: rec.disp ? { ...rec.disp } : undefined };
-      if (empresaVigente(empresa)) out.empresa = empresa;
+      const e = empresaDe(rec);
+      if (empresaVigente(e)) out.empresa = e;
       continue;
     }
     // La más reciente de todas sus formas.
-    if (empresaVigente(rec.empresa) && (!out.empresa || rec.empresa.ts > out.empresa.ts)) out.empresa = rec.empresa;
+    const e = empresaDe(rec);
+    if (empresaVigente(e) && (!out.empresa || e.ts > out.empresa.ts)) out.empresa = e;
     if (rec.photo) out.photo = rec.photo;
     // Los mensajes se SUMAN entre formas; el último es el más reciente de todas.
     if (rec.disp) {

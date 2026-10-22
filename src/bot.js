@@ -1400,12 +1400,10 @@ async function connectToWhatsApp() {
       // era publicar en el grupo el nombre real de quien no lo ha dado nunca.
       //
       // Tampoco verifiedName: ese rotulo lleva el nombre fiscal de la cuenta.
-      //
-      // Y de verifiedName TAMPOCO se saca ya que sea empresa (22 oct). Lo lleva
-      // toda cuenta de la app Business, tambien quien la usa de WhatsApp normal
-      // con la categoria «No es una empresa», y fichar por eso echaba a gente
-      // que no lo era. Lo que decide es su perfil (businessCheck.js).
       const nombre = c?.notify;
+      // verifiedName solo lo lleva una cuenta de WhatsApp Business: prueba
+      // directa, se apunta con su fecha (caduca a los 30 dias, nickStore.js).
+      const biz = Boolean(c?.verifiedName);
       // imgUrl: null o 'removed' = sin foto; 'changed' o una url = con foto.
       const photo = c?.imgUrl === null || c?.imgUrl === 'removed' ? 'no'
                   : (typeof c?.imgUrl === 'string' && c.imgUrl) ? 'si' : undefined;
@@ -1417,10 +1415,10 @@ async function connectToWhatsApp() {
       // recordName ya guarda bajo todas las formas que se le pasen, asi que va
       // una sola llamada con las tres.
       if (nombre) recordName([c.id, c.lid, c.phoneNumber], nombre).catch(() => {});
-      if (!photo) continue;
+      if (!biz && !photo) continue;
       n++;
       for (const jid of [c.id, c.lid, c.phoneNumber]) {
-        if (jid) recordFacts(jid, { photo }).catch(() => {});
+        if (jid) recordFacts(jid, { photo, ...(biz ? { empresa: ['nombre verificado de negocio'] } : {}) }).catch(() => {});
       }
     }
     return n;
@@ -1448,7 +1446,7 @@ async function connectToWhatsApp() {
   sock.ev.on('messaging-history.set', ({ contacts, lidPnMappings }) => {
     const n = guardarContactos(contacts);
     const k = guardarMapeos(lidPnMappings);
-    if (n) logger.info(`cuentas: ${n} fichas de foto aprendidas de la sincronizacion de WhatsApp`);
+    if (n) logger.info(`cuentas: ${n} fichas (business/foto) aprendidas de la sincronizacion de WhatsApp`);
     if (k) logger.info(`jid: ${k} correspondencias LID-teléfono aprendidas de WhatsApp`);
     // Se dice en voz alta porque es lo que decide si el top en gris sale con
     // nombres o con huecos, y no hay forma de verlo desde el grupo sin esperar
@@ -1501,7 +1499,7 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
 
       await banAccount(allForms(kickId, meta), `cuenta business al entrar en ${groupJid} (${ev.fields.join(', ')})`, 'auto').catch(() => {});
       sock.sendMessage(groupJid, {
-        text: `*Anti-empresa:* @${kickId.split('@')[0]} es una cuenta de empresa (${ev.fields.join(', ')}). Expulsada y vetada.`,
+        text: `*Anti-empresa:* @${kickId.split('@')[0]} es cuenta de WhatsApp Business. Expulsada y vetada.`,
         mentions: [kickId],
       }).catch(() => {});
     } catch (e) {
@@ -1629,11 +1627,11 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
           const facts = await getMemberFacts([
             kickId, phoneJid, participante?.id, participante?.lid, participante?.phoneNumber,
           ]).catch(() => null);
-          // EL PERFIL DE HOY MANDA SOBRE LA FICHA. La ficha (una comprobacion
-          // de este mes; la vieja por el nombre verificado ya no cuenta) solo
-          // decide cuando no se puede preguntar: sin telefono, o si la
-          // consulta no contesta. Con telefono se mira el perfil, que puede
-          // haber pasado a «No es una empresa» desde que se apunto.
+          // EL PERFIL DE HOY MANDA SOBRE LA FICHA. La ficha (de este mes) solo
+          // decide cuando no se puede preguntar: sin telefono, o si la consulta
+          // no contesta. Con telefono se mira el perfil: quien ha dejado la app
+          // Business es una cuenta normal, y echarla por una ficha vieja era lo
+          // que el dueño veia como «expulsa cuentas que no lo son».
           let biz = false;
           let evidencia = [];
           let deFicha = false;
@@ -1700,7 +1698,7 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
             await banAccount(allForms(kickId, meta), `cuenta business al entrar en ${groupJid} (${evidencia.join(', ') || 'perfil'})`, 'auto').catch(() => {});
             const num = kickId.split('@')[0];
             sock.sendMessage(groupJid, {
-              text: `*Anti-empresa:* @${num} es una cuenta de empresa (${evidencia.join(', ')}). Expulsada y vetada.`,
+              text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada y vetada.`,
               mentions: [kickId],
             }).catch((e) => logger.warn(`Anti-empresa: send fallo en ${groupJid}: ${e.message}`));
           } catch (err) {

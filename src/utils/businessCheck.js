@@ -19,11 +19,8 @@
 // una cuenta NORMAL. WhatsApp lo manda a todo el mundo, y tratarlo como Business
 // expulsó gente personal. Esa lección se queda.
 //
-// Y la segunda, del 22 oct: usar la app WhatsApp Business no es ser una
-// empresa. Quien la usa de WhatsApp normal marca la categoría «No es una
-// empresa», y contar cualquier categoría (o el nombre verificado de sus
-// mensajes) como prueba la echaba y la vetaba. Aquí solo cuenta lo que rellena
-// un negocio; ver más abajo.
+// Lo que se busca es LA APP, no el negocio (dueño, 22 oct): toda cuenta de
+// WhatsApp Business, también la que marca «No es una empresa». Ver más abajo.
 
 // POLARIDAD DE LA CACHÉ. Antes era una hora para todo, y eso le daba salvoconducto
 // a quien saliera 'personal' por un timeout. Una cuenta Business no deja de serlo
@@ -54,9 +51,9 @@ function cacheGet(jid) {
   return c.value;
 }
 
-// LA CATEGORÍA «NO ES UNA EMPRESA», en los idiomas en que puede llegar. El bot
-// se presenta a WhatsApp en inglés («Not a Business»), pero el nombre puede
-// venir en el idioma de la cuenta, y la API de Meta la llama NOT_A_BIZ.
+// LA CATEGORÍA «NO ES UNA EMPRESA», en los idiomas en que puede llegar. No
+// salva a nadie (es la del catfish): sirve para contarla aparte en
+// *!antiempresa precision*.
 const NO_ES_EMPRESA = /^not[\s_]+a[\s_]+biz|\bnot\s+a\s+business\b|\bno\s+es\s+(?:una?\s+)?(?:empresa|negocio)|\bn[ãa]o\s+[ée]\s+(?:uma?\s+)?(?:empresa|neg[óo]cio)|\bpas\s+une?\s+(?:entreprise|commerce)|\bkein\s+unternehmen|\bnon\s+[èe]\s+un/i;
 // Y la que no es ninguna: la API de Meta tiene UNDEFINED para «sin definir».
 const SIN_CATEGORIA = /^(?:undefined|none|null|sin\s+definir|no\s+definida)$/i;
@@ -92,43 +89,53 @@ async function businessEvidence(sock, jid) {
 
   const filled = v => typeof v === 'string' && v.trim().length > 0;
 
-  // ─── «NO ES UNA EMPRESA» NO ES UNA EMPRESA (22 oct) ─────────────────────
+  // ─── TODA CUENTA BUSINESS CUENTA, TAMBIÉN «NO ES UNA EMPRESA» ─────────────
   //
-  // El dueño: «hay veces que también expulsa cuentas que no lo son». Y era
-  // esto. Mucha gente usa la app WhatsApp Business como su WhatsApp de diario
-  // (para llevar dos números en un móvil, sobre todo), y al configurarla
-  // WhatsApp pide una categoría. Una de ellas es «No es una empresa»
-  // (NOT_A_BIZ en la API de Meta). Aquí contaba CUALQUIER categoría como
-  // prueba, así que a quien marcaba justo esa se le echaba y se le vetaba por
-  // ser empresa, con su perfil diciendo lo contrario.
+  // El dueño, 22 oct: «el bot debe eliminar precisamente las cuentas de
+  // WhatsApp Business, por ser las que más catfish suelen ser». Lo que se
+  // busca es LA APP, no el negocio. El catfish abre WhatsApp Business, deja la
+  // ficha en blanco y marca la categoría «No es una empresa» (NOT_A_BIZ en la
+  // API de Meta) para parecer una persona cualquiera. Esa categoría es justo
+  // la que lo delata: una cuenta de WhatsApp normal no tiene ninguna.
   //
-  // Lo mismo con la descripción: en la app Business ocupa el sitio del «info»,
-  // y una persona pone ahí su frase. No es un dato de negocio.
-  //
-  // Lo que queda como prueba es lo que solo rellena un negocio: una categoría
-  // de verdad, una dirección, un horario, y el correo o la web cuando no ha
-  // dicho que no es una empresa. Quien marca «No es una empresa» solo cae si
-  // además tiene dirección u horario, que es una tienda diga lo que diga.
+  // (Ese mismo día lo leí al revés y dejé de contar «No es una empresa» y la
+  // descripción. Quedó deshecho en cuanto el dueño lo dijo: no se vuelve a
+  // hacer.)
   const categoria = filled(profile?.category) ? profile.category.trim() : '';
-  const noEsEmpresa = categoria && NO_ES_EMPRESA.test(categoria);
   const sinCategoria = !categoria || SIN_CATEGORIA.test(categoria);
   const fields = [];
-  if (!sinCategoria && !noEsEmpresa) fields.push(`categoría «${categoria.slice(0, 40)}»`);
+  if (!sinCategoria) fields.push(`categoría «${categoria.slice(0, 40)}»`);
+  if (filled(profile?.email)) fields.push('email');
   if (filled(profile?.address)) fields.push('dirección');
+  if (filled(profile?.description)) fields.push('descripción');
+  if (Array.isArray(profile?.website) && profile.website.some(w => filled(String(w)))) fields.push('web');
   const cfg = profile?.business_hours?.business_config;
   if (Array.isArray(cfg) && cfg.length > 0) fields.push('horario');
-  if (!noEsEmpresa) {
-    if (filled(profile?.email)) fields.push('email');
-    if (Array.isArray(profile?.website) && profile.website.some(w => filled(String(w)))) fields.push('web');
-  }
-  // Las portadas, las «opciones de perfil» y la ficha de comercio estaban aquí
-  // como prueba del suplantador con la ficha en blanco. Baileys no las trae
-  // nunca (Socket/chats.js, getBusinessProfile), así que no decidían nada; y
-  // si algún día llegan, existir en una cuenta de la app Business no dice que
-  // sea un negocio. Fuera.
 
-  // La categoría va siempre, también cuando no es empresa: *!antiempresa
-  // precision* la enseña para que se vea qué dice cada perfil.
+  // Campos que solo existen en cuentas Business aunque la ficha esté vacía.
+  // Van aparte porque son MÁS DÉBILES: dependen de qué aplane Baileys en cada
+  // versión. Si algún día dejan de venir, el detector pierde este caso pero no
+  // empieza a acusar a nadie.
+  //
+  // EXISTIR NO ES TENER CONTENIDO: en JavaScript `{}` es verdadero, y un
+  // `if (profile[campo])` marcaba como negocio a una cuenta NORMAL con un
+  // `profile_options: {}` vacío. Tres falsos positivos medidos.
+  const conContenido = (v) => {
+    if (v == null) return false;
+    if (typeof v === 'string') return v.trim().length > 0;
+    if (Array.isArray(v)) return v.length > 0;
+    if (typeof v === 'object') return Object.keys(v).length > 0;
+    return Boolean(v);
+  };
+  for (const [campo, etiqueta] of [
+    ['cover_photo', 'foto de portada de negocio'],
+    ['profile_options', 'opciones de perfil de negocio'],
+    ['commerce_experience', 'ficha de comercio'],
+  ]) {
+    if (conContenido(profile?.[campo]) && !fields.includes(etiqueta)) fields.push(etiqueta);
+  }
+
+  // La categoría va siempre: *!antiempresa precision* la enseña.
   const value = fields.length
     ? { estado: 'biz', fields, categoria }
     : { estado: 'personal', fields: [], categoria };

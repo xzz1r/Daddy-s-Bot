@@ -101,16 +101,21 @@ el orden (cerrar antes de avisar, echar antes de anunciar) viven en
 `src/utils/spamTexto.js` y en `castigarSpamTexto`. Las frases están en
 `src/data/spamPhrases.js`. La capa 125 lo vigila. Ver `MOTOR.md`.
 
-## El anti-empresa echa empresas, no la app
+## El anti-empresa echa TODA cuenta de WhatsApp Business
 
-Lo pidió el dueño (22 oct): «hay veces que también expulsa cuentas que no lo
-son». Usar la app WhatsApp Business no es ser una empresa: mucha gente la usa
-de WhatsApp normal con la categoría «No es una empresa». Decide el perfil
-(`src/utils/businessCheck.js`): categoría de verdad, dirección, horario, y
-correo o web si no ha dicho que no es una empresa. Ni el nombre verificado de
-sus mensajes ni la descripción echan a nadie. Lo comprobado vale 30 días, y
-un veto viejo del anti-empresa se revisa al volver a entrar. Cuánto acierta
-lo mide el propio bot: `!antiempresa precision`. Capas 9 y 137. Ver `MOTOR.md`.
+Lo dijo el dueño (22 oct): «el bot debe eliminar precisamente las cuentas de
+WhatsApp Business, por ser las que más catfish suelen ser». Se busca **la
+app, no el negocio**: también la que marca la categoría «No es una empresa»,
+que es justo la del catfish. Prueba: el nombre verificado de sus mensajes
+(solo lo lleva Business) o cualquier dato de su perfil de empresa
+(`src/utils/businessCheck.js`). Ese mismo día se leyó al revés y se dejó de
+echar a «No es una empresa»: quedó deshecho y **no se vuelve a hacer**.
+
+Lo que sí se arregló es lo que echaba cuentas normales: la ficha caduca a los
+30 días, el perfil de hoy manda sobre ella (quien dejó la app Business es una
+cuenta normal), y un veto viejo del anti-empresa se revisa al volver a
+entrar. Cuánto acierta lo mide el bot: `!antiempresa precision`. Capas 9 y
+137. Ver `MOTOR.md`.
 
 ## La peña activa se halaga, sin veneno
 

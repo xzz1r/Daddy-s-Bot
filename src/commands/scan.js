@@ -99,9 +99,8 @@ async function cmdScan(sock, msg, groupMeta) {
   // La prueba observada va primero porque es gratis: esta en disco y no gasta
   // una consulta de red.
   const pasadaBiz = async () => {
-    // Solo una comprobación de perfil de este mes. La ficha vieja por el
-    // nombre verificado ya no cuenta: lo lleva también quien usa la app
-    // Business con «No es una empresa» (ver businessCheck.js).
+    // Lo apuntado este mes: el nombre verificado de sus mensajes o su perfil
+    // (ver businessCheck.js).
     const porFacts = async (id, phone) => {
       const f = await getMemberFacts([id, phone].filter(Boolean)).catch(() => null);
       return f?.empresa ? f.empresa.campos : null;
@@ -158,7 +157,7 @@ async function cmdScan(sock, msg, groupMeta) {
   if (bizCount > 0) {
     const bizLines = [...bizMap.entries()]
       .map(([j, fields]) => `• @${(phoneToId.get(j) || j).split('@')[0]} — ${fields.join(', ')}`);
-    text += `*Cuentas de empresa (${bizCount}):*\n${bizLines.join('\n')}\n\n`;
+    text += `*Cuentas Business (${bizCount}):*\n${bizLines.join('\n')}\n\n`;
   }
 
   // "Sin foto" va como cifra, no como lista: expulsar por esto es cosa de

@@ -405,9 +405,9 @@ async function cmdFk(sock, msg, args, groupMeta) {
   // suma, que es la diferencia entre informar y acusar.
   if (biz?.estado === 'biz') {
     score += 2;
-    lines.push(`*Cuenta de empresa* (${biz.fields.join(', ')}).`);
+    lines.push(`*Cuenta WhatsApp Business* (${biz.fields.join(', ')}).`);
   } else if (biz?.estado === 'desconocido') {
-    lines.push(`Empresa: sin comprobar (no responde o el número está oculto).`);
+    lines.push(`Business: sin comprobar (no responde o el número está oculto).`);
   }
 
   // Número oculto (solo LID, sin mapeo a teléfono conocido).
@@ -689,15 +689,16 @@ async function cmdAntiFake(sock, msg, args, groupMeta) {
 // gaste una consulta de foto en alguien que ya esta fuera.
 // ─── UN VETO DEL ANTI-EMPRESA SE VUELVE A MIRAR (22 oct) ────────────────────
 //
-// Hasta hoy el anti-empresa echaba y vetaba a toda cuenta de la app WhatsApp
-// Business, también a quien la usa de WhatsApp normal con la categoría «No es
-// una empresa». Esos vetos siguen en la lista negra, que vale para todos los
-// grupos, y sin esto esa gente no podía volver a entrar nunca.
+// El dueño: «hay veces que también expulsa cuentas que no lo son». Una cuenta
+// que dejó la app Business (o a la que se fichó por una ficha vieja) es hoy una
+// cuenta de WhatsApp normal, y su veto, que vale para todos los grupos, la
+// dejaba fuera para siempre.
 //
-// Así que un veto puesto por el anti-empresa no se cumple a ciegas: se mira el
-// perfil otra vez con la regla de ahora. Si no es una empresa, se levanta y se
-// queda dentro. Si lo es, o no se puede saber, el veto sigue como estaba. Los
-// vetos puestos a mano, o por otra guarda, no se tocan.
+// Así que un veto puesto por el anti-empresa no se cumple a ciegas: se mira su
+// perfil otra vez. Si hoy es una cuenta normal, se levanta y se queda dentro.
+// Si sigue siendo Business (también con «No es una empresa»), o no se puede
+// saber, el veto sigue. Los vetos puestos a mano, o por otra guarda, no se
+// tocan.
 const esVetoDeEmpresa = (v) => v?.by === 'auto' && /^cuenta business/i.test(String(v.reason || ''));
 
 async function vetoDeEmpresaSigue(sock, obj, veto, forms) {
@@ -709,7 +710,7 @@ async function vetoDeEmpresaSigue(sock, obj, veto, forms) {
   if (ev.estado !== 'personal') return true;
   await unbanAccount([...forms, ...(veto.aka || []), tel]).catch(() => {});
   for (const f of new Set([...forms, tel])) await recordFacts(f, { empresa: false }).catch(() => {});
-  logger.info(`Anti-empresa: levanto el veto de ${tel} (${veto.reason}): su perfil no es de empresa`);
+  logger.info(`Anti-empresa: levanto el veto de ${tel} (${veto.reason}): hoy es una cuenta normal`);
   return false;
 }
 

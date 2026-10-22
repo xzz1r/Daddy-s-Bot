@@ -6,7 +6,7 @@ const logger = require('../utils/logger');
 const config = require('../config');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled, toggleSoloAdmins, isSoloAdminsEnabled, toggleAutoAceptar, isAutoAceptarEnabled, vistoActivo, ponerVisto } = require('../utils/state');
 const { aceptarPendientes } = require('../utils/joinRequests');
-const { businessEvidence, NO_ES_EMPRESA } = require('../utils/businessCheck');
+const { businessEvidence } = require('../utils/businessCheck');
 const { getMemberFacts, recordFacts } = require('../utils/nickStore');
 const { banAccount, unbanAccount, listBanned } = require('../utils/banlist');
 const { aplicarParticipantes, aplicarAUno } = require('../utils/participantes');
@@ -961,8 +961,8 @@ async function detectBusinesses(sock, idToPhone) {
     const chunk = entries.slice(i, i + CONC);
     const results = await Promise.all(chunk.map(async ([kickId, phoneJid]) => {
       // EL PERFIL DE HOY MANDA SOBRE LA FICHA, igual que al entrar y al
-      // escribir. La ficha (una comprobación de este mes; la vieja por el
-      // nombre verificado ya no cuenta) solo decide si no se puede preguntar.
+      // escribir. La ficha (de este mes) solo decide si no se puede preguntar:
+      // quien ha dejado la app Business es una cuenta normal.
       const facts0 = await getMemberFacts([kickId, phoneJid]).catch(() => null);
       const porFicha = (ev) => (facts0?.empresa
         ? { kickId, ev: { estado: 'biz', fields: facts0.empresa.campos, deFicha: true } }
@@ -1027,14 +1027,14 @@ async function scanBusinesses(sock, msg, groupJid, groupMeta) {
 
   if (!detected.length) {
     return sock.sendMessage(groupJid, {
-      text: 'No se detectaron cuentas de empresa entre los miembros.' + pieDudas,
+      text: 'No se detectaron cuentas Business entre los miembros.' + pieDudas,
     });
   }
 
   const lines = detected.map(d => `@${d.kickId.split('@')[0]} — ${d.fields.join(', ')}`);
   return sock.sendMessage(groupJid, {
     text:
-      `*Cuentas de empresa (${detected.length})* — con su evidencia:\n\n` +
+      `*Business detectados (${detected.length})* — con su evidencia:\n\n` +
       lines.join('\n') + pieDudas +
       // EL SCAN DICE CUAL ES EL PASO SIGUIENTE. Decia "esto no expulsa a nadie"
       // y se quedaba ahi, sin nombrar *!antiempresa purge*, que es lo unico que
@@ -1059,7 +1059,7 @@ async function purgeBusinesses(sock, msg, groupJid, groupMeta) {
 
   if (!last.detected.length) {
     return sock.sendMessage(groupJid, {
-      text: 'El último scan no detectó ninguna cuenta de empresa. No hay nada que purgar.',
+      text: 'El último scan no detectó ninguna cuenta Business. No hay nada que purgar.',
     }, { quoted: msg });
   }
 
@@ -1096,7 +1096,7 @@ async function purgeBusinesses(sock, msg, groupJid, groupMeta) {
     return sock.sendMessage(groupJid, {
       text: r.spared.length
         ? 'No queda nadie a quien expulsar: los detectados ya no se pueden tocar.'
-        : 'Las cuentas de empresa detectadas ya no están en el grupo.',
+        : 'Los Business detectados ya no están en el grupo.',
     }, { quoted: msg });
   }
 
@@ -1110,8 +1110,9 @@ async function purgeBusinesses(sock, msg, groupJid, groupMeta) {
 // sesión. Así que se mide aquí: a cada cuenta que el anti-empresa ha echado y
 // vetado se le mira el perfil HOY, con la regla de ahora (businessCheck.js).
 //
-//   acierto → su perfil tiene datos de negocio
-//   fallo   → no los tiene: «No es una empresa», o nada de negocio
+//   acierto → sigue siendo cuenta de WhatsApp Business (cualquier dato de
+//             su perfil de empresa, «No es una empresa» incluida)
+//   fallo   → es una cuenta de WhatsApp normal: su perfil no tiene nada
 //   sin comprobar → número oculto o el perfil no contesta. No cuentan para el
 //                   porcentaje: no son ni lo uno ni lo otro.
 //
@@ -1167,34 +1168,23 @@ async function medirPrecision(sock, msg, jid) {
 
     const mirados = aciertos.length + fallos.length;
     const pct = mirados ? Math.round((aciertos.length / mirados) * 100) : null;
-    const noEsEmpresa = fallos.filter((f) => NO_ES_EMPRESA.test(f.categoria)).length;
     const MAX = 20;
     const lista = (filas, linea) => filas.slice(0, MAX).map(linea).join('\n')
       + (filas.length > MAX ? `\n_y ${filas.length - MAX} más._` : '');
 
-    // Las categorías de las que sí eran empresa: es donde se ve si queda algún
-    // caso dudoso (una persona con «Otros negocios», por ejemplo).
-    const porCategoria = new Map();
-    for (const a of aciertos) {
-      const k = a.categoria || 'sin categoría (dirección, horario, correo o web)';
-      porCategoria.set(k, (porCategoria.get(k) || 0) + 1);
-    }
-    const categorias = [...porCategoria.entries()].sort((x, y) => y[1] - x[1])
-      .map(([k, n]) => `${k} ${n}`).join(' · ');
 
     let texto = `*Anti-empresa: precisión*\n\n` +
       `Ha vetado *${personas.length}* ${personas.length === 1 ? 'cuenta' : 'cuentas'}. Su perfil hoy:\n` +
-      `• Eran empresa: *${aciertos.length}*\n` +
-      `• No lo eran: *${fallos.length}*` + (noEsEmpresa ? ` (${noEsEmpresa} con «No es una empresa»)` : '') + `\n` +
+      `• Son WhatsApp Business: *${aciertos.length}*\n` +
+      `• Son WhatsApp normal: *${fallos.length}*\n` +
       `• Sin comprobar: *${dudas.length}*` + (dudas.length ? ' _(número oculto o el perfil no contesta)_' : '') + `\n\n` +
       (pct === null
         ? '_No se ha podido mirar ningún perfil: no hay porcentaje que dar._'
         : `*Precisión: ${pct} %* — ${aciertos.length} de las ${mirados} que se han podido mirar.`);
-    if (categorias) texto += `\n\n*Las que eran empresa, por categoría:*\n${categorias}`;
     if (fallos.length) {
-      texto += `\n\n*Las que no lo eran:*\n` +
-        lista(fallos, (f) => `${shortAcc(f.cuenta)} — ${f.categoria ? `«${f.categoria}»` : 'sin datos de negocio'}`) +
-        `\n\n_Con la regla de ahora no se habrían echado. Su veto se quita solo cuando vuelvan a entrar; para quitarlo ya: *!antiempresa precision levantar* (en ${Math.round(PRECISION_VALIDA_MS / 60000)} min)._`;
+      texto += `\n\n*Las que son WhatsApp normal:*\n` +
+        lista(fallos, (f) => shortAcc(f.cuenta)) +
+        `\n\n_O dejaron la app Business o nunca la tuvieron. Su veto se quita solo cuando vuelvan a entrar; para quitarlo ya: *!antiempresa precision levantar* (en ${Math.round(PRECISION_VALIDA_MS / 60000)} min)._`;
     }
     return sock.sendMessage(jid, { text: texto }, { quoted: msg });
   } finally {
@@ -1210,7 +1200,7 @@ async function levantarFallos(sock, msg, jid) {
   }
   const { fallos } = ultimaPrecision;
   if (!fallos.length) {
-    return sock.sendMessage(jid, { text: 'En la última medida no salió ninguna que no fuera empresa. No hay veto que quitar.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'En la última medida no salió ninguna cuenta normal. No hay veto que quitar.' }, { quoted: msg });
   }
   let quitados = 0;
   for (const f of fallos) {
@@ -1218,9 +1208,9 @@ async function levantarFallos(sock, msg, jid) {
     for (const forma of f.forms) await recordFacts(forma, { empresa: false }).catch(() => {});
   }
   ultimaPrecision = null;
-  logger.info(`Anti-empresa: veto quitado a ${quitados} cuentas que no eran empresa (precision levantar)`);
+  logger.info(`Anti-empresa: veto quitado a ${quitados} cuentas normales (precision levantar)`);
   return sock.sendMessage(jid, {
-    text: `Veto quitado a *${quitados}* ${quitados === 1 ? 'cuenta que no era empresa. Puede' : 'cuentas que no eran empresa. Pueden'} volver a entrar.`,
+    text: `Veto quitado a *${quitados}* ${quitados === 1 ? 'cuenta normal. Puede' : 'cuentas normales. Pueden'} volver a entrar.`,
   }, { quoted: msg });
 }
 

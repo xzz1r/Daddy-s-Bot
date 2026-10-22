@@ -392,72 +392,65 @@ prueban las capas 111 y 125.
 
 ---
 
-## El anti-empresa: empresas, no la app
+## El anti-empresa: toda cuenta de WhatsApp Business
 
-`!antiempresa` echa y veta a las cuentas de empresa. Hasta el 22 oct echaba
-también a gente que no lo era (el dueño: «hay veces que también expulsa
-cuentas que no lo son»), y era por dos cosas:
+`!antiempresa` echa y veta a **toda cuenta de WhatsApp Business**. El dueño
+(22 oct): «el bot debe eliminar precisamente las cuentas de WhatsApp
+Business, por ser las que más catfish suelen ser». Se busca la app, no el
+negocio. El catfish abre WhatsApp Business, deja la ficha en blanco y marca
+la categoría «No es una empresa» (`NOT_A_BIZ` en la API de Meta) para parecer
+una persona: esa categoría también cuenta, y es la que más importa.
 
-- **La categoría «No es una empresa».** Mucha gente usa la app WhatsApp
-  Business como su WhatsApp de diario, sobre todo para llevar dos números en
-  un móvil, y al configurarla marca esa categoría (`NOT_A_BIZ` en la API de
-  Meta). El bot contaba cualquier categoría como prueba.
-- **El nombre verificado del mensaje** (`msg.verifiedBizName`). Lo lleva toda
-  cuenta de la app Business, sea una tienda o una persona, y se fichaba por
-  él en cualquier grupo, con el modo encendido o no, para siempre.
+**Qué prueba que es Business:**
 
-Ahora decide el **perfil de empresa** (`src/utils/businessCheck.js`), y solo
-cuenta lo que rellena un negocio:
+- el **nombre verificado** que WhatsApp pone en cada mensaje suyo
+  (`msg.verifiedBizName`) o en su contacto (`verifiedName`): solo lo lleva
+  una cuenta Business. Echa sin consultar nada, también con @lid;
+- **cualquier dato de su perfil de empresa** (`src/utils/businessCheck.js`):
+  categoría (cualquiera, «No es una empresa» incluida), descripción, correo,
+  web, dirección, horario. Una cuenta de WhatsApp normal no tiene ninguno.
 
-| En el perfil | ¿Empresa? |
-|---|---|
-| una categoría de verdad («Tienda», «Ropa», «Otros negocios»…) | sí |
-| dirección u horario | sí, diga la categoría lo que diga |
-| correo o web | sí, salvo con «No es una empresa» |
-| «No es una empresa», sin dirección ni horario | no |
-| solo la descripción | no: en la app ocupa el sitio del «info» |
+> El 22 oct se leyó al revés («expulsa cuentas que no lo son» como «gente
+> que usa Business sin ser empresa») y se dejó de echar a «No es una
+> empresa». Quedó deshecho en cuanto el dueño lo dijo. No se vuelve a hacer.
 
-- El nombre verificado del mensaje solo dice que hay que mirar el perfil. Sin
-  teléfono no hay consulta, y sin consulta no se echa a nadie: se busca el
-  número en la sesión (`resolverLid`) y, si no está, se espera a otro mensaje.
-- Lo comprobado se apunta como `empresa` (`nickStore.js`), con su fecha y los
-  campos que lo delatan, y **vale 30 días**. Si una consulta posterior dice
-  que no es una empresa, se borra. La ficha vieja `biz: true` sigue en
-  `data/nicks.json` y ya no se lee.
+**Lo que echaba cuentas normales, y ya no:**
+
+- **La ficha no caducaba.** Quien había usado Business una vez y se pasó a
+  WhatsApp normal seguía fichado para siempre, y vetado en todos los grupos.
+  Ahora la ficha (`empresa` en `nickStore.js`, con su fecha; la vieja
+  `biz: true` se lee igual con la fecha de la ficha) vale **30 días**.
 - **El perfil de hoy manda sobre la ficha.** Al entrar, al escribir y en el
-  scan, con teléfono se mira el perfil; la ficha solo decide cuando no se
-  puede preguntar (sin número, o la consulta no contesta), y echar por ella
-  no la renueva.
-- **Los vetos viejos se revisan solos.** Un veto puesto por el anti-empresa
+  scan, con teléfono se mira el perfil: si hoy es una cuenta normal, se queda
+  y la ficha se borra. La ficha solo decide cuando no se puede preguntar (sin
+  número, o la consulta no contesta), y echar por ella no la renueva. Sin
+  número en la metadata, se busca en la sesión (`resolverLid`).
+- **Los vetos viejos se revisan solos.** Un veto del anti-empresa
   (`by: 'auto'`, motivo «cuenta business…») no se cumple a ciegas: cuando esa
-  persona vuelve a entrar o la meten, se le mira el perfil con la regla de
-  ahora y, si no es empresa, se levanta y se queda. Si lo es o no se puede
-  saber, sigue fuera. Los vetos puestos a mano no se tocan. `!fklist` los
-  enseña y `!fkunban` los quita a mano.
-- El aviso dice el porqué: «@x es una cuenta de empresa (categoría «Tienda»).
-  Expulsada y vetada». La categoría la ve cualquiera en su perfil.
+  persona vuelve a entrar o la meten, se le mira el perfil y, si hoy es una
+  cuenta normal, se levanta. Si sigue siendo Business o no se puede saber,
+  sigue fuera. Los puestos a mano no se tocan.
+
+El aviso en el grupo es corto: «@x es cuenta de WhatsApp Business. Expulsada
+y vetada». Lo que la delata (categoría, nombre verificado) va al log y al
+motivo del veto, no al grupo: ahí era ruido (dueño, 22 oct).
 
 **Medir cuánto acierta: `!antiempresa precision`** (dueño, en un grupo).
 Desde fuera no se puede: hace falta preguntarle a WhatsApp por cada perfil, y
 eso solo lo hace el bot con su sesión. A cada cuenta que el anti-empresa ha
-vetado (las de `by: 'auto'`; las vetadas a mano no cuentan) se le mira el
-perfil hoy con la regla de ahora:
+vetado (`by: 'auto'`; las vetadas a mano no cuentan) se le mira el perfil hoy:
 
-- **eran empresa** → tienen datos de negocio;
-- **no lo eran** → «No es una empresa» o nada de negocio;
+- **son WhatsApp Business** → acierto;
+- **son WhatsApp normal** → fallo: o dejaron la app o nunca la tuvieron;
 - **sin comprobar** → número oculto o el perfil no contesta. No entran en el
   porcentaje.
 
-Precisión = eran empresa ÷ (eran empresa + no lo eran). Enseña también las
-categorías de las que sí lo eran, que es donde se vería un caso dudoso (una
-persona con «Otros negocios»), y la lista de las que no. Va una a una, con el
-ritmo de `getBusinessProfile`: unos tres segundos por cuenta.
+Precisión = Business ÷ (Business + normales). Va una a una, con el ritmo de
+`getBusinessProfile`: unos tres segundos por cuenta.
 `!antiempresa precision levantar`, en los diez minutos siguientes, quita el
-veto a esas, y solo a esas.
+veto a las normales, y solo a esas.
 
-Lo que se pierde, a sabiendas: un suplantador que use la app Business y
-marque «No es una empresa» ya no cae por esto. Para eso están `!antifake` y
-`!fk`. Capas 9 (la regla, caso a caso) y 137 (el camino entero en una copia).
+Capas 9 (la regla, caso a caso) y 137 (el camino entero en una copia).
 
 ---
 
