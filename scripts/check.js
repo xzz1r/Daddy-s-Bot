@@ -22683,17 +22683,23 @@ const foto=async()=>[await a.getAura(G,U),await a.verCaja(G,U),await rs.verBote(
     } finally { fs.rmSync(dir134, { recursive: true, force: true }); }
     if (fallos === antes134) console.log(verde('   ✓ guardar cuesta, sacar cuesta más, todo al bote y al punto, y el banco sale en !saldo, !aura @alguien y !caso'));
   }
-  // ── 135. !ig SIN API NI SESIÓN: LOS ESPEJOS ANTES QUE YT-DLP ──────────────
+  // ── 135. !ig SIN API NI SESIÓN: VÍDEOS, FOTOS Y CARRUSELES POR LOS ESPEJOS ──
   //
   // El dueño, 21 oct: «el bot está teniendo problemas pasando cualquier video
-  // de !ig». Desde un servidor, Instagram le contesta 429 a yt-dlp y la página
-  // incrustada sale sin el vídeo. Los espejos (kkinstagram, eeinstagram) sí lo
-  // dan. Se prueba con la red fingida y en una copia aparte: el enlace como lo
-  // pegó el dueño, el primer espejo caído y el segundo bueno, que yt-dlp ni se
-  // toque si el espejo lo da, que una página de error no pase por vídeo y que
-  // el motivo final diga lo de los espejos.
+  // de !ig». Y el 22: «siguen habiendo demasiados errores con Ig, tanto en
+  // videos normales como fotos». Desde un servidor Instagram le contesta 429 a
+  // yt-dlp; los espejos sí lo dan. Pero las fotos no se pedían nunca, y los
+  // espejos InstaFix (ee, kk, to) dan la portada de muchos vídeos.
+  //
+  // Se prueba con la red fingida y en una copia aparte: un reel por el primer
+  // espejo, un carrusel de fotos en su orden y sin pasarse del último, uno
+  // mezclado, el primer espejo caído (y que luego vaya al final de la fila),
+  // un reel del que los InstaFix solo dan la portada (no se manda, se prueba
+  // yt-dlp), una foto cuando el espejo bueno cae, una página de error que
+  // dice ser vídeo, la cabecera de bot en cada petición y los enlaces de
+  // compartir.
   {
-    console.log('\n135. !ig SIN API NI SESIÓN: LOS ESPEJOS ANTES QUE YT-DLP');
+    console.log('\n135. !ig SIN API NI SESIÓN: VÍDEOS, FOTOS Y CARRUSELES POR LOS ESPEJOS');
     const antes135 = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
     // El orden, en el código: API, espejos, yt-dlp.
@@ -22708,6 +22714,7 @@ const foto=async()=>[await a.getAura(G,U),await a.verCaja(G,U),await rs.verBote(
       fs.writeFileSync(guion, `
 process.env.INSTAGRAM_API=''; process.env.REDES_API='';
 const fs=require('fs'),os=require('os'),path=require('path');
+const {Readable}=require('stream');
 const ROOT=fs.mkdtempSync(path.join(os.tmpdir(),'ig135-'));
 fs.cpSync(${json(path.join(R, 'src'))},path.join(ROOT,'src'),{recursive:true});
 fs.mkdirSync(path.join(ROOT,'data'));
@@ -22715,79 +22722,160 @@ fs.mkdirSync(path.join(ROOT,'temp'));   // el bot la crea al arrancar (ensureTem
 try{fs.symlinkSync(${json(path.join(R, 'node_modules'))},path.join(ROOT,'node_modules'),'dir');}catch{}
 const {execFileSync}=require('child_process');
 const {ffmpegPath}=require(path.join(ROOT,'src/utils/ffmpeg'));
-const clip=path.join(ROOT,'c.mp4'), pagina=path.join(ROOT,'p.html');
-execFileSync(ffmpegPath,['-hide_banner','-loglevel','error','-y','-f','lavfi','-i','testsrc=s=480x854:d=2',
-  '-f','lavfi','-i','sine=f=440:d=2','-c:v','libx264','-preset','veryfast','-crf','30','-c:a','aac','-shortest',clip]);
-fs.writeFileSync(pagina,'<html><body>Este espejo no está disponible</body></html>'.repeat(60));
+const ff=(a)=>execFileSync(ffmpegPath,['-hide_banner','-loglevel','error','-y',...a]);
+const clip=path.join(ROOT,'c.mp4');
+ff(['-f','lavfi','-i','testsrc=s=480x854:d=2','-f','lavfi','-i','sine=f=440:d=2','-c:v','libx264','-preset','veryfast','-crf','30','-c:a','aac','-shortest',clip]);
+// Tres fotos distintas, para ver que el orden es el de la publicación.
+const fotos=['red','green','blue'].map((c,i)=>{const f=path.join(ROOT,'f'+i+'.jpg');
+  ff(['-f','lavfi','-i','color=c='+c+':s='+(400+i*100)+'x'+(500+i*100)+':d=1','-frames:v','1',f]);return f;});
+const B={video:fs.readFileSync(clip),f:fotos.map((f)=>fs.readFileSync(f)),
+  pagina:Buffer.from('<html><body>Este espejo no está disponible</body></html>'.repeat(60))};
 const rutaDl=require.resolve(path.join(ROOT,'src/utils/downloader'));
 const dlReal=require(rutaDl);
-// Los espejos contestan por axios (el salto) y lo de verdad se baja del CDN.
-// cae: no hay espejo · video: salto a un vídeo · pagina: salto a algo que no es
-// un vídeo · html: contesta 200 con su página de error.
-const pedidos=[], bajados=[]; let ytdlpLlamado=0; let modo={};
-// El mismo axios que va a usar redes.js: el de la copia, no uno de al lado.
-const axios=require(require.resolve('axios',{paths:[path.join(ROOT,'src/utils')]}));
-axios.get=async(url)=>{
-  const host=new URL(url).host; pedidos.push(url);
-  const m=modo[host]||'cae';
-  if(m==='cae'){const e=new Error('getaddrinfo ENOTFOUND '+host); e.code='ENOTFOUND'; throw e;}
-  if(m==='html') return {status:200,headers:{'content-type':'text/html'},data:{destroy(){}}};
-  return {status:302,headers:{location:m==='video'?'https://cdn.invalid/v.mp4':'https://cdn.invalid/error.html'},data:{destroy(){}}};
-};
+let ytdlpLlamado=0;
 require.cache[rutaDl].exports=Object.assign({},dlReal,{
   acquireDownloadSlot:async()=>{}, releaseDownloadSlot:()=>{}, hayYtDlp:()=>false,
   ytdlp:async()=>{ytdlpLlamado++;throw new Error('Unable to download webpage: HTTP Error 403: Forbidden');},
-  downloadUrlToFile:async(url,dest)=>{
-    bajados.push(url);
-    fs.copyFileSync(/v\.mp4$/.test(url)?clip:pagina,dest);
-  },
+  downloadUrlToFile:async()=>{throw new Error('los espejos no bajan por aquí');},
 });
+// La red fingida. \`red\` dice qué contesta cada dirección; lo que no está, no
+// existe. El mismo axios que va a usar redes.js: el de la copia.
+const axios=require(require.resolve('axios',{paths:[path.join(ROOT,'src/utils')]}));
+const pedidos=[], agentes=new Set(); let red={};
+const resp=(status,tipo,cuerpo)=>({status,headers:tipo?{'content-type':tipo}:{},data:Readable.from([cuerpo||Buffer.alloc(0)])});
+axios.get=async(url,opc={})=>{
+  pedidos.push(url);
+  const host=new URL(url).host;
+  if(/instagram\\.com$/.test(host)&&!/^www\\./.test(host)) agentes.add((opc.headers||{})['User-Agent']);
+  const r=red[url]!==undefined?red[url]:Object.entries(red).find(([k])=>k.endsWith('*')&&url.startsWith(k.slice(0,-1)))?.[1];
+  if(r===undefined||r==='cae'){const e=new Error('getaddrinfo ENOTFOUND '+host); e.code='ENOTFOUND'; throw e;}
+  if(typeof r==='function') return r();
+  const [st,tipo,cuerpo]=r; return resp(st,tipo,cuerpo);
+};
+const V=[200,'video/mp4',B.video], F=(i)=>[200,'image/jpeg',B.f[i]], NO=[400,'text/plain',Buffer.from('no')];
+const oo=(c,i)=>'https://ooinstagram.com/media/p/'+c+'/?index='+i;
 const redes=require(path.join(ROOT,'src/utils/redes'));
+const intento=async(url)=>{
+  pedidos.splice(0); ytdlpLlamado=0;
+  try{const t=await redes.traer(url,'instagram');
+    const lote=t.medios||[t];
+    const out={lista:!!t.medios,medios:lote.map((m)=>({tipo:m.tipo,bytes:m.bytes,ok:fs.existsSync(m.fichero)}))};
+    for(const m of lote) fs.rmSync(m.fichero,{force:true});
+    return {...out,pedidos:pedidos.slice(),yt:ytdlpLlamado};}
+  catch(e){return {error:e.message,pedidos:pedidos.slice(),yt:ytdlpLlamado};}
+};
 (async()=>{
   const r={};
-  const url=redes.enlaceDe('1https://www.instagram.com/reel/AbC123_x/?vrfl=MWY0cnpveHp0MWgzZQ==','instagram');
-  r.url=url; r.codigos=['https://www.instagram.com/p/Zz9/','https://instagram.com/usuario/reel/Yy8/','https://www.instagram.com/tv/Xx7/','https://www.instagram.com/frndzz_b']
+  r.url=redes.enlaceDe('1https://www.instagram.com/reel/AbC123_x/?vrfl=MWY0cnpveHp0MWgzZQ==','instagram');
+  r.codigos=['https://www.instagram.com/p/Zz9/','https://instagram.com/usuario/reel/Yy8/','https://www.instagram.com/tv/Xx7/','https://www.instagram.com/frndzz_b','https://www.instagram.com/share/reel/BAxQ1/']
     .map((u)=>redes._codigoIg(u));
   r.hay=redes.hayComoTraer('instagram');
-  // A. El primero caído, el segundo con el vídeo.
-  modo={'kkinstagram.com':'cae','eeinstagram.com':'video'};
-  try{const t=await redes.traer(url,'instagram'); r.a={tipo:t.tipo,bytes:t.bytes}; fs.rmSync(t.fichero,{force:true});}
-  catch(e){r.a={error:e.message};}
-  r.pedidosA=pedidos.splice(0); r.bajadosA=bajados.splice(0); r.ytA=ytdlpLlamado;
-  // B. Uno salta a algo que no es un vídeo y el otro contesta con su página:
-  // nada pasa por vídeo, y se prueba yt-dlp.
-  modo={'kkinstagram.com':'pagina','eeinstagram.com':'html'}; ytdlpLlamado=0;
-  try{await redes.traer(url,'instagram'); r.b={error:null};}catch(e){r.b={error:e.message};}
-  r.pedidosB=pedidos.splice(0); r.ytB=ytdlpLlamado;
+  // A. Un reel: el primer espejo da el vídeo y dice que no hay segundo.
+  red={[oo('AbC123_x',0)]:V,[oo('AbC123_x',1)]:NO};
+  r.a=await intento(r.url);
+  // B. Un carrusel de tres fotos.
+  red={[oo('Car3',0)]:F(0),[oo('Car3',1)]:F(1),[oo('Car3',2)]:F(2),'https://ooinstagram.com/media/p/Car3/*':NO};
+  r.b=await intento('https://www.instagram.com/p/Car3/?img_index=1');
+  r.bFotos=B.f.map((b)=>b.length);
+  // C. Uno mezclado: foto y vídeo.
+  red={[oo('Mix2',0)]:F(0),[oo('Mix2',1)]:V,'https://ooinstagram.com/media/p/Mix2/*':NO};
+  r.c=await intento('https://www.instagram.com/p/Mix2/');
+  // D. El primero caído, el segundo con el vídeo. Y a la siguiente, el caído
+  // ya no va primero.
+  red={'https://ooinstagram.com/*':'cae','https://hhinstagram.com/proxy/video/Rr1':V,'https://hhinstagram.com/proxy/video/Rr2':V};
+  r.d=await intento('https://www.instagram.com/reel/Rr1/');
+  r.d2=await intento('https://www.instagram.com/reel/Rr2/');
+  redes._olvidarEspejosCaidos();
+  // E. Un reel del que los InstaFix solo dan la portada, y uno que dice vídeo
+  // con su página de error dentro: nada de eso se manda.
+  red={[oo('Pt1',0)]:NO,'https://hhinstagram.com/proxy/video/Pt1':[404,'application/json',Buffer.from('{}')],
+    'https://nninstagram.com/video/Pt1':[200,'video/mp4',B.pagina],
+    'https://eeinstagram.com/images/Pt1/1':F(0),'https://eeinstagram.com/images/Pt1/2':[200,'',null],
+    'https://eeinstagram.com/images/Pt1/*':[200,'',null],
+    'https://toinstagram.com/images/Pt1/1':F(0),'https://kkinstagram.com/videos/Pt1/1':F(0)};
+  r.e=await intento('https://www.instagram.com/reel/Pt1/');
+  redes._olvidarEspejosCaidos();
+  // F. Una foto suelta con el espejo bueno caído: sale la del InstaFix.
+  red={'https://ooinstagram.com/*':[502,'text/plain',Buffer.from('x')],'https://hhinstagram.com/proxy/video/Ft1':[404,'application/json',Buffer.from('{}')],
+    'https://nninstagram.com/video/Ft1':[200,'text/html',Buffer.from('Not a video post')],
+    'https://eeinstagram.com/images/Ft1/1':F(1),'https://eeinstagram.com/images/Ft1/*':[200,'',null],
+    'https://toinstagram.com/images/Ft1/1':F(1),'https://kkinstagram.com/videos/Ft1/1':F(1)};
+  r.f=await intento('https://www.instagram.com/p/Ft1/');
+  redes._olvidarEspejosCaidos();
+  r.agentes=[...agentes];
+  // H. Un reel que dice pesar 57 MB: se corta sin bajarlo, con las palabras
+  // que el comando dice en el grupo, y sin preguntar a otro espejo.
+  red={[oo('Gr4n',0)]:()=>({status:200,headers:{'content-type':'video/mp4','content-length':String(57*1048576)},data:Readable.from([B.video])}),[oo('Gr4n',1)]:NO,
+    'https://hhinstagram.com/proxy/video/Gr4n':V};
+  r.h=await intento('https://www.instagram.com/reel/Gr4n/');
+  // Y en un carrusel, ese vídeo se salta y el resto sale.
+  red={[oo('GrC',0)]:F(0),[oo('GrC',1)]:()=>({status:200,headers:{'content-type':'video/mp4','content-length':String(57*1048576)},data:Readable.from([B.video])}),
+    [oo('GrC',2)]:F(2),'https://ooinstagram.com/media/p/GrC/*':NO};
+  r.h2=await intento('https://www.instagram.com/p/GrC/');
+  // G. Un enlace de compartir: se pregunta a dónde salta.
+  red={'https://www.instagram.com/share/reel/BAxQ1/':()=>({status:200,headers:{},data:'',request:{res:{responseUrl:'https://www.instagram.com/reel/Sh4r3/?igsh=abc'}}})};
+  r.g=await redes._codigoDeCompartido('https://www.instagram.com/share/reel/BAxQ1/');
   console.log(JSON.stringify(r));
   try{fs.rmSync(ROOT,{recursive:true,force:true});}catch{}
   process.exit(0);
 })().catch((e)=>{console.log(JSON.stringify({error:String((e&&e.stack)||e)}));try{fs.rmSync(ROOT,{recursive:true,force:true});}catch{}process.exit(0);});
 `);
-      const r = JSON.parse(execSync(`node ${guion}`, { encoding: 'utf8', timeout: 120000, cwd: dir135 }).trim().split('\n').pop());
+      const r = JSON.parse(execSync(`node ${guion}`, { encoding: 'utf8', timeout: 180000, cwd: dir135 }).trim().split('\n').pop());
       exige(!r.error, `la prueba de los espejos revento: ${String(r.error || '').split('\n')[0]}`);
       if (!r.error) {
+        const hosts = (p) => (p || []).map((u) => new URL(u).host);
         exige(r.url === 'https://www.instagram.com/reel/AbC123_x/',
           `el enlace pegado como lo pegó el dueño («1https://…?vrfl=…») no se entiende: sale ${r.url}`);
-        exige(JSON.stringify(r.codigos) === JSON.stringify(['Zz9', 'Yy8', 'Xx7', null]),
-          `el código de la publicación no se saca bien: ${JSON.stringify(r.codigos)}`);
+        exige(JSON.stringify(r.codigos) === JSON.stringify(['Zz9', 'Yy8', 'Xx7', null, null]),
+          `el código de la publicación no se saca bien (y uno de compartir no lleva código): ${JSON.stringify(r.codigos)}`);
         exige(r.hay === true, 'sin API ni yt-dlp, *!ig* se da por cerrado, y los espejos no piden nada instalado');
-        exige(r.a && r.a.tipo === 'video' && r.a.bytes > 0,
-          `con el primer espejo caído y el segundo bueno no llega el vídeo: ${JSON.stringify(r.a)}`);
-        exige(JSON.stringify(r.pedidosA) === JSON.stringify(['https://kkinstagram.com/videos/AbC123_x/1', 'https://eeinstagram.com/videos/AbC123_x/1']),
-          `los espejos no se piden en orden y con el código: ${JSON.stringify(r.pedidosA)}`);
-        exige(JSON.stringify(r.bajadosA) === JSON.stringify(['https://cdn.invalid/v.mp4']),
-          `lo que se baja no es el salto del espejo al CDN: ${JSON.stringify(r.bajadosA)}`);
-        exige(r.ytA === 0, 'con el vídeo ya traído por un espejo, yt-dlp se lanza igual: medio segundo de VPS para nada');
-        exige(r.b && r.b.error && /los espejos/.test(r.b.error) && /no era un vídeo/.test(r.b.error)
-          && /contesta 200/.test(r.b.error) && /yt-dlp/.test(r.b.error),
-          `con dos espejos sin vídeo el motivo no lo dice entero: ${JSON.stringify(r.b)}`);
-        exige(r.ytB === 1, `si los espejos no lo dan, yt-dlp tiene que probarse una vez (${r.ytB})`);
+        // A
+        exige(r.a.medios && !r.a.lista && r.a.medios[0].tipo === 'video' && r.a.medios[0].bytes > 0,
+          `un reel por el primer espejo no llega como vídeo: ${JSON.stringify(r.a)}`);
+        exige(r.a.pedidos && r.a.pedidos.length === 2 && hosts(r.a.pedidos).every((h) => h === 'ooinstagram.com'),
+          `por un reel se pide de más (debían ser el elemento 1 y la pregunta por el 2): ${JSON.stringify(r.a.pedidos)}`);
+        exige(r.a.yt === 0, 'con el vídeo ya traído por un espejo, yt-dlp se lanza igual');
+        // B
+        exige(r.b.lista && r.b.medios && r.b.medios.length === 3 && r.b.medios.every((m) => m.tipo === 'imagen' && m.ok)
+          && JSON.stringify(r.b.medios.map((m) => m.bytes)) === JSON.stringify(r.bFotos),
+          `un carrusel de tres fotos no llega como tres fotos en su orden: ${JSON.stringify(r.b.medios)} (deberían pesar ${JSON.stringify(r.bFotos)})`);
+        exige(r.b.pedidos && r.b.pedidos.length <= 6 && hosts(r.b.pedidos).every((h) => h === 'ooinstagram.com'),
+          `por un carrusel de tres se pide de más o a otros espejos: ${JSON.stringify(r.b.pedidos)}`);
+        exige(r.b.yt === 0, 'con las fotos ya traídas, yt-dlp se lanza igual');
+        // C
+        exige(r.c.lista && r.c.medios && JSON.stringify(r.c.medios.map((m) => m.tipo)) === JSON.stringify(['imagen', 'video']),
+          `un carrusel con foto y vídeo no llega con los dos en su orden: ${JSON.stringify(r.c)}`);
+        // D
+        exige(r.d.medios && r.d.medios[0].tipo === 'video' && hosts(r.d.pedidos).includes('hhinstagram.com'),
+          `con el primer espejo caído no llega el vídeo del siguiente: ${JSON.stringify(r.d)}`);
+        exige(r.d2.pedidos && hosts(r.d2.pedidos)[0] === 'hhinstagram.com',
+          `el espejo que acaba de caerse se sigue esperando el primero: ${JSON.stringify(r.d2.pedidos)}`);
+        // E
+        exige(r.e.error && /los espejos/.test(r.e.error) && /portada/.test(r.e.error) && /yt-dlp/.test(r.e.error),
+          `un reel del que solo sale la portada se manda como foto, o el motivo no lo dice: ${JSON.stringify(r.e)}`);
+        exige(r.e.error && /nninstagram\.com: no era un vídeo/.test(r.e.error),
+          `una página de error que dice ser vídeo no se descarta como tal: ${r.e.error || JSON.stringify(r.e)}`);
+        exige(!hosts(r.e.pedidos).includes('toinstagram.com'),
+          'con la portada ya dada por un InstaFix se pregunta a otro InstaFix, que dirá lo mismo');
+        exige(r.e.yt === 1, `si los espejos no dan el vídeo, yt-dlp tiene que probarse una vez (${r.e.yt})`);
+        // F
+        exige(r.f.lista && r.f.medios && r.f.medios.length === 1 && r.f.medios[0].tipo === 'imagen' && r.f.medios[0].ok,
+          `con el espejo bueno caído, la foto de una publicación de fotos no llega: ${JSON.stringify(r.f)}`);
+        exige(r.f.yt === 0, 'con la foto ya traída, yt-dlp se lanza igual');
+        exige(r.agentes.length === 1 && /TelegramBot/.test(r.agentes[0]),
+          `a los espejos no se les pide como un bot (kkinstagram salta a anuncios): ${JSON.stringify(r.agentes)}`);
+        // H
+        exige(r.h.error && /pesa 57 MB y WhatsApp no pasa de 16/.test(r.h.error) && !hosts(r.h.pedidos).includes('hhinstagram.com') && r.h.yt === 0,
+          `un vídeo que no cabe no se dice con las palabras del grupo («pesa 57 MB y WhatsApp no pasa de 16»), o se sigue probando: ${JSON.stringify(r.h)}`);
+        exige(r.h2.lista && r.h2.medios && r.h2.medios.length === 2 && r.h2.medios.every((m) => m.tipo === 'imagen'),
+          `un vídeo que no cabe tumba el carrusel entero en vez de saltarse: ${JSON.stringify(r.h2)}`);
+        // G
+        exige(r.g === 'Sh4r3', `un enlace de compartir no se sigue hasta su publicación: ${JSON.stringify(r.g)}`);
       }
     } catch (e) {
       exige(false, `no pude probar los espejos de Instagram: ${String(e.message).split('\n')[0]}`);
     } finally { fs.rmSync(dir135, { recursive: true, force: true }); }
-    if (fallos === antes135) console.log(verde('   ✓ !ig sale por los espejos cuando no hay API, sin tocar yt-dlp, y si fallan se dice por qué'));
+    if (fallos === antes135) console.log(verde('   ✓ !ig trae vídeos, fotos y carruseles por los espejos, no manda portadas, y si fallan se dice por qué'));
   }
   // ── 136. EL .env SE CARGA SIN ANUNCIOS ────────────────────────────────────
   //

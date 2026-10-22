@@ -220,56 +220,314 @@ function conSesion(args, url) {
 // API se cae, no quedaba nada.
 //
 // Lo que sí funciona desde un datacenter son los espejos que usan Discord y
-// Telegram para previsualizar reels (InstaFix). Piden el reel por su cuenta y
-// contestan con un salto a la dirección firmada del CDN de Instagram, y ese CDN
-// sí le entrega el mp4 a un servidor. Es la misma idea que la ficha pública de
-// *!x*. Probado el 21 oct con un reel de verdad: los dos daban el mismo
-// fichero, 1048x720, el que sirve Instagram, en un solo salto.
+// Telegram para previsualizar publicaciones. Piden la publicación por su
+// cuenta y dan el fichero del CDN de Instagram, que a un servidor sí se lo
+// entrega. Es la misma idea que la ficha pública de *!x*.
 //
-// Van detrás de la API y delante de yt-dlp, que sin sesión está bloqueado. Si
-// uno cae se prueba el otro, y si caen los dos se apunta para `npm run estado`.
-const ESPEJOS_IG = ['kkinstagram.com', 'eeinstagram.com'];
+// 22 oct, el dueño otra vez: «siguen habiendo demasiados errores con Ig, tanto
+// en videos normales como fotos». Medido con 119 publicaciones de verdad:
+//
+//   · LAS FOTOS NO SALÍAN NUNCA. Solo se pedía el vídeo, y lo que llegaba de
+//     una publicación de fotos se tiraba por «no era un vídeo».
+//   · kkinstagram y eeinstagram son el mismo programa (InstaFix), y a muchos
+//     vídeos les dan LA PORTADA en vez del vídeo: 13 de 57 reels y casi todos
+//     los vídeos con enlace /p/. Ese era el «vídeo normal» que fallaba.
+//   · kkinstagram, sin la cabecera de un bot, salta a una página de anuncios.
+//
+// ooinstagram es otro programa: da la publicación ENTERA, elemento a elemento
+// (?index=0, 1, 2…), cada uno con su tipo, y pasado el último contesta 400.
+// Sacó bien todas las que seguían publicadas, carruseles mezclados incluidos.
+// Va primero. Detrás, los que solo saben del vídeo (hh, nn) y los InstaFix,
+// que aún sirven para las fotos si los demás caen.
+//
+// Van detrás de la API y delante de yt-dlp, que sin sesión está bloqueado. Lo
+// que digan los que fallan sale en `npm run estado`.
+const UA_ESPEJO = 'TelegramBot (like TwitterBot)';
+const ESPEJOS_IG = [
+  // `elemento(código, n)`: el elemento n (desde 1) de la publicación. `fiel`:
+  // si dice que es una foto, es una foto. Los InstaFix pueden dar la portada
+  // de un vídeo como si lo fuera.
+  { host: 'ooinstagram.com', elemento: (c, n) => `https://ooinstagram.com/media/p/${c}/?index=${n - 1}`, fiel: true },
+  // `video(código)`: solo saben del vídeo. A una publicación de fotos le dicen
+  // que no (404 o una página), y eso ya es una respuesta.
+  { host: 'hhinstagram.com', video: (c) => `https://hhinstagram.com/proxy/video/${c}` },
+  { host: 'nninstagram.com', video: (c) => `https://nninstagram.com/video/${c}` },
+  { host: 'eeinstagram.com', elemento: (c, n) => `https://eeinstagram.com/images/${c}/${n}` },
+  { host: 'toinstagram.com', elemento: (c, n) => `https://toinstagram.com/images/${c}/${n}` },
+  { host: 'kkinstagram.com', video: (c) => `https://kkinstagram.com/videos/${c}/1` },
+];
+// Un carrusel puede tener veinte. Diez ya es un álbum largo, y cada una es una
+// bajada más con el hueco de descarga cogido.
+const TOPE_CARRUSEL_IG = 10;
+// Un espejo vivo contesta en menos de un segundo (medido: 0,4 a 1,1 s). Quince
+// es de sobra, y con seis espejos uno colgado no se come el minuto entero.
+const ESPERA_ESPEJO_MS = 15000;
 
-// El código de la publicación, que es lo único que piden los espejos.
+// EL QUE ACABA DE CAERSE PASA AL FINAL DE LA FILA diez minutos. No se quita:
+// si caen todos se prueban igual. Solo se deja de esperarle el primero.
+const espejoCaidoHasta = new Map();
+const PAUSA_ESPEJO_MS = 10 * 60 * 1000;
+function espejosEnOrden() {
+  const ahora = Date.now();
+  const vivo = (e) => !(espejoCaidoHasta.get(e.host) > ahora);
+  return [...ESPEJOS_IG.filter(vivo), ...ESPEJOS_IG.filter((e) => !vivo(e))];
+}
+
+// El código de la publicación, que es lo único que piden los espejos. Un
+// enlace de compartir (/share/…) no lo lleva: lo de detrás es otra cosa.
 function codigoIg(url) {
-  const m = /\/(?:p|reels?|tv)\/([\w-]+)/i.exec(String(url || ''));
+  const texto = String(url || '');
+  if (/\/share\//i.test(texto)) return null;
+  const m = /\/(?:p|reels?|tv)\/([\w-]+)/i.exec(texto);
   return m ? m[1] : null;
 }
 
-async function porEspejoIg(url) {
-  const codigo = codigoIg(url);
-  if (!codigo) return null;
-  const motivos = [];
-  for (const host of ESPEJOS_IG) {
-    const espejo = `https://${host}/videos/${codigo}/1`;
-    const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.mp4`);
-    try {
-      // EL ESPEJO TIENE VEINTE SEGUNDOS PARA CONTESTAR, como la API. Lo que
-      // devuelve es un salto al CDN de Instagram, y la bajada de verdad va
-      // despues, con su tope de peso. Sin esto, un espejo colgado se comia los
-      // dos minutos de la bajada antes de pasar al otro.
-      const resp = await axios.get(espejo, { maxRedirects: 0, timeout: 20000, responseType: 'stream', validateStatus: () => true });
-      resp.data?.destroy?.();
-      const salto = resp.status >= 300 && resp.status < 400 && resp.headers?.location;
-      const destino = salto ? new URL(resp.headers.location, espejo).toString()
-        : resp.status === 200 && /^video\//i.test(String(resp.headers?.['content-type'] || '')) ? espejo : null;
-      if (!destino) { motivos.push(`${host}: contesta ${resp.status}`); continue; }
-      await downloadUrlToFile(destino, fichero, TOPE_BAJADA);
-      // QUE SEA UN VÍDEO DE VERDAD. Un espejo caído puede contestar 200 con su
-      // página de error, y una publicación de fotos no trae vídeo que dar.
-      const medio = await analizarMedio(fichero);
-      if (medio.probado && medio.video && !ESTATICOS.has(medio.video)) return fichero;
-      motivos.push(`${host}: no era un vídeo`);
-    } catch (e) {
-      await fs.remove(fichero).catch(() => {});
-      // Que no quepa es del vídeo, no del espejo: el otro daría lo mismo.
-      if (e.demasiadoGrande) throw e;
-      motivos.push(`${host}: ${String(e.message || e).slice(0, 60)}`);
-      continue;
+// Los enlaces de compartir de la app saltan a la publicación: se pregunta a
+// dónde, y de ahí sale el código.
+async function codigoDeCompartido(url) {
+  try {
+    const r = await axios.get(url, {
+      timeout: 10000, maxRedirects: 5, responseType: 'text',
+      headers: { 'User-Agent': UA_MOVIL }, validateStatus: () => true,
+    });
+    const final = r?.request?.res?.responseUrl || r?.request?.responseUrl || '';
+    const deFinal = codigoIg(final);
+    if (deFinal) return deFinal;
+    // Si contesta con la página en vez del salto, la publicación va en su
+    // og:url o en su canónica, no en cualquier enlace de la página.
+    const m = /(?:og:url|canonical)"[^>]*?instagram\.com\/(?:[\w.]+\/)?(?:p|reels?|tv)\/([\w-]+)/i.exec(String(r?.data || ''));
+    return m ? m[1] : null;
+  } catch { return null; }
+}
+
+// EL TIEMPO DE AXIOS SE ACABA CON LAS CABECERAS: con `responseType: 'stream'`
+// la promesa se cumple al llegar la respuesta, y a partir de ahí nada corta
+// una bajada que se queda muda a medias. Esto la corta si pasan quince
+// segundos sin un byte; una lenta pero viva sigue.
+// CON LAS MISMAS PALABRAS QUE EL RESTO, que son las que el comando reconoce
+// para decirlo en el grupo: «ese vídeo pesa 57 MB y WhatsApp no pasa de 16».
+// Con otras, quien pegó el enlace leía «no he podido traerlo» y lo reintentaba.
+const pesaDeMas = (mb) => Object.assign(
+  new Error(`pesa ${mb} MB y WhatsApp no pasa de ${Math.floor(TOPE_WHATSAPP / 1048576)}`),
+  { demasiadoGrande: true },
+);
+
+function volcarConTope(flujo, dest, tope) {
+  return new Promise((resolve, reject) => {
+    const w = fs.createWriteStream(dest);
+    let bytes = 0;
+    let muda = null;
+    const vigilar = () => {
+      clearTimeout(muda);
+      muda = setTimeout(() => {
+        const err = new Error('la bajada se quedó parada');
+        err.code = 'ETIMEDOUT';
+        fail(err);
+      }, ESPERA_ESPEJO_MS);
+    };
+    const fail = (err) => { clearTimeout(muda); flujo.destroy(); w.destroy(); reject(err); };
+    vigilar();
+    w.on('finish', () => clearTimeout(muda));
+    flujo.on('data', (c) => {
+      vigilar();
+      bytes += c.length;
+      if (bytes > tope) fail(pesaDeMas(`más de ${Math.round(tope / 1048576)}`));
+    });
+    flujo.on('error', fail);
+    w.on('error', fail);
+    w.on('finish', resolve);
+    flujo.pipe(w);
+  });
+}
+
+// UNA PETICIÓN A UN ESPEJO. Devuelve lo que hay en esa dirección:
+//   { medio } un fichero que de verdad es una foto o un vídeo
+//   { fin }   ahí no hay nada: pasado el último elemento, o «eso no es vídeo»
+//   { roto }  contestó, pero lo que dio no se puede mandar
+// y lanza si el espejo no contesta: caído, colgado o saturado.
+//
+// EL TIPO LO DICE LA RESPUESTA, NO LA DIRECCIÓN. El CDN sirve fotos con
+// `.heic` en el nombre que por dentro son JPEG, y un espejo caído contesta
+// 200 con su página de error.
+async function pedirAlEspejo(enlace, n = 1) {
+  const resp = await axios.get(enlace, {
+    responseType: 'stream', timeout: ESPERA_ESPEJO_MS, maxRedirects: 3,
+    headers: { 'User-Agent': UA_ESPEJO }, validateStatus: () => true,
+  });
+  const mime = String(resp.headers?.['content-type'] || '').toLowerCase();
+  const video = /^video\//.test(mime);
+  const foto = /^image\/(?:jpe?g|png|webp)/.test(mime);
+  if (resp.status !== 200 || !(video || foto)) {
+    resp.data?.destroy?.();
+    // 429 y 5xx son del espejo, no de la publicación.
+    if (resp.status === 429 || resp.status >= 500) {
+      const e = new Error(`contesta ${resp.status}`);
+      e.espejoCaido = true;
+      throw e;
     }
-    await fs.remove(fichero).catch(() => {});
+    return { fin: true, estado: resp.status };
   }
+  // EL PESO VIENE DICHO EN LA CABECERA. Un reel de 115 MB se corta aquí, sin
+  // bajarse 40 para tirarlos: no cabe ni ajustándolo.
+  const tope = video ? TOPE_BAJADA : TOPE_WHATSAPP;
+  const anunciado = Number(resp.headers?.['content-length']) || 0;
+  if (anunciado > tope) {
+    resp.data?.destroy?.();
+    throw pesaDeMas(Math.round(anunciado / 1048576));
+  }
+  const ext = video ? 'mp4' : /png/.test(mime) ? 'png' : /webp/.test(mime) ? 'webp' : 'jpg';
+  // El número va en el nombre: los de una tanda se piden a la vez.
+  const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${n}_${Math.random().toString(36).slice(2)}.${ext}`);
+  try {
+    await volcarConTope(resp.data, fichero, tope);
+    const { size } = await fs.stat(fichero);
+    if (size < 1024) throw new Error('vacío');
+    if (foto) {
+      const bordes = await fotoEnteraPorBordes(fichero);
+      if (bordes === 'cortada') throw new Error('la foto llegó cortada');
+      if (!bordes) {
+        const m = await analizarMedio(fichero);
+        if (!m.probado || !ESTATICOS.has(m.video)) throw new Error('no era una foto');
+      }
+      return { medio: { fichero, tipo: 'imagen', ext, bytes: size } };
+    }
+    const m = await analizarMedio(fichero);
+    if (!m.probado || !m.video) throw new Error('no era un vídeo');
+    if (ESTATICOS.has(m.video)) {
+      // Dice vídeo y es una foto: va como lo que es.
+      const comoFoto = fichero.replace(/\.mp4$/, '.jpg');
+      await fs.move(fichero, comoFoto, { overwrite: true });
+      return { medio: { fichero: comoFoto, tipo: 'imagen', ext: 'jpg', bytes: size } };
+    }
+    return { medio: { fichero, tipo: 'video', ext, bytes: size } };
+  } catch (e) {
+    await fs.remove(fichero).catch(() => {});
+    if (e.demasiadoGrande || e.isAxiosError || e.code) throw e;
+    return { roto: e.message };
+  }
+}
+
+const borrarMedios = (lista) => Promise.all((lista || []).map((m) => fs.remove(m.fichero).catch(() => {})));
+
+// LA PUBLICACIÓN ENTERA, EN SU ORDEN. De dos en dos y luego de cuatro en
+// cuatro: la mayoría es un reel suelto, y para saber que no hay un segundo
+// elemento hay que pedirlo. Pasado el último el espejo dice que no hay, y ahí
+// se para.
+async function publicacionDe(espejo, codigo) {
+  const medios = [];
+  let grande = null;
+  let n = 1;
+  try {
+    for (const tanda of [2, 4, 4]) {
+      const nums = [];
+      while (nums.length < tanda && n <= TOPE_CARRUSEL_IG) nums.push(n++);
+      if (!nums.length) break;
+      const res = await Promise.allSettled(nums.map((k) => pedirAlEspejo(espejo.elemento(codigo, k), k)));
+      let acabado = false;
+      let caida = null;
+      for (let i = 0; i < res.length; i++) {
+        const r = res[i];
+        const medio = r.status === 'fulfilled' ? r.value.medio : null;
+        if (acabado || caida) { if (medio) await fs.remove(medio.fichero).catch(() => {}); continue; }
+        if (r.status === 'rejected') {
+          // LO QUE PESA DE MÁS ES DEL VÍDEO, NO DEL ESPEJO. En un carrusel se
+          // salta y el resto sale; solo si no queda nada lo dice quien llama.
+          if (r.reason?.demasiadoGrande) { grande = grande || r.reason; continue; }
+          // Sin el primero no hay publicación. Uno de en medio se salta.
+          if (nums[i] === 1) { caida = r.reason; continue; }
+          logger.info(`redes: ${espejo.host} no dio el elemento ${nums[i]} (${String(r.reason?.message || r.reason).slice(0, 60)})`);
+          continue;
+        }
+        if (r.value.fin) {
+          acabado = true;
+          // Si ya el primero no está, lo que contestó es el motivo.
+          if (nums[i] === 1) medios.estado = r.value.estado;
+          continue;
+        }
+        if (r.value.roto) { logger.info(`redes: ${espejo.host}, elemento ${nums[i]}: ${r.value.roto}`); continue; }
+        medios.push(medio);
+      }
+      if (caida) throw caida;
+      if (acabado) break;
+    }
+  } catch (e) {
+    await borrarMedios(medios);
+    throw e;
+  }
+  if (!medios.length && grande) throw grande;
+  return medios;
+}
+
+// Devuelve la ruta de un vídeo, `{ medios }` con las fotos (o el carrusel
+// mezclado), o null si el enlace no lleva código.
+async function porEspejoIg(url) {
+  let codigo = codigoIg(url);
+  if (!codigo && /\/share\//i.test(String(url))) codigo = await codigoDeCompartido(url);
+  if (!codigo) return null;
+  // UN REEL ES UN VÍDEO. Si de un /reel/ solo sale una foto, es su portada, y
+  // mandarla como si fuera la publicación es engañar a quien pegó el enlace.
+  const esReel = /\/(?:reels?|tv)\//i.test(String(url));
+  const motivos = [];
+  // Fotos de un espejo que puede confundir portada y foto: valen si al final
+  // nadie da un vídeo.
+  let dudosas = null;
+  let instafixOido = false;
+  for (const espejo of espejosEnOrden()) {
+    const { host } = espejo;
+    // Otro InstaFix diría lo mismo que el primero.
+    if (instafixOido && espejo.elemento && !espejo.fiel) continue;
+    try {
+      if (espejo.video) {
+        const r = await pedirAlEspejo(espejo.video(codigo));
+        if (r.medio?.tipo === 'video') { await borrarMedios(dudosas); return r.medio.fichero; }
+        if (r.medio) await fs.remove(r.medio.fichero).catch(() => {});
+        motivos.push(`${host}: ${r.medio ? 'solo da una foto' : r.roto || `contesta ${r.estado}`}`);
+        continue;
+      }
+      const medios = await publicacionDe(espejo, codigo);
+      const videos = medios.filter((m) => m.tipo === 'video').length;
+      if (medios.length === 1 && videos === 1) { await borrarMedios(dudosas); return medios[0].fichero; }
+      if (videos) { await borrarMedios(dudosas); return { medios }; }
+      if (!medios.length) { motivos.push(`${host}: ${medios.estado ? `contesta ${medios.estado}` : 'no da nada'}`); continue; }
+      if (!espejo.fiel) instafixOido = true;
+      if (esReel) { await borrarMedios(medios); motivos.push(`${host}: solo da la portada`); continue; }
+      if (espejo.fiel) { await borrarMedios(dudosas); return { medios }; }
+      if (dudosas) await borrarMedios(medios); else dudosas = medios;
+    } catch (e) {
+      // Que no quepa es del vídeo, no del espejo: otro daría lo mismo.
+      if (e.demasiadoGrande) { await borrarMedios(dudosas); throw e; }
+      if (e.espejoCaido || !e.response) espejoCaidoHasta.set(host, Date.now() + PAUSA_ESPEJO_MS);
+      motivos.push(`${host}: ${String(e.message || e).slice(0, 60)}`);
+    }
+  }
+  if (dudosas) return { medios: dudosas };
   throw new Error(motivos.join(' · ') || 'ningún espejo contestó');
+}
+
+// LAS FOTOS VAN TAL CUAL; LOS VÍDEOS, COMO CUALQUIER OTRO. Un vídeo de un
+// carrusel pasa por lo mismo que un reel suelto (que quepa, que se abra y el
+// audio nivelado): sin eso, uno que no cabe tumbaba el álbum entero.
+async function carruselListo(medios, soltarHueco, avisar) {
+  // Lo que queda no toca la red.
+  soltarHueco();
+  const listos = [];
+  for (const m of medios) {
+    if (m.tipo !== 'video') { listos.push(m); continue; }
+    let f = m.fichero;
+    try {
+      f = await ajustarParaWhatsApp(f, avisar);
+      f = await conAudioNivelado(f);
+      const { size } = await fs.stat(f);
+      if (size > TOPE_WHATSAPP) throw new Error(`pesa ${Math.round(size / 1048576)} MB`);
+      listos.push({ fichero: f, tipo: 'video', ext: extensionDe(f) || 'mp4', bytes: size });
+    } catch (e) {
+      logger.info(`redes: un vídeo del carrusel se queda fuera (${String(e.message).slice(0, 60)})`);
+      await fs.remove(f).catch(() => {});
+      await fs.remove(m.fichero).catch(() => {});
+    }
+  }
+  if (!listos.length) throw new Error('nada de esa publicación cabe en WhatsApp');
+  return { medios: listos };
 }
 
 // ─── UN PERFIL NO ES UNA PUBLICACIÓN ─────────────────────────────────────────
@@ -2912,16 +3170,23 @@ async function traer(url, plataforma, { avisar = null } = {}) {
     // Instagram por los espejos, y antes que yt-dlp: desde un servidor y sin
     // sesión, a yt-dlp Instagram le contesta 429 (ver porEspejoIg). Lo que
     // digan va en el motivo final: `npm run estado` solo guarda el último.
+    //
+    // Un vídeo suelto sigue por aquí abajo como el de cualquier red. Las fotos
+    // y los carruseles vuelven en lista, como un tuit, y salen en álbum.
     let fallaEspejos = null;
+    let carrusel = null;
     if (!fichero && plataforma === 'instagram') {
       try {
-        fichero = await porEspejoIg(url);
+        const espejo = await porEspejoIg(url);
+        if (espejo && espejo.medios) carrusel = espejo.medios;
+        else fichero = espejo;
       } catch (e) {
         if (e.demasiadoGrande) throw e;
         fallaEspejos = e.message;
         logger.warn(`redes: los espejos de Instagram fallaron (${e.message.slice(0, 80)}); pruebo con yt-dlp`);
       }
     }
+    if (carrusel) return await carruselListo(carrusel, soltarHueco, avisar);
     // EL MOTIVO DE LA API NO LO TAPA EL DE YT-DLP. Con una API puesta, el fallo
     // que importa es el suyo: yt-dlp es el respaldo y se sabe que esta
     // bloqueado, asi que contar SOLO su mensaje decia «la web bloquea al
@@ -3073,5 +3338,5 @@ module.exports = {
   _TOPE_WHATSAPP: TOPE_WHATSAPP,
   _TOPE_BAJADA: TOPE_BAJADA,
   esPerfil, traer, buscar, _aTandasDe: aTandasDe, _fotoEnteraPorBordes: fotoEnteraPorBordes, _tokenDeX: tokenDeX, buscarVarios, datosDeGif, prepararGif, _porFotosSueltas: porFotosSueltas, esAnimado, _porX: porX, _textoDeTuit: textoDeTuit, _mejorVariante: mejorVariante, _variantesMp4: variantesMp4, _varianteQueCabe: varianteQueCabe, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
-  _porEspejoIg: porEspejoIg, _codigoIg: codigoIg, ESPEJOS_IG,
+  _porEspejoIg: porEspejoIg, _codigoIg: codigoIg, _codigoDeCompartido: codigoDeCompartido, _olvidarEspejosCaidos: () => { espejoCaidoHasta.clear(); }, ESPEJOS_IG, TOPE_CARRUSEL_IG,
   _montarPase: montarPase, _comoEnlaces: comoEnlaces, _porYtDlpFotos: porYtDlpFotos, _fotosDeFicha: fotosDeFicha, _esSinVideo: esSinVideo, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };

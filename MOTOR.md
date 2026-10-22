@@ -567,14 +567,58 @@ contesta **429** a yt-dlp a la primera, y la página incrustada del reel sale
 sin el vídeo dentro. Sin sesión ni API, no había nada.
 
 Lo que sí funciona desde un datacenter son los **espejos** que usan Discord y
-Telegram para previsualizar reels (InstaFix): `kkinstagram.com` y
-`eeinstagram.com`. Se les pide `/videos/<código>/1` y contestan con un salto a
-la dirección firmada del CDN de Instagram, que sí le da el mp4 a un servidor.
-Probado con un reel real: los dos dan el mismo fichero (1048×720, el que sirve
-Instagram) en un solo salto. Van después de la API y antes de yt-dlp; si uno
-cae se prueba el otro, y lo que contestó cada uno queda en el motivo que
-enseña `npm run estado`. Si un día caen los dos, se cambian en `ESPEJOS_IG`
-(`src/utils/redes.js`). La capa 135 lo vigila.
+Telegram para previsualizar publicaciones: piden la publicación por su cuenta
+y dan el fichero del CDN de Instagram, que a un servidor sí se lo entrega. Van
+después de la API y antes de yt-dlp.
+
+**Y no bastaba con dos (22 oct).** El dueño: «siguen habiendo demasiados
+errores con Ig, tanto en videos normales como fotos». Medido con 119
+publicaciones reales:
+
+- **Las fotos no salían nunca**: solo se pedía el vídeo, y lo de una
+  publicación de fotos se tiraba por «no era un vídeo».
+- `kkinstagram` y `eeinstagram` son el mismo programa (InstaFix) y a muchos
+  vídeos les dan **la portada**: 13 de 57 reels y casi todos los vídeos con
+  enlace `/p/`.
+- `kkinstagram`, sin la cabecera de un bot, salta a una página de anuncios.
+
+Ahora van seis, en `ESPEJOS_IG` (`src/utils/redes.js`), y se piden como un bot
+(`TelegramBot`):
+
+| Espejo | Qué da |
+|---|---|
+| `ooinstagram.com` | la publicación entera, elemento a elemento (`/media/p/<código>/?index=0, 1…`), cada uno con su tipo; 400 pasado el último. Sacó bien todas las que seguían publicadas, carruseles mezclados incluidos. Va primero. |
+| `hhinstagram.com`, `nninstagram.com` | solo el vídeo; a una publicación de fotos le dicen que no. |
+| `eeinstagram.com`, `toinstagram.com` | InstaFix, elemento a elemento (`/images/<código>/<n>`). Respaldo de las fotos. |
+| `kkinstagram.com` | InstaFix, el primer elemento. |
+
+Cómo se decide:
+
+- Un vídeo suelto sigue el camino de siempre (ajustar, nivelar). Las fotos y
+  los carruseles vuelven en lista, como un tuit, y salen **en álbum**, hasta
+  10 (`TOPE_CARRUSEL_IG`); los vídeos de un carrusel pasan por el mismo
+  ajuste que un reel.
+- **El tipo lo dice la respuesta, no la dirección**: el CDN sirve JPEG con
+  `.heic` en el nombre, y un espejo caído contesta 200 con su página.
+- **Un reel es un vídeo**: si de un `/reel/` solo sale una foto, es su
+  portada y no se manda. Una foto de un InstaFix solo vale si nadie da un
+  vídeo; uno que ya dio foto no se pregunta a otro InstaFix, que diría lo
+  mismo.
+- **El peso viene en la cabecera**: lo que pasa de 40 MB (había reels de 57
+  y 115) se corta sin bajarlo, y en el grupo sale «ese vídeo pesa 57 MB y
+  WhatsApp no pasa de 16 MB», no «no he podido traerlo». En un carrusel ese
+  vídeo se salta y el resto sale. Una bajada que se queda quince segundos sin
+  un byte se corta.
+- **Un espejo que cae** (sin respuesta, 429, 5xx) pasa al final de la fila
+  diez minutos. No se quita: si caen todos, se prueban igual.
+- Los enlaces de compartir de la app (`/share/…`) no llevan el código: se
+  pregunta a Instagram a dónde saltan.
+
+Lo que contestó cada espejo queda en el motivo que enseña `npm run estado`.
+Si un día caen, se cambian en `ESPEJOS_IG`. Una publicación de fotos con
+música sale sin la canción: eso solo lo da una API (`INSTAGRAM_API`). Las
+borradas, privadas o con restricción de edad no las da ninguno. La capa 135
+lo vigila.
 
 Para ver qué pasa con un enlace concreto, en la VPS:
 `npm run enlace -- "<enlace>"`. Dice si la API está puesta, qué contesta por

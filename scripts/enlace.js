@@ -130,8 +130,14 @@ function describe(valor, sangria = '  ') {
   const t1 = Date.now();
   try {
     const traido = await redes.traer(url, plataforma);
-    console.log(verde(`    ✓ ${traido.tipo} · ${traido.ext} · ${Math.round(traido.bytes / 1024)} KB · ${Date.now() - t1} ms`));
-    await fs.remove(traido.fichero).catch(() => {});
+    // Un carrusel o un tuit con varias cosas vuelve en lista: se dice cada una.
+    const lote = Array.isArray(traido.medios) ? traido.medios : [traido];
+    const ms = Date.now() - t1;
+    for (const m of lote) {
+      console.log(verde(`    ✓ ${m.tipo} · ${m.ext} · ${Math.round(m.bytes / 1024)} KB${lote.length === 1 ? ` · ${ms} ms` : ''}`));
+      await fs.remove(m.fichero).catch(() => {});
+    }
+    if (lote.length > 1) console.log(verde(`    ${lote.length} en un álbum · ${ms} ms`));
   } catch (e) {
     console.log(rojo(`    ✗ ${e.message}`));
     console.log(gris(`      (${Date.now() - t1} ms)`));
