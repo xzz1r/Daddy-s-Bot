@@ -105,8 +105,8 @@ const AVISOS_KICK = [
     varios: '%M hasta el insulto os lo prestaban, maricones. Mala leche de segunda mano, y aun así llegaba blanda.\nSin lengua propia no hay sitio aquí. Os creísteis con filo y erais una copia peor que el original. No valéis el tono de esta sala. A la calle.',
   },
   {
-    uno: '%M hay quien se fue de este grupo por el nivel que tú arrastrabas, hijo de puta.\nSe quedó fuera una cabeza y te quedaste tú. Hoy se invierte esa mierda. El grupo elige. Tú no sales elegido. Lárgate.',
-    varios: '%M hay quien se fue de este grupo por el nivel que vosotros arrastrabais, hijos de puta.\nSe quedó fuera una cabeza y os quedasteis vosotros. Hoy se invierte esa mierda. El grupo elige. Vosotros no salís elegidos. Largaos.',
+    uno: '%M hay quien se fue de este grupo por el nivel que tú arrastrabas, hijo de puta.\nSe quedó fuera una cabeza y te quedaste tú. Hoy se invierte esa mierda. El grupo elige. A ti no te elige. Lárgate.',
+    varios: '%M hay quien se fue de este grupo por el nivel que vosotros arrastrabais, hijos de puta.\nSe quedó fuera una cabeza y os quedasteis vosotros. Hoy se invierte esa mierda. El grupo elige. A vosotros no os elige. Largaos.',
   },
   {
     uno: '%M llamabas pertenencia a que tardaran en echarte, guarra. El rango más alto que tocaste fue «aún no».\nEso no es valer. Es una deuda de paciencia que ya se pagó en vergüenza ajena. La cabeza no dio. El valor tampoco. Fuera.',
@@ -165,8 +165,8 @@ const AVISOS_KICK = [
     varios: '%M os creísteis rivales, hijos de puta. Un rival afila la sala.\nVosotros la parabais para que os explicaran el golpe, como en clase. Este grupo no es vuestra clase de recuperación. Es un corte al que no llegáis. Largaos.',
   },
   {
-    uno: '%M te midieron contra quien se queda, guarra. Por debajo en malicia, por debajo en velocidad, por debajo en cualquier cosa que no sea gana de estar.\nTres veces por debajo. Con una bastaba. No eres suficiente para este grupo y el mes que viene ibas a medir lo mismo. Fuera.',
-    varios: '%M os midieron contra quien se queda, guarras. Por debajo en malicia, por debajo en velocidad, por debajo en cualquier cosa que no sea gana de estar.\nTres veces por debajo. Con una bastaba. No sois suficientes para este grupo y el mes que viene ibais a medir lo mismo. Fuera.',
+    uno: '%M te midieron contra quien se queda, guarra. Por debajo en malicia, por debajo en velocidad, por debajo en cualquier cosa que no sean ganas de estar.\nTres veces por debajo. Con una bastaba. No eres suficiente para este grupo y el mes que viene ibas a medir lo mismo. Fuera.',
+    varios: '%M os midieron contra quien se queda, guarras. Por debajo en malicia, por debajo en velocidad, por debajo en cualquier cosa que no sean ganas de estar.\nTres veces por debajo. Con una bastaba. No sois suficientes para este grupo y el mes que viene ibais a medir lo mismo. Fuera.',
   },
   {
     uno: '%M el «me da igual» era pose, cabrón. Quien de verdad no quiere estar, se va.\nTú te quedaste meses sin llegar al tono. Ni el desapego te salía. Te sale quedarte de más y pensar de menos. Hoy se cortan las dos. A la calle.',
