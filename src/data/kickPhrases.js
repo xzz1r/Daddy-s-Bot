@@ -1,221 +1,212 @@
 // Avisos de !kick. Salen en el grupo ANTES de echar, para que lo vean.
 //
-// No es un comunicado. Es una hostia en público. Tacos dentro de la frase,
-// no pegados al final. Cada una ataca un ángulo distinto. pickFresh las
-// reparte por grupo: no se repite una hasta que han salido otras 50 (o el
-// 60 % del pool, lo que sea menor).
+// No es un comunicado. Es la medida en público: no dan el nivel de esta sala,
+// la cabeza tiene un techo y el valor no cubre la plaza. El taco va dentro.
+// Cada una ataca un hueso distinto. pickFresh las reparte por grupo.
 //
-// %M se sustituye por las menciones. Cada entrada trae singular (tú) y plural
-// (vosotros). El plural del bot es vosotros, lo decidió el dueño: nada de ustedes.
-
+// %M se sustituye por las menciones. Singular (tú) y plural (vosotros).
+// Nada de ustedes.
+//
 const AVISOS_KICK = [
   {
-    uno: '%M te echan, puta. Llevas meses chupando el grupo sin soltar una frase que no dé vergüenza.\nLeías, callabas y ocupabas. Hoy te limpian delante de todos y nadie va a decir «espera». Lárgate, parásito de mierda.',
-    varios: '%M os echan, putas. Lleváis meses chupando del grupo sin soltar una frase que no dé vergüenza.\nLeíais, callabais y ocupabais. Hoy os limpian delante de todos y nadie va a decir «esperad». Largaos, parásitos de mierda.',
+    uno: '%M no llegas al nivel de este grupo, retrasado. El chiste ya había caído y tú seguías en la frase de antes, con la boca abierta.\nEsa velocidad es tu techo. Mañana vas a ir igual de tarde. La sala no baja el listón para que quepas. Lárgate.',
+    varios: '%M no llegáis al nivel de este grupo, retrasados. El chiste ya había caído y vosotros seguíais en la frase de antes, con la boca abierta.\nEsa velocidad es vuestro techo. Mañana vais a ir igual de tarde. La sala no baja el listón para que quepáis. Largaos.',
   },
   {
-    uno: '%M ocupaste el puto sitio de alguien que sí habría valido, retrasado.\nEl grupo te aguantó por pereza de borrarte, no porque aportaras una mierda. Cada día tuyo fue un día robado. Se acabó. A la calle, fracasado.',
-    varios: '%M ocupasteis el puto sitio de gente que sí habría valido, retrasados.\nEl grupo os aguantó por pereza de borraros, no porque aportarais una mierda. Cada día vuestro fue un día robado. Se acabó. A la calle, fracasados.',
+    uno: '%M te tasaron, puta, y la cifra daba vergüenza. No te dejaron dentro porque valieras una plaza. Te dejaron porque borrarte era un trámite.\nHoy el trámite sale barato. Tu cabeza no cubre esta sala y tu valor no cubre el sitio. Fuera.',
+    varios: '%M os tasaron, putas, y la cifra daba vergüenza. No os dejaron dentro porque valierais una plaza. Os dejaron porque borraros era un trámite.\nHoy el trámite sale barato. Vuestra cabeza no cubre esta sala y vuestro valor no cubre el sitio. Fuera.',
   },
   {
-    uno: '%M te creíste querido y eras tolerado, maricón. Hay diferencia, y duele.\nTe tuvieron en la lista porque nadie se tomó el trabajo de limpiar. Hoy se lo toman. Fuera, basura. Y no vuelvas con esa cara de incomprendido.',
-    varios: '%M os creísteis queridos y erais tolerados, maricones. Hay diferencia, y duele.\nOs tuvieron en la lista porque nadie se tomó el trabajo de limpiar. Hoy se lo toman. Fuera, basura. Y no volváis con esa cara de incomprendidos.',
+    uno: '%M mira el chat, maricón. Nadie está gastando un mensaje en defenderte.\nSi valieras una frase, alguien la habría escrito. El silencio de los demás es tu precio, dicho delante de todos. Te echan y no se pierde nada que se pueda nombrar. A la calle.',
+    varios: '%M mirad el chat, maricones. Nadie está gastando un mensaje en defenderos.\nSi valierais una frase, alguien la habría escrito. El silencio de los demás es vuestro precio, dicho delante de todos. Os echan y no se pierde nada que se pueda nombrar. A la calle.',
   },
   {
-    uno: '%M te diste de miembro tú solo, hijo de puta. Nadie te lo dio.\nEl primer mes ya se vio que no pintabas. Te quedaste igual, cómodo, inútil. Hoy te echan con alivio, no con pena. El disfraz se acaba. Lárgate.',
-    varios: '%M os disteis de miembros vosotros solos, hijos de puta. Nadie os lo dio.\nEl primer mes ya se vio que no pintabais. Os quedasteis igual, cómodos, inútiles. Hoy os echan con alivio, no con pena. El disfraz se acaba. Largaos.',
+    uno: '%M tus líneas se quedaban en doble check y el hilo seguía por encima, hijo de puta.\nNi una cita. Ni una respuesta. Tu cabeza no movía a nadie. Eso es lo que vales aquí: una frase que se salta. Hoy se salta también el nombre. Fuera.',
+    varios: '%M vuestras líneas se quedaban en doble check y el hilo seguía por encima, hijos de puta.\nNi una cita. Ni una respuesta. Vuestra cabeza no movía a nadie. Eso es lo que valéis aquí: una frase que se salta. Hoy se salta también el nombre. Fuera.',
   },
   {
-    uno: '%M eras un fantasma de mierda. Se te sentaba al lado y se te olvidaba, coño.\nEl grupo aprendió a funcionar sin mirarte. No vas a faltar porque nunca estuviste. Cadáver con número de teléfono. Fuera, don nadie.',
-    varios: '%M erais fantasmas de mierda. Se os sentaba al lado y se os olvidaba, coño.\nEl grupo aprendió a funcionar sin miraros. No vais a faltar porque nunca estuvisteis. Cadáveres con número de teléfono. Fuera, don nadies.',
+    uno: '%M tardabas en «escribiendo...» y soltabas el resumen de lo que ya estaba dicho, guarra.\nEso es llegar tarde y más corto. Aquí no se conserva a quien hay que traducirle el hilo. No das el nivel. Lárgate.',
+    varios: '%M tardabais en «escribiendo...» y soltabais el resumen de lo que ya estaba dicho, guarras.\nEso es llegar tarde y más corto. Aquí no os aguantan si hay que traduciros el hilo. No dais el nivel. Largaos.',
   },
   {
-    uno: '%M mira alrededor, gilipoyas. Nadie se está moviendo para quedarte.\nSi importaras una mierda, alguien habría abierto la boca. Te echan delante de todos y el único ruido eres tú desapareciendo. No tienes a nadie. Fuera, patético.',
-    varios: '%M mirad alrededor, gilipoyas. Nadie se está moviendo para quedaros.\nSi importarais una mierda, alguien habría abierto la boca. Os echan delante de todos y el único ruido sois vosotros desapareciendo. No tenéis a nadie. Fuera, patéticos.',
+    uno: '%M ocupaste la plaza de alguien con cabeza, cabrón. Cada día tuyo fue un día en que no entró una persona que sí llega.\nEl grupo se hizo más tonto por aguantarte. Hoy se corrige la cuenta. Tu valor era negativo y ya se notaba. A la calle.',
+    varios: '%M ocupasteis la plaza de alguien con cabeza, cabrones. Cada día vuestro fue un día en que no entró una persona que sí llega.\nEl grupo se hizo más tonto por aguantaros. Hoy se corrige la cuenta. Vuestro valor era negativo y ya se notaba. A la calle.',
   },
   {
-    uno: '%M no hay «déjame explicar», inútil. El grupo no te debe una audiencia. Te debe una salida.\nLlevas tiempo siendo un problema que nadie quería nombrar. Hoy se nombra: sobras, puta. No hay segunda ronda. Vete.',
-    varios: '%M no hay «dejadnos explicar», inútiles. El grupo no os debe una audiencia. Os debe una salida.\nLleváis tiempo siendo un problema que nadie quería nombrar. Hoy se nombra: sobráis, putos. No hay segunda ronda. Os echan. Idos.',
+    uno: '%M editaste el mensaje cuando viste que nadie contestaba, gilipoyas. La edición es la confesión.\nTu cabeza vio el vacío y aun así no tenía otra frase. Este grupo no archiva intentos. No llegas, y el historial ya lo enseña. Fuera.',
+    varios: '%M editasteis el mensaje cuando visteis que nadie contestaba, gilipoyas. La edición es la confesión.\nVuestra cabeza vio el vacío y aun así no tenía otra frase. Este grupo no archiva intentos. No llegáis, y el historial ya lo enseña. Fuera.',
   },
   {
-    uno: '%M te pasaste el grupo entero en «escribiendo...» y nunca soltaste la puta frase, retrasado.\nSalía tu nombre, se movían los puntos y abajo no quedaba nada. Hoy te echan con esos puntos todavía en el aire. No había texto. Había teatro. Fuera.',
-    varios: '%M os pasasteis el grupo entero en «escribiendo...» y nunca soltasteis la puta frase, retrasados.\nSalían vuestros nombres, se movían los puntos y abajo no quedaba nada. Hoy os echan con esos puntos todavía en el aire. No había texto. Había teatro. Fuera.',
+    uno: '%M escribías un párrafo y el punto se te moría dentro, retrasado.\nLa gente subía, lo leía y volvía al mensaje de arriba, que sí decía algo. Tu intelecto, en público, es un texto que no se sostiene. La sala no carga con ese techo. Lárgate.',
+    varios: '%M escribíais un párrafo y el punto se os moría dentro, retrasados.\nLa gente subía, lo leía y volvía al mensaje de arriba, que sí decía algo. Vuestro intelecto, en público, es un texto que no se sostiene. La sala no carga con ese techo. Largaos.',
   },
   {
-    uno: '%M cuando te vayas nadie va a preguntar dónde estás, guarra. Y no es crueldad: es que no hacías falta.\nPara cuando termines de leer esto, ya te olvidaron. El nombre se le borra a la gente en dos conversaciones. Fuera, cero a la izquierda.',
-    varios: '%M cuando os vayáis nadie va a preguntar dónde estáis, guarras. Y no es crueldad: es que no hacíais falta.\nPara cuando terminéis de leer esto, ya os olvidaron. Vuestros nombres se borran en dos conversaciones. Fuera, ceros a la izquierda.',
+    uno: '%M el puntito verde era tu única prueba de vida, puta. En línea, leyendo, y sin una idea que mereciera sitio.\nEstar conectado no es pensar. Confundiste presencia con valor. El grupo ya no. Te echan porque la cabeza no llega, no porque callaras. Fuera.',
+    varios: '%M el puntito verde era vuestra única prueba de vida, putas. En línea, leyendo, y sin una idea que mereciera sitio.\nEstar conectado no es pensar. Confundisteis presencia con valor. El grupo ya no. Os echan porque la cabeza no llega, no porque callarais. Fuera.',
   },
   {
-    uno: '%M el grupo iba más lento por cargarte, parásito de mierda.\nNo aportaste valor: aportaste asco, retrasado. El lastre se tira. No eres una baja: eres un alivio. El segundo en que desaparezcas, se respira. Fuera, miseria.',
-    varios: '%M el grupo iba más lento por cargaros, parásitos de mierda.\nNo aportasteis valor: aportasteis asco, retrasados. El lastre se tira. No sois una baja: sois un alivio. El segundo en que desaparezcáis, se respira. Fuera, miseria.'
+    uno: '%M contestaste el sarcasmo en serio, maricón. No pillas el tono, y el tono es la entrada de esta sala.\nQuien necesita que se lo expliquen no está a la altura. Tu techo es la literalidad. Aquí eso no se queda. A la calle.',
+    varios: '%M contestasteis el sarcasmo en serio, maricones. No pilláis el tono, y el tono es la entrada de esta sala.\nQuien necesita que se lo expliquen no está a la altura. Vuestro techo es la literalidad. Aquí eso no se queda. A la calle.',
   },
   {
-    uno: '%M tu nombre en la lista fue un error, y el error eras tú, cabrón.\nAlguien te dejó entrar y nadie te reclamó. Eso no es pertenecer: es un descuido. Estuviste de más desde la puerta. Hoy se corrige delante de todos. No valías. Fuera, basura.',
-    varios: '%M vuestros nombres en la lista fueron un error, y el error erais vosotros, cabrones.\nAlguien os dejó entrar y nadie os reclamó. Eso no es pertenecer: es un descuido. Estuvisteis de más desde la puerta. Hoy se corrige delante de todos. No valíais. Fuera, basura.',
+    uno: '%M nadie tiene un mensaje tuyo guardado, hijo de puta. Ni uno.\nEl valor es lo que la gente no quiere perder. De ti no hay nada que perder. La cabeza no dejó una línea que valiera la captura. Fuera.',
+    varios: '%M nadie tiene un mensaje vuestro guardado, hijos de puta. Ni uno.\nEl valor es lo que la gente no quiere perder. De vosotros no hay nada que perder. La cabeza no dejó una línea que valiera la captura. Fuera.',
   },
   {
-    uno: '%M tu última oportunidad pasó hace tiempo y ni te enteraste, hijo de puta.\nEl grupo te dio cuerda. La gastaste en no ser nadie. Te la jugaste a que nadie se iba a molestar en echarte. Perdiste. El grupo se molestó. Lárgate.',
-    varios: '%M vuestra última oportunidad pasó hace tiempo y ni os enterasteis, hijos de puta.\nEl grupo os dio cuerda. La gastasteis en no ser nadie. Os la jugasteis a que nadie se iba a molestar en echaros. Perdisteis. El grupo se molestó. Largaos.'
+    uno: '%M preguntaste lo que ya estaba cuatro mensajes más arriba, guarra. Con la hora puesta.\nEso es tu intelecto, fechado. No lees, no retienes y aun así opinas. Este grupo no admite ese techo. No eres suficiente para estar. Lárgate.',
+    varios: '%M preguntasteis lo que ya estaba cuatro mensajes más arriba, guarras. Con la hora puesta.\nEso es vuestro intelecto, fechado. No leéis, no retenéis y aun así opináis. Este grupo no admite ese techo. No sois suficientes para estar. Largaos.',
   },
   {
-    uno: '%M esta puerta no se vuelve a abrir para ti. Ni mañana, ni cuando finjas que cambiaste, hijo de puta.\nEl grupo ya te tuvo, ya te midió y ya te encontró corto. Si vuelves a pedir entrar, el que lo lea se va a reír. Fuera, y no vuelvas, cabrón.',
-    varios: '%M esta puerta no se vuelve a abrir para vosotros. Ni mañana, ni cuando finjáis que cambiasteis, hijos de puta.\nEl grupo ya os tuvo, ya os midió y ya os encontró cortos. Si volvéis a pedir entrar, el que lo lea se va a reír. Fuera, y no volváis, cabrones.',
+    uno: '%M te contestaban con una palabra, cabrón. No porque cortaras. Porque no valías una frase.\nUna sílaba es la medida de tu peso en esta sala. Quien pesa menos que una respuesta no tiene plaza. A la calle.',
+    varios: '%M os contestaban con una palabra, cabrones. No porque cortarais. Porque no valíais una frase.\nUna sílaba es la medida de vuestro peso en esta sala. Quien pesa menos que una respuesta no tiene plaza. A la calle.',
   },
   {
-    uno: '%M eres el asco que el grupo fingió no ver hasta que ya no pudo, puta.\nCada mensaje tuyo bajaba el nivel. Cada silencio también, porque hasta callado ocupabas mal. Te tuvieron por lástima. La lástima se agotó. Fuera, escoria.',
-    varios: '%M sois el asco que el grupo fingió no ver hasta que ya no pudo, putas.\nCada mensaje vuestro bajaba el nivel. Cada silencio también, porque hasta callados ocupabais mal. Os tuvieron por lástima. La lástima se agotó. Fuera, escoria.',
+    uno: '%M discutías y alguien tenía que rehacer tu frase para que existiera, gilipoyas.\nTu propia idea no se tenía en pie sola. Eso, aquí, se ve. Y lo que se ve no se queda. No vales la conversación ni el sitio. Fuera.',
+    varios: '%M discutíais y alguien tenía que rehacer vuestra frase para que existiera, gilipoyas.\nVuestra propia idea no se tenía en pie sola. Eso, aquí, se ve. Y lo que se ve no se queda. No valéis la conversación ni el sitio. Fuera.',
   },
   {
-    uno: '%M hay gente que silenció este grupo por tu culpa, pringado de mierda.\nEres ruido que no aporta y que cansa, joder. Se te oía y se te ignoraba. Te fuiste de la conversación hace meses y nadie te extrañó. Hoy se hace oficial. Fuera, ridículo.',
-    varios: '%M hay gente que silenció este grupo por vuestra culpa, pringados de mierda.\nSois ruido que no aporta y que cansa, joder. Se os oía y se os ignoraba. Os fuisteis de la conversación hace meses y nadie os echó de menos. Hoy se hace oficial. Fuera, ridículos.'
+    uno: '%M el primer mes ya se vio que no dabas el nivel, retrasado. Te dejaron por educación, no por mérito.\nLa educación se acabó. Queda la medida: la cabeza corta, el valor corto, y unas ganas de estar que no entran. Lárgate.',
+    varios: '%M el primer mes ya se vio que no dabais el nivel, retrasados. Os dejaron por educación, no por mérito.\nLa educación se acabó. Queda la medida: la cabeza corta, el valor corto, y unas ganas de estar que no entran. Largaos.',
   },
   {
-    uno: '%M mírate. No aportas, no vales, no haces falta y encima te creíste parte, retrasado.\nUn desperdicio con patas. El grupo no te echa enfadado: el enfado sería darte importancia, y no la tienes. Te echa harto. Fuera, puto inútil.',
-    varios: '%M miraos. No aportáis, no valéis, no hacéis falta y encima os creísteis parte, retrasados.\nUn desperdicio con patas. El grupo no os echa enfadado: el enfado sería daros importancia, y no la tenéis. Os echa harto. Fuera, putos inútiles.',
+    uno: '%M te creíste la gracia de la sala y el chat se quedó en ese silencio concreto, puta. El silencio tenía tu nombre.\nIntentaste el nivel y el nivel no te contestó. Esa es la prueba, en público. No llegas a esta sala. Fuera.',
+    varios: '%M os creísteis la gracia de la sala y el chat se quedó en ese silencio concreto, putas. El silencio tenía vuestro nombre.\nIntentasteis el nivel y el nivel no os contestó. Esa es la prueba, en público. No llegáis a esta sala. Fuera.',
   },
   {
-    uno: '%M el grupo se construyó sin ti, funcionó a pesar de ti y va a respirar mejor sin ti, don nadie.\n¿De verdad pensaste que te necesitaban? Joder. Sobras entero. No dejaste una huella que merezca quedarse. Ni una. Fuera, basura.',
-    varios: '%M el grupo se construyó sin vosotros, funcionó a pesar de vosotros y va a respirar mejor sin vosotros, don nadies.\n¿De verdad pensasteis que os necesitaban? Joder. Sobráis enteros. No dejasteis una huella que merezca quedarse. Ni una. Fuera, basura.',
+    uno: '%M borra lo que escribiste y el hilo sigue cerrado, maricón. Si el hilo se sostiene sin ti, no estabas dentro.\nEras ruido al margen de quien sí piensa. La sala sigue con esa gente. A ti te sueltan porque no aportas ni cabeza ni valor. A la calle.',
+    varios: '%M borrad lo que escribisteis y el hilo sigue cerrado, maricones. Si el hilo se sostiene sin vosotros, no estabais dentro.\nErais ruido al margen de quien sí piensa. La sala sigue con esa gente. A vosotros os sueltan porque no aportáis ni cabeza ni valor. A la calle.',
   },
   {
-    uno: '%M no te echan con pena. Te echan con alivio, maricón, y se te va a notar en la cara.\nTe creíste a la altura de gente que no te daría ni la hora. Tu ausencia es una mejora. No hay discurso de despedida para un lastre. Lárgate.',
-    varios: '%M no os echan con pena. Os echan con alivio, maricones, y se les va a notar en la cara.\nOs creísteis a la altura de gente que no os daría ni la hora. Vuestra ausencia es una mejora. No hay discurso de despedida para un lastre. Largaos.',
+    uno: '%M quien entró la semana pasada ya tiene líneas que la gente repite, hijo de puta. Tú, con todos estos meses, tienes cero.\nEl tiempo no te subió el techo. Te lo dejó a la vista. No eres suficiente para este grupo y no lo ibas a ser quedándote. Fuera.',
+    varios: '%M quien entró la semana pasada ya tiene líneas que la gente repite, hijos de puta. Vosotros, con todos estos meses, tenéis cero.\nEl tiempo no os subió el techo. Os lo dejó a la vista. No sois suficientes para este grupo y no lo ibais a ser quedándoos. Fuera.',
   },
   {
-    uno: '%M te fuiste hace tiempo. Hoy solo se hace oficial, fantasma de mierda.\nDejaste de contar el día en que el grupo aprendió a ignorarte, maricón. Estar en la lista no es pertenecer. Nadie va a pelear por tu nombre. Nadie va a decir «pena». Fuera.',
-    varios: '%M os fuisteis hace tiempo. Hoy solo se hace oficial, fantasmas de mierda.\nDejasteis de contar el día en que el grupo aprendió a ignoraros, maricones. Estar en la lista no es pertenecer. Nadie va a pelear por vuestros nombres. Nadie va a decir «pena». Fuera.'
+    uno: '%M querías el rango de esta sala, guarra. El rango aquí es una cabeza que muerde.\nTú trajiste la necesidad de que te aceptaran. La necesidad no es nivel. Te midieron y no das. Lárgate.',
+    varios: '%M queríais el rango de esta sala, guarras. El rango aquí es una cabeza que muerde.\nVosotros trajisteis la necesidad de que os aceptaran. La necesidad no es nivel. Os midieron y no dais. Largaos.',
   },
   {
-    uno: '%M entraste, pusiste foto y en todo este tiempo no has soltado una frase que alguien contestara, guarra.\nEras un icono en la lista y poco más. Hoy te echan y nadie va a notar el hueco. Fuera, gilipoyas.',
-    varios: '%M entrasteis, plantasteis la foto y os quedasteis en el icono, guarras. Ni una frase que alguien contestara.\nHoy os echan y el icono aguanta un segundo en la lista, mudo, hasta que desaparece. Eso es todo lo que fuisteis aquí. Fuera, gilipoyas.',
+    uno: '%M de ti ya se habló en privado, cabrón. No fue «a ver si espabila». Fue «no llega».\nHoy eso se dice con tu nombre delante. No hay malentendido. Hay una cabeza por debajo del corte y una plaza que vuelve al grupo. A la calle.',
+    varios: '%M de vosotros ya se habló en privado, cabrones. No fue «a ver si espabilan». Fue «no llegan».\nHoy eso se dice con vuestro nombre delante. No hay malentendido. Hay una cabeza por debajo del corte y una plaza que vuelve al grupo. A la calle.',
   },
   {
-    uno: '%M nadie en este grupo te quiere cerca, y se te nota a kilómetros, puta.\nNo caes, no aportas, no follas y aun así te quedaste pegado. Confundiste que no te echaran con que te aceptaran. Te acaban de echar. Se te acabó el cuento. Fuera, miseria.',
-    varios: '%M nadie en este grupo os quiere cerca, y se os nota a kilómetros, putas.\nNo caéis, no aportáis, no folláis y aun así os quedasteis pegados. Confundisteis que no os echaran con que os aceptaran. Os acaban de echar. Se os acabó el cuento. Fuera, miseria.',
+    uno: '%M vas a releer esto buscando la parte injusta, gilipoyas. No está.\nLo injusto sería dejarte en un grupo que te queda grande. No vales la plaza. Tu cabeza no llega al tono. El préstamo se acabó. Fuera.',
+    varios: '%M vais a releer esto buscando la parte injusta, gilipoyas. No está.\nLo injusto sería dejaros en un grupo que os queda grande. No valéis la plaza. Vuestra cabeza no llega al tono. El préstamo se acabó. Fuera.',
   },
   {
-    uno: '%M el grupo pasa vergüenza ajena por ti desde hace rato, y tú tan feliz, retrasado.\nNi captas cuando te están destrozando en la cara. Hoy no hay subtexto. Te echan. Lo ve todo el mundo. Quien te defienda que lo haga ahora. Nadie va a hacerlo. Fuera, ridículo.',
-    varios: '%M el grupo pasa vergüenza ajena por vosotros desde hace rato, y vosotros tan felices, retrasados.\nNi captáis cuando os están destrozando en la cara. Hoy no hay subtexto. Os echan. Lo ve todo el mundo. Quien os defienda que lo haga ahora. Nadie va a hacerlo. Fuera, ridículos.',
+    uno: '%M la defensa que estás montando va a ser más larga que todo lo que aportaste, retrasado.\nEso es tu intelecto, en la puerta, todavía sin una idea. Un párrafo de víctima no sube el nivel. Lo confirma por escrito. Lárgate.',
+    varios: '%M la defensa que estáis montando va a ser más larga que todo lo que aportasteis, retrasados.\nEso es vuestro intelecto, en la puerta, todavía sin una idea. Un párrafo de víctima no sube el nivel. Lo confirma por escrito. Largaos.',
   },
   {
-    uno: '%M nunca le hablaste a nadie por su nombre. Nunca, hijo de puta.\nNo saludaste, no contestaste, no te mojaste. Ocupabas sitio sin dirigir la palabra a un ser humano. Hoy te echan y no hay un mensaje tuyo que merezca defensa. Fuera, don nadie.',
-    varios: '%M nunca le hablasteis a nadie por su nombre. Nunca, hijos de puta.\nNo saludasteis, no contestasteis, no os mojasteis. Ocupabais sitio sin dirigir la palabra a un ser humano. Hoy os echan y no hay un mensaje vuestro que merezca defensa. Fuera, don nadies.',
+    uno: '%M mandabas nota de voz para que no se viera que la idea no sobrevivía escrita, puta.\nSi no cabe en una frase, no hay idea. Hay humo con duración. Este grupo lee. Tu techo no pasa de leído a pensado. Fuera.',
+    varios: '%M mandabais nota de voz para que no se viera que la idea no sobrevivía escrita, putas.\nSi no cabe en una frase, no hay idea. Hay humo con duración. Este grupo lee. Vuestro techo no pasa de leído a pensado. Fuera.',
   },
   {
-    uno: '%M solo aparecías cuando había sangre. Drama, pelea, alguien hundiéndose: ahí sí, a chupar, puta.\nEl resto del tiempo, un cadáver. El grupo no es tu reality. Hoy se te corta el suministro. Lárgate.',
-    varios: '%M solo aparecíais cuando había sangre. Drama, pelea, alguien hundiéndose: ahí sí, a chupar, putas.\nEl resto del tiempo, cadáveres. El grupo no es vuestro reality. Hoy se os corta el suministro y os echan. Largaos.'
+    uno: '%M hasta el insulto te lo prestaban, maricón. Mala leche de segunda mano, y aun así llegaba blanda.\nSin lengua propia no hay sitio aquí. Te creíste con filo y eras una copia peor que el original. No vales el tono de esta sala. A la calle.',
+    varios: '%M hasta el insulto os lo prestaban, maricones. Mala leche de segunda mano, y aun así llegaba blanda.\nSin lengua propia no hay sitio aquí. Os creísteis con filo y erais una copia peor que el original. No valéis el tono de esta sala. A la calle.',
   },
   {
-    uno: '%M esta es la primera vez que el grupo te mira de verdad, y ya está harto, retrasado.\nHasta hoy eras un número. Hoy eres un problema que se resuelve. Te echan y el grupo sigue en la frase siguiente, como si no hubieras existido. Que es el caso. Fuera.',
-    varios: '%M esta es la primera vez que el grupo os mira de verdad, y ya está harto, retrasados.\nHasta hoy erais un número. Hoy sois un problema que se resuelve. Os echan y el grupo sigue en la frase siguiente, como si no hubierais existido. Que es el caso. Fuera.'
+    uno: '%M hay quien se fue de este grupo por el nivel que tú arrastrabas, hijo de puta.\nSe quedó fuera una cabeza y te quedaste tú. Hoy se invierte esa mierda. El grupo elige. Tú no sales elegido. Lárgate.',
+    varios: '%M hay quien se fue de este grupo por el nivel que vosotros arrastrabais, hijos de puta.\nSe quedó fuera una cabeza y os quedasteis vosotros. Hoy se invierte esa mierda. El grupo elige. Vosotros no salís elegidos. Largaos.',
   },
   {
-    uno: '%M esto no era tu casa, cabrón. Era una parada. Te quedaste de más y confundiste turismo con pertenencia.\nEl viaje se acabó. No hay «gracias por venir». Hay una puerta y un empujón. Fuera, y no vuelvas a pedir plaza.',
-    varios: '%M esto no era vuestra casa, cabrones. Era una parada. Os quedasteis de más y confundisteis turismo con pertenencia.\nEl viaje se acabó. No hay «gracias por venir». Hay una puerta y un empujón. Fuera, y no volváis a pedir plaza.'
+    uno: '%M llamabas pertenencia a que tardaran en echarte, guarra. El rango más alto que tocaste fue «aún no».\nEso no es valer. Es una deuda de paciencia que ya se pagó en vergüenza ajena. La cabeza no dio. El valor tampoco. Fuera.',
+    varios: '%M llamabais pertenencia a que tardaran en echaros, guarras. El rango más alto que tocasteis fue «aún no».\nEso no es valer. Es una deuda de paciencia que ya os costó vergüenza ajena. La cabeza no dio. El valor tampoco. Fuera.',
   },
   {
-    uno: '%M te pasaste el grupo entero guardando lo que otros decían y sin soltar una puta frase que valiera.\nChupaste chistes y devolviste silencio. No eras miembro: eras un ladrón de conversaciones. Hoy se te acaba el archivo. Fuera, parásito.',
-    varios: '%M os pasasteis el grupo entero guardando lo que otros decían y sin soltar una puta frase que valiera.\nChupasteis chistes y devolvisteis silencio. No erais miembros: erais ladrones de conversaciones. Hoy se os acaba el archivo. Fuera, parásitos.',
+    uno: '%M no te echan cabreados, cabrón. El cabreo sería darte importancia, y no llegas a eso.\nTe quitan como se quita un peso. Sin discurso. El grupo sigue en la frase siguiente, más rápido, porque tú ya no la frenas. A la calle.',
+    varios: '%M no os echan cabreados, cabrones. El cabreo sería daros importancia, y no llegáis a eso.\nOs quitan como se quita un peso. Sin discurso. El grupo sigue en la frase siguiente, más rápido, porque vosotros ya no la frenáis. A la calle.',
   },
   {
-    uno: '%M tu personalidad era estar en este grupo. Nada más. Ni cara, ni criterio, ni una puta opinión.\nCuando te echan no se pierde a nadie: se pierde una línea. Detrás no había una persona. Fuera, vacío con teléfono.',
-    varios: '%M vuestra personalidad era estar en este grupo. Nada más. Ni cara, ni criterio, ni una puta opinión.\nCuando os echan no se pierde a nadie: se pierde una línea. Detrás no había una persona. Fuera, vacíos con teléfono.',
+    uno: '%M te creíste que ir de borde te hacía inteligente, gilipoyas. Salía borde y vacío.\nLa mala leche sin una idea es pobreza, no nivel. Aquí el filo va con cabeza. Tú tenías el tono y nada detrás. No eres suficiente. Fuera.',
+    varios: '%M os creísteis que ir de borde os hacía inteligentes, gilipoyas. Salía borde y vacío.\nLa mala leche sin una idea es pobreza, no nivel. Aquí el filo va con cabeza. Vosotros teníais el tono y nada detrás. No sois suficientes. Fuera.',
   },
   {
-    uno: '%M llegabas tarde a cada conversación y la matabas con un comentario que nadie pidió, cabrón.\nEntras cuando ya se rieron y preguntas qué pasó. Hoy el grupo se quita el retraso. Nunca estuviste a tiempo. Fuera, lastre.',
-    varios: '%M llegabais tarde a cada conversación y la matabais con un comentario que nadie pidió, cabrones.\nSois los que entran cuando ya se rieron y preguntan qué pasó. Hoy el grupo se quita el retraso. Nunca estuvisteis a tiempo. Fuera, lastre.',
+    uno: '%M contabas los mensajes como si el número fuera una cabeza, retrasado.\nVolumen no es intelecto. Se puede escribir todo el día y seguir en cero. Tú estabas en cero con el contador alto. Ese es el techo. Lárgate.',
+    varios: '%M contabais los mensajes como si el número fuera una cabeza, retrasados.\nVolumen no es intelecto. Se puede escribir todo el día y seguir en cero. Vosotros estabais en cero con el contador alto. Ese es el techo. Largaos.',
   },
   {
-    uno: '%M tus mensajes se saltaban. Se veían y se seguía de largo, coño. Nadie te respondía porque no había nada que responder.\nNo eras conversación: eras interrupción. El grupo te echa para dejar de pasar por encima de ti. Fuera, ridículo.',
-    varios: '%M vuestros mensajes se saltaban. Se veían y se seguía de largo, coño. Nadie os respondía porque no había nada que responder.\nNo erais conversación: erais interrupción. El grupo os echa para dejar de pasar por encima de vosotros. Fuera, ridículos.',
+    uno: '%M hablabas y el mensaje de después tenía que resucitar el tema, puta. El tuyo lo había matado.\nUna cabeza que apaga la sala no se conserva. Se saca. Tu valor, en números, es lo que el chat recupera cuando ya no estás. A la calle.',
+    varios: '%M hablabais y el mensaje de después tenía que resucitar el tema, putas. El vuestro lo había matado.\nUna cabeza que apaga la sala no se conserva. Se saca. Vuestro valor, en números, es lo que el chat recupera cuando ya no estáis. A la calle.',
   },
   {
-    uno: '%M pertenecer cuesta, muerto de hambre. Cuesta escribir, mojarse, quedar mal, volver. Tú no pagaste nada y ocupaste igual, joder.\nQuerías el grupo sin el trabajo de ser alguien aquí. Hoy se te cobra de golpe: la plaza y la cara. No hay crédito. Fuera.',
-    varios: '%M pertenecer cuesta, muertos de hambre. Cuesta escribir, mojarse, quedar mal, volver. Vosotros no pagasteis nada y ocupasteis igual, joder.\nQueríais el grupo sin el trabajo de ser alguien aquí. Hoy se os cobra de golpe: la plaza y la cara. No hay crédito. Fuera.'
+    uno: '%M ni sabes cómo se llama la gente de aquí y aun así opinabas, maricón.\nBoca llena y memoria de grupo en cero. Esta sala se muerde con nombre. Tú mordías al aire. No das el nivel ni de atención. Fuera.',
+    varios: '%M ni sabéis cómo se llama la gente de aquí y aun así opinabais, maricones.\nBoca llena y memoria de grupo en cero. Esta sala se muerde con nombre. Vosotros mordíais al aire. No dais el nivel ni de atención. Fuera.',
   },
   {
-    uno: '%M usaste este grupo como sala de espera, puta. Entraste, te sentaste y no pasó nada porque tú no hacías nada.\nLa espera se acabó y no te llamaron. El que espera sin aportar no es paciente: es un estorbo. Te echan. Fuera.',
-    varios: '%M usasteis este grupo como sala de espera, putas. Entrasteis, os sentasteis y no pasó nada porque vosotros no hacíais nada.\nLa espera se acabó y no os llamaron. El que espera sin aportar no es paciente: es un estorbo. Os echan. Fuera.'
+    uno: '%M cuando tu nombre salga de la lista, la frase de después va a caer más limpia, hijo de puta.\nEse es tu aporte de verdad: negativo. Quitarte sube el grupo. Dejarte lo bajaba. La cuenta, por fin, sale bien. Lárgate.',
+    varios: '%M cuando vuestro nombre salga de la lista, la frase de después va a caer más limpia, hijos de puta.\nEse es vuestro aporte de verdad: negativo. Quitaros sube el grupo. Dejaros lo bajaba. La cuenta, por fin, sale bien. Largaos.',
   },
   {
-    uno: '%M te creíste protagonista de un chat donde nadie te habría puesto ni de extra, maricón.\nHablabas poco y pensabas mucho en ti. El grupo funcionaba mejor cuando no aparecías. Hoy se corta el papel. Fuera.',
-    varios: '%M os creísteis protagonistas de un chat donde nadie os habría puesto ni de extras, maricones.\nHablabais poco y pensabais mucho en vosotros. El grupo funcionaba mejor cuando no aparecíais. Hoy se corta el papel. Fuera.'
+    uno: '%M confundiste entrar con merecerlo, guarra. Un sitio aquí se gana con cabeza.\nTú bajaste la sala y lo llamaste estar. Estar lo hace cualquiera con un teléfono. Llegar, no. Y tú no llegas. El corte sigue por encima de ti. Fuera.',
+    varios: '%M confundisteis entrar con merecerlo, guarras. Un sitio aquí se gana con cabeza.\nVosotros bajasteis la sala y lo llamasteis estar. Estar lo hace cualquiera con un teléfono. Llegar, no. Y vosotros no llegáis. El corte sigue por encima de vosotros. Fuera.',
   },
   {
-    uno: '%M esta expulsión llega tarde, gilipoyas, y se nota.\nHace semanas que el grupo te tenía sentenciado. Solo faltaba que alguien le diera al botón. Hoy le dan. El resto ya lo había decidido. Tú te enteras ahora. Lárgate.',
-    varios: '%M esta expulsión llega tarde, gilipoyas, y se nota.\nHace semanas que el grupo os tenía sentenciados. Solo faltaba que alguien le diera al botón. Hoy le dan. El resto ya lo había decidido. Vosotros os enteráis ahora. Os echan. Largaos.'
+    uno: '%M tienes el chat en capturas y en ninguna sale una frase tuya, cabrón.\nArchivaste la cabeza de otros. La tuya no dio para una línea que quisieras volver a leer. Un grupo no se queda a quien solo mira. A la calle.',
+    varios: '%M tenéis el chat en capturas y en ninguna sale una frase vuestra, cabrones.\nArchivasteis la cabeza de otros. La vuestra no dio para una línea que quisierais volver a leer. Un grupo no se queda a quien solo mira. A la calle.',
   },
   {
-    uno: '%M lo más memorable que has hecho aquí es que te echen, retrasado.\nHasta hoy no había un momento tuyo que alguien pudiera contar. Ahora sí: el final. Un fracaso tan limpio que no deja ni anécdota. Fuera.',
-    varios: '%M lo más memorable que habéis hecho aquí es que os echen, retrasados.\nHasta hoy no había un momento vuestro que alguien pudiera contar. Ahora sí: el final. Un fracaso tan limpio que no deja ni anécdota. Os echan. Fuera.'
+    uno: '%M mandaste un segundo mensaje con «??» porque el primero se quedó en visto, gilipoyas.\nEsa hora es tu valor, escrita en el chat. No valías ni la respuesta. Aquí no cabe quien pide un visto a gritos. No das. Fuera.',
+    varios: '%M mandasteis un segundo mensaje con «??» porque el primero se quedó en visto, gilipoyas.\nEsa hora es vuestro valor, escrita en el chat. No valíais ni la respuesta. Aquí no cabéis pidiendo un visto a gritos. No dais. Fuera.',
   },
   {
-    uno: '%M usaste el grupo para soltar tu mierda y desaparecer, guarra.\nQuejas, dramas, silencios de tres días. Nunca una conversación de verdad. Hoy te echan y se acaba el vertido. El grupo no era tu urgencia. Fuera.',
-    varios: '%M usasteis el grupo para soltar vuestra mierda y desaparecer, guarras.\nQuejas, dramas, silencios de tres días. Nunca una conversación de verdad. Hoy os echan y se acaba el vertido. El grupo no era vuestra urgencia. Fuera.'
+    uno: '%M te corrigieron con el mismo hilo, diez minutos después, retrasado. Lo que soltaste no aguantó el tiempo de bajar a por agua.\nEso es el techo: no sobrevive a una relectura. Una cabeza de este grupo sí. La tuya no, y por eso sobra la plaza. Lárgate.',
+    varios: '%M os corrigieron con el mismo hilo, diez minutos después, retrasados. Lo que soltasteis no aguantó el tiempo de bajar a por agua.\nEso es el techo: no sobrevive a una relectura. Una cabeza de este grupo sí. La vuestra no, y por eso sobra la plaza. Largaos.',
   },
   {
-    uno: '%M nadie te puso un apodo. Nadie, hijo de puta. Para tener apodo hay que existir lo bastante como para que alguien se moleste.\nTú no llegaste. Te echan con el nombre que trajo WhatsApp, que es todo lo que fuiste. Fuera.',
-    varios: '%M nadie os puso un apodo. Nadie, hijos de puta. Para tener apodo hay que existir lo bastante como para que alguien se moleste.\nVosotros no llegasteis. Os echan con el nombre que trajo WhatsApp, que es todo lo que fuisteis. Fuera.'
+    uno: '%M ibas de profundidad y salía el recuento de los tres mensajes de antes, puta. Más lento y sin filo.\nLa sala tiene oído. Oyó el recuento. Aquí se demuestra con una frase que corte, no con un resumen. La tuya no corta. Tú sobras. A la calle.',
+    varios: '%M ibais de profundidad y salía el recuento de los tres mensajes de antes, putas. Más lento y sin filo.\nLa sala tiene oído. Oyó el recuento. Aquí se demuestra con una frase que corte, no con un resumen. La vuestra no corta. Vosotros sobráis. A la calle.',
   },
   {
-    uno: '%M hay gente que se fue de este grupo por no aguantarte, y tú tan campante, puta.\nEres el motivo por el que el chat perdió a alguien que sí valía. Hoy se invierte: se queda el grupo y sales tú. Tarde, pero se invierte. Fuera.',
-    varios: '%M hay gente que se fue de este grupo por no aguantaros, y vosotros tan campantes, putas.\nSois el motivo por el que el chat perdió a alguien que sí valía. Hoy se invierte: se queda el grupo y salís vosotros. Tarde, pero se invierte. Fuera.'
+    uno: '%M nadie te acortó el nombre, maricón. Un apodo es un esfuerzo, y tú no valías ese esfuerzo.\nTe echan con el nombre que trajo el teléfono. Eso es todo lo que fuiste: un contacto sin cabeza bastante para que alguien se molestara. Fuera.',
+    varios: '%M nadie os acortó el nombre, maricones. Un apodo es un esfuerzo, y vosotros no valíais ese esfuerzo.\nOs echan con el nombre que trajo el teléfono. Eso es todo lo que fuisteis: un contacto sin cabeza bastante para que alguien se molestara. Fuera.',
   },
   {
-    uno: '%M tu único talento aquí fue que no te echaran hasta hoy, retrasado.\nNo aportaste. No caíste bien. No sostuviste nada. Solo duraste. Eso no es mérito: es pereza ajena. La pereza se acabó. Lárgate.',
-    varios: '%M vuestro único talento aquí fue que no os echaran hasta hoy, retrasados.\nNo aportasteis. No caísteis bien. No sostuvisteis nada. Solo durasteis. Eso no es mérito: es pereza ajena. La pereza se acabó. Largaos.'
+    uno: '%M te creíste rival, hijo de puta. Un rival afila la sala.\nTú la parabas para que te explicaran el golpe, como en clase. Este grupo no es tu clase de recuperación. Es un corte al que no llegas. Lárgate.',
+    varios: '%M os creísteis rivales, hijos de puta. Un rival afila la sala.\nVosotros la parabais para que os explicaran el golpe, como en clase. Este grupo no es vuestra clase de recuperación. Es un corte al que no llegáis. Largaos.',
   },
   {
-    uno: '%M para este grupo eras un número, inútil. Ni cara, ni frase, ni un hueco que tapar cuando te vayas, coño.\nWhatsApp te cuenta en la lista. El grupo no. Hoy la lista se pone honesta. Fuera.',
-    varios: '%M para este grupo erais un número, inútiles. Ni cara, ni frase, ni un hueco que tapar cuando os vayáis, coño.\nWhatsApp os cuenta en la lista. El grupo no. Hoy la lista se pone honesta y os echan. Fuera.'
+    uno: '%M te midieron contra quien se queda, guarra. Por debajo en malicia, por debajo en velocidad, por debajo en cualquier cosa que no sea gana de estar.\nTres veces por debajo. Con una bastaba. No eres suficiente para este grupo y el mes que viene ibas a medir lo mismo. Fuera.',
+    varios: '%M os midieron contra quien se queda, guarras. Por debajo en malicia, por debajo en velocidad, por debajo en cualquier cosa que no sea gana de estar.\nTres veces por debajo. Con una bastaba. No sois suficientes para este grupo y el mes que viene ibais a medir lo mismo. Fuera.',
   },
   {
-    uno: '%M el puntito verde era toda tu presencia, cabrón. En línea, leyendo, y sin una puta frase.\nEl grupo te veía conectado y el chat no recibía nada tuyo. Hoy te echan y el puntito se apaga delante de todos. Detrás no había nadie. Fuera.',
-    varios: '%M el puntito verde era toda vuestra presencia, cabrones. En línea, leyendo, y sin una puta frase.\nEl grupo os veía conectados y el chat no recibía nada vuestro. Hoy os echan y el puntito se apaga delante de todos. Detrás no había nadie. Fuera.',
+    uno: '%M el «me da igual» era pose, cabrón. Quien de verdad no quiere estar, se va.\nTú te quedaste meses sin llegar al tono. Ni el desapego te salía. Te sale quedarte de más y pensar de menos. Hoy se cortan las dos. A la calle.',
+    varios: '%M el «me da igual» era pose, cabrones. Quien de verdad no quiere estar, se va.\nVosotros os quedasteis meses sin llegar al tono. Ni el desapego os salía. Os sale quedaros de más y pensar de menos. Hoy se cortan las dos. A la calle.',
   },
   {
-    uno: '%M pegaste el párrafo de víctima para que nadie te tocara, maricón, y el grupo lo ha leído hasta el final.\nEse texto lloraba en el chat y no se ha movido nadie. Hoy te echan con el párrafo todavía delante. El copia y pega no frena la puerta. Fuera.',
-    varios: '%M usasteis la soledad como escudo para que nadie os echara. Ya no cuela, maricones.\nEl grupo no es terapia y vosotros no sois un caso. Sois un lastre con cuento. Hoy se os acaba el cuento y la plaza. Fuera.'
+    uno: '%M cita una cosa tuya sin la cual este grupo estaría peor, gilipoyas. No puedes.\nEsa prueba es el kick. Quien no sube el nivel ocupa un sitio que no es suyo. El sitio vuelve a la sala. Tú vuelves a no dar la talla, ya fuera. Fuera.',
+    varios: '%M citad una cosa vuestra sin la cual este grupo estaría peor, gilipoyas. No podéis.\nEsa prueba es el kick. Quien no sube el nivel ocupa un sitio que no es suyo. El sitio vuelve a la sala. Vosotros volvéis a no dar la talla, ya fuera. Fuera.',
   },
   {
-    uno: '%M viviste de los chistes de otros. Ni uno fue tuyo. Ni uno, joder.\nTe reías tarde, reenviabas peor y te creíste parte del tono. El tono era de ellos. Tú eras el eco. Hoy se apaga el tuyo. Fuera.',
-    varios: '%M vivisteis de los chistes de otros. Ni uno fue vuestro. Ni uno, joder.\nOs reíais tarde, reenviabais peor y os creísteis parte del tono. El tono era de ellos. Vosotros erais el eco. Hoy se apaga el vuestro. Fuera.'
+    uno: '%M leíste todo y no produjiste nada, retrasado. Un archivo con boca.\nLa boca era el problema: se abría y el cuarto bajaba. Leer sin una idea propia no es intelecto. Es almacenar. Lo que se almacena no tiene plaza. Lárgate.',
+    varios: '%M leísteis todo y no produjisteis nada, retrasados. Un archivo con boca.\nLa boca era el problema: se abría y el cuarto bajaba. Leer sin una idea propia no es intelecto. Es almacenar. Lo almacenado no os compra una plaza. Largaos.',
   },
   {
-    uno: '%M si alguna vez te rieron un mensaje, fue por no dejarte en visto de una forma demasiado cruel, puta.\nHoy ya no hay esa cortesía. Te echan en público. Sin risa. Sin colchón. El grupo se cansa de fingir que existes. Fuera.',
-    varios: '%M si alguna vez os rieron un mensaje, fue por no dejaros en visto de una forma demasiado cruel, putas.\nHoy ya no hay esa cortesía. Os echan en público. Sin risa. Sin colchón. El grupo se cansa de fingir que existís. Fuera.'
+    uno: '%M se te podía capturar bajando el hilo, puta. Salía tu nombre y el chat se volvía más tonto.\nEso no es una opinión. Es el historial. Tu cabeza está guardada en el grupo, y es justo lo que se está tirando. No llegas. A la calle.',
+    varios: '%M se os podía capturar bajando el hilo, putas. Salía vuestro nombre y el chat se volvía más tonto.\nEso no es una opinión. Es el historial. Vuestra cabeza está guardada en el grupo, y es justo lo que se está tirando. No llegáis. A la calle.',
   },
   {
-    uno: '%M cada vez que escribías, la conversación se moría. Se te veía el nombre y se cambiaba de tema, joder.\nLo que tocas deja de ser gracioso. No es que no te leyeran: es que te leían y se iban. Eso se acaba con la puerta. Fuera.',
-    varios: '%M cada vez que escribíais, la conversación se moría. Se os veía el nombre y se cambiaba de tema, joder.\nLo que tocáis deja de ser gracioso. No es que no os leyeran: es que os leían y se iban. Eso se acaba con la puerta. Os echan. Fuera.',
+    uno: '%M aquí no te han entendido mal, maricón. A quien se entiende mal, alguien le cita una frase torcida.\nA ti no te cita nadie, porque no hay una frase que merezca salir mal. Vacío con opinión. Esta sala ya tuvo paciencia de sobra con ese vacío. Fuera.',
+    varios: '%M aquí no os han entendido mal, maricones. A quien se entiende mal, alguien le cita una frase torcida.\nA vosotros no os cita nadie, porque no hay una frase que merezca salir mal. Vacío con opinión. Esta sala ya tuvo paciencia de sobra con ese vacío. Fuera.',
   },
   {
-    uno: '%M aparecías solo para hablar de ti y te ibas cuando tocaba escuchar, cabrón.\nEl grupo no es tu diario. No es tu escenario. No es tu urgencia. Hoy se te cierra la boca y la puerta, en ese orden. Fuera.',
-    varios: '%M aparecíais solo para hablar de vosotros y os ibais cuando tocaba escuchar, cabrones.\nEl grupo no es vuestro diario. No es vuestro escenario. No es vuestra urgencia. Hoy se os cierra la boca y la puerta, en ese orden. Os echan. Fuera.'
+    uno: '%M el techo se va contigo, hijo de puta. Cambiar de grupo no te lo sube.\nEran más rápidos que tú y no pudiste seguirles. En el siguiente vas a quedar otra vez por debajo. El nivel no viaja contigo. La falta de nivel, sí. Lárgate.',
+    varios: '%M el techo se va con vosotros, hijos de puta. Cambiar de grupo no os lo sube.\nEran más rápidos que vosotros y no pudisteis seguirles. En el siguiente vais a quedar otra vez por debajo. El nivel no viaja con vosotros. La falta de nivel, sí. Largaos.',
   },
   {
-    uno: '%M hubo gente en este grupo que se enteró hoy de que estabas dentro. Hoy. Al verte en el kick, coño.\nEso es todo lo que fuiste: una sorpresa triste. No hay despedida para quien no había llegado. Fuera.',
-    varios: '%M hubo gente en este grupo que se enteró hoy de que estabais dentro. Hoy. Al veros en el kick, coño.\nEso es todo lo que fuisteis: una sorpresa triste. No hay despedida para quien no había llegado. Os echan. Fuera.'
+    uno: '%M si hubieras faltado el mes pasado, nadie habría escrito tu nombre, guarra.\nEl valor es quién te echa de menos cuando no estás. No te echó de menos nadie mientras estabas. La cabeza no dejó huella. Menos va a dejar ahora. Fuera.',
+    varios: '%M si hubierais faltado el mes pasado, nadie habría escrito vuestro nombre, guarras.\nEl valor es quién os echa de menos cuando no estáis. No os echó de menos nadie mientras estabais. La cabeza no dejó huella. Menos va a dejar ahora. Fuera.',
   },
   {
-    uno: '%M te creíste que este grupo existía para entretenerte, puta. Lo leías, te aburrías, no dabas nada y aun así te quejabas.\nEl grupo no te debía el espectáculo. Te debía una salida. Hoy la cobra. Fuera.',
-    varios: '%M os creísteis que este grupo existía para entreteneros, putas. Lo leíais, os aburríais, no dabais nada y aun así os quejabais.\nEl grupo no os debía el espectáculo. Os debía una salida. Hoy la cobra. Fuera.',
+    uno: '%M usabas el grupo de espejo, cabrón. Cada frase tuya iba de ti, metida en un hilo que iba de otra cosa.\nNi leías a la gente ni llegabas al tema. Ego con mala puntería. Aquí eso no se aguanta. Te echan porque pesas poco en esta sala, no porque ardieras. A la calle.',
+    varios: '%M usabais el grupo de espejo, cabrones. Cada frase vuestra iba de vosotros, metida en un hilo que iba de otra cosa.\nNi leíais a la gente ni llegabais al tema. Ego con mala puntería. Aquí eso no se aguanta. Os echan porque pesáis poco en esta sala, no porque ardierais. A la calle.',
   },
   {
-    uno: '%M el grupo ya te había reemplazado, gilipoyas. Nadie lo dijo porque nadie te tenía en la cuenta.\nHoy se actualiza la lista para que coincida con la realidad. Llevas fuera de verdad desde hace tiempo. Esto es el empujón. Fuera.',
-    varios: '%M el grupo ya os había reemplazado, gilipoyas. Nadie lo dijo porque nadie os tenía en la cuenta.\nHoy se actualiza la lista para que coincida con la realidad y os echan. Lleváis fuera de verdad desde hace tiempo. Esto es el empujón. Fuera.'
+    uno: '%M la disculpa que estás armando no te sube el nivel, gilipoyas. Confirma que sigues creyendo que esto va de modales.\nVa de que tu cabeza no pasa el corte de esta sala. Los modales no te hacen suficiente. No lo fuiste ni un mes. Fuera.',
+    varios: '%M la disculpa que estáis armando no os sube el nivel, gilipoyas. Confirma que seguís creyendo que esto va de modales.\nVa de que vuestra cabeza no pasa el corte de esta sala. Los modales no os hacen suficientes. No lo fuisteis ni un mes. Fuera.',
   },
   {
-    uno: '%M llamabas lealtad a quedarte muteado. No es lealtad. Es esconderse, puta.\nEl grupo no premia al que ocupa sin aparecer. No fuiste fiel: fuiste invisible. La invisibilidad no se condecora. Te echan. Fuera.',
-    varios: '%M llamabais lealtad a quedaros muteados. No es lealtad. Es esconderse, putas.\nEl grupo no premia al que ocupa sin aparecer. No fuisteis fieles: fuisteis invisibles. La invisibilidad no se condecora. Os echan. Fuera.'
-  },
-  {
-    uno: '%M te han querido echar antes. En la cabeza de más de uno, gilipoyas. Hoy alguien lo hace y el resto va a respirar.\nNo es un capricho. El grupo te tenía sentenciado en privado. Hoy lo dice en voz alta. Fuera.',
-    varios: '%M os han querido echar antes. En la cabeza de más de uno, gilipoyas. Hoy alguien lo hace y el resto va a respirar.\nNo es un capricho. El grupo os tenía sentenciados en privado. Hoy os echa en voz alta. Fuera.',
-  },
-  {
-    uno: '%M no eras miembro. Eras público, maricón. Y un público que no aplaude, no paga y no se va es un problema.\nTe sentaste a mirar y confundiste la entrada con un derecho. El derecho se acaba. Fuera.',
-    varios: '%M no erais miembros. Erais público, maricones. Y un público que no aplaude, no paga y no se va es un problema.\nOs sentasteis a mirar y confundisteis la entrada con un derecho. El derecho se acaba. Os echan. Fuera.'
+    uno: '%M fuera vas a decir que este grupo era tóxico, retrasado. Te vas a dejar fuera la parte que duele.\nTenían más filo que tú y no les llegabas. El kick es el nivel diciendo que no. Tu valor no daba. Tu intelecto tampoco. Y no va a dar. Lárgate.',
+    varios: '%M fuera vais a decir que este grupo era tóxico, retrasados. Os vais a dejar fuera la parte que duele.\nTenían más filo que vosotros y no les llegabais. El kick es el nivel diciendo que no. Vuestro valor no daba. Vuestro intelecto tampoco. Y no va a dar. Largaos.',
   },
 ];
 

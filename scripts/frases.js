@@ -146,7 +146,9 @@ const POOLS_MODO = args.includes('--pools');
 // nadie 244.
 // Y el 21 oct, con las comisiones del banco: «Guardado. Miedo con forma de
 // candado.» pasa a hablarle a quien guarda. Nadie 243.
-const TECHO = { nadie: 243, analogia: 6, coletilla: 23, eco: 0, molde: 66, enlatado: 127, roto: 0 };
+// Y el 23 oct, al reescribir los avisos de !kick: ya no cierran en «Fuera, X.».
+// Coletilla 7. Quedan aura, el roast del dueño, «Borrado, gilipoyas.» y los piropos.
+const TECHO = { nadie: 243, analogia: 6, coletilla: 7, eco: 0, molde: 66, enlatado: 127, roto: 0 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();

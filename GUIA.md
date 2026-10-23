@@ -840,10 +840,9 @@ defectos:
 | `enlatado` | el mismo bloque de cinco palabras en cuatro frases o más | 415 | 127 |
 | `roto` | daño mecánico de una edición masiva anterior | 2 | 0 |
 
-Las 23 coletillas que quedan son a propósito: los avisos de `!kick`, que
-cierran con «Fuera, X.», los piropos, «Hoy cenas, muerto de hambre.»,
-«Borrado, gilipoyas.», el roast del dueño y dos de sus ejemplos de `!aura`,
-que son intocables. Casi todo el `enlatado` y el
+Las 7 coletillas que quedan son a propósito: los piropos, «Hoy cenas, muerto de hambre.»,
+«Borrado, gilipoyas.», el roast del dueño y los ejemplos de `!aura`,
+que son intocables. Los avisos de `!kick` ya no cierran en coletilla. Casi todo el `enlatado` y el
 `molde` que queda son las acciones, donde «%A le azota el culo a %V» se repite
 porque es lo que pasa.
 
