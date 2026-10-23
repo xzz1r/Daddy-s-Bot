@@ -32,6 +32,7 @@ const { isOwner, isMainOwner, isGroupAdmin, isAdmin, isBotAdmin, isBotJid, esBot
 const { sinApelativo } = require('../utils/vocativo');
 const logger = require('../utils/logger');
 const bitacoraEstados = require('../utils/bitacoraEstados');
+const { archivarVerUnaVez, esperaArchivo } = require('../utils/verUnaVez');
 
 const { clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa, PERMISO_ENLACE, puedeAnunciar, anotarTropiezo, perfilMirado } = require('../utils/antilink');
 const { MAL_ESCRITO, OBJETIVO_DIA_CARTEL, AL_BOT, AL_BOT_MENCION, VER_UNA_VEZ } = require('../data/avisos');
@@ -826,15 +827,23 @@ function marcarVisto(sock, msg, { verUnaVez = false } = {}) {
   //
   // Una vez y no en cada mensaje: si falla, falla siempre, y llenar el log con
   // la misma linea mil veces es otra forma de no decir nada.
-  const p = sock.readMessages?.([msg.key]);
-  if (!p) { avisarVistoRoto('sock.readMessages no existe en este socket'); return null; }
-  const leido = p.catch((e) => avisarVistoRoto(e?.message || String(e)));
-  if (!(esParaEscuchar(msg.message) || verUnaVez) || typeof sock.sendReceipts !== 'function') return leido;
-  // Detras del visto: el escuchado sin el visto no existe en ningun movil.
-  return leido.then(async () => {
-    const priv = await sock.fetchPrivacySettings?.().catch(() => null);
-    await sock.sendReceipts([msg.key], !priv || priv.readreceipts === 'all' ? 'played' : 'played-self');
-  }).catch((e) => logger.unaVez('marcar audio escuchado', e));
+  //
+  // En «ver una vez» el acuse espera a la descarga. `played` es el «Abierto»,
+  // y WhatsApp tira el enlace en cuanto lo recibe: si sale antes, /s y /toimg
+  // llegan tarde. Sin descarga en curso no hay espera (la capa 115).
+  const acuse = async () => {
+    if (verUnaVez) await esperaArchivo(msg?.key?.id);
+    const p = sock.readMessages?.([msg.key]);
+    if (!p) { avisarVistoRoto('sock.readMessages no existe en este socket'); return null; }
+    const leido = p.catch((e) => avisarVistoRoto(e?.message || String(e)));
+    if (!(esParaEscuchar(msg.message) || verUnaVez) || typeof sock.sendReceipts !== 'function') return leido;
+    // Detras del visto: el escuchado sin el visto no existe en ningun movil.
+    return leido.then(async () => {
+      const priv = await sock.fetchPrivacySettings?.().catch(() => null);
+      await sock.sendReceipts([msg.key], !priv || priv.readreceipts === 'all' ? 'played' : 'played-self');
+    }).catch((e) => logger.unaVez('marcar audio escuchado', e));
+  };
+  return acuse();
 }
 
 // ¿Este comando, que va contra otra persona, apunta al bot? `aOtro` en el
@@ -1937,6 +1946,9 @@ async function handleMessage(sock, msg, opciones = {}) {
   // proposito.
   // El interruptor manda sobre el valor de config, que solo es el arranque de
   // fabrica. Ver !visto en group.js: se apaga sin tocar ficheros ni reiniciar.
+  // La foto se guarda ANTES del acuse. El `played` va dentro de marcarVisto y
+  // espera a este intento; si se mandara ya, el enlace moriría antes de /s.
+  if (eraViewOnce) archivarVerUnaVez(sock, msg);
   if (vistoActivo(config.autoRead) && !msg.key.fromMe) {
     setImmediate(() => {
       // EL FALLO SE DICE UNA VEZ, no se traga.

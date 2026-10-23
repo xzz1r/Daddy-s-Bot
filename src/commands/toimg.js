@@ -13,15 +13,15 @@
 // asi; aqui faltaba en los cuatro envios.
 
 const { spawnSuave, PRIORIDAD_FONDO } = require('../utils/hijos');
-const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
 const { spawn } = require('child_process');
 const { ffmpegPath } = require('../utils/ffmpeg');
-const { tempFile, cleanTemp, streamToBuffer, ffmpegSemaphore, MAX_MEDIA_BYTES } = require('../utils/helpers');
+const { tempFile, cleanTemp, ffmpegSemaphore } = require('../utils/helpers');
 const { desmontarWebpAnimado, isAnimatedWebP, extractFirstAnmfFrame } = require('../utils/sticker');
 const { getSender } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
+const { bajar: bajarBytes } = require('../utils/verUnaVez');
 const logger = require('../utils/logger');
 
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -105,9 +105,26 @@ function medioCitado(msg) {
 }
 
 // Medio a convertir: primero el citado (el caso normal, responder a algo) y si
-// no, el que venga en el propio mensaje.
+// no, el que venga en el propio mensaje. `origen` lo necesita la resubida: la
+// clave que hay que pedirle a WhatsApp es la de la cita, no la del comando.
+function objetivo(msg) {
+  const citado = medioCitado(msg);
+  if (citado) return { media: citado, origen: 'cita' };
+  return { media: findMedia(msg?.message), origen: 'propio' };
+}
+
 function medioObjetivo(msg) {
-  return medioCitado(msg) || findMedia(msg?.message);
+  return objetivo(msg).media;
+}
+
+function bajarObjetivo(sock, msg, media, origen) {
+  return bajarBytes(sock, msg, {
+    msg: media.data,
+    type: media.type,
+    dl: media.dl,
+    verUnaVez: media.viewOnce,
+    viewOnce: media.viewOnce,
+  }, origen);
 }
 
 async function runFfmpegConvert(inputFile, outputFile, opts) {
@@ -275,7 +292,7 @@ async function cmdToVid(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   const senderJid = getSender(msg);
 
-  const media = medioObjetivo(msg);
+  const { media, origen } = objetivo(msg);
 
   if (!media) {
     return sock.sendMessage(jid, {
@@ -291,8 +308,7 @@ async function cmdToVid(sock, msg, groupMeta) {
   const reembolsar = () => devolver(jid, senderJid, pago, 'tovid').catch((e) => logger.unaVez('tovid: devolver', e));
 
   try {
-    const stream = await downloadContentFromMessage(media.data, media.dl || media.type);
-    const buf = await streamToBuffer(stream, MAX_MEDIA_BYTES);
+    const buf = await bajarObjetivo(sock, msg, media, origen);
 
     if (media.type === 'sticker') {
       if (!isAnimatedWebP(buf)) {
@@ -335,7 +351,7 @@ async function cmdToImg(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   const senderJid = getSender(msg);
 
-  const media = medioObjetivo(msg);
+  const { media, origen } = objetivo(msg);
 
   if (!media) {
     return sock.sendMessage(jid, {
@@ -350,8 +366,7 @@ async function cmdToImg(sock, msg, groupMeta) {
   const reembolsar = () => devolver(jid, senderJid, pago, 'toimg').catch((e) => logger.unaVez('toimg: devolver', e));
 
   try {
-    const stream = await downloadContentFromMessage(media.data, media.dl || media.type);
-    const buf = await streamToBuffer(stream, MAX_MEDIA_BYTES);
+    const buf = await bajarObjetivo(sock, msg, media, origen);
 
     if (media.type === 'sticker') {
       if (isAnimatedWebP(buf)) {

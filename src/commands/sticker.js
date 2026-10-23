@@ -1,10 +1,10 @@
-const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, detectExt, MAX_STICKER_BYTES } = require('../utils/sticker');
 const fs = require('fs-extra');
-const { streamToBuffer, tempFile, cleanTemp, MAX_MEDIA_BYTES } = require('../utils/helpers');
-const { getSender, isOwner, sameUser } = require('../utils/wa');
+const { tempFile, cleanTemp } = require('../utils/helpers');
+const { getSender, isOwner } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { incrementStat } = require('../utils/state');
+const { clasificar, bajar } = require('../utils/verUnaVez');
 const logger = require('../utils/logger');
 
 // Identify what kind of media is in a message object.
@@ -15,108 +15,20 @@ const logger = require('../utils/logger');
 // below by just re-sending someone else's sticker as a "file" instead of tapping
 // it from the sticker tray, so format wins over envelope here.
 // `type` es el tipo SEMÁNTICO (qué hay dentro, para decidir la conversión) y
-// `dl` el que hay que pasarle a downloadContentFromMessage.
-//
-// No siempre coinciden, y confundirlos rompe la descarga entera: la clave de
-// descifrado sale de un HKDF cuyo "info" depende del tipo
-// (Utils/messages-media.js:hkdfInfoKey sobre MEDIA_HKDF_KEY_MAPPING). Quien
-// manda un archivo lo cifra con claves de *Document*; pedirlo como 'image' o
-// 'video' deriva la clave equivocada y lo que se descarga es basura. Por eso
-// un adjunto enviado como archivo nunca llegaba a hacerse sticker.
-function identifyMedia(messageObject, depth = 0) {
-  if (!messageObject || depth > 4) return null;
-  if (messageObject.stickerMessage) return { msg: messageObject.stickerMessage, type: 'sticker', dl: 'sticker' };
-  if (messageObject.imageMessage) {
-    const mime = messageObject.imageMessage.mimetype || '';
-    return { msg: messageObject.imageMessage, type: mime === 'image/webp' ? 'sticker' : 'image', dl: 'image' };
-  }
-  if (messageObject.videoMessage) {
-    const mime = messageObject.videoMessage.mimetype || '';
-    return { msg: messageObject.videoMessage, type: mime === 'image/webp' ? 'sticker' : 'video', dl: 'video' };
-  }
-  if (messageObject.documentMessage) {
-    const mime = messageObject.documentMessage.mimetype || '';
-    const doc = { msg: messageObject.documentMessage, dl: 'document' };
-    if (mime === 'image/webp') return { ...doc, type: 'sticker' };
-    if (mime.startsWith('image/')) return { ...doc, type: 'image' };
-    if (mime.startsWith('video/')) return { ...doc, type: 'video' };
-  }
-  // Wrappers de "ver una vez" (v1 / v2 / v2 extension): una foto o video enviado
-  // como vista única llega anidado. Lo desenvolvemos para que !s también funcione
-  // sobre ellos, ya sea citándolos o mandándolos con el caption !s.
-  const inner =
-    messageObject.viewOnceMessage?.message ||
-    messageObject.viewOnceMessageV2?.message ||
-    messageObject.viewOnceMessageV2Extension?.message;
-  if (inner) {
-    const r = identifyMedia(inner, depth + 1);
-    return r ? { ...r, verUnaVez: true } : null;
-  }
-  return null;
-}
-
-// ─── BAJAR EL MEDIO, Y SI NO SALE, PEDIRLO OTRA VEZ ─────────────────────────
+// `dl` el que hay que pasarle a la descarga. No siempre coinciden: un archivo
+// se cifra con claves de Document, y pedirlo como image o video baja basura.
+// La clasificación vive en utils/verUnaVez.js, que es quien baja de verdad.
 //
 // LO DE VER UNA VEZ SE INTENTA SIEMPRE. El 10 oct se le puso a *!s* una
 // negativa —«las fotos de ver una vez no me llegan, mandala normal»— que
-// saltaba antes de intentarlo, y el dueño la tumbo al dia siguiente: antes se
-// podia. Se quito entera, y el fallo vuelve a decir lo de siempre.
-//
-// Lo que si es verdad, y conviene saberlo leyendo esto: al bot, que es un
-// dispositivo vinculado, WhatsApp le manda la foto de ver una vez VACIA
-// (Baileys: `view_once_unavailable_fanout`). Lo que funciona es responderla
-// con *!s*: la foto viene dentro de la cita, con su clave, y de ahi se baja.
-//
-// Y SI LA DESCARGA FALLA, SE PIDE OTRA VEZ. Un enlace de WhatsApp caduca, y una
-// cita a veces trae la clave pero no la ruta. Con la clave, Baileys puede
-// pedirle al movil que mando la foto que la vuelva a subir
-// (`updateMediaMessage`), que es lo que hace WhatsApp con una foto vieja que
-// sale borrosa. Solo si eso tampoco sale se devuelve el aura.
-const ESPERA_RESUBIDA_MS = 20000;
-
-async function bajarDirecto(medio, tipo) {
-  const stream = await downloadContentFromMessage(medio, tipo);
-  const buffer = await streamToBuffer(stream, MAX_MEDIA_BYTES);
-  if (!buffer || buffer.length < 100) throw new Error('No se pudo descargar el archivo');
-  return buffer;
-}
-
-// El mensaje entero al que pertenece el medio, que es lo que pide la resubida:
-// el propio si el !s iba en el texto de la foto, o el citado (su id y quien lo
-// mando salen de la cita).
-function mensajeDelMedio(sock, msg, origen) {
-  if (origen === 'propio') return { key: msg.key, message: msg.message };
-  const ctx = msg.message?.extendedTextMessage?.contextInfo;
-  if (!ctx?.stanzaId || !ctx.quotedMessage) return null;
-  return {
-    key: {
-      remoteJid: msg.key.remoteJid,
-      id: ctx.stanzaId,
-      participant: ctx.participant,
-      fromMe: Boolean(ctx.participant && sock.user?.id && sameUser(ctx.participant, sock.user.id)),
-    },
-    message: ctx.quotedMessage,
-  };
+// saltaba antes de intentarlo, y el dueño la tumbó al día siguiente. El fallo
+// vuelve a decir «No pude descargar eso», nunca esa negativa.
+function identifyMedia(messageObject) {
+  return clasificar(messageObject);
 }
 
 async function bajarMedio(sock, msg, found, origen) {
-  const tipo = found.dl || found.type;
-  try {
-    return await bajarDirecto(found.msg, tipo);
-  } catch (primero) {
-    const original = mensajeDelMedio(sock, msg, origen);
-    if (!original || !found.msg?.mediaKey || typeof sock.updateMediaMessage !== 'function') throw primero;
-    logger.info(`sticker: la descarga directa falló (${primero.message}); pido que lo vuelvan a subir`);
-    let espera;
-    const tope = new Promise((_, no) => { espera = setTimeout(() => no(new Error('el móvil no contestó a la resubida')), ESPERA_RESUBIDA_MS); });
-    try {
-      const nuevo = await Promise.race([sock.updateMediaMessage(original), tope]);
-      const otraVez = identifyMedia(nuevo?.message) || found;
-      return await bajarDirecto(otraVez.msg, tipo);
-    } finally {
-      clearTimeout(espera);
-    }
-  }
+  return bajar(sock, msg, found, origen);
 }
 
 // Para el log: con esto se sabe si el fallo es de la cita (sin clave) o de la red.
