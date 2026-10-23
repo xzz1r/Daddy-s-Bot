@@ -1,4 +1,4 @@
-const { getSender, getTarget, sameUser, isOwner, isBotJid } = require('../utils/wa');
+const { getSender, getTarget, sameUser, isOwner, isMainOwner, isBotJid } = require('../utils/wa');
 const { transferAura, flushAura, addAura } = require('../utils/auraStore');
 const { fmt, parseCantidad, avisoPermiso } = require('../utils/helpers');
 const { aportarAlBote } = require('../utils/roboStore');
@@ -10,7 +10,17 @@ const { REGALO_MIN: GIFT_MIN, IMPUESTO, impuestoDe } = require('../utils/economi
 const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
 
-async function cmdDar(sock, msg, args) {
+// ─── AL DUEÑO NO SE LE DA AURA ───────────────────────────────────────────────
+//
+// Lo pidio el dueño (23 oct): «haz que yo pueda dar aura, pero que nadie me
+// pueda dar aura a mi». Vale para *!dar* y para *!premiar* de un co-dueño; el
+// dueño sigue dando lo que quiera, y para el mismo esta *!premiaryo*. Solo el
+// dueño (isMainOwner), no los co-dueños. Ni «dueño» en el texto (capa 27).
+const NO_SE_LE_DA = 'A este usuario no se le puede dar aura.';
+const aDuenoAjeno = (sender, fromMe, target, groupMeta) =>
+  isMainOwner(target, false, groupMeta) && !isMainOwner(sender, fromMe, groupMeta);
+
+async function cmdDar(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
@@ -27,6 +37,9 @@ async function cmdDar(sock, msg, args) {
   }
   if (sameUser(target, sender)) {
     return sock.sendMessage(jid, { text: aviso(A_TI_MISMO, jid, 'yo') }, { quoted: msg });
+  }
+  if (aDuenoAjeno(sender, msg.key.fromMe, target, groupMeta)) {
+    return sock.sendMessage(jid, { text: NO_SE_LE_DA }, { quoted: msg });
   }
 
   const parsed = parseCantidad(args);
@@ -122,6 +135,9 @@ async function cmdPremiar(sock, msg, args, groupMeta) {
   if (isBotJid(sock, target)) {
     return sock.sendMessage(jid, { text: 'Al bot no le hace falta aura.' }, { quoted: msg });
   }
+  if (aDuenoAjeno(sender, msg.key.fromMe, target, groupMeta)) {
+    return sock.sendMessage(jid, { text: NO_SE_LE_DA }, { quoted: msg });
+  }
   const amount = parseCantidad(args).valor;
   if (!amount || amount < 1) {
     return sock.sendMessage(jid, { text: 'Indica cuánta: *!premiar @alguien 500*' }, { quoted: msg });
@@ -166,4 +182,4 @@ async function cmdPremiarYo(sock, msg, args, groupMeta) {
   return sock.sendMessage(jid, { text: lineaAura('', amount, current) }, { quoted: msg });
 }
 
-module.exports = { cmdDar, cmdPremiar, cmdPremiarYo, PREMIO_MAX };
+module.exports = { cmdDar, cmdPremiar, cmdPremiarYo, PREMIO_MAX, NO_SE_LE_DA };

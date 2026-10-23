@@ -23093,6 +23093,58 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes137) console.log(verde('   ✓ el anti-empresa echa a toda cuenta Business, «No es una empresa» incluida, y a ninguna normal'));
   }
 
+  // ── 138. AL DUEÑO NO SE LE DA AURA (23 oct) ───────────────────────────────
+  // «Haz que yo pueda dar aura, pero que nadie me pueda dar aura a mí.» Ni
+  // *!dar* de un miembro ni *!premiar* de un co-dueño, tampoco si lo mencionan
+  // por su @lid; el dueño sigue dando y premiándose, y a los co-dueños se les
+  // sigue pudiendo dar. En una copia aparte, que esto escribe aura.
+  {
+    console.log('\n138. AL DUEÑO NO SE LE DA AURA, Y ÉL SIGUE DANDO');
+    const antes138 = fallos;
+    const caja = fs.mkdtempSync(path.join(require('os').tmpdir(), 'nodar-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const D = require('./src/commands/dar'); const A = require('./src/utils/auraStore');",
+        "const G = '120000938@g.us', OWN = '33600000001@s.whatsapp.net', LID = '900000000138@lid', CO = '34600000123@s.whatsapp.net', M = '34600000555@s.whatsapp.net';",
+        "const meta = { participants: [{ id: LID, phoneNumber: OWN, admin: 'superadmin' }, { id: CO }, { id: M }] };",
+        "const msg = (quien, a, txt) => ({ key: { remoteJid: G, participant: quien, fromMe: false, id: 'N' + Math.random() }, message: { extendedTextMessage: { text: txt, contextInfo: { mentionedJid: [a] } } } });",
+        "(async () => { const out = []; const sk = { user: { id: '549199@s.whatsapp.net' }, sendMessage: async (j, c) => { out.push(c.text || ''); return {}; } };",
+        "  await A.addAura(G, M, 5000); await A.addAura(G, OWN, 5000); await A.addAura(G, CO, 5000);",
+        "  const a = async (j) => A.getAura(G, j); const r = {};",
+        "  let o0 = await a(OWN), m0 = await a(M); await D.cmdDar(sk, msg(M, OWN, '!dar @x 100'), ['@x', '100'], meta);",
+        "  r.darTel = (await a(OWN)) - o0; r.darTelM = (await a(M)) - m0; r.txtTel = out[out.length - 1];",
+        "  o0 = await a(OWN); await D.cmdDar(sk, msg(M, LID, '!dar @x 100'), ['@x', '100'], meta); r.darLid = (await a(OWN)) - o0; r.txtLid = out[out.length - 1];",
+        "  o0 = await a(OWN); await D.cmdPremiar(sk, msg(CO, OWN, '!premiar @x 500'), ['@x', '500'], meta); r.premCo = (await a(OWN)) - o0; r.txtCo = out[out.length - 1];",
+        "  m0 = await a(M); await D.cmdDar(sk, msg(OWN, M, '!dar @x 100'), ['@x', '100'], meta); r.ownDa = (await a(M)) - m0;",
+        "  o0 = await a(OWN); await D.cmdPremiar(sk, msg(OWN, OWN, '!premiar @x 300'), ['@x', '300'], meta); r.ownSe = (await a(OWN)) - o0;",
+        "  const c0 = await a(CO); await D.cmdDar(sk, msg(M, CO, '!dar @x 100'), ['@x', '100'], meta); r.aCo = (await a(CO)) - c0;",
+        "  console.log('R138' + JSON.stringify({ ...r, aviso: D.NO_SE_LE_DA }));",
+        "  process.exit(0); })();",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 30000,
+        env: { ...process.env, OWNER_NUMBER: '33600000001', CO_OWNERS: '34600000123' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R138'));
+      const r = linea ? JSON.parse(linea.slice(4)) : null;
+      if (!r) { fallos++; console.log(rojo(`   ✗ no pude probarlo: ${(out.stderr || '').split('\n').slice(0, 3).join(' ')}`)); }
+      else {
+        if (r.darTel !== 0 || r.darTelM !== 0) { fallos++; console.log(rojo(`   ✗ un miembro le ha dado aura al dueño con *!dar*: ${r.darTel} (y a quien da le cuesta ${r.darTelM})`)); }
+        if (r.darLid !== 0) { fallos++; console.log(rojo(`   ✗ mencionándolo por su @lid, *!dar* le llega al dueño: ${r.darLid}`)); }
+        if (r.premCo !== 0) { fallos++; console.log(rojo(`   ✗ un co-dueño le ha premiado ${r.premCo} de aura al dueño`)); }
+        for (const [k, t] of [['!dar', r.txtTel], ['!dar por @lid', r.txtLid], ['!premiar', r.txtCo]]) {
+          if (t !== r.aviso) { fallos++; console.log(rojo(`   ✗ ${k} al dueño no avisa de que no se le puede dar aura: ${String(t).slice(0, 60)}`)); }
+        }
+        if (/dueñ/i.test(r.aviso || '')) { fallos++; console.log(rojo('   ✗ el aviso nombra al «dueño» (capa 27)')); }
+        if (r.ownDa !== 100) { fallos++; console.log(rojo(`   ✗ el dueño da 100 con *!dar* y llegan ${r.ownDa}: él sí tiene que poder dar`)); }
+        if (r.ownSe !== 300) { fallos++; console.log(rojo(`   ✗ el dueño se premia 300 y le llegan ${r.ownSe}`)); }
+        if (r.aCo !== 100) { fallos++; console.log(rojo(`   ✗ a un co-dueño ya no se le puede dar aura (${r.aCo}): el bloqueo es solo del dueño`)); }
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes138) console.log(verde('   ✓ al dueño nadie le da aura, ni por @lid ni con !premiar, y él sigue dando'));
+  }
+
 
   }
 

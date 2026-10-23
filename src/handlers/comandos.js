@@ -315,7 +315,7 @@ const FAMILIAS = [
   { nombres: ['roast', 'quemar', 'destruir', 'flamear'], meta: true, lento: true, cobro: 'roast', aOtro: true,
     hace: (c) => c.de('roast').cmdRoast(c.sock, c.msg, c.meta) },
   { nombres: ['dar', 'regalar', 'transferir', 'pagar', 'donar'], meta: true, aura: true, aOtro: true,
-    hace: (c) => c.de('dar').cmdDar(c.sock, c.msg, c.args) },
+    hace: (c) => c.de('dar').cmdDar(c.sock, c.msg, c.args, c.meta) },
   // Aura nueva, solo del dueño y los co-dueños, y a la vista de todos. Ver
   // cmdPremiar en dar.js.
   { nombres: ['premiar', 'bonificar', 'otorgar'], meta: true, aura: true,

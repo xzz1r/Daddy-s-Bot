@@ -65,6 +65,14 @@ Las cifras viven en `CAJA` (`src/utils/economia.js`); `impuestoPago` sale de
 `!aura @alguien` y `!caso` enseñan lo que hay en el banco, `!caso` en su línea
 aunque esté a cero. La capa 134 no deja bajar las comisiones.
 
+## Al dueño no se le da aura
+
+Lo pidió el dueño (23 oct): él da aura a quien quiera, pero nadie se la da a
+él. `!dar` (y sus alias) y `!premiar` de un co-dueño contestan «A este usuario
+no se le puede dar aura.», también si lo mencionan por su @lid. Solo el dueño
+(`isMainOwner`): a los co-dueños se les sigue pudiendo dar. Vive en
+`src/commands/dar.js`; la capa 138 lo vigila.
+
 ## Frases de porcentaje y de !rizz: 25 · 10 · 10
 
 Lo fijó el dueño: 25 frases en el tramo de la paliza y 10 en cada uno de los
