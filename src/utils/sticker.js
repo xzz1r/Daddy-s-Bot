@@ -796,17 +796,11 @@ const ANIM_TIERS = [
   { fps: 24, quality: 50, size: 512 },
   { fps: 24, quality: 60, size: 384 },
   { fps: 24, quality: 45, size: 384 },
+  // EL SUELO. Por debajo de esto no se baja la calidad (dueño, 25 oct: se
+  // añadieron 384 a q25, 320 y 256 px para que un GIF largo cupiera, y «la
+  // calidad ha bajado demasiado»). Lo que no quepa aquí se acorta: ver el
+  // recorte en videoToSticker.
   { fps: 24, quality: 35, size: 384 },
-  // LA ESCALERA SE QUEDABA CORTA (25 oct). Un GIF de WhatsApp de 11,6 s, 640x360,
-  // dibujos con mucho movimiento: el último escalón salía a 1190 KB y el bot
-  // contestaba que no podía. A tamaño de sticker en el móvil, 384 px a q25 o
-  // 320 y 256 px se ven bien (comparados a ojo); un «no puedo», no. Los
-  // factores se midieron con ese mismo vídeo.
-  { fps: 24, quality: 25, size: 384 },
-  { fps: 24, quality: 35, size: 320 },
-  { fps: 24, quality: 25, size: 320 },
-  { fps: 24, quality: 35, size: 256 },
-  { fps: 24, quality: 25, size: 256 },
 ];
 
 // Empirically measured libwebp output-size multipliers per quality/canvas-size,
@@ -821,8 +815,8 @@ const ANIM_TIERS = [
 // proporcional— asi que un escalon por encima puede intentarse, pero nunca
 // puede servir de REFERENCIA para estimar los demas.
 const REF_MAX_QUALITY = 85;
-const QUALITY_SIZE_FACTOR = { 95: 1.47, 85: 1.0, 80: 0.853, 75: 0.737, 70: 0.704, 60: 0.649, 50: 0.591, 45: 0.558, 35: 0.482, 25: 0.414 };
-const CANVAS_SIZE_FACTOR = { 512: 1.0, 384: 0.70, 320: 0.556, 256: 0.401 };
+const QUALITY_SIZE_FACTOR = { 95: 1.47, 85: 1.0, 80: 0.853, 75: 0.737, 70: 0.704, 60: 0.649, 50: 0.591, 45: 0.558, 35: 0.482 };
+const CANVAS_SIZE_FACTOR = { 512: 1.0, 384: 0.70 };
 
 function predictTierBytes(tier, refTier, refBytes) {
   return refBytes
@@ -1092,28 +1086,31 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
       if (buf.length <= MAX_STICKER_BYTES) { smallest = buf; break; }
       if (!smallest || buf.length < smallest.length) smallest = buf;
     }
-    // SI NI EL ULTIMO ESCALON CABE, SE ACORTA EN VEZ DE RENDIRSE (25 oct). Los
-    // fps no se tocan (es requisito) y la calidad ya esta en lo mas bajo que
-    // se ve bien: lo que queda es la duracion. Se calcula cuanta cabe con el
-    // peso del mas ligero, con margen, y se codifica una vez mas con el
-    // ultimo escalon. Un sticker de siete segundos es un sticker; un «no he
-    // podido», no.
-    if (smallest && smallest.length > MAX_STICKER_BYTES) {
-      const largo = Math.min(durationS > 0 ? durationS : TOPE_ANIMADO_S, TOPE_ANIMADO_S);
+    // SI NI EL SUELO CABE, SE ACORTA EN VEZ DE RENDIRSE NI DE BAJAR MAS (25
+    // oct). Los fps no se tocan (es requisito) y la calidad no baja del suelo
+    // (lo pidio el dueño): lo que queda es la duracion. Se calcula cuanta cabe
+    // con el peso del mas ligero, con margen, y se codifica una vez mas con el
+    // ultimo escalon. Un sticker de siete segundos bien visto es un sticker;
+    // uno de diez emborronado, o un «no he podido», no.
+    // Dos pasadas: la primera estima con el peso del suelo a duracion entera,
+    // y si el contenido no se reparte igual a lo largo del clip, la segunda
+    // corrige con lo que de verdad pesó la primera.
+    let largo = Math.min(durationS > 0 ? durationS : TOPE_ANIMADO_S, TOPE_ANIMADO_S);
+    for (let pasada = 0; pasada < 2 && smallest && smallest.length > MAX_STICKER_BYTES; pasada++) {
       const cabe = Math.floor(largo * (MAX_STICKER_BYTES / smallest.length) * 0.9 * 10) / 10;
-      if (cabe >= 1) {
-        const ult = ANIM_TIERS[ANIM_TIERS.length - 1];
-        try {
-          await encodeAnimWebp(inputFile, outputFile, ult.fps, ult.quality, ult.size, fpsOrigen, cabe);
-          const corto = await fs.readFile(outputFile);
-          if (corto.length >= 100 && corto.length < smallest.length) {
-            smallest = corto;
-            if (corto.length <= MAX_STICKER_BYTES) buf = corto;
-          }
-          logger.info(`sticker animado: no cabía ni en el último escalón; recortado a ${cabe} s (${Math.round(corto.length / 1024)} KB)`);
-        } catch (e) {
-          logger.unaVez('sticker animado recortado', e);
-        }
+      if (cabe < 0.5) break;
+      const ult = ANIM_TIERS[ANIM_TIERS.length - 1];
+      try {
+        await encodeAnimWebp(inputFile, outputFile, ult.fps, ult.quality, ult.size, fpsOrigen, cabe);
+        const corto = await fs.readFile(outputFile);
+        logger.info(`sticker animado: no cabía en el suelo; recortado a ${cabe} s (${Math.round(corto.length / 1024)} KB)`);
+        if (corto.length < 100) break;
+        smallest = corto;
+        largo = cabe;
+        if (corto.length <= MAX_STICKER_BYTES) buf = corto;
+      } catch (e) {
+        logger.unaVez('sticker animado recortado', e);
+        break;
       }
     }
     // If no tier fit the cap, ship the smallest we produced (most likely to be

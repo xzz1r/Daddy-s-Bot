@@ -23352,26 +23352,33 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
           exige(st.length <= S.MAX_STICKER_BYTES, `un sticker animado de ${Math.round(big.length / 1024)} KB sale con ${Math.round(st.length / 1024)} KB: sigue sin recomprimirse`);
           exige(S.isAnimatedWebP(st) && (S.desmontarWebpAnimado(st)?.cuadros.length || 0) > 1, 'el sticker recomprimido ya no es animado');
         }
-        // Y UN VIDEO QUE NO CABE NI EN EL ULTIMO ESCALON (25 oct): un GIF de
-        // WhatsApp con mucho movimiento acababa en «no he podido». Ruido puro,
-        // que no se comprime de ninguna forma: tiene que salir, más corto.
-        const ruido = spawnSync(ffmpegPath, ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'nullsrc=s=640x640:r=30:d=4,geq=random(1)*255:128:128',
+        // Y UN VIDEO QUE NO CABE NI EN EL SUELO (25 oct): un GIF de WhatsApp
+        // con mucho movimiento acababa en «no he podido». Mucho detalle y
+        // grano: tiene que salir, más corto y con la calidad del suelo.
+        const ruido = spawnSync(ffmpegPath, ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'testsrc2=s=640x640:r=30:d=6,noise=alls=40:allf=t',
           '-c:v', 'libx264', '-crf', '10', '-pix_fmt', 'yuv420p', f('ruido.mp4')]);
         if (ruido.status === 0) {
           const st = await S.videoToSticker(fs.readFileSync(f('ruido.mp4')), 'capa');
           exige(st.length <= S.MAX_STICKER_BYTES, `un video que no cabe ni en el último escalón sale con ${Math.round(st.length / 1024)} KB: el bot contestaría «no he podido» en vez de acortarlo`);
           exige(S.isAnimatedWebP(st), 'el sticker acortado ya no es animado');
+          const dc = S.desmontarWebpAnimado(st);
+          exige(dc && dc.ancho >= 384, `para que quepa se ha bajado el lienzo a ${dc?.ancho} px en vez de acortar`);
         }
       }
       // Cada tamaño de la escalera con su factor medido: sin él la predicción
       // da NaN y se salta escalones a ciegas.
+      // Y EL SUELO (dueño, 25 oct: «la calidad ha bajado demasiado» con 384 px
+      // a q25, 320 y 256 px). Lo que no quepa se acorta, no se emborrona.
+      const ult = S.ANIM_TIERS[S.ANIM_TIERS.length - 1];
+      exige(S.ANIM_TIERS.every((t) => t.size >= 384 && t.quality >= 35) && ult.size === 384 && ult.quality === 35,
+        `la escalera baja de 384 px a q35 (llega a ${Math.min(...S.ANIM_TIERS.map((t) => t.size))} px y q${Math.min(...S.ANIM_TIERS.map((t) => t.quality))}): el dueño lo vio emborronado; lo que no quepa se acorta`);
       const sinFactor = S.ANIM_TIERS.filter((t) => !S.CANVAS_SIZE_FACTOR[t.size]).map((t) => `${t.size} px`);
       exige(!sinFactor.length, `la escalera usa ${[...new Set(sinFactor)].join(', ')} sin factor de tamaño medido`);
     } catch (e) {
       exige(false, `no pude probar los stickers de parches: ${String(e.message).split('\n')[0]}`);
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
     if (saltada) console.log(`   · saltada: ${saltada} (el de la VPS sí; aquí el bot avisa como antes)`);
-    else if (fallos === antes142) console.log(verde('   ✓ un sticker de parches se compone idéntico, uno de más de 1 MB baja por debajo y un video imposible sale más corto'));
+    else if (fallos === antes142) console.log(verde('   ✓ un sticker de parches se compone idéntico, uno de más de 1 MB baja por debajo y lo que no cabe en el suelo sale más corto, no peor'));
   }
 
 
