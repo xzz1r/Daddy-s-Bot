@@ -289,6 +289,14 @@ no manda otro: hay que volver a pedirlo. Sin el fichero, dice qué falta y sale
 con 78, o sea que pm2 lo deja parado. Un bucle ya no puede spamear a nadie,
 porque un bucle no crea ficheros. La capa 51 lo comprueba.
 
+**A quién protege** (25 oct). Al bot, devolviéndole el admin, y al tier dueño:
+todos los números de `OWNER_NUMBER` (separados por comas) y de `CO_OWNERS`. Si
+un aviso de WhatsApp trae al dueño solo por su @lid, vale el que el bot ya
+apuntó en `data/ownerJids.json`. Al conectar, el log los nombra todos, con el
+prefijo y las cuatro últimas cifras: `guardián en línea. Repongo el admin del
+bot (…) y al tier dueño: +57···1234, +33···5678`. Si falta uno, falta en el
+`.env`. Capa 139.
+
 Y reiniciar **no arregla una sesión cerrada**. Cuando la del guardián se cierra
 desde el teléfono, WhatsApp contesta 401 y no hay nada que el proceso pueda
 hacer: hay que borrar `data/authGuardian` y volver a vincular, a mano. Salía con

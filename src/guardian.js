@@ -642,8 +642,49 @@ function fichaEn(p, meta) {
     [q?.id, q?.lid, q?.phoneNumber].filter(Boolean).map(digitos).some((x) => cortas.includes(x))) || null;
 }
 
+// LOS @lid DEL DUEÑO, LOS QUE EL BOT YA HA CONFIRMADO (25 oct). El dueño
+// dijo «parece que el guardián solo protege el +57 y no mi +33». Un aviso de
+// WhatsApp puede traer al dueño solo por su @lid, sin teléfono, y si ya no está
+// en la ficha del grupo (lo acaban de echar) no hay de dónde sacar el número:
+// esDueno daba que no. El bot apunta en data/ownerJids.json cada forma del
+// dueño que ha confirmado con la ficha delante (noteOwnerJid en utils/wa.js), y
+// ese fichero solo lleva formas verificadas. Se compara el @lid entero, nunca
+// por sufijo: un @lid no es un teléfono.
+let FICHERO_DUENO = path.join(__dirname, '../data/ownerJids.json');
+let _lidsDueno = { mtime: -1, lids: [] };
+function lidsDueno() {
+  try {
+    const m = fs.statSync(FICHERO_DUENO).mtimeMs;
+    if (m !== _lidsDueno.mtime) {
+      const arr = JSON.parse(fs.readFileSync(FICHERO_DUENO, 'utf8'));
+      _lidsDueno = { mtime: m, lids: (Array.isArray(arr) ? arr : []).filter((j) => String(j).endsWith('@lid')).map(digitos).filter(Boolean) };
+    }
+    return _lidsDueno.lids;
+  } catch { return []; }
+}
+
 const esAdminFicha = (q) => q?.admin === 'admin' || q?.admin === 'superadmin';
-const esDueno = (p, meta) => telefonosDe(p, meta).some((t) => numerosDueno().some((n) => mismoNumero(t, n)));
+function esDueno(p, meta) {
+  if (telefonosDe(p, meta).some((t) => numerosDueno().some((n) => mismoNumero(t, n)))) return true;
+  const lids = lidsDueno();
+  if (!lids.length) return false;
+  const o = typeof p === 'string' ? { id: p } : (p || {});
+  const susLids = [o.id, o.lid].filter((j) => String(j || '').endsWith('@lid')).map(digitos);
+  const ficha = fichaEn(o, meta);
+  if (ficha) for (const j of [ficha.id, ficha.lid]) if (String(j || '').endsWith('@lid')) susLids.push(digitos(j));
+  return susLids.some((l) => lids.includes(l));
+}
+
+// A quién protege, para el log de arranque: el dueño quiere poder comprobar que
+// están todos sus números. Sin el número entero, que el log acaba pegado en un
+// chat: el prefijo y las cuatro últimas cifras bastan para reconocerlo.
+const tapado = (d) => (d.length > 6 ? `+${d.slice(0, 2)}···${d.slice(-4)}` : `+${d}`);
+function lineaDuenos() {
+  const nums = numerosDueno();
+  if (!nums.length) return 'al tier dueño no: no hay OWNER_NUMBER en el .env';
+  const lids = lidsDueno().length;
+  return `y al tier dueño: ${nums.map(tapado).join(', ')}` + (lids ? ` (${lids} @lid del dueño aprendidos)` : '');
+}
 function soyYo(p, meta) {
   const mios = [sock?.user?.id, sock?.user?.lid].filter(Boolean).map(digitos);
   const suyas = [...formasDe(typeof p === 'string' ? { id: p } : p).map(digitos), ...telefonosDe(p, meta)];
@@ -1036,8 +1077,8 @@ async function conectar() {
       espera = ESPERA_MIN;
       const aQuien = protegido();
       logger.info(aQuien || lidProtegido()
-        ? `guardián en línea. Protegiendo a +${aQuien || '?'} (lid ${lidProtegido() || 'sin anotar'}).`
-        : 'guardián en línea, pero aún no sé a quién protejo: esperando a que el bot conecte.');
+        ? `guardián en línea. Repongo el admin del bot (+${aQuien || '?'}, lid ${lidProtegido() || 'sin anotar'}) ${lineaDuenos()}.`
+        : `guardián en línea, pero aún no sé cuál es el bot: esperando a que conecte. Protejo ${lineaDuenos()}.`);
       // El repaso va DESPUÉS de anunciar la conexión y sin bloquearla: si la
       // consulta de grupos tarda o falla, el guardián sigue en pie y escuchando,
       // que es su trabajo principal.
@@ -1109,4 +1150,4 @@ if (require.main === module) {
   } else arrancar();
 }
 
-module.exports = { alDegradar, alCambioDeAdmin, alExpulsar, _olvidarPurgas: () => purgas.clear(), _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, _latidoBot: (f) => { LATIDO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };
+module.exports = { esDueno, lineaDuenos, _ficheroDueno: (f) => { FICHERO_DUENO = f; _lidsDueno = { mtime: -1, lids: [] }; }, alDegradar, alCambioDeAdmin, alExpulsar, _olvidarPurgas: () => purgas.clear(), _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, _latidoBot: (f) => { LATIDO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };

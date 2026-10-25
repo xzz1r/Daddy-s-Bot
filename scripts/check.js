@@ -23145,6 +23145,72 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes138) console.log(verde('   ✓ al dueño nadie le da aura, ni por @lid ni con !premiar, y él sigue dando'));
   }
 
+  // ── 139. EL GUARDIÁN PROTEGE TODOS LOS NÚMEROS DEL DUEÑO (25 oct) ─────────
+  // «Parece que el guardián solo protege el +57 y no mi +33.» Con dos números
+  // en OWNER_NUMBER se protegen los dos; un aviso que trae al dueño solo por
+  // su @lid vale si el bot ya lo apuntó en data/ownerJids.json, y un @lid
+  // cualquiera no. El log de arranque los nombra todos, sin el número entero.
+  {
+    console.log('\n139. EL GUARDIÁN PROTEGE TODOS LOS NÚMEROS DEL DUEÑO, TAMBIÉN POR @lid');
+    const antes139 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const G = require(path.join(R, 'src/guardian'));
+    const envAntes = { OWNER_NUMBER: process.env.OWNER_NUMBER, CO_OWNERS: process.env.CO_OWNERS, GUARDIAN_DE: process.env.GUARDIAN_DE };
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'guard139-'));
+    const GR = '120363000000000139@g.us';
+    const D1 = '34600095139', D2 = '33600095139', BOT = '34600095140', GUARD = '34600095141', ROGUE = '34600095142';
+    const LID2 = '900000095139', LIDX = '900000095199';
+    const jid = (n) => `${n}@s.whatsapp.net`;
+    let meta, hechos;
+    const monta = (extra) => {
+      meta = { id: GR, participants: [
+        { id: jid(D1), admin: null }, { id: jid(BOT), admin: 'admin' }, { id: jid(GUARD), admin: 'admin' },
+        { id: jid(ROGUE), admin: 'admin' }, ...extra] };
+      hechos = [];
+    };
+    const sock = {
+      user: { id: `${GUARD}:3@s.whatsapp.net` },
+      sendMessage: async () => ({}),
+      groupMetadata: async () => JSON.parse(JSON.stringify(meta)),
+      groupParticipantsUpdate: async (g, ids, que) => { hechos.push(`${que}:${ids.map((i) => i.split('@')[0]).sort().join(',')}`); return ids.map((i) => ({ jid: i, status: '200' })); },
+    };
+    const duenoJids = path.join(dir, 'ownerJids.json');
+    try {
+      process.env.OWNER_NUMBER = `${D1},${D2}`; process.env.CO_OWNERS = ''; process.env.GUARDIAN_DE = BOT;
+      fs.writeFileSync(path.join(dir, 'state.json'), JSON.stringify({ antiAdminEnabled: [] }));
+      G._sock(sock); G._estadoBot(path.join(dir, 'state.json')); G._latidoBot(path.join(dir, 'sin-latido.json')); G._esperaAlBot(5);
+      G._ficheroDueno(duenoJids);
+
+      monta([{ id: jid(D2), admin: null }]);
+      await G.alCambioDeAdmin(GR, [{ id: jid(D2), phoneNumber: jid(D2) }], 'demote', jid(ROGUE));
+      exige(hechos.join(' ') === `promote:${D2} demote:${ROGUE}`, `degradar el segundo número del dueño no se revierte (hizo: ${hechos.join(' ') || 'nada'})`);
+
+      monta([{ id: `${LID2}@lid`, admin: null }]);
+      await G.alCambioDeAdmin(GR, [{ id: `${LID2}@lid` }], 'demote', jid(ROGUE));
+      exige(hechos.length === 0, `sin saber de quién es, un @lid suelto cuenta como dueño: ${hechos.join(' ')}`);
+
+      fs.writeFileSync(duenoJids, JSON.stringify([`${LID2}@lid`, jid(D1)]));
+      monta([{ id: `${LID2}@lid`, admin: null }]);
+      await G.alCambioDeAdmin(GR, [{ id: `${LID2}@lid` }], 'demote', jid(ROGUE));
+      exige(hechos.join(' ') === `promote:${LID2} demote:${ROGUE}`, `el dueño llega solo por su @lid ya aprendido y no se le repone (hizo: ${hechos.join(' ') || 'nada'})`);
+
+      monta([{ id: `${LIDX}@lid`, admin: null }]);
+      await G.alCambioDeAdmin(GR, [{ id: `${LIDX}@lid` }], 'demote', jid(ROGUE));
+      exige(hechos.length === 0, `un @lid que no es del dueño cuenta como dueño: ${hechos.join(' ')}`);
+
+      const linea = G.lineaDuenos();
+      exige(/\+34···5139/.test(linea) && /\+33···5139/.test(linea), `el log de arranque no nombra los dos números del dueño: ${linea}`);
+      exige(!linea.includes(D1) && !linea.includes(D2), `el log de arranque escribe el número entero: ${linea}`);
+    } catch (e) {
+      exige(false, `no pude probar el guardián: ${String(e.message).split('\n')[0]}`);
+    } finally {
+      for (const [k, v] of Object.entries(envAntes)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+      G._ficheroDueno(path.join(R, 'data/ownerJids.json'));
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+    if (fallos === antes139) console.log(verde('   ✓ el guardián protege todos los números del dueño, también por su @lid aprendido, y ningún @lid ajeno'));
+  }
+
 
   }
 
