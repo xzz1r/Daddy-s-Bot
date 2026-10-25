@@ -224,6 +224,19 @@ function limpiarParada() {
 let sock = null;
 // Parada deliberada: ninguna reconexion mas hasta que alguien reinicie a mano.
 let detenido = false;
+
+// PARAR ES SALIR, CON 78 (25 oct). «Dejo de reintentar» dejaba el proceso sin
+// socket ni nada que hacer: Node se quedaba sin trabajo, salía con 0 y pm2 lo
+// levantaba a los cinco segundos. Cada vuelta abría otra conexión con la
+// sesión que WhatsApp acababa de rechazar: un 403 cada doce segundos durante
+// horas, 1.579 reinicios en 42 h, con la cuenta ya en revisión. Ahora guarda lo
+// pendiente y sale con 78, que ecosystem.config.js tiene en stop_exit_codes:
+// pm2 lo deja PARADO hasta que alguien lo arranque a mano. Igual que el
+// guardián.
+const SALIDA_PARADA = 78;
+function pararElProceso() {
+  setImmediate(() => { gracefulShutdown(SALIDA_PARADA); });
+}
 let reconnectAttempts = 0;
 let consecutive401 = 0;
 let botIds = null; // Set<string> of bot's bare IDs (phone + LID), populated on open
@@ -850,6 +863,7 @@ async function connectToWhatsApp() {
       'Casi siempre es que el numero llevaba espacios y la shell lo partio. ' +
       'Va el numero del bot; el +57 lo pongo yo:  node index.js --codigo 3001234567');
     detenido = true;
+    pararElProceso();
     try { sock.ev.removeAllListeners(); } catch {}
     try { sock.end(); } catch {}
     return;
@@ -869,6 +883,7 @@ async function connectToWhatsApp() {
         `Se pidieron ${codigosPedidos} codigos de vinculacion sin que ninguno llegara a usarse. ` +
         `Ten WhatsApp abierto en "Vincular con el número de teléfono" ANTES de lanzar el comando.`);
       detenido = true;
+      pararElProceso();
       try { sock.ev.removeAllListeners(); } catch {}
       try { sock.end(); } catch {}
       return;
@@ -948,6 +963,7 @@ async function connectToWhatsApp() {
           `El bot pidio ${qrSinEscanear} QR seguidos sin que nadie los escaneara y se detuvo a proposito. ` +
           `Vincula a mano cuando puedas estar delante: pm2 stop bot && node index.js --codigo <numero>`);
         detenido = true;
+        pararElProceso();
         try { sock.ev.removeAllListeners(); } catch {}
         try { sock.end(); } catch {}
         return;
@@ -992,6 +1008,7 @@ async function connectToWhatsApp() {
               `a propósito: encadenar QR puede convertir una restricción temporal en permanente. ` +
               `Revisa el teléfono (Dispositivos vinculados) y arranca a mano con: pm2 restart bot`);
             detenido = true;
+            pararElProceso();
             try { sock.ev.removeAllListeners(); } catch {}
             try { sock.end(); } catch {}
             sock = null;
@@ -1019,6 +1036,7 @@ async function connectToWhatsApp() {
         anotarParada('cuenta-rechazada',
           `${rechazo.que} (${statusCode}).${rechazo.dice ? ` WhatsApp dice: ${rechazo.dice}.` : ''} ${rechazo.haz}`);
         detenido = true;
+        pararElProceso();
         try { sock.ev.removeAllListeners(); } catch {}
         try { sock.end(); } catch {}
         sock = null;

@@ -255,7 +255,13 @@ siempre, porque todo lo que no era un 401 se tomaba por un corte de red. Y con
 Con estos tres códigos el bot se para, como con los 401 seguidos: deja
 `data/parado.json`, que `npm run estado` canta en rojo, y dice qué ha pasado,
 con las palabras de WhatsApp si las manda, y qué hacer
-(`src/utils/rechazoWA.js`). El guardián sale con 78 y pm2 lo deja parado.
+(`src/utils/rechazoWA.js`). Y los dos salen con 78, que pm2 tiene en
+`stop_exit_codes`: los deja **parados**. El bot no lo hacía hasta el 25 oct:
+«dejo de reintentar» dejaba el proceso vacío, Node salía con 0 y pm2 lo
+relevantaba contra la misma cuenta rechazada, un 403 cada doce segundos y
+1.579 reinicios en 42 h. Ahora todas sus paradas a propósito (cuenta
+rechazada, sesión cerrada, QR o códigos sin usar, `--codigo` mal escrito)
+pasan por `pararElProceso`. Capa 140.
 
 | código | qué es | qué hacer |
 |---|---|---|

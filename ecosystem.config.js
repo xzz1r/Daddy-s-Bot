@@ -53,6 +53,11 @@ module.exports = {
     // tiene sentido reintentar cien veces por segundo: solo llena el log y
     // calienta la CPU. Espera 5s entre intentos y se rinde tras 10 seguidos.
     autorestart: true,
+    // Una parada a proposito (cuenta rechazada, sesion cerrada, QR o codigos
+    // sin usar) sale con 78 y pm2 la deja parada: sin esto la relevantaba a
+    // los cinco segundos contra la misma cuenta rechazada. Ver pararElProceso
+    // en src/bot.js.
+    stop_exit_codes: [78],
     restart_delay: 5000,
     max_restarts: 10,
     min_uptime: '60s',

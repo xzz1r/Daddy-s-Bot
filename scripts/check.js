@@ -23211,6 +23211,34 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes139) console.log(verde('   ✓ el guardián protege todos los números del dueño, también por su @lid aprendido, y ningún @lid ajeno'));
   }
 
+  // ── 140. PARAR ES SALIR CON 78, Y PM2 LO DEJA PARADO (25 oct) ─────────────
+  // «Dejo de reintentar» dejaba el proceso vacío: Node salía con 0 y pm2 lo
+  // relevantaba a los cinco segundos contra la misma cuenta rechazada. 1.579
+  // reinicios en 42 h, un 403 cada doce segundos. Cada parada a propósito del
+  // bot tiene que salir con 78, y el bot tiene que tener el 78 en
+  // stop_exit_codes, como el guardián.
+  {
+    console.log('\n140. UNA PARADA A PROPÓSITO DEL BOT SALE CON 78 Y PM2 NO LA RELEVANTA');
+    const antes140 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const bot140 = soloCodigo('src/bot.js');
+    const paradas = bot140.split('\n').map((l, i) => [l, i]).filter(([l]) => /\bdetenido = true;/.test(l));
+    exige(paradas.length >= 5, `solo encuentro ${paradas.length} paradas a propósito en bot.js`);
+    const lineas = bot140.split('\n');
+    for (const [, i] of paradas) {
+      const tras = lineas.slice(i, i + 6).join('\n');
+      exige(/pararElProceso\(\)/.test(tras), `una parada no sale del proceso, y pm2 la relevanta: ${lineas[Math.max(0, i - 3)].trim().slice(0, 70)}`);
+    }
+    exige(/const SALIDA_PARADA = 78;/.test(bot140) && /function pararElProceso\(\)\s*\{[\s\S]{0,120}gracefulShutdown\(SALIDA_PARADA\)/.test(bot140),
+      'pararElProceso ya no sale con 78 pasando por gracefulShutdown (que guarda lo pendiente)');
+    let eco = null;
+    try { delete require.cache[require.resolve(path.join(R, 'ecosystem.config.js'))]; eco = require(path.join(R, 'ecosystem.config.js')); } catch {}
+    const app = (n) => (eco?.apps || []).find((a) => a.name === n);
+    exige((app('bot')?.stop_exit_codes || []).includes(78), 'el bot no tiene el 78 en stop_exit_codes: pm2 lo relevanta tras una parada a propósito');
+    exige((app('guardian')?.stop_exit_codes || []).includes(78), 'el guardián ha perdido el 78 en stop_exit_codes');
+    if (fallos === antes140) console.log(verde(`   ✓ las ${paradas.length} paradas a propósito del bot salen con 78 y pm2 las deja paradas`));
+  }
+
 
   }
 
