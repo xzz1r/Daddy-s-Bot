@@ -23352,12 +23352,26 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
           exige(st.length <= S.MAX_STICKER_BYTES, `un sticker animado de ${Math.round(big.length / 1024)} KB sale con ${Math.round(st.length / 1024)} KB: sigue sin recomprimirse`);
           exige(S.isAnimatedWebP(st) && (S.desmontarWebpAnimado(st)?.cuadros.length || 0) > 1, 'el sticker recomprimido ya no es animado');
         }
+        // Y UN VIDEO QUE NO CABE NI EN EL ULTIMO ESCALON (25 oct): un GIF de
+        // WhatsApp con mucho movimiento acababa en «no he podido». Ruido puro,
+        // que no se comprime de ninguna forma: tiene que salir, más corto.
+        const ruido = spawnSync(ffmpegPath, ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'nullsrc=s=640x640:r=30:d=4,geq=random(1)*255:128:128',
+          '-c:v', 'libx264', '-crf', '10', '-pix_fmt', 'yuv420p', f('ruido.mp4')]);
+        if (ruido.status === 0) {
+          const st = await S.videoToSticker(fs.readFileSync(f('ruido.mp4')), 'capa');
+          exige(st.length <= S.MAX_STICKER_BYTES, `un video que no cabe ni en el último escalón sale con ${Math.round(st.length / 1024)} KB: el bot contestaría «no he podido» en vez de acortarlo`);
+          exige(S.isAnimatedWebP(st), 'el sticker acortado ya no es animado');
+        }
       }
+      // Cada tamaño de la escalera con su factor medido: sin él la predicción
+      // da NaN y se salta escalones a ciegas.
+      const sinFactor = S.ANIM_TIERS.filter((t) => !S.CANVAS_SIZE_FACTOR[t.size]).map((t) => `${t.size} px`);
+      exige(!sinFactor.length, `la escalera usa ${[...new Set(sinFactor)].join(', ')} sin factor de tamaño medido`);
     } catch (e) {
       exige(false, `no pude probar los stickers de parches: ${String(e.message).split('\n')[0]}`);
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
     if (saltada) console.log(`   · saltada: ${saltada} (el de la VPS sí; aquí el bot avisa como antes)`);
-    else if (fallos === antes142) console.log(verde('   ✓ un sticker de parches se compone idéntico y uno de más de 1 MB baja por debajo, animado'));
+    else if (fallos === antes142) console.log(verde('   ✓ un sticker de parches se compone idéntico, uno de más de 1 MB baja por debajo y un video imposible sale más corto'));
   }
 
 

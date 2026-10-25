@@ -884,3 +884,11 @@ vídeo sin pérdidas con transparencia que entra en la escalera de calidades de
 siempre. Va en tubería, sin la animación entera en memoria. Lo usan `!s` con
 un sticker que no cabe y `!tovid`. Necesita ffmpeg 4.4 o más (el de la VPS);
 con uno más viejo, el bot avisa como antes. Capa 142.
+
+**La escalera de los animados no se rinde** (25 oct). Un GIF de WhatsApp de
+11,6 s con mucho movimiento no cabía ni en el último escalón (384 px, q35:
+1190 KB) y el bot contestaba que no podía. Ahora hay cinco escalones más
+(384 px a q25, 320 y 256 px), con sus factores medidos con ese vídeo, y ese
+GIF sale entero a 384 px y 1022 KB. Si ni el último cabe, los fps no se tocan
+(es requisito): se recorta la duración a lo que quepa y se codifica una vez
+más. Ruido puro de 10 s sale en 2,5 s. La capa 142 lo prueba.

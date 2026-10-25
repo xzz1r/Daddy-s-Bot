@@ -797,6 +797,16 @@ const ANIM_TIERS = [
   { fps: 24, quality: 60, size: 384 },
   { fps: 24, quality: 45, size: 384 },
   { fps: 24, quality: 35, size: 384 },
+  // LA ESCALERA SE QUEDABA CORTA (25 oct). Un GIF de WhatsApp de 11,6 s, 640x360,
+  // dibujos con mucho movimiento: el último escalón salía a 1190 KB y el bot
+  // contestaba que no podía. A tamaño de sticker en el móvil, 384 px a q25 o
+  // 320 y 256 px se ven bien (comparados a ojo); un «no puedo», no. Los
+  // factores se midieron con ese mismo vídeo.
+  { fps: 24, quality: 25, size: 384 },
+  { fps: 24, quality: 35, size: 320 },
+  { fps: 24, quality: 25, size: 320 },
+  { fps: 24, quality: 35, size: 256 },
+  { fps: 24, quality: 25, size: 256 },
 ];
 
 // Empirically measured libwebp output-size multipliers per quality/canvas-size,
@@ -811,8 +821,8 @@ const ANIM_TIERS = [
 // proporcional— asi que un escalon por encima puede intentarse, pero nunca
 // puede servir de REFERENCIA para estimar los demas.
 const REF_MAX_QUALITY = 85;
-const QUALITY_SIZE_FACTOR = { 95: 1.47, 85: 1.0, 80: 0.853, 75: 0.737, 70: 0.704, 60: 0.649, 50: 0.591, 45: 0.558, 35: 0.482 };
-const CANVAS_SIZE_FACTOR = { 512: 1.0, 384: 0.70 };
+const QUALITY_SIZE_FACTOR = { 95: 1.47, 85: 1.0, 80: 0.853, 75: 0.737, 70: 0.704, 60: 0.649, 50: 0.591, 45: 0.558, 35: 0.482, 25: 0.414 };
+const CANVAS_SIZE_FACTOR = { 512: 1.0, 384: 0.70, 320: 0.556, 256: 0.401 };
 
 function predictTierBytes(tier, refTier, refBytes) {
   return refBytes
@@ -927,7 +937,7 @@ function startTierIndex(durationS) {
 // "split in two" sticker. Plain `libwebp` emits every frame as a FULL keyframe
 // (full canvas, no blending), which WhatsApp renders faithfully. Output is a bit
 // larger, which the size-tiering loop in videoToSticker already handles.
-async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512, fpsOrigen = 0) {
+async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512, fpsOrigen = 0, segundos = TOPE_ANIMADO_S) {
   await ffmpegSemaphore.acquire();
   try {
     return await new Promise((resolve, reject) => {
@@ -974,7 +984,7 @@ async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512, f
         // `inputOptions` y no `outputOptions`: como opcion de entrada, ffmpeg
         // deja de LEER al llegar al tope. Puesta a la salida decodifica el
         // video entero y tira lo que sobra.
-        .inputOptions(['-t', String(TOPE_ANIMADO_S)])
+        .inputOptions(['-t', String(segundos)])
         .outputOptions([
           '-map', '0:v:0',
           '-vf', VF_ANIM(fps, size, fpsOrigen),
@@ -1082,6 +1092,30 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
       if (buf.length <= MAX_STICKER_BYTES) { smallest = buf; break; }
       if (!smallest || buf.length < smallest.length) smallest = buf;
     }
+    // SI NI EL ULTIMO ESCALON CABE, SE ACORTA EN VEZ DE RENDIRSE (25 oct). Los
+    // fps no se tocan (es requisito) y la calidad ya esta en lo mas bajo que
+    // se ve bien: lo que queda es la duracion. Se calcula cuanta cabe con el
+    // peso del mas ligero, con margen, y se codifica una vez mas con el
+    // ultimo escalon. Un sticker de siete segundos es un sticker; un «no he
+    // podido», no.
+    if (smallest && smallest.length > MAX_STICKER_BYTES) {
+      const largo = Math.min(durationS > 0 ? durationS : TOPE_ANIMADO_S, TOPE_ANIMADO_S);
+      const cabe = Math.floor(largo * (MAX_STICKER_BYTES / smallest.length) * 0.9 * 10) / 10;
+      if (cabe >= 1) {
+        const ult = ANIM_TIERS[ANIM_TIERS.length - 1];
+        try {
+          await encodeAnimWebp(inputFile, outputFile, ult.fps, ult.quality, ult.size, fpsOrigen, cabe);
+          const corto = await fs.readFile(outputFile);
+          if (corto.length >= 100 && corto.length < smallest.length) {
+            smallest = corto;
+            if (corto.length <= MAX_STICKER_BYTES) buf = corto;
+          }
+          logger.info(`sticker animado: no cabía ni en el último escalón; recortado a ${cabe} s (${Math.round(corto.length / 1024)} KB)`);
+        } catch (e) {
+          logger.unaVez('sticker animado recortado', e);
+        }
+      }
+    }
     // If no tier fit the cap, ship the smallest we produced (most likely to be
     // accepted/saveable) rather than whatever the last tier happened to output.
     const out = (buf && buf.length >= 100 && buf.length <= MAX_STICKER_BYTES) ? buf : smallest;
@@ -1103,4 +1137,4 @@ async function gifToSticker(gifBuffer, author, rutaOrigen = null) {
   return videoToSticker(gifBuffer, author, rutaOrigen);
 }
 
-module.exports = { componerWebpAnimado, _VF_ANIM: VF_ANIM, FFMPEG_TIMEOUT_MS, TOPE_ANIMADO_S, detectExt, desmontarWebpAnimado, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC };
+module.exports = { componerWebpAnimado, CANVAS_SIZE_FACTOR, _VF_ANIM: VF_ANIM, FFMPEG_TIMEOUT_MS, TOPE_ANIMADO_S, detectExt, desmontarWebpAnimado, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC };
