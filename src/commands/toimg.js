@@ -18,7 +18,7 @@ const fs = require('fs-extra');
 const { spawn } = require('child_process');
 const { ffmpegPath } = require('../utils/ffmpeg');
 const { tempFile, cleanTemp, ffmpegSemaphore } = require('../utils/helpers');
-const { desmontarWebpAnimado, isAnimatedWebP, extractFirstAnmfFrame } = require('../utils/sticker');
+const { desmontarWebpAnimado, componerWebpAnimado, isAnimatedWebP, extractFirstAnmfFrame } = require('../utils/sticker');
 const { getSender } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { bajar: bajarBytes } = require('../utils/verUnaVez');
@@ -257,10 +257,17 @@ async function convertToMp4(inputBuf) {
     const mp4 = await mp4DeCuadros(desmontado);
     if (mp4) return mp4;
   }
+  // LOS DE PARCHES, COMPUESTOS (25 oct). Son casi todos los stickers
+  // animados; componerWebpAnimado (utils/sticker.js) los monta como lo haría
+  // un visor y deja un video que ffmpeg sí abre.
+  let compuesto = null;
+  if (desmontado && !desmontado.completos && desmontado.cuadros.length > 1) {
+    compuesto = await componerWebpAnimado(inputBuf);
+  }
 
-  const inputFile = tempFile('webp');
+  const inputFile = compuesto || tempFile('webp');
   const outputFile = tempFile('mp4');
-  await fs.writeFile(inputFile, inputBuf);
+  if (!compuesto) await fs.writeFile(inputFile, inputBuf);
   try {
     await runFfmpegConvert(inputFile, outputFile, {
       // CRF 12 = calidad casi sin pérdida visible. El preset solo cambia

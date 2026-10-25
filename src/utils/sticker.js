@@ -112,14 +112,28 @@ function desmontarWebpAnimado(animBuf) {
       const w = leer24(animBuf, pos + 14) + 1;
       const h = leer24(animBuf, pos + 17) + 1;
       const ms = leer24(animBuf, pos + 20);
+      // El ultimo byte de la cabecera: bit 1, NO mezclar (pisar lo que hay);
+      // bit 0, borrar su rectangulo al pasar al siguiente fotograma.
+      const banderas = animBuf[pos + 23];
       const cuerpo = animBuf.slice(pos + 24, pos + 8 + largo);
-      const riff = 4 + cuerpo.length;
+      // CON SU VP8X DELANTE. Un fotograma con transparencia trae un trozo
+      // ALPH antes del VP8, y la especificacion solo admite ALPH en el formato
+      // extendido: sin VP8X, ffmpeg lo decodifica como si fuera opaco.
+      const conAlfa = cuerpo.slice(0, 4).toString('latin1') === 'ALPH';
+      const vp8x = Buffer.alloc(18);
+      vp8x.write('VP8X', 0, 'latin1');
+      vp8x.writeUInt32LE(10, 4);
+      vp8x[8] = conAlfa ? 0x10 : 0;
+      vp8x.writeUIntLE(w - 1, 12, 3);
+      vp8x.writeUIntLE(h - 1, 15, 3);
+      const riff = 4 + vp8x.length + cuerpo.length;
       const suelto = Buffer.allocUnsafe(8 + riff);
       suelto.write('RIFF', 0, 'ascii');
       suelto.writeUInt32LE(riff, 4);
       suelto.write('WEBP', 8, 'ascii');
-      cuerpo.copy(suelto, 12);
-      cuadros.push({ webp: suelto, ms, x, y, w, h });
+      vp8x.copy(suelto, 12);
+      cuerpo.copy(suelto, 12 + vp8x.length);
+      cuadros.push({ webp: suelto, ms, x, y, w, h, mezcla: !(banderas & 2), borra: Boolean(banderas & 1) });
     }
     pos += 8 + largo + (largo % 2);
   }
@@ -131,6 +145,169 @@ function desmontarWebpAnimado(animBuf) {
   // el mismo resultado que componerlos.
   const completos = cuadros.every((c) => c.x === 0 && c.y === 0 && c.w === ancho && c.h === alto);
   return { ancho, alto, cuadros, completos };
+}
+
+// ─── COMPONER UN WEBP ANIMADO, PARCHES INCLUIDOS (25 oct) ───────────────────
+//
+// El dueño: «Ese sticker animado pesa demasiado para WhatsApp y no se puede
+// recomprimir: viene en un formato que el bot no sabe reabrir. Ha pasado con
+// múltiples stickers». Casi todos los stickers animados guardan cada
+// fotograma como un PARCHE (solo el trozo que cambia, en su posición, mezclado
+// con lo de antes): es lo que hace libwebp para ahorrar. Lo de arriba se
+// rendía con ellos, así que un sticker de más de 1 MB no había forma de
+// bajarlo.
+//
+// Aquí se compone de verdad, como lo hace cualquier visor: ffmpeg decodifica
+// los parches (UNA llamada para todos: con -autoscale 0 cada uno sale con su
+// tamaño), y se pegan en un lienzo con su mezcla y su borrado. El resultado va
+// a un video sin pérdidas con transparencia (FFV1), y ese video entra en la
+// escalera de calidades de siempre, como cualquier otro.
+//
+// SIN TENER LA ANIMACION EN MEMORIA. 300 fotogramas de 512 son 300 MB en
+// crudo, y la máquina tiene 1 GB. Va en tubería: un fotograma decodificado,
+// pegado en el lienzo, escrito al video, y el siguiente.
+//
+// Devuelve la ruta del video (la borra quien llama) o null si no se pudo.
+const FPS_COMPUESTO = 30;
+async function componerWebpAnimado(animBuf) {
+  const d = desmontarWebpAnimado(animBuf);
+  if (!d || d.cuadros.length < 2) return null;
+  const { ancho: W, alto: H } = d;
+  if (W > 2048 || H > 2048) return null;
+  // Lo que pasa de los diez segundos no entra en el sticker: ni se decodifica.
+  // Una duracion de 10 ms o menos la pinta cualquier visor a 100.
+  const cuadros = [];
+  let total = 0;
+  for (const c of d.cuadros) {
+    if (total >= TOPE_ANIMADO_S * 1000) break;
+    const ms = c.ms > 10 ? c.ms : 100;
+    cuadros.push({ ...c, ms, desde: total });
+    total += ms;
+  }
+  // EL RITMO DEL ORIGEN, SI CABE. Con duraciones iguales (lo normal) sale un
+  // fotograma por fotograma; si el ritmo pasa de 30, se muestrea a 30, que es
+  // lo que la escalera iba a hacer de todos modos.
+  const mcd = (a, b) => (b ? mcd(b, a % b) : a);
+  const paso = cuadros.reduce((g, c) => mcd(g, c.ms), 0);
+  const exacto = paso > 0 && 1000 / paso <= FPS_COMPUESTO;
+  const ritmo = exacto ? `1000/${paso}` : String(FPS_COMPUESTO);
+  for (const c of cuadros) {
+    c.veces = exacto
+      ? c.ms / paso
+      : Math.ceil(((c.desde + c.ms) * FPS_COMPUESTO) / 1000 - 1e-9) - Math.ceil((c.desde * FPS_COMPUESTO) / 1000 - 1e-9);
+  }
+
+  const dir = tempFile('cuadros');
+  const salida = tempFile('mkv');
+  let dec = null;
+  let enc = null;
+  let matar = null;
+  await ffmpegSemaphore.acquire();
+  try {
+    await fs.ensureDir(dir);
+    for (let i = 0; i < cuadros.length; i++) {
+      await fs.writeFile(path.join(dir, `c${String(i).padStart(5, '0')}.webp`), cuadros[i].webp);
+    }
+    dec = spawnSuave(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-f', 'image2', '-c:v', 'webp',
+      '-framerate', '1', '-i', path.join(dir, 'c%05d.webp'), '-autoscale', '0',
+      // EL COLOR, COMO LO SACA LIBWEBP. Con el escalado por defecto, el paso de
+      // YUV a RGB de ffmpeg se aparta del de libwebp en los bordes de color
+      // (24 dB contra Pillow, un 5 % de píxeles a más de 60 niveles); con la
+      // croma entera y bicúbica, 37 dB y ninguno. Va en el filtro y no en
+      // -sws_flags: los fotogramas con y sin transparencia vienen en formatos
+      // distintos, ffmpeg rehace el filtro a cada cambio y ahí -sws_flags se
+      // pierde (medido: se quedaba en 24 dB).
+      '-vf', 'scale=flags=bicubic+full_chroma_int+accurate_rnd+full_chroma_inp,format=rgba',
+      '-f', 'rawvideo', '-pix_fmt', 'rgba', '-']);
+    enc = spawnSuave(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgba',
+      '-s', `${W}x${H}`, '-framerate', ritmo, '-i', '-', '-c:v', 'ffv1', '-pix_fmt', 'bgra', '-y', salida]);
+    const fin = (p) => new Promise((resolve) => {
+      p.on('error', () => resolve(-1));
+      p.on('close', (c) => resolve(c));
+    });
+    const finEnc = fin(enc);
+    const finDec = fin(dec);
+    let errEnc = '';
+    enc.stderr?.on('data', (x) => { errEnc += x.toString(); });
+    enc.stdin.on('error', () => {});
+    matar = setTimeout(() => {
+      try { dec.kill('SIGKILL'); } catch {}
+      try { enc.kill('SIGKILL'); } catch {}
+    }, FFMPEG_TIMEOUT_MS);
+
+    const lienzo = Buffer.alloc(W * H * 4);
+    const escribir = (b) => (enc.stdin.write(b) ? null : new Promise((r) => enc.stdin.once('drain', r)));
+    let i = 0;
+    let cuadro = Buffer.allocUnsafe(cuadros[0].w * cuadros[0].h * 4);
+    let lleno = 0;
+    const pegar = async (c) => {
+      const prev = i > 0 ? cuadros[i - 1] : null;
+      if (prev && prev.borra) {
+        for (let fila = 0; fila < prev.h && prev.y + fila < H; fila++) {
+          const a = ((prev.y + fila) * W + prev.x) * 4;
+          lienzo.fill(0, a, a + Math.min(prev.w, W - prev.x) * 4);
+        }
+      }
+      const anchoUtil = Math.min(c.w, W - c.x);
+      for (let fila = 0; fila < c.h && c.y + fila < H; fila++) {
+        const src = fila * c.w * 4;
+        const dst = ((c.y + fila) * W + c.x) * 4;
+        if (!c.mezcla) { cuadro.copy(lienzo, dst, src, src + anchoUtil * 4); continue; }
+        for (let k = 0; k < anchoUtil * 4; k += 4) {
+          const sa = cuadro[src + k + 3];
+          if (sa === 255) { cuadro.copy(lienzo, dst + k, src + k, src + k + 4); continue; }
+          if (sa === 0) continue;
+          const fs1 = sa / 255;
+          const fd = (lienzo[dst + k + 3] / 255) * (1 - fs1);
+          const fa = fs1 + fd;
+          for (let ch = 0; ch < 3; ch++) {
+            lienzo[dst + k + ch] = Math.round((cuadro[src + k + ch] * fs1 + lienzo[dst + k + ch] * fd) / fa);
+          }
+          lienzo[dst + k + 3] = Math.round(fa * 255);
+        }
+      }
+      if (c.veces > 0) {
+        // Una copia: lo que espera en la tubería no puede cambiar con el
+        // siguiente fotograma.
+        const foto = Buffer.from(lienzo);
+        for (let v = 0; v < c.veces; v++) await escribir(foto);
+      }
+    };
+
+    for await (const trozo of dec.stdout) {
+      let off = 0;
+      while (off < trozo.length && i < cuadros.length) {
+        const falta = cuadro.length - lleno;
+        const toma = Math.min(falta, trozo.length - off);
+        trozo.copy(cuadro, lleno, off, off + toma);
+        lleno += toma;
+        off += toma;
+        if (lleno === cuadro.length) {
+          await pegar(cuadros[i]);
+          i++;
+          lleno = 0;
+          if (i < cuadros.length) cuadro = Buffer.allocUnsafe(cuadros[i].w * cuadros[i].h * 4);
+        }
+      }
+      if (i >= cuadros.length) break;
+    }
+    try { dec.kill('SIGKILL'); } catch {}
+    enc.stdin.end();
+    const [, codigo] = await Promise.all([finDec, finEnc]);
+    if (i < cuadros.length) throw new Error(`solo se decodificaron ${i} de ${cuadros.length} fotogramas`);
+    if (codigo !== 0) throw new Error(errEnc.trim().split('\n').pop() || `ffmpeg salió con ${codigo}`);
+    return salida;
+  } catch (e) {
+    logger.unaVez('sticker: componer webp animado', e);
+    try { dec?.kill('SIGKILL'); } catch {}
+    try { enc?.kill('SIGKILL'); } catch {}
+    await cleanTemp(salida);
+    return null;
+  } finally {
+    clearTimeout(matar);
+    ffmpegSemaphore.release();
+    await fs.remove(dir).catch(() => {});
+  }
 }
 
 // Thumbnail filter: scale to fit a 96px box keeping the source aspect ratio,
@@ -834,9 +1011,24 @@ async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512, f
 // `rutaOrigen`: si el que llama ya escribio el medio en un temporal, se usa ese
 // y no se escribe una segunda copia. El fichero sigue siendo suyo y lo borra el.
 async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
-  const detected = detectExt(videoBuffer);
+  const detected = videoBuffer ? detectExt(videoBuffer) : null;
 
-  if (detected === 'webp') return addStickerMeta(videoBuffer, author);
+  if (detected === 'webp') {
+    // Un sticker animado que ya cabe se re-sella tal cual: recodificarlo solo
+    // lo empeoraría. El que no cabe se compone y baja por la escalera de
+    // siempre (ver componerWebpAnimado). Si no se puede componer, se re-sella
+    // y el comando dice que pesa demasiado, como antes.
+    if (videoBuffer.length <= MAX_STICKER_BYTES - 4096 || !isAnimatedWebP(videoBuffer)) {
+      return addStickerMeta(videoBuffer, author);
+    }
+    const compuesto = await componerWebpAnimado(videoBuffer);
+    if (!compuesto) return addStickerMeta(videoBuffer, author);
+    try {
+      return await videoToSticker(null, author, compuesto);
+    } finally {
+      await cleanTemp(compuesto);
+    }
+  }
 
   const ext = detected || 'mp4';
   const inputFile = rutaOrigen || tempFile(ext);
@@ -911,4 +1103,4 @@ async function gifToSticker(gifBuffer, author, rutaOrigen = null) {
   return videoToSticker(gifBuffer, author, rutaOrigen);
 }
 
-module.exports = { _VF_ANIM: VF_ANIM, FFMPEG_TIMEOUT_MS, TOPE_ANIMADO_S, detectExt, desmontarWebpAnimado, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC };
+module.exports = { componerWebpAnimado, _VF_ANIM: VF_ANIM, FFMPEG_TIMEOUT_MS, TOPE_ANIMADO_S, detectExt, desmontarWebpAnimado, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC };

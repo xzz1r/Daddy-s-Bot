@@ -162,7 +162,7 @@ const { flushLinkPerms } = require('./utils/linkPerms');
 const { flushMutes } = require('./commands/group');
 const { flushRobo } = require('./utils/roboStore');
 const { flushObjetivoDia } = require('./utils/objetivoDia');
-const { guardOnJoin, allForms } = require('./commands/fk');
+const { guardOnJoin, allForms, vetadosAlEntrar } = require('./commands/fk');
 const { businessEvidence } = require('./utils/businessCheck');
 const { aplicarParticipantes, aplicarAUno, formasDe } = require('./utils/participantes');
 const { decidirPurga } = require('./utils/purgaAdmin');
@@ -399,6 +399,8 @@ async function sondearSolicitudes() {
     // De paso, el admin de los dueños (ver reponerAdminDueños). Va antes del
     // sondeo porque no depende de que el grupo tenga solicitudes.
     await reponerAdminDueños(g).catch((e) => logger.unaVez('reponer admin a los dueños', e));
+    // Y la lista negra, por lo mismo (ver echarVetadosDentro).
+    await echarVetadosDentro(g).catch((e) => logger.unaVez('lista negra: repaso de grupos', e));
     const n = await sondear(sock, g);
     if (n) logger.info(`solicitudes pendientes en ${g}: ${n}`);
     if (n === null) { await explicarFreno(g); continue; }
@@ -443,6 +445,33 @@ async function reponerAdminDueños(grupo) {
   } else {
     reponerFalloHasta.set(grupo, Date.now() + 60 * 60 * 1000);
     logger.warn(`no he podido devolverle el admin a un dueño en ${grupo}; reintento en una hora`);
+  }
+}
+
+// LA LISTA NEGRA, TAMBIEN CON LOS QUE YA ESTAN DENTRO (25 oct). El dueño:
+// «el bot mientras estaba en soporte, múltiples números en la lista negra se
+// metieron. Una vez dentro y con el bot activo, el bot no les dio ban». El
+// veto solo se miraba al ENTRAR (guardOnJoin), y el aviso de entrada llega una
+// vez: si el bot no estaba, nadie lo leía y el vetado se quedaba para siempre.
+//
+// Ahora, en la misma vuelta que repone el admin del dueño (al conectar y cada
+// INTERVALO_SOLICITUDES), se pasan los miembros de cada grupo donde el bot es
+// admin por el mismo filtro de la entrada: mismas excepciones (el bot, el tier
+// dueño, un veto del anti-empresa que hoy es cuenta normal) y la misma salida
+// en silencio. Mirar la lista es memoria; la metadata, la de la caché.
+//
+// A un admin vetado no se le echa: el castigo con admins es quitar el mando,
+// nunca el kick (ver aplicarAUno), y un admin en la lista negra es raro y lo
+// decide una persona. Se dice en el log una vez.
+async function echarVetadosDentro(grupo) {
+  if (!sock) return;
+  const meta = await getGroupMeta(sock, grupo).catch(() => null);
+  if (!meta?.participants || !isBotAdmin(sock, meta)) return;
+  const esAdmin = (p) => p?.admin === 'admin' || p?.admin === 'superadmin';
+  const fuera = await vetadosAlEntrar(sock, grupo, meta.participants.filter((p) => p && !esAdmin(p)), meta);
+  if (fuera.size) {
+    invalidateGroupMeta(grupo);
+    logger.warn(`lista negra: ${fuera.size} vetado(s) que ya estaban dentro de ${grupo}, fuera`);
   }
 }
 

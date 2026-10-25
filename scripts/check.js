@@ -23239,6 +23239,128 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes140) console.log(verde(`   ✓ las ${paradas.length} paradas a propósito del bot salen con 78 y pm2 las deja paradas`));
   }
 
+  // ── 141. LA LISTA NEGRA ECHA TAMBIÉN A LOS QUE YA ESTÁN DENTRO (25 oct) ────
+  // «Mientras el bot estaba en soporte, varios números de la lista negra se
+  // metieron, y con el bot activo no les dio ban.» El veto solo se miraba al
+  // entrar. Ahora el repaso de cada vuelta (al conectar y cada seis minutos)
+  // pasa a los miembros por el mismo filtro. Se ejecuta el echarVetadosDentro
+  // de bot.js tal cual, con la lista negra de verdad, en una copia aparte.
+  {
+    console.log('\n141. LA LISTA NEGRA ECHA TAMBIÉN A LOS QUE YA ESTABAN DENTRO');
+    const antes141 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const botSrc = fs.readFileSync(path.join(R, 'src/bot.js'), 'utf8');
+    const m = botSrc.match(/async function echarVetadosDentro\(grupo\) \{[\s\S]*?\n\}\n/);
+    exige(Boolean(m), 'no encuentro echarVetadosDentro en bot.js');
+    const sondeo = (botSrc.match(/async function sondearSolicitudes\(\) \{[\s\S]*?\n\}\n/) || [''])[0];
+    exige(/await echarVetadosDentro\(g\)/.test(sondeo), 'el repaso de grupos ya no mira la lista negra: los vetados que entraron con el bot fuera se quedan');
+    if (m) {
+      const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'vetados-'));
+      try {
+        fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+        fs.mkdirSync(path.join(caja, 'data'));
+        fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+        fs.writeFileSync(path.join(caja, 'echar.js'), `${m[0]}\nmodule.exports = echarVetadosDentro;\n`);
+        const guion = [
+          "const { vetadosAlEntrar } = require('./src/commands/fk'); const banlist = require('./src/utils/banlist');",
+          "const OWN = '33600000141@s.whatsapp.net', BOT = '34600000141@s.whatsapp.net', MALO = '34644400141@s.whatsapp.net';",
+          "const MALO_ADM = '34644400142@s.whatsapp.net', RASO = '34633300141@s.whatsapp.net', G = '120363000000141001@g.us';",
+          "let quitados = [], invalidada = 0, botAdmin = true;",
+          "const meta = () => ({ id: G, participants: [{ id: BOT, admin: botAdmin ? 'admin' : null }, { id: OWN, admin: null }, { id: RASO }, { id: MALO }, { id: MALO_ADM, admin: 'admin' }] });",
+          "const sock = { user: { id: BOT }, sendMessage: async () => ({}), groupMetadata: async () => meta(),",
+          "  groupParticipantsUpdate: async (j, p, acc) => { if (acc === 'remove') quitados.push(...p); return p.map((id) => ({ status: '200', jid: id })); } };",
+          "const isBotAdmin = (s, mt) => mt.participants.some((p) => p.id === BOT && p.admin);",
+          "const fuente = require('fs').readFileSync('./echar.js', 'utf8').replace('module.exports = echarVetadosDentro;', 'return echarVetadosDentro;');",
+          "const echar = new Function('sock', 'getGroupMeta', 'isBotAdmin', 'vetadosAlEntrar', 'invalidateGroupMeta', 'logger', fuente)(",
+          "  sock, async () => meta(), isBotAdmin, vetadosAlEntrar, () => { invalidada++; }, { warn: () => {}, info: () => {} });",
+          "(async () => { const r = {};",
+          "  for (const j of [MALO, MALO_ADM, OWN]) await banlist.banAccount([j], 'capa 141', 'capa');",
+          "  await echar(G); r.uno = quitados.slice(); r.invalidada = invalidada;",
+          "  quitados = []; botAdmin = false; await echar(G); r.sinAdmin = quitados.slice();",
+          "  console.log('R141' + JSON.stringify(r)); process.exit(0); })().catch((e) => { console.log('R141' + JSON.stringify({ error: e.message })); process.exit(0); });",
+        ].join('\n');
+        const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 30000,
+          env: { ...process.env, OWNER_NUMBER: '33600000141', CO_OWNERS: '' } });
+        const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R141'));
+        const r = linea ? JSON.parse(linea.slice(4)) : { error: (out.stderr || '').split('\n').slice(0, 3).join(' ') };
+        if (r.error) exige(false, `no pude probar el repaso: ${r.error}`);
+        else {
+          const q = r.uno || [];
+          exige(q.includes('34644400141@s.whatsapp.net'), 'un vetado que ya estaba dentro sigue en el grupo después del repaso');
+          exige(!q.includes('34633300141@s.whatsapp.net'), 'el repaso echó a alguien que no está en la lista negra');
+          exige(!q.includes('33600000141@s.whatsapp.net'), 'el repaso echó al DUEÑO, aunque estuviera en la lista');
+          exige(!q.includes('34644400142@s.whatsapp.net'), 'el repaso echó a un admin: con admins no se hace kick');
+          exige(!q.includes('34600000141@s.whatsapp.net'), 'el repaso echó al bot');
+          exige(r.invalidada > 0, 'tras echar, la ficha del grupo en caché no se invalida');
+          exige(!(r.sinAdmin || []).length, 'sin ser admin, el repaso intenta echar igual');
+        }
+      } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    }
+    if (fallos === antes141) console.log(verde('   ✓ el repaso echa a los vetados que ya estaban dentro, y a nadie más'));
+  }
+
+  // ── 142. UN STICKER ANIMADO DE PARCHES SE RECOMPRIME (25 oct) ──────────────
+  // «Ese sticker animado pesa demasiado y no se puede recomprimir: viene en un
+  // formato que el bot no sabe reabrir. Ha pasado con múltiples stickers.»
+  // Casi todos los animados guardan cada fotograma como un parche. Aquí se
+  // fabrica uno sin pérdidas con parches, mezcla y borrado, se compone y se
+  // compara píxel a píxel con los fotogramas de verdad; y uno de más de 1 MB
+  // tiene que salir por debajo, animado.
+  //
+  // Hace falta un ffmpeg con libwebp_anim y -autoscale (4.4 o más): el de la
+  // VPS lo es. El empaquetado de GitHub (2018) no, y ahí el bot sigue como
+  // antes —avisa de que pesa demasiado—, así que se salta y se dice.
+  {
+    console.log('\n142. UN STICKER ANIMADO DE PARCHES SE COMPONE Y SE RECOMPRIME');
+    const antes142 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const S = require(path.join(R, 'src/utils/sticker'));
+    const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'parches-'));
+    const f = (n) => path.join(dir, n);
+    let saltada = null;
+    try {
+      const escena = ['-f', 'lavfi', '-i', 'color=c=black@0.0:s=256x256:r=20:d=2,format=rgba',
+        '-f', 'lavfi', '-i', 'testsrc=s=80x80:r=20:d=2',
+        '-filter_complex', "[0][1]overlay=x='t*80':y='t*50':format=auto,format=rgba"];
+      const hecho = spawnSync(ffmpegPath, ['-v', 'error', '-y', ...escena, '-c:v', 'libwebp_anim', '-loop', '0', '-lossless', '1', f('p.webp')]);
+      const verdad = spawnSync(ffmpegPath, ['-v', 'error', '-y', ...escena, '-f', 'rawvideo', '-pix_fmt', 'rgba', f('v.raw')]);
+      const auto = spawnSync(ffmpegPath, ['-hide_banner', '-h', 'full'], { encoding: 'utf8', maxBuffer: 1 << 26 });
+      if (hecho.status !== 0 || verdad.status !== 0) saltada = 'este ffmpeg no codifica WebP animado';
+      else if (!/autoscale/.test(auto.stdout || '')) saltada = 'este ffmpeg no tiene -autoscale';
+      if (!saltada) {
+        const animado = fs.readFileSync(f('p.webp'));
+        const d = S.desmontarWebpAnimado(animado);
+        exige(d && !d.completos, 'la prueba no ha salido con parches: no prueba nada');
+        const mkv = await S.componerWebpAnimado(animado);
+        exige(Boolean(mkv), 'un WebP animado de parches no se ha podido componer');
+        if (mkv) {
+          const raw = spawnSync(ffmpegPath, ['-v', 'error', '-i', mkv, '-f', 'rawvideo', '-pix_fmt', 'rgba', '-'], { maxBuffer: 1 << 28 }).stdout;
+          fs.rmSync(mkv, { force: true });
+          const v = fs.readFileSync(f('v.raw'));
+          exige(raw.length === v.length, `salen ${raw.length / (256 * 256 * 4)} fotogramas y eran ${v.length / (256 * 256 * 4)}`);
+          let distintos = 0;
+          for (let i = 0; i < Math.min(raw.length, v.length); i++) if (raw[i] !== v[i]) distintos++;
+          exige(distintos === 0, `la composición no da los fotogramas de verdad: ${distintos} bytes distintos (parches mal puestos, mezcla o borrado)`);
+        }
+        const pesado = spawnSync(ffmpegPath, ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'testsrc2=s=512x512:r=20:d=4',
+          '-c:v', 'libwebp_anim', '-loop', '0', '-q:v', '100', f('pesado.webp')]);
+        const big = pesado.status === 0 ? fs.readFileSync(f('pesado.webp')) : null;
+        exige(big && big.length > S.MAX_STICKER_BYTES, 'la prueba del sticker pesado no pesa más de 1 MB');
+        if (big && big.length > S.MAX_STICKER_BYTES) {
+          const st = await S.videoToSticker(big, 'capa');
+          exige(st.length <= S.MAX_STICKER_BYTES, `un sticker animado de ${Math.round(big.length / 1024)} KB sale con ${Math.round(st.length / 1024)} KB: sigue sin recomprimirse`);
+          exige(S.isAnimatedWebP(st) && (S.desmontarWebpAnimado(st)?.cuadros.length || 0) > 1, 'el sticker recomprimido ya no es animado');
+        }
+      }
+    } catch (e) {
+      exige(false, `no pude probar los stickers de parches: ${String(e.message).split('\n')[0]}`);
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+    if (saltada) console.log(`   · saltada: ${saltada} (el de la VPS sí; aquí el bot avisa como antes)`);
+    else if (fallos === antes142) console.log(verde('   ✓ un sticker de parches se compone idéntico y uno de más de 1 MB baja por debajo, animado'));
+  }
+
+
 
   }
 

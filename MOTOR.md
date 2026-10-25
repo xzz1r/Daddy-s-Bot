@@ -273,6 +273,16 @@ Qué es cada código sale de whatsmeow, que lo sacó de WhatsApp Web. La sesión
 vieja se aparta con `mv`, no se borra. Y con `--codigo` y una sesión guardada,
 el bot ahora avisa de que no pide código. La capa 130 lo vigila.
 
+## La lista negra con el bot fuera
+
+El veto se miraba solo al entrar, y el aviso de entrada llega una vez: quien
+entró mientras el bot estaba caído o en revisión se quedaba dentro para
+siempre (dueño, 25 oct). Ahora el repaso que corre al conectar y cada seis
+minutos, el mismo que le devuelve el admin al dueño, pasa a los miembros de
+cada grupo donde el bot es admin por el filtro de la entrada
+(`echarVetadosDentro` en `bot.js`): fuera, en silencio, salvo el bot, el
+tier dueño y los admins. Capa 141.
+
 ## El guardián
 
 **Vincular el guardián se pide a mano, y esto le pasó a una persona.** Con la
@@ -861,3 +871,16 @@ máquina. En la VPS, que tiene un core, es UNA. Dos ffmpeg en un core no van en 
 se reparten el mismo core, así que con dos plazas el primero que pide un
 sticker esperaba más del doble (2253 ms frente a 1026 ms, medido con dos a la
 vez). Con cuatro cores la máquina sí puede con dos y las coge.
+
+**Los stickers animados de parches** (25 oct). ffmpeg no abre un WebP
+animado, y casi todos los stickers animados guardan cada fotograma como un
+parche: solo el trozo que cambia, en su posición, mezclado con lo anterior.
+El bot los partía pero no sabía montarlos, así que uno de más de 1 MB no se
+podía bajar («viene en un formato que el bot no sabe reabrir»).
+`componerWebpAnimado` (`utils/sticker.js`) los monta como un visor: ffmpeg
+decodifica todos los parches en una llamada (`-autoscale 0`, cada uno con su
+tamaño), el bot los pega en un lienzo con su mezcla y su borrado, y sale un
+vídeo sin pérdidas con transparencia que entra en la escalera de calidades de
+siempre. Va en tubería, sin la animación entera en memoria. Lo usan `!s` con
+un sticker que no cabe y `!tovid`. Necesita ffmpeg 4.4 o más (el de la VPS);
+con uno más viejo, el bot avisa como antes. Capa 142.
