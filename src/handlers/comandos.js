@@ -130,6 +130,10 @@ const FAMILIAS = [
   // owner. Las mismas reglas que !k: ver z.js.
   { nombres: ['z'], meta: true,
     hace: (c) => c.de('z').cmdZ(c.sock, c.msg, c.args, c.meta) },
+  // !a — borra los avisos del antispam de texto. Solo el dueño principal, y
+  // oculto con las reglas de !z: ver a.js.
+  { nombres: ['a'], meta: true,
+    hace: (c) => c.de('a').cmdA(c.sock, c.msg, c.args, c.meta) },
   // !reborn — el bot anuncia que ha vuelto. Solo desde la cuenta del bot.
   { nombres: ['reborn'],
     hace: (c) => c.de('reborn').cmdReborn(c.sock, c.msg) },

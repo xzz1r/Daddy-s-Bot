@@ -23380,6 +23380,69 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (saltada) console.log(`   · saltada: ${saltada} (el de la VPS sí; aquí el bot avisa como antes)`);
     else if (fallos === antes142) console.log(verde('   ✓ un sticker de parches se compone idéntico, uno de más de 1 MB baja por debajo y lo que no cabe en el suelo sale más corto, no peor'));
   }
+  // ── 143. !a: EL DUEÑO BORRA LOS AVISOS DEL ANTISPAM, Y NADIE MÁS LO VE ─────
+  // «Haz que yo pueda restablecer los avisos de ban con el antispam de
+  // mensajes. Solo yo puedo tener acceso a ese comando (invisible). Un !a.»
+  // (dueño, 26 oct). En una copia aparte, que esto escribe los avisos.
+  {
+    console.log('\n143. !a BORRA LOS AVISOS DEL ANTISPAM, SOLO PARA EL DUEÑO Y SIN DEJARSE VER');
+    const antes143 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'cmd-a-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const A = require('./src/commands/a'); const T = require('./src/utils/spamTexto');",
+        "const G1 = '120363000000143001@g.us', G2 = '120363000000143002@g.us';",
+        "const OWN = '33600000143@s.whatsapp.net', CO = '34600000143@s.whatsapp.net', M = '34600000144@s.whatsapp.net';",
+        "const P1 = '34600000145@s.whatsapp.net', P2 = '34600000146@s.whatsapp.net';",
+        "const meta = { id: G1, subject: 'G', participants: [{ id: OWN, admin: 'superadmin' }, { id: CO }, { id: M }, { id: P1 }, { id: P2 }] };",
+        "const env = []; const sk = { user: { id: '549199@s.whatsapp.net' }, sendMessage: async (j, c) => { env.push({ j, texto: c.text || null, borra: Boolean(c.delete) }); return {}; } };",
+        "const msg = (quien, menciona) => ({ key: { remoteJid: G1, participant: quien, fromMe: false, id: 'A' + Math.random() },",
+        "  message: { extendedTextMessage: { text: '!a', contextInfo: menciona ? { mentionedJid: [menciona] } : {} } } });",
+        "const ahora = () => Math.floor(Date.now() / 1000);",
+        "(async () => { const r = {};",
+        "  await T.sancion(G1, P1, ahora()); await T.sancion(G2, P1, ahora()); await T.sancion(G1, P2, ahora());",
+        "  r.antes = [await T.avisosDe(G1, P1), await T.avisosDe(G2, P1), await T.avisosDe(G1, P2)];",
+        "  await A.cmdA(sk, msg(M, P1), ['@x'], meta); r.miembro = env.splice(0); r.trasMiembro = await T.avisosDe(G1, P1);",
+        "  await A.cmdA(sk, msg(CO, P1), ['@x'], meta); r.codueno = env.splice(0); r.trasCo = await T.avisosDe(G1, P1);",
+        "  await A.cmdA(sk, msg(OWN, P1), ['@x'], meta); r.uno = env.splice(0);",
+        "  r.trasUno = [await T.avisosDe(G1, P1), await T.avisosDe(G2, P1), await T.avisosDe(G1, P2)];",
+        "  await A.cmdA(sk, msg(OWN, null), [], meta); r.todos = env.splice(0); r.trasTodos = await T.avisosDe(G1, P2);",
+        "  console.log('R143' + JSON.stringify(r)); process.exit(0); })().catch((e) => { console.log('R143' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 30000,
+        env: { ...process.env, OWNER_NUMBER: '33600000143', CO_OWNERS: '34600000143' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R143'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: (out.stderr || '').split('\n').slice(0, 3).join(' ') };
+      if (r.error) exige(false, `no pude probar !a: ${String(r.error).split('\n')[0]}`);
+      else {
+        exige(String(r.antes) === '1,1,1', `la prueba no ha podido poner los avisos: ${r.antes}`);
+        exige(!r.miembro.length && r.trasMiembro === 1, 'un miembro ha usado *!a* o el bot le ha contestado: tiene que ser invisible');
+        exige(!r.codueno.length && r.trasCo === 1, 'un co-dueño ha usado *!a*: es solo del dueño principal');
+        exige(String(r.trasUno) === '0,0,1', `*!a @persona* no le borra los avisos en todos los grupos, o borra los de otro (quedan ${r.trasUno})`);
+        exige(r.trasTodos === 0, '*!a* a secas no borra los avisos del grupo');
+        for (const [que, envios] of [['!a @persona', r.uno], ['!a', r.todos]]) {
+          exige(envios.some((e) => e.borra && e.j === '120363000000143001@g.us'), `${que} no borra la orden del grupo`);
+          exige(!envios.some((e) => e.texto && e.j.endsWith('@g.us')), `${que} contesta en el grupo: la respuesta va al privado`);
+          exige(envios.some((e) => e.texto && e.j === '33600000143@s.whatsapp.net'), `${que} no le confirma nada al dueño por privado`);
+        }
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+    exige(/const COMANDOS_OCULTOS = new Set\([^)]*'a'/.test(mh), '*!a* no está en COMANDOS_OCULTOS');
+    const S143 = require(path.join(R, 'src/commands/social'));
+    const menus143 = [];
+    const skM = { user: { id: '549199@s.whatsapp.net' }, sendMessage: async (j, c) => { menus143.push(c.text || ''); return {}; } };
+    const OWN143 = `${String(require(path.join(R, 'src/config')).ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+    const meta143 = { id: '120363000000143009@g.us', participants: [{ id: OWN143, admin: 'superadmin' }] };
+    try { await S143.cmdHelp(skM, { key: { remoteJid: meta143.id, participant: OWN143, fromMe: false, id: 'M143' }, message: { conversation: '!menu todo' } }, meta143, ['todo']); } catch {}
+    exige(!menus143.some((t) => /!a\b(?!\w)/.test(t.replace(/!a[a-zñáéíóú]/gi, ''))), 'el menú enseña *!a*: es invisible');
+    if (fallos === antes143) console.log(verde('   ✓ !a borra los avisos de una persona en todos los grupos o los del grupo, solo para el dueño y sin dejarse ver'));
+  }
+
 
 
 

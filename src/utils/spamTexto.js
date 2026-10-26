@@ -39,7 +39,7 @@
 
 const path = require('path');
 const crypto = require('crypto');
-const { juntarPersona, clavesMapa, juntarEnMapa, esObjeto } = require('./persona');
+const { juntarPersona, clavesMapa, juntarEnMapa, esObjeto, formasDe } = require('./persona');
 const { atomicWriteJson, readJsonOrEnoent, pickFresh } = require('./helpers');
 const logger = require('./logger');
 const { AVISO_SPAM, BAN_SPAM, ADMIN_SPAM } = require('../data/spamPhrases');
@@ -220,6 +220,32 @@ async function avisosDe(grupo, jid) {
   return vivo(rec) ? rec.avisos : 0;
 }
 
+// *!a* (dueño, 26 oct): borra avisos. Con persona, los suyos en todos los
+// grupos; sin ella, todos los del grupo. Se olvida tambien la rafaga a medias
+// en memoria, para que el siguiente mensaje no la complete. Devuelve cuantos
+// avisos vivos se han quitado.
+async function olvidarAvisos(grupo, jid = null) {
+  await load();
+  let quitados = 0;
+  if (jid) {
+    for (const gr of Object.keys(store)) {
+      const { g, k, rec } = ficha(gr, jid);
+      if (rec) { if (vivo(rec)) quitados++; delete g[k]; }
+      if (!Object.keys(g).length) delete store[gr];
+    }
+    const formas = new Set(formasDe(jid));
+    for (const clave of [...recientes.keys()]) {
+      if (formas.has(clave.slice(clave.indexOf('|') + 1))) recientes.delete(clave);
+    }
+  } else {
+    quitados = Object.values(store[grupo] || {}).filter(vivo).length;
+    delete store[grupo];
+    for (const clave of [...recientes.keys()]) if (clave.startsWith(`${grupo}|`)) recientes.delete(clave);
+  }
+  await guardar();
+  return quitados;
+}
+
 // ─── la reapertura pendiente ─────────────────────────────────────────────────
 
 async function apuntarReapertura(grupo, hasta) {
@@ -278,7 +304,7 @@ function _reset() { recientes.clear(); store = null; loadPromise = null; }
 function _usarEsperas({ reabrir } = {}) { esperaReabrir = reabrir ?? REABRIR_MS; }
 
 module.exports = {
-  anotar, sancion, avisosDe, textoAviso, textoBan, textoSinAdmin,
+  anotar, sancion, avisosDe, olvidarAvisos, textoAviso, textoBan, textoSinAdmin,
   apuntarReapertura, olvidarReapertura, reaperturasPendientes, esperaReapertura,
   IGUALES, VENTANA_S, GRACIA_MS, AVISO_DURA_MS, REABRIR_MS,
   esencia, _usarFichero, _reset, _usarEsperas, _file: () => FILE,

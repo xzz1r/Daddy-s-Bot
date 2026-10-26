@@ -109,6 +109,11 @@ el orden (cerrar antes de avisar, echar antes de anunciar) viven en
 `src/utils/spamTexto.js` y en `castigarSpamTexto`. Las frases están en
 `src/data/spamPhrases.js`. La capa 125 lo vigila. Ver `MOTOR.md`.
 
+`!a` borra esos avisos (dueño, 26 oct): respondiendo, con mención o número,
+los de esa persona en todos los grupos; a secas, los del grupo. Es del dueño
+principal y de nadie más, y es invisible: a otro no le contesta, la orden se
+borra y la confirmación va al privado (`src/commands/a.js`). Capa 143.
+
 ## El anti-empresa echa TODA cuenta de WhatsApp Business
 
 Lo dijo el dueño (22 oct): «el bot debe eliminar precisamente las cuentas de
