@@ -69,6 +69,9 @@ const anuncios = new Map(); // `${jid}|${canonical}` -> ts
 // en cada mensaje, un grupo activo dispararia cientos de consultas por hora y
 // WhatsApp acabaria limitando el socket entero.
 const perfilMirado = new Set(); // `${jid}|${telefono}`
+// Lo que vale en disco una cuenta ya comprobada como normal: siete días sin
+// volver a pedirle el perfil (ver nickStore `normal`).
+const PERFIL_NORMAL_VALE_MS = 7 * 24 * 60 * 60 * 1000;
 
 // `minimo` permite un freno mas corto para el aviso que NO se puede perder: el
 // ultimo antes del ban. Ese tiene que llegar —si no, el siguiente enlace le
@@ -389,5 +392,5 @@ const PERMISO_ENLACE = [
 
 module.exports = {
   clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa, PERMISO_ENLACE,
-  puedeAnunciar, anotarTropiezo, perfilMirado,
+  puedeAnunciar, anotarTropiezo, perfilMirado, PERFIL_NORMAL_VALE_MS,
 };

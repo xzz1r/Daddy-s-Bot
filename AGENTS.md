@@ -131,6 +131,13 @@ entrar. Cuánto acierta lo mide el bot solo, una vez al día, y sale en `npm
 run estado` (y tras cada `npm run update`), nunca en el grupo: lo quiere
 interno (dueño, 22 oct). Capas 9 y 137. Ver `MOTOR.md`.
 
+**Nada pregunta a WhatsApp en masa** (30 oct): dos números del bot cayeron en
+revisión en pocos días, y el bot pedía cientos de perfiles nada más conectar.
+La precisión mira una muestra de 30 al día con pausas y espera a que el
+número lleve siete días; una cuenta normal comprobada no se vuelve a
+consultar en una semana. Ver `MOTOR.md` («Un número nuevo no pregunta en
+masa») y la capa 144.
+
 ## La peña activa se halaga, sin veneno
 
 Lo pidió el dueño (18 oct): a quien escribe, el bot lo halaga por su actividad,

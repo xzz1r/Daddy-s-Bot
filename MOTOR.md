@@ -273,6 +273,28 @@ Qué es cada código sale de whatsmeow, que lo sacó de WhatsApp Web. La sesión
 vieja se aparta con `mv`, no se borra. Y con `--codigo` y una sesión guardada,
 el bot ahora avisa de que no pide código. La capa 130 lo vigila.
 
+## Un número nuevo no pregunta en masa
+
+Dos números del bot cayeron en revisión de WhatsApp en pocos días, el segundo
+en menos de dieciséis horas (30 oct). Lo que el bot hacía con un número recién
+vinculado se parecía a un raspador:
+
+- **La precisión del anti-empresa** pedía el perfil de empresa de TODAS las
+  vetadas seguidas, unas 630, a los diez minutos de conectar. Ahora mira una
+  muestra de 30 al día, con 20-40 s entre una y otra, empieza a las dos horas,
+  y no mide nada hasta que el número lleva **siete días** vinculado
+  (`desde` en `data/numeroBot.json`, que se conserva mientras el número sea
+  el mismo). La precisión sale de las fichas de los últimos 30 días.
+- **A quien escribe** se le pedía el perfil en su primer mensaje tras cada
+  reinicio, aunque ya constara como cuenta normal: lo de «ya mirado» vivía en
+  memoria. Ahora una cuenta normal queda apuntada en disco (`normal` en
+  nickStore) y no se vuelve a preguntar en siete días. Quien se pase a
+  Business se delata igual en su primer mensaje, por el nombre verificado.
+- **El repaso de la lista negra** echa como mucho tres por vuelta.
+
+No se añade nada que pregunte a WhatsApp por muchas cuentas seguidas sin
+muestra, sin pausa y sin esperar a que el número tenga días. Capa 144.
+
 ## La lista negra con el bot fuera
 
 El veto se miraba solo al entrar, y el aviso de entrada llega una vez: quien

@@ -139,7 +139,7 @@ const STUB_SOLICITUD = new Set([144, 172]);
 const autoAcceptPendiente = new Map();
 const { handleMessage, invalidateGroupMeta, getGroupMeta, metaParaBaileys, sembrarGrupos, reabrirPendientes } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, isAutoAceptarEnabled, flushState, vistoActivo } = require('./utils/state');
-const { isOwner, sameUser, isBotAdmin, phoneMatch, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto, resolverLid } = require('./utils/wa');
+const { isOwner, sameUser, isBotAdmin, phoneMatch, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto, resolverLid, bareJid } = require('./utils/wa');
 const { anotarDeuda, cobrarDeuda, flushDeuda } = require('./utils/adminDeuda');
 // anotarAlta apunta el motivo de cada alta; motivoDelAlta lo consulta cuando hay
 // que decidir si un alta fue a dedo (la unica que se sanciona).
@@ -157,7 +157,7 @@ const { flushCache } = require('./utils/musicCache');
 const { flush: flushPfpHashes } = require('./utils/pfpStore');
 const { flush: flushPfpCache } = require('./utils/pfpCache');
 const { sweepAllGroups, maybeIndex } = require('./utils/pfpIndexer');
-const { flushBanlist, banAccount } = require('./utils/banlist');
+const { flushBanlist, banAccount, isBanned } = require('./utils/banlist');
 const { flushLinkPerms } = require('./utils/linkPerms');
 const { flushMutes } = require('./commands/group');
 const { flushRobo } = require('./utils/roboStore');
@@ -463,12 +463,25 @@ async function reponerAdminDueños(grupo) {
 // A un admin vetado no se le echa: el castigo con admins es quitar el mando,
 // nunca el kick (ver aplicarAUno), y un admin en la lista negra es raro y lo
 // decide una persona. Se dice en el log una vez.
+const VETADOS_POR_VUELTA = 3;
 async function echarVetadosDentro(grupo) {
   if (!sock) return;
   const meta = await getGroupMeta(sock, grupo).catch(() => null);
   if (!meta?.participants || !isBotAdmin(sock, meta)) return;
   const esAdmin = (p) => p?.admin === 'admin' || p?.admin === 'superadmin';
-  const fuera = await vetadosAlEntrar(sock, grupo, meta.participants.filter((p) => p && !esAdmin(p)), meta);
+  // POCOS POR VUELTA (30 oct). Un número recién vinculado que echa a veinte
+  // personas en su primer minuto es de lo que mira WhatsApp, y dos números
+  // del bot cayeron en revisión en pocos días. Como mucho VETADOS_POR_VUELTA
+  // cada INTERVALO_SOLICITUDES: el resto sale en las vueltas siguientes.
+  const vetados = [];
+  for (const p of meta.participants) {
+    if (!p || esAdmin(p)) continue;
+    const formas = [p.id, p.lid, p.phoneNumber].filter(Boolean).map(bareJid);
+    if (await isBanned(formas).catch(() => null)) vetados.push(p);
+    if (vetados.length >= VETADOS_POR_VUELTA) break;
+  }
+  if (!vetados.length) return;
+  const fuera = await vetadosAlEntrar(sock, grupo, vetados, meta);
   if (fuera.size) {
     invalidateGroupMeta(grupo);
     logger.warn(`lista negra: ${fuera.size} vetado(s) que ya estaban dentro de ${grupo}, fuera`);
@@ -1172,7 +1185,15 @@ async function connectToWhatsApp() {
         const numero = soloDigitos(sock.user?.id);
         const lid = soloDigitos(sock.user?.lid);
         if (numero || lid) {
-          await atomicWriteJson(path.join(__dirname, '../data/numeroBot.json'), { numero, lid, ts: Date.now() });
+          // `desde`: cuando se vinculó ESTE número (30 oct). Se conserva
+          // mientras el número sea el mismo; con uno nuevo empieza ahora. Con
+          // eso, lo que pregunta mucho a WhatsApp (la precisión del
+          // anti-empresa) espera a que el número tenga unos días.
+          const fichero = path.join(__dirname, '../data/numeroBot.json');
+          let previo = null;
+          try { previo = JSON.parse(fs.readFileSync(fichero, 'utf8')); } catch {}
+          const desde = previo?.numero === numero && previo?.desde ? previo.desde : Date.now();
+          await atomicWriteJson(fichero, { numero, lid, ts: Date.now(), desde });
         }
       } catch (e) { logger.warn(`no pude anotar el numero del bot para el guardian: ${e.message}`); }
 

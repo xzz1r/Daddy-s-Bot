@@ -34,7 +34,7 @@ const logger = require('../utils/logger');
 const bitacoraEstados = require('../utils/bitacoraEstados');
 const { archivarVerUnaVez, esperaArchivo } = require('../utils/verUnaVez');
 
-const { clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa, PERMISO_ENLACE, puedeAnunciar, anotarTropiezo, perfilMirado } = require('../utils/antilink');
+const { clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa, PERMISO_ENLACE, puedeAnunciar, anotarTropiezo, perfilMirado, PERFIL_NORMAL_VALE_MS } = require('../utils/antilink');
 const { MAL_ESCRITO, OBJETIVO_DIA_CARTEL, AL_BOT, AL_BOT_MENCION, VER_UNA_VEZ } = require('../data/avisos');
 const { cartelDelDia } = require('../utils/objetivoDia');
 const { aviso, pickBaraja } = require('../utils/helpers');
@@ -2159,6 +2159,11 @@ async function handleMessage(sock, msg, opciones = {}) {
         // está en expulsarBusinessDetectado).
         const clave = `${jid}|${tel}`;
         if (perfilMirado.has(clave)) return porFicha();
+        // YA COMPROBADA COMO NORMAL, EN DISCO (30 oct). Lo de arriba vive en
+        // memoria y se pierde en cada reinicio; esto no. Una cuenta que se
+        // pase a Business en estos días se delata igual en su primer
+        // mensaje: lo lleva con el nombre verificado (rama de arriba).
+        if (!f?.empresa && f?.normal && Date.now() - f.normal < PERFIL_NORMAL_VALE_MS) return null;
         if (perfilMirado.size >= 5000) perfilMirado.delete(perfilMirado.keys().next().value);
         perfilMirado.add(clave);
 

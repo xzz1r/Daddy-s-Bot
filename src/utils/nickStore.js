@@ -94,7 +94,9 @@ async function recordFacts(userJid, { empresa, photo } = {}) {
   const key = bareJid(userJid);
   if (!store[GLOBAL]) store[GLOBAL] = {};
   const prev = store[GLOBAL][key] || {};
-  if (empresa === false && !prev.empresa && !prev.biz && photo !== 'si' && photo !== 'no') return;
+  // Una cuenta normal comprobada hace menos de un día no se vuelve a escribir.
+  if (empresa === false && !prev.empresa && !prev.biz && photo !== 'si' && photo !== 'no'
+      && prev.normal && Date.now() - prev.normal < 24 * 60 * 60 * 1000) return;
   // La misma prueba de hace menos de un día no se vuelve a escribir: el
   // nombre verificado viaja en CADA mensaje de una cuenta Business, y sin
   // esto era un fichero entero a disco por mensaje.
@@ -107,11 +109,16 @@ async function recordFacts(userJid, { empresa, photo } = {}) {
   if (next.biz && !next.empresa) next.empresa = { ts: prev.ts || 0, campos: ['nombre verificado de negocio'] };
   delete next.biz;
 
-  if (esEmpresa) next.empresa = { ts: Date.now(), campos: empresa.slice(0, 6) };
-  else if (empresa === false) delete next.empresa;
+  // `normal`: cuándo dijo su perfil que es una cuenta normal (30 oct). Sin
+  // esto no quedaba nada en disco y, tras cada reinicio, a cada persona que
+  // escribía se le volvía a pedir el perfil: cientos de consultas en las
+  // primeras horas de un número recién vinculado. Ver PERFIL_NORMAL_VALE_MS.
+  if (esEmpresa) { next.empresa = { ts: Date.now(), campos: empresa.slice(0, 6) }; delete next.normal; }
+  else if (empresa === false) { delete next.empresa; next.normal = Date.now(); }
   if (photo === 'si' || photo === 'no') next.photo = photo;
 
-  if (!esEmpresa && Boolean(next.empresa) === Boolean(prev.empresa || prev.biz) && !prev.biz && next.photo === prev.photo) return;
+  if (!esEmpresa && Boolean(next.empresa) === Boolean(prev.empresa || prev.biz) && !prev.biz && next.photo === prev.photo
+      && next.normal === prev.normal) return;
   next.ts = Date.now();
   store[GLOBAL][key] = next;
 
@@ -192,6 +199,7 @@ async function getMemberFacts(forms) {
     const e = empresaDe(rec);
     if (empresaVigente(e) && (!out.empresa || e.ts > out.empresa.ts)) out.empresa = e;
     if (rec.photo) out.photo = rec.photo;
+    if (rec.normal && (!out.normal || rec.normal > out.normal)) out.normal = rec.normal;
     // Los mensajes se SUMAN entre formas; el último es el más reciente de todas.
     if (rec.disp) {
       const a = out.disp || {};

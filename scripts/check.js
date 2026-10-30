@@ -23019,7 +23019,7 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
   await pide(['precision']);
   r.enGrupo=textos.splice(0).join('\\n');
   const PE=require(path.join(ROOT,'src/utils/precisionEmpresa'));
-  r.dato=await PE.medir(sock);
+  r.dato=await PE.medir(sock,{pausa:()=>0});
   r.enDisco=JSON.parse(fs.readFileSync(path.join(ROOT,'data/precisionEmpresa.json'),'utf8'));
   r.linea=PE.lineaEstado(r.enDisco);
   r.lineaVacia=PE.lineaEstado(null);
@@ -23260,23 +23260,28 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
         fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
         fs.mkdirSync(path.join(caja, 'data'));
         fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
-        fs.writeFileSync(path.join(caja, 'echar.js'), `${m[0]}\nmodule.exports = echarVetadosDentro;\n`);
+        const tope141 = (botSrc.match(/const VETADOS_POR_VUELTA = (\d+);/) || [])[1];
+        exige(Number(tope141) > 0 && Number(tope141) <= 5, `el repaso no tiene tope de expulsiones por vuelta, o es de ${tope141}: un número recién vinculado echando a todos de golpe es de lo que mira WhatsApp`);
+        fs.writeFileSync(path.join(caja, 'echar.js'), `const VETADOS_POR_VUELTA = ${Number(tope141) || 99};\n${m[0]}\nmodule.exports = echarVetadosDentro;\n`);
         const guion = [
           "const { vetadosAlEntrar } = require('./src/commands/fk'); const banlist = require('./src/utils/banlist');",
           "const OWN = '33600000141@s.whatsapp.net', BOT = '34600000141@s.whatsapp.net', MALO = '34644400141@s.whatsapp.net';",
           "const MALO_ADM = '34644400142@s.whatsapp.net', RASO = '34633300141@s.whatsapp.net', G = '120363000000141001@g.us';",
           "let quitados = [], invalidada = 0, botAdmin = true;",
-          "const meta = () => ({ id: G, participants: [{ id: BOT, admin: botAdmin ? 'admin' : null }, { id: OWN, admin: null }, { id: RASO }, { id: MALO }, { id: MALO_ADM, admin: 'admin' }] });",
+          "const MUCHOS = ['34644400151', '34644400152', '34644400153', '34644400154', '34644400155'].map((n) => n + '@s.whatsapp.net'); let conMuchos = false;",
+          "const meta = () => ({ id: G, participants: [{ id: BOT, admin: botAdmin ? 'admin' : null }, { id: OWN, admin: null }, { id: RASO }, { id: MALO }, { id: MALO_ADM, admin: 'admin' }, ...(conMuchos ? MUCHOS.map((id) => ({ id })) : [])] });",
           "const sock = { user: { id: BOT }, sendMessage: async () => ({}), groupMetadata: async () => meta(),",
           "  groupParticipantsUpdate: async (j, p, acc) => { if (acc === 'remove') quitados.push(...p); return p.map((id) => ({ status: '200', jid: id })); } };",
           "const isBotAdmin = (s, mt) => mt.participants.some((p) => p.id === BOT && p.admin);",
           "const fuente = require('fs').readFileSync('./echar.js', 'utf8').replace('module.exports = echarVetadosDentro;', 'return echarVetadosDentro;');",
-          "const echar = new Function('sock', 'getGroupMeta', 'isBotAdmin', 'vetadosAlEntrar', 'invalidateGroupMeta', 'logger', fuente)(",
-          "  sock, async () => meta(), isBotAdmin, vetadosAlEntrar, () => { invalidada++; }, { warn: () => {}, info: () => {} });",
+          "const echar = new Function('sock', 'getGroupMeta', 'isBotAdmin', 'vetadosAlEntrar', 'invalidateGroupMeta', 'logger', 'isBanned', 'bareJid', fuente)(",
+          "  sock, async () => meta(), isBotAdmin, vetadosAlEntrar, () => { invalidada++; }, { warn: () => {}, info: () => {} }, banlist.isBanned, require('./src/utils/wa').bareJid);",
           "(async () => { const r = {};",
           "  for (const j of [MALO, MALO_ADM, OWN]) await banlist.banAccount([j], 'capa 141', 'capa');",
           "  await echar(G); r.uno = quitados.slice(); r.invalidada = invalidada;",
           "  quitados = []; botAdmin = false; await echar(G); r.sinAdmin = quitados.slice();",
+          "  for (const j of MUCHOS) await banlist.banAccount([j], 'capa 141', 'capa');",
+          "  quitados = []; botAdmin = true; conMuchos = true; await echar(G); r.muchos = quitados.length;",
           "  console.log('R141' + JSON.stringify(r)); process.exit(0); })().catch((e) => { console.log('R141' + JSON.stringify({ error: e.message })); process.exit(0); });",
         ].join('\n');
         const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 30000,
@@ -23293,6 +23298,7 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
           exige(!q.includes('34600000141@s.whatsapp.net'), 'el repaso echó al bot');
           exige(r.invalidada > 0, 'tras echar, la ficha del grupo en caché no se invalida');
           exige(!(r.sinAdmin || []).length, 'sin ser admin, el repaso intenta echar igual');
+          exige(r.muchos > 0 && r.muchos <= Number(tope141), `con seis vetados dentro, una sola vuelta echa a ${r.muchos}: tienen que salir de pocos en pocos`);
         }
       } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     }
@@ -23441,6 +23447,66 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     try { await S143.cmdHelp(skM, { key: { remoteJid: meta143.id, participant: OWN143, fromMe: false, id: 'M143' }, message: { conversation: '!menu todo' } }, meta143, ['todo']); } catch {}
     exige(!menus143.some((t) => /!a\b(?!\w)/.test(t.replace(/!a[a-zñáéíóú]/gi, ''))), 'el menú enseña *!a*: es invisible');
     if (fallos === antes143) console.log(verde('   ✓ !a borra los avisos de una persona en todos los grupos o los del grupo, solo para el dueño y sin dejarse ver'));
+  }
+
+  // ── 144. UN NÚMERO NUEVO NO SE PONE A PREGUNTAR EN MASA (30 oct) ───────────
+  // Dos números del bot cayeron en revisión de WhatsApp en pocos días, el
+  // segundo en menos de dieciséis horas. Lo que el bot hacía al conectar: a
+  // los diez minutos, el perfil de empresa de TODAS las vetadas (unas 630
+  // seguidas), y a cada persona que escribía, su perfil otra vez tras cada
+  // reinicio. Un número recién vinculado haciendo eso es un raspador.
+  {
+    console.log('\n144. UN NÚMERO NUEVO NO SE PONE A PREGUNTAR EN MASA');
+    const antes144 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'sin-masa-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const fs = require('fs'); const PE = require('./src/utils/precisionEmpresa'); const banlist = require('./src/utils/banlist');",
+        "const N = require('./src/utils/nickStore');",
+        "(async () => { const r = {};",
+        "  for (let i = 0; i < 50; i++) await banlist.banAccount(['3460010' + String(i).padStart(4, '0') + '@s.whatsapp.net'], 'cuenta business: categoría', 'auto');",
+        "  let consultas = 0, pausas = 0;",
+        "  const sock = { getBusinessProfile: async (j) => { consultas++; return { wid: j, category: 'Tienda' }; } };",
+        "  await PE.medir(sock, { pausa: () => { pausas++; return 0; } }); r.uno = consultas; r.pausas = pausas;",
+        "  const d1 = JSON.parse(fs.readFileSync('./data/precisionEmpresa.json', 'utf8'));",
+        "  consultas = 0; await PE.medir(sock, { pausa: () => 0 }); r.dos = consultas;",
+        "  const d2 = JSON.parse(fs.readFileSync('./data/precisionEmpresa.json', 'utf8'));",
+        "  r.muestra1 = d1.muestra; r.muestra2 = d2.muestra; r.vetadas = d2.vetadas; r.linea = PE.lineaEstado(d1).texto;",
+        "  PE._numero('./data/numeroBot.json');",
+        "  fs.writeFileSync('./data/numeroBot.json', JSON.stringify({ numero: '1', desde: Date.now() - 2 * 864e5 })); r.diasNuevo = PE.diasVinculado();",
+        "  await N.recordFacts('34600100999@s.whatsapp.net', { empresa: false }); r.normal = (await N.getMemberFacts(['34600100999@s.whatsapp.net']))?.normal || 0;",
+        "  console.log('R144' + JSON.stringify(r)); process.exit(0); })().catch((e) => { console.log('R144' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 60000 });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R144'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: (out.stderr || '').split('\n').slice(0, 3).join(' ') };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n')[0]}`);
+      else {
+        const PE = require(path.join(R, 'src/utils/precisionEmpresa'));
+        exige(r.uno > 0 && r.uno <= PE.MUESTRA && PE.MUESTRA <= 40, `la medida de precisión pregunta por ${r.uno} perfiles de golpe (muestra ${PE.MUESTRA}): con 630 vetadas eso es un raspador`);
+        exige(r.pausas >= r.uno - 1, `entre consulta y consulta de la medida no hay pausa (${r.pausas} pausas para ${r.uno})`);
+        exige(r.muestra2 > r.muestra1 && r.muestra2 <= r.vetadas, `la segunda medida vuelve a mirar las mismas en vez de las que faltan (${r.muestra1} → ${r.muestra2})`);
+        exige(/muestra de \d+ de 50/.test(r.linea || ''), `npm run estado no dice que es una muestra: ${r.linea}`);
+        exige(r.diasNuevo !== null && r.diasNuevo < PE.DIAS_VINCULADO && PE.DIAS_VINCULADO >= 7, `un número de dos días no cuenta como recién vinculado (DIAS_VINCULADO ${PE.DIAS_VINCULADO})`);
+        exige(Date.now() - r.normal < 60000, 'una cuenta comprobada como normal no queda apuntada en disco: tras cada reinicio se le vuelve a pedir el perfil');
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    // Y las piezas que unen eso con el bot en marcha.
+    const pe = fs.readFileSync(path.join(R, 'src/utils/precisionEmpresa.js'), 'utf8');
+    exige(/dias < DIAS_VINCULADO/.test(pe) && /PRIMERA_MS = (\d+) \* 60 \* 60 \* 1000/.test(pe),
+      'la medida de precisión ya no espera a que el número tenga días, o vuelve a lanzarse a los minutos de conectar');
+    const bot144 = fs.readFileSync(path.join(R, 'src/bot.js'), 'utf8');
+    exige(/previo\?\.numero === numero && previo\?\.desde \? previo\.desde : Date\.now\(\)/.test(bot144),
+      'numeroBot.json ya no guarda desde cuándo está vinculado el número: la espera de los números nuevos no sabe cuándo empezar');
+    const mh144 = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+    const iNormal = mh144.indexOf('f?.normal && Date.now() - f.normal < PERFIL_NORMAL_VALE_MS');
+    const iPerfil = mh144.indexOf('const ev = await businessEvidence(sock, tel)');
+    exige(iNormal > 0 && iPerfil > iNormal, 'a quien escribe se le pide el perfil aunque ya conste como cuenta normal: tras cada reinicio, una consulta por persona');
+    if (fallos === antes144) console.log(verde('   ✓ la precisión mira una muestra con pausas y espera a que el número tenga días, y una cuenta normal no se vuelve a consultar'));
   }
 
 
