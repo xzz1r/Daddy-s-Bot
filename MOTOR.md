@@ -295,6 +295,29 @@ vinculado se parecía a un raspador:
 No se añade nada que pregunte a WhatsApp por muchas cuentas seguidas sin
 muestra, sin pausa y sin esperar a que el número tenga días. Capa 144.
 
+**Y una red debajo** (1 nov). El ritmo (`utils/ritmo.js`) solo espaciaba: con
+dos segundos entre consultas caben mil ochocientas en una hora. Ahora:
+
+- Mirar perfiles ajenos tiene **tope por hora y por día**: información de
+  empresa 40/h y 250/día, foto 60/h y 400/día, estado 30/h y 150/día. Da
+  igual qué función nueva se escriba mañana: el socket no deja pasar más, y
+  quien llama trata el tope como «no se sabe» (nunca echa a nadie por eso).
+- **Rodaje**: los siete primeros días de un número (`utils/numeroBot.js`, con
+  el `desde` de `data/numeroBot.json`) los topes bajan a una cuarta parte, y
+  además expulsar y aceptar solicitudes van a 30 personas por hora y la
+  consulta de números a 50 al día. El tope de expulsiones cuenta personas,
+  no peticiones.
+- *!scan* y *!antiempresa scan* no vuelven a preguntar por quien ya consta
+  como cuenta normal esta semana, ni la entrada al grupo tampoco, y *!scan*
+  dice a cuántos no pudo mirar en vez de darlos por limpios.
+- Las purgas echan en tandas de cinco, no a todos en una sola petición.
+
+El guardián ya no se reinicia por una promesa suelta de Baileys (la anota y
+sigue, como el bot): cada reinicio era otra conexión a WhatsApp con su
+número. Y `npm run estado` dice si pm2 deja parado al bot tras una parada a
+propósito o lo sigue levantando (si le falta el 78 en `stop_exit_codes`, da
+el arreglo). Capa 145.
+
 ## La lista negra con el bot fuera
 
 El veto se miraba solo al entrar, y el aviso de entrada llega una vez: quien

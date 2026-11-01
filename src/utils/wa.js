@@ -828,6 +828,9 @@ async function intentarPfp(sock, jid, tipo, intentos) {
       // Restringida: NO se reintenta. Reintentar un permiso denegado es gastar
       // tres peticiones y dos segundos para que te lo denieguen tres veces.
       if (esFotoRestringida(err)) { err.restringida = true; throw err; }
+      // Un tope del ritmo (utils/ritmo.js) no se arregla reintentando: se
+      // devuelve tal cual, como «no se sabe».
+      if (err?.code === 'TOPE_HORA' || err?.code === 'TOPE_DIARIO') throw err;
       ultimoError = err;
       // 700 ms y no 250, y la diferencia no es de rendimiento.
       //

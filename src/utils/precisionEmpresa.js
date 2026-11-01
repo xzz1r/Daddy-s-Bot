@@ -37,20 +37,19 @@
 // muestra diaria se mantiene al día sin preguntar por todas de golpe.
 
 const path = require('path');
-const fs = require('fs');
 const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const { bareJid, resolverLid } = require('./wa');
 const { businessEvidence } = require('./businessCheck');
 const { listBanned } = require('./banlist');
 const logger = require('./logger');
+const numeroBot = require('./numeroBot');
 
 const FILE = path.join(__dirname, '../../data/precisionEmpresa.json');
-let NUMERO = path.join(__dirname, '../../data/numeroBot.json');
 const DIA = 24 * 60 * 60 * 1000;
 const PRIMERA_MS = 2 * 60 * 60 * 1000;
 const MUESTRA = 30;
 const VIGENCIA = 30 * DIA;
-const DIAS_VINCULADO = 7;
+const DIAS_VINCULADO = numeroBot.DIAS_RODAJE;
 let PAUSA = () => 20000 + Math.random() * 20000;
 
 // Un veto puesto por el anti-empresa: automático y con su motivo.
@@ -61,13 +60,8 @@ const corta = (j) => {
   return (String(j).endsWith('@lid') ? '@' : '+') + id;
 };
 
-// Cuántos días lleva vinculado el número del bot. null si no se sabe.
-function diasVinculado(ahora = Date.now()) {
-  try {
-    const d = JSON.parse(fs.readFileSync(NUMERO, 'utf8'));
-    return d?.desde ? (ahora - d.desde) / DIA : null;
-  } catch { return null; }
-}
+// Cuántos días lleva vinculado el número del bot: utils/numeroBot.js.
+const diasVinculado = (ahora) => numeroBot.diasVinculado(ahora);
 
 let midiendo = false;
 
@@ -91,7 +85,7 @@ async function medir(sock, { tope = MUESTRA, pausa = PAUSA } = {}) {
     const fichas = {};
     const vigentes = new Set(personas.map((p) => p.cuenta));
     for (const [k, v] of Object.entries(previo?.fichas || {})) {
-      if (vigentes.has(k) && v?.ts && ahora - v.ts < VIGENCIA) fichas[k] = v;
+      if (vigentes.has(k) && v?.e !== '?' && v?.ts && ahora - v.ts < VIGENCIA) fichas[k] = v;
     }
     // Primero las que nunca se miraron, luego las que hace más.
     const turno = [...personas].sort((a, b) => (fichas[a.cuenta]?.ts || 0) - (fichas[b.cuenta]?.ts || 0)).slice(0, tope);
@@ -106,7 +100,14 @@ async function medir(sock, { tope = MUESTRA, pausa = PAUSA } = {}) {
       const ev = tel
         ? await businessEvidence(sock, tel).catch(() => ({ estado: 'desconocido' }))
         : { estado: 'desconocido' };
-      fichas[p.cuenta] = { e: ev.estado === 'biz' ? 'biz' : ev.estado === 'personal' ? 'normal' : '?', ts: Date.now(), tel: tel || null };
+      if (ev.estado === 'biz' || ev.estado === 'personal') {
+        fichas[p.cuenta] = { e: ev.estado === 'biz' ? 'biz' : 'normal', ts: Date.now(), tel: tel || null };
+      } else if (!fichas[p.cuenta]) {
+        // Sin poder mirar (sin teléfono, sin respuesta o el tope de consultas):
+        // cuenta como «sin comprobar» hoy, pero con ts 0 vuelve la primera a
+        // la cola mañana. Una ficha buena de antes no se pisa.
+        fichas[p.cuenta] = { e: '?', ts: 0, tel: tel || null };
+      }
     }
 
     const lista = Object.entries(fichas);
@@ -176,10 +177,10 @@ function lineaEstado(dato, ahora = Date.now()) {
   const lista = dato.normales.slice(0, 8).join(', ') + (dato.normales.length > 8 ? ` y ${dato.normales.length - 8} más` : '');
   return {
     tipo: 'aviso',
-    texto: `${base} · ${hace}. Vetadas que hoy son WhatsApp normal: ${lista}`,
+    texto: `${base}${muestra} · ${hace}. Vetadas que hoy son WhatsApp normal: ${lista}`,
     arreglo: 'se les quita el veto solo cuando vuelvan a entrar; para ya: !fkunban <número> en el grupo',
   };
 }
 
 module.exports = { medir, leer, programar, lineaEstado, esVetoDeEmpresa, diasVinculado, MUESTRA, DIAS_VINCULADO,
-  _numero: (f) => { NUMERO = f; }, _pausa: (fn) => { PAUSA = fn; } };
+  _numero: (f) => numeroBot._fichero(f), _pausa: (fn) => { PAUSA = fn; } };

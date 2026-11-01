@@ -264,6 +264,14 @@ if (!bot) {
 
   reinicios('bot', env.restart_time || 0, 3, 'pm2 logs bot --err --lines 50');
 
+  // pm2 tiene que saber que una salida con 78 es «déjalo parado» (ver
+  // pararElProceso en bot.js). Si el proceso se creó antes de que el
+  // ecosystem lo dijera, un restart no siempre le aplica la opción.
+  if (env.max_memory_restart && !(Array.isArray(env.stop_exit_codes) ? env.stop_exit_codes : [env.stop_exit_codes]).map(Number).includes(78)) {
+    aviso('pm2 no tiene el 78 en stop_exit_codes del bot: si WhatsApp rechaza la cuenta, lo volverá a levantar sin parar',
+      'pm2 delete bot && pm2 start ecosystem.config.js --only bot && pm2 save');
+  }
+
   if (!env.max_memory_restart) {
     aviso('arrancado sin ecosystem.config.js: no hay tope de RAM ni de logs',
       'pm2 delete all && pm2 start ecosystem.config.js && pm2 save');
@@ -633,7 +641,21 @@ if (fs.existsSync(parado)) {
     const p = JSON.parse(fs.readFileSync(parado, 'utf8'));
     const hace = Math.round((Date.now() - new Date(p.desde).getTime()) / 60000);
     const cuando = hace >= 1440 ? `hace ${Math.floor(hace / 1440)} días` : hace >= 60 ? `hace ${Math.floor(hace / 60)} h` : `hace ${hace} min`;
-    mal(`EL BOT SE PARÓ SOLO ${cuando} (${p.motivo}) — el proceso sigue vivo pero no está conectado`, p.detalle);
+    // DESDE EL 25 OCT, PARAR ES SALIR CON 78 y pm2 lo deja parado (ver
+    // pararElProceso en bot.js). Antes se quedaba vivo y sin conectar, y esto
+    // lo decía siempre así. Ahora se mira qué hace pm2 de verdad: si lo sigue
+    // levantando es que no tiene el 78 en stop_exit_codes, y cada vuelta es
+    // otra conexión contra una cuenta que WhatsApp ha rechazado.
+    const envB = bot?.pm2_env || {};
+    const vivoHace = envB.status === 'online' ? (Date.now() - (envB.pm_uptime || Date.now())) / 60000 : null;
+    if (vivoHace === null) {
+      mal(`EL BOT SE PARÓ SOLO ${cuando} (${p.motivo}) y pm2 lo deja parado, como debe`, p.detalle);
+    } else if (vivoHace < 2) {
+      mal(`EL BOT SE PARÓ SOLO ${cuando} (${p.motivo}) y está cerrándose`, p.detalle);
+    } else {
+      mal(`EL BOT SE PARÓ SOLO ${cuando} (${p.motivo}), pero pm2 lo sigue levantando: cada vuelta vuelve a llamar a WhatsApp`,
+        `pm2 delete bot && pm2 start ecosystem.config.js --only bot && pm2 save   (y lo de abajo: ${p.detalle})`);
+    }
   } catch {
     mal('el bot dejó una marca de parada pero no pude leerla', 'cat data/parado.json');
   }

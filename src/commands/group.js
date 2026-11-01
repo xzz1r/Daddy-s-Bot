@@ -8,6 +8,7 @@ const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEna
 const { aceptarPendientes } = require('../utils/joinRequests');
 const { businessEvidence } = require('../utils/businessCheck');
 const { getMemberFacts, recordFacts } = require('../utils/nickStore');
+const { PERFIL_NORMAL_VALE_MS } = require('../utils/antilink');
 const { banAccount } = require('../utils/banlist');
 const { aplicarParticipantes, aplicarAUno } = require('../utils/participantes');
 const { allForms } = require('./fk');
@@ -961,6 +962,11 @@ async function detectBusinesses(sock, idToPhone) {
       const porFicha = (ev) => (facts0?.empresa
         ? { kickId, ev: { estado: 'biz', fields: facts0.empresa.campos, deFicha: true } }
         : { kickId, ev });
+      // Comprobada como normal esta semana: no se vuelve a preguntar (1 nov).
+      // Repetir el scan consultaba el grupo entero cada vez.
+      if (!facts0?.empresa && facts0?.normal && Date.now() - facts0.normal < PERFIL_NORMAL_VALE_MS) {
+        return { kickId, ev: { estado: 'personal', fields: [] } };
+      }
 
       // Sin teléfono en la metadata se le pregunta a la sesión, que lo sabe
       // de casi todo el que ha escrito: el número oculto no esconde nada aquí.

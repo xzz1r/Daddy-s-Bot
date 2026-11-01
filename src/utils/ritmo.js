@@ -16,22 +16,35 @@
 // El visto y el «en línea» NO pasan por aquí, por decisión del dueño.
 'use strict';
 
+// TOPES POR HORA Y POR DÍA (1 nov). El hueco solo espacia: con dos segundos
+// entre consulta y consulta caben mil ochocientas en una hora, y eso es lo que
+// hizo la medida de precisión del anti-empresa (unas 630 seguidas) con tres
+// números que cayeron en revisión entre el 25 y el 30 de octubre. El tope es
+// la red de debajo: da igual qué función nueva se escriba mañana, el socket no
+// deja pasar más. Quien llama ya trata el error como «no se sabe».
+//
+// `rodaje`: los topes mientras el número lleva menos de siete días vinculado
+// (utils/numeroBot.js). Sustituyen a los normales, no se suman.
 const RITMOS = {
   // Mensajes, stickers, borrados y reacciones: todo es sendMessage.
   sendMessage: { hueco: 600, azar: 500 },
-  // Expulsar, ascender, degradar.
-  groupParticipantsUpdate: { hueco: 2500, azar: 1500 },
+  // Expulsar, ascender, degradar. Sin tope normal (una purga del dueño tiene
+  // que poder acabar), pero un número recién vinculado echando a decenas de
+  // personas en una hora es justo lo que no debe hacer.
+  // El tope cuenta PERSONAS, no peticiones: una sola petición puede llevar
+  // diez (`porPersona`).
+  groupParticipantsUpdate: { hueco: 2500, azar: 1500, porPersona: true, rodaje: { porHora: 30 } },
   // Aceptar o rechazar solicitudes de entrada.
-  groupRequestParticipantsUpdate: { hueco: 3000, azar: 1500 },
+  groupRequestParticipantsUpdate: { hueco: 3000, azar: 1500, porPersona: true, rodaje: { porHora: 30 } },
   // Preguntar si un número tiene WhatsApp. Es lo más vigilado: consultar
   // números en serie es exactamente lo que hace un programa de spam. 150 al
   // día (dueño, 18 oct): eran 60 y una sola *!purge* grande se los comía.
-  onWhatsApp: { hueco: 2000, azar: 1500, porDia: 150 },
+  onWhatsApp: { hueco: 2000, azar: 1500, porDia: 150, rodaje: { porDia: 50 } },
   // Mirar perfiles ajenos: foto, «info» y si es cuenta de empresa. Una a una
   // está bien; en serie es exactamente lo que hace un raspador.
-  profilePictureUrl: { hueco: 1500, azar: 1000 },
-  fetchStatus: { hueco: 1500, azar: 1000 },
-  getBusinessProfile: { hueco: 2000, azar: 1500 },
+  profilePictureUrl: { hueco: 1500, azar: 1000, porHora: 60, porDia: 400, rodaje: { porHora: 15, porDia: 100 } },
+  fetchStatus: { hueco: 1500, azar: 1000, porHora: 30, porDia: 150, rodaje: { porHora: 8, porDia: 40 } },
+  getBusinessProfile: { hueco: 2000, azar: 1500, porHora: 40, porDia: 250, rodaje: { porHora: 10, porDia: 60 } },
   // La metadata de los grupos. Casi siempre sale de la caché; cuando no, que
   // no salgan varias peticiones pegadas.
   groupMetadata: { hueco: 1000, azar: 500 },
@@ -52,38 +65,72 @@ function crearRitmo({ hueco, azar = 0 }, ahora = Date.now, aleatorio = Math.rand
 
 const esperar = (ms) => (ms > 0 ? new Promise((r) => setTimeout(r, ms)) : Promise.resolve());
 
-// El tope del día se cuenta en memoria. Un reinicio lo pone a cero, y está
-// bien: lo que se frena es la ráfaga de un comando, no una auditoría.
-function crearTope(porDia, ahora = Date.now) {
+// El tope se cuenta en memoria. Un reinicio lo pone a cero, y está bien: lo
+// que se frena es la ráfaga, no una auditoría.
+//
+// crearTope(porDia) a secas sigue valiendo. Con opciones: `porHora` (ventana
+// móvil de una hora) y `limites()`, que devuelve { porHora, porDia } en cada
+// llamada para que el rodaje de un número los cambie sin rehacer el socket.
+// Tras un «no», `gastar.motivo` dice cuál saltó: 'hora' o 'dia'.
+function crearTope(porDia, ahora = Date.now, { porHora = 0, limites = null } = {}) {
   let dia = null;
   let usados = 0;
-  return function gastar() {
-    const hoy = new Date(ahora()).toISOString().slice(0, 10);
+  const enLaHora = [];
+  // `n`: cuántas unidades gasta esta llamada (una expulsión de diez cuenta
+  // diez). Si no caben enteras, no sale ninguna.
+  function gastar(n = 1) {
+    const t = ahora();
+    const lim = limites ? limites() : { porHora, porDia };
+    const hoy = new Date(t).toISOString().slice(0, 10);
     if (hoy !== dia) { dia = hoy; usados = 0; }
-    if (usados >= porDia) return false;
-    usados++;
+    while (enLaHora.length && t - enLaHora[0] >= 60 * 60 * 1000) enLaHora.shift();
+    if (lim.porDia && usados + n > lim.porDia) { gastar.motivo = 'dia'; return false; }
+    if (lim.porHora && enLaHora.length + n > lim.porHora) { gastar.motivo = 'hora'; return false; }
+    usados += n;
+    for (let i = 0; i < n; i++) enLaHora.push(t);
+    while (enLaHora.length > 5000) enLaHora.shift();
+    gastar.motivo = null;
     return true;
-  };
+  }
+  return gastar;
 }
 
+// Un tope alcanzado. `code` es 'TOPE_DIARIO' o 'TOPE_HORA'.
 class TopeDiario extends Error {
-  constructor(que, porDia) {
-    super(`tope diario de ${que} alcanzado (${porDia})`);
-    this.code = 'TOPE_DIARIO';
+  constructor(que, limite, motivo = 'dia') {
+    super(motivo === 'hora'
+      ? `tope por hora de ${que} alcanzado (${limite})`
+      : `tope diario de ${que} alcanzado (${limite})`);
+    this.code = motivo === 'hora' ? 'TOPE_HORA' : 'TOPE_DIARIO';
+    this.limite = limite;
   }
 }
+const esTope = (e) => e?.code === 'TOPE_DIARIO' || e?.code === 'TOPE_HORA';
 
 // Envuelve los métodos del socket. Se llama una vez por socket nuevo: cada
 // reconexión trae un objeto distinto y sin envolver.
-function ponerRitmo(sock, ritmos = RITMOS) {
+//
+// `enRodaje` se pregunta en cada llamada (por defecto, utils/numeroBot.js):
+// mientras dice que sí, mandan los topes de `rodaje` de cada método.
+function ponerRitmo(sock, ritmos = RITMOS, { enRodaje = null } = {}) {
   if (!sock || sock.__conRitmo) return sock;
+  const rodaje = enRodaje || (() => require('./numeroBot').enRodaje());
   for (const [metodo, cfg] of Object.entries(ritmos)) {
     const original = sock[metodo];
     if (typeof original !== 'function') continue;
     const turno = crearRitmo(cfg);
-    const gastar = cfg.porDia ? crearTope(cfg.porDia) : null;
+    const conTope = cfg.porDia || cfg.porHora || cfg.rodaje;
+    const limites = () => {
+      if (cfg.rodaje && rodaje()) return { porHora: cfg.rodaje.porHora || 0, porDia: cfg.rodaje.porDia || 0 };
+      return { porHora: cfg.porHora || 0, porDia: cfg.porDia || 0 };
+    };
+    const gastar = conTope ? crearTope(0, Date.now, { limites }) : null;
     sock[metodo] = async function conRitmo(...args) {
-      if (gastar && !gastar()) throw new TopeDiario(metodo, cfg.porDia);
+      const n = cfg.porPersona && Array.isArray(args[1]) ? Math.max(1, args[1].length) : 1;
+      if (gastar && !gastar(n)) {
+        const lim = limites();
+        throw new TopeDiario(metodo, gastar.motivo === 'hora' ? lim.porHora : lim.porDia, gastar.motivo);
+      }
       await esperar(turno());
       return original.apply(this, args);
     };
@@ -92,4 +139,4 @@ function ponerRitmo(sock, ritmos = RITMOS) {
   return sock;
 }
 
-module.exports = { ponerRitmo, crearRitmo, crearTope, RITMOS, TopeDiario };
+module.exports = { ponerRitmo, crearRitmo, crearTope, RITMOS, TopeDiario, esTope };

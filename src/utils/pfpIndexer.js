@@ -168,6 +168,9 @@ function maybeIndex(sock, pfpJid, groupJid) {
       // ffmpeg siguiera ocupado. Esto es un indexado de fondo: puede esperar a
       // que esa cuenta hable otra vez.
       if (e && e.ffmpegOcupado) return;
+      // Ni el tope de consultas (utils/ritmo.js): no dice nada de esa cuenta,
+      // y ficharla la dejaría tres días sin mirar.
+      if (e && (e.code === 'TOPE_HORA' || e.code === 'TOPE_DIARIO')) return;
       const msg = String(e?.message || e?.data || '');
       if (/rate-overlimit|429|timeout|ETIMEDOUT|ECONNRESET|ENOTFOUND/i.test(msg)) return;
       markTracked(account, Date.now());

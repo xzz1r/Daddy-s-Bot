@@ -133,7 +133,11 @@ async function recordFacts(userJid, { empresa, photo } = {}) {
   // La foto es otra cosa: se anota en casi cada mensaje cuando el anti-fake
   // esta encendido. Esa SI necesita el debounce, o el bot escribe el fichero
   // entero cada dos por tres.
-  if (esEmpresa || empresa === false) await flushNicks();
+  // `false` solo va al momento si BORRA una ficha de empresa (esa decide
+  // una expulsión). Apuntar que una cuenta es normal va con el retardo, como
+  // la foto: un *!antiempresa scan* de trescientas cuentas normales eran
+  // trescientas escrituras del fichero entero seguidas (1 nov).
+  if (esEmpresa || (empresa === false && (prev.empresa || prev.biz))) await flushNicks();
   else scheduleSave();
 }
 

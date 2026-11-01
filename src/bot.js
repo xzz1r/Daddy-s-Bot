@@ -164,6 +164,7 @@ const { flushRobo } = require('./utils/roboStore');
 const { flushObjetivoDia } = require('./utils/objetivoDia');
 const { guardOnJoin, allForms, vetadosAlEntrar } = require('./commands/fk');
 const { businessEvidence } = require('./utils/businessCheck');
+const { PERFIL_NORMAL_VALE_MS } = require('./utils/antilink');
 const { aplicarParticipantes, aplicarAUno, formasDe } = require('./utils/participantes');
 const { decidirPurga } = require('./utils/purgaAdmin');
 const { getMemberFacts } = require('./utils/nickStore');
@@ -484,7 +485,7 @@ async function echarVetadosDentro(grupo) {
   const fuera = await vetadosAlEntrar(sock, grupo, vetados, meta);
   if (fuera.size) {
     invalidateGroupMeta(grupo);
-    logger.warn(`lista negra: ${fuera.size} vetado(s) que ya estaban dentro de ${grupo}, fuera`);
+    logger.warn(`lista negra: pedida la expulsión de ${fuera.size} vetado(s) que ya estaban dentro de ${grupo}`);
   }
 }
 
@@ -1714,6 +1715,10 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
             evidencia = facts.empresa.campos;
             return true;
           };
+          // Comprobada como cuenta normal esta semana: no se vuelve a
+          // preguntar (1 nov). Quien entra y sale varias veces costaba una
+          // consulta de perfil por entrada.
+          if (!facts?.empresa && facts?.normal && Date.now() - facts.normal < PERFIL_NORMAL_VALE_MS) return;
           // Sin telefono en el evento ni en el mapa, se le pregunta a la sesion.
           if (!phoneJid) phoneJid = await resolverLid(sock, kickId).catch(() => null);
           if (!phoneJid) porFicha();

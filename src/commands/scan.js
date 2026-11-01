@@ -2,6 +2,7 @@ const { isOwner, isMainOwner, isGroupAdmin, getSender, bareJid, fetchPfpUrl, esF
 const { businessEvidence } = require('../utils/businessCheck');
 const { getMemberFacts } = require('../utils/nickStore');
 const { withTimeout } = require('../utils/helpers');
+const { PERFIL_NORMAL_VALE_MS } = require('../utils/antilink');
 const { SOLO_ADMINS, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
 
@@ -82,6 +83,10 @@ async function cmdScan(sock, msg, groupMeta) {
   // reales que lo delatan (categoría, email, web, dirección, horario...). Así el
   // reporte muestra el PORQUÉ de cada marca y se puede ver si es un falso positivo.
   const bizMap = new Map(); // jid -> fields[]
+  // Los que no se pudieron comprobar (la consulta no contestó o se gastó el
+  // tope de consultas, ver utils/ritmo.js). Antes desaparecían del informe y
+  // quien lo leía los daba por revisados.
+  const bizSinSaber = new Set();
   const pfpMap = new Map();
   const BIZ_CONC = 6;
 
@@ -105,15 +110,27 @@ async function cmdScan(sock, msg, groupMeta) {
       const f = await getMemberFacts([id, phone].filter(Boolean)).catch(() => null);
       return f?.empresa ? f.empresa.campos : null;
     };
+    // Y LO YA COMPROBADO COMO NORMAL ESTA SEMANA NO SE VUELVE A PREGUNTAR (1
+    // nov). Cada *!scan* consultaba el grupo entero, una por una: en uno de
+    // trescientos son trescientas consultas de perfil, y repetirlo es
+    // exactamente lo que hace un raspador.
+    const yaNormal = async (id, phone) => {
+      const f = await getMemberFacts([id, phone].filter(Boolean)).catch(() => null);
+      return Boolean(!f?.empresa && f?.normal && Date.now() - f.normal < PERFIL_NORMAL_VALE_MS);
+    };
     for (let i = 0; i < phoneJids.length; i += BIZ_CONC) {
       const chunk = phoneJids.slice(i, i + BIZ_CONC);
       const results = await Promise.all(chunk.map(async j => {
         const observado = await porFacts(phoneToId.get(j), j);
         if (observado) return [j, { estado: 'biz', fields: observado }];
+        if (await yaNormal(phoneToId.get(j), j)) return [j, { estado: 'personal', fields: [] }];
         const ev = await businessEvidence(sock, j).catch(() => ({ estado: 'desconocido', fields: [] }));
         return [j, ev];
       }));
-      for (const [j, ev] of results) if (ev.estado === 'biz') bizMap.set(j, ev.fields);
+      for (const [j, ev] of results) {
+        if (ev.estado === 'biz') bizMap.set(j, ev.fields);
+        else if (ev.estado === 'desconocido') bizSinSaber.add(j);
+      }
     }
     // Los que solo tienen @lid: la consulta de perfil no los acepta, pero el
     // hecho observado si. Sin esto quedaban fuera del recuento sin decirlo.
@@ -163,6 +180,9 @@ async function cmdScan(sock, msg, groupMeta) {
   // "Sin foto" va como cifra, no como lista: expulsar por esto es cosa de
   // *!antifoto*, que además usa exactamente la misma clasificación, así que los
   // dos comandos ya no pueden contradecirse.
+  if (bizSinSaber.size > 0) {
+    text += `Sin comprobar si son Business: *${bizSinSaber.size}* _(no contestó o se llegó al tope de consultas; vuelve a mirar más tarde)_\n\n`;
+  }
   text += `Sin foto: *${noPfp}* de ${phoneJids.length}\n`;
   if (privacidad > 0) text += `Foto oculta por privacidad: *${privacidad}* _(no se puede saber)_\n`;
   if (timedOut > 0) text += `Sin respuesta: *${timedOut}*\n`;
@@ -173,7 +193,7 @@ async function cmdScan(sock, msg, groupMeta) {
   }
 
   // Verdict
-  if (bizCount === 0 && lidOnly.length === 0) {
+  if (bizCount === 0 && lidOnly.length === 0 && bizSinSaber.size === 0 && timedOut === 0) {
     text += `\nSin señales destacadas.`;
   } else {
     text += `\n_Revisión manual recomendada para los marcados._`;

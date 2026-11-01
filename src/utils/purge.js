@@ -55,6 +55,8 @@ function stillMember(groupMeta, jid) {
   );
 }
 
+const TANDA_PURGA = 5;
+
 // Ejecuta la expulsion de una lista ya verificada.
 //
 // detected: [{ kickId, reason }]
@@ -87,11 +89,24 @@ async function executePurge(sock, groupJid, detected, groupMeta) {
   // vetando desde hace dos commits, ese falso 200 no era un mensaje incorrecto
   // sino un veto a alguien que sigue sentado en el grupo. Medido: con la
   // respuesta vacia daba por expulsados a todos.
-  const r = await aplicarParticipantes(
-    sock, groupJid, stillHere.map(d => d.kickId), 'remove', groupMeta);
-  if (r.error) return { status: 'error', message: r.error };
+  // EN TANDAS PEQUEÑAS (1 nov). Iba todo en UNA petición: cincuenta personas
+  // fuera de golpe, que es de lo que mira WhatsApp y algo que no hace nadie a
+  // mano. Cada tanda pasa por el ritmo de las expulsiones (utils/ritmo.js). Si
+  // la primera falla entera es que WhatsApp rechaza la llamada (o salta el
+  // tope): se dice como antes. Si falla una de después, lo que quede sale
+  // como no expulsado.
+  const ok = [];
+  for (let i = 0; i < stillHere.length; i += TANDA_PURGA) {
+    const tanda = stillHere.slice(i, i + TANDA_PURGA).map(d => d.kickId);
+    const r = await aplicarParticipantes(sock, groupJid, tanda, 'remove', groupMeta);
+    if (r.error) {
+      if (i === 0) return { status: 'error', message: r.error };
+      break;
+    }
+    ok.push(...r.ok);
+  }
 
-  const salio = (kickId) => r.ok.some(j => sameUser(j, kickId));
+  const salio = (kickId) => ok.some(j => sameUser(j, kickId));
   return {
     status: 'ok',
     done:   stillHere.filter(d => salio(d.kickId)),
@@ -117,7 +132,7 @@ function purgeReport(title, r) {
   return { text, mentions };
 }
 
-module.exports = {
+module.exports = { TANDA_PURGA,
   SCAN_VALID_MS,
   isExemptParticipant,
   scannableMembers,

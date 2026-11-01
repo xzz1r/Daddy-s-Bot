@@ -23509,6 +23509,103 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes144) console.log(verde('   ✓ la precisión mira una muestra con pausas y espera a que el número tenga días, y una cuenta normal no se vuelve a consultar'));
   }
 
+  // ── 145. TOPES DE CONSULTAS, Y MÁS BAJOS CON UN NÚMERO EN RODAJE (1 nov) ───
+  // El ritmo solo espaciaba: con dos segundos de hueco caben mil ochocientas
+  // consultas en una hora, y tres números cayeron en revisión. Ahora mirar
+  // perfiles ajenos tiene tope por hora y por día, más bajo los siete
+  // primeros días de un número; expulsar y aceptar solicitudes, también en
+  // rodaje. Un tope no se reintenta ni se confunde con «sin foto», y *!scan*
+  // dice a cuántos no pudo mirar y no vuelve a preguntar por los ya
+  // comprobados esta semana.
+  {
+    console.log('\n145. TOPES DE CONSULTAS, MÁS BAJOS CON UN NÚMERO EN RODAJE');
+    const antes145 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { RITMOS } = require(path.join(R, 'src/utils/ritmo'));
+    for (const m of ['getBusinessProfile', 'profilePictureUrl', 'fetchStatus']) {
+      const c = RITMOS[m] || {};
+      exige(c.porHora > 0 && c.porDia > 0 && c.rodaje && c.rodaje.porHora < c.porHora && c.rodaje.porDia < c.porDia,
+        `${m} no tiene tope por hora y por día, o en rodaje no es más bajo: ${JSON.stringify(c)}`);
+    }
+    for (const m of ['groupParticipantsUpdate', 'groupRequestParticipantsUpdate']) {
+      exige(RITMOS[m]?.rodaje?.porHora > 0, `${m} no tiene tope por hora con un número en rodaje`);
+    }
+    exige(RITMOS.onWhatsApp?.porDia === 150 && RITMOS.onWhatsApp?.rodaje?.porDia < 150,
+      'la consulta de números ya no es de 150 al día, o en rodaje no baja');
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'topes-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const fs = require('fs'); const RT = require('./src/utils/ritmo'); const NB = require('./src/utils/numeroBot');",
+        "const wa = require('./src/utils/wa'); const N = require('./src/utils/nickStore'); const S = require('./src/commands/scan');",
+        "(async () => { const r = {};",
+        "  NB._fichero('./data/numeroBot.json');",
+        "  r.sinFichero = NB.enRodaje();",
+        "  fs.writeFileSync('./data/numeroBot.json', JSON.stringify({ numero: '1', desde: Date.now() - 2 * 864e5 })); NB._fichero('./data/numeroBot.json'); r.dosDias = NB.enRodaje();",
+        "  fs.writeFileSync('./data/numeroBot.json', JSON.stringify({ numero: '1', desde: Date.now() - 10 * 864e5 })); NB._fichero('./data/numeroBot.json'); r.diezDias = NB.enRodaje();",
+        "  const cuenta = async (rodaje) => { let n = 0, ok = 0; const s = RT.ponerRitmo({ getBusinessProfile: async () => { n++; return {}; } },",
+        "    { getBusinessProfile: { ...RT.RITMOS.getBusinessProfile, hueco: 0, azar: 0 } }, { enRodaje: () => rodaje });",
+        "    for (let i = 0; i < 80; i++) { try { await s.getBusinessProfile('x'); ok++; } catch (e) { r.codigo = e.code; } } return ok; };",
+        "  r.enRodaje = await cuenta(true); r.normal = await cuenta(false);",
+        "  let llamadas = 0; const tope = Object.assign(new Error('tope'), { code: 'TOPE_HORA' });",
+        "  try { await wa.fetchPfpUrl({ profilePictureUrl: async () => { llamadas++; throw tope; } }, '34600014501@s.whatsapp.net', 'image', 2); } catch (e) { r.pfpError = e.code; }",
+        "  r.pfpLlamadas = llamadas;",
+        "  const G = '120363000000145001@g.us', A = '34600014502@s.whatsapp.net', B = '34600014503@s.whatsapp.net', C = '34600014504@s.whatsapp.net', OWN = '33600000145@s.whatsapp.net';",
+        "  await N.recordFacts(A, { empresa: false });",
+        "  const pedidos = []; const textos = [];",
+        "  const sk = { user: { id: '549199@s.whatsapp.net' }, sendMessage: async (j, c) => { textos.push(c.text || ''); return {}; },",
+        "    getBusinessProfile: async (j) => { pedidos.push(j); if (j === C) throw Object.assign(new Error('tope'), { code: 'TOPE_HORA' }); return { wid: j }; },",
+        "    profilePictureUrl: async () => 'https://x/y.jpg' };",
+        "  const meta = { id: G, participants: [{ id: OWN, admin: 'superadmin' }, { id: A }, { id: B }, { id: C }] };",
+        "  await S.cmdScan(sk, { key: { remoteJid: G, participant: OWN, fromMe: false, id: 'S145' }, message: { conversation: '!scan' } }, meta);",
+        "  r.pedidos = pedidos; r.informe = textos[textos.length - 1] || '';",
+        "  const P = require('./src/utils/purge'); const lotes = []; const malos = Array.from({ length: 12 }, (_, i) => '346000146' + String(i).padStart(2, '0') + '@s.whatsapp.net');",
+        "  const skP = { user: { id: '549199@s.whatsapp.net' }, groupParticipantsUpdate: async (g, ids) => { lotes.push(ids.length); return ids.map((jid) => ({ jid, status: '200' })); } };",
+        "  const metaP = { id: G, participants: [{ id: '549199@s.whatsapp.net', admin: 'admin' }, ...malos.map((id) => ({ id }))] };",
+        "  const rp = await P.executePurge(skP, G, malos.map((kickId) => ({ kickId, reason: 'x' })), metaP); r.lotes = lotes; r.purgados = (rp.done || []).length;",
+        "  console.log('R145' + JSON.stringify(r)); process.exit(0); })().catch((e) => { console.log('R145' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 60000,
+        env: { ...process.env, OWNER_NUMBER: '33600000145', CO_OWNERS: '' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R145'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: (out.stderr || '').split('\n').slice(0, 3).join(' ') };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n')[0]}`);
+      else {
+        const c = RITMOS.getBusinessProfile;
+        exige(r.sinFichero === true && r.dosDias === true && r.diezDias === false,
+          `el rodaje no se calcula bien (sin fichero ${r.sinFichero}, 2 días ${r.dosDias}, 10 días ${r.diezDias})`);
+        exige(r.enRodaje === c.rodaje.porHora && r.normal === c.porHora && r.codigo === 'TOPE_HORA',
+          `de 80 consultas seguidas pasan ${r.enRodaje} en rodaje y ${r.normal} con un número hecho; el tope es ${c.rodaje.porHora} y ${c.porHora}`);
+        exige(r.pfpLlamadas === 1 && r.pfpError === 'TOPE_HORA', `la foto de perfil reintenta contra un tope (${r.pfpLlamadas} llamadas) o lo tapa (${r.pfpError})`);
+        exige(!r.pedidos.includes('34600014502@s.whatsapp.net'), '*!scan* vuelve a pedir el perfil de una cuenta comprobada como normal esta semana');
+        exige(r.pedidos.includes('34600014503@s.whatsapp.net'), '*!scan* ya no mira a quien no se ha comprobado');
+        exige(r.purgados === 12 && r.lotes.length >= 3 && Math.max(...r.lotes) <= 5,
+          `la purga echa en lotes de ${JSON.stringify(r.lotes)} (y saca a ${r.purgados} de 12): cincuenta personas en una petición es lo que mira WhatsApp`);
+        exige(/Sin comprobar si son Business: \*1\*/.test(r.informe) && !/Sin señales destacadas/.test(r.informe),
+          `*!scan* no dice a cuántos no pudo mirar, o los da por limpios: ${r.informe.replace(/\n/g, ' | ').slice(0, 200)}`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    const idx = fs.readFileSync(path.join(R, 'src/utils/pfpIndexer.js'), 'utf8');
+    exige(/e\.code === 'TOPE_HORA' \|\| e\.code === 'TOPE_DIARIO'\)\) return;/.test(idx),
+      'el indexado de fotos ficha como mirada a una cuenta cuando salta el tope: se queda tres días sin mirar');
+    const ritmoSrc = fs.readFileSync(path.join(R, 'src/utils/ritmo.js'), 'utf8');
+    exige(/require\('\.\/numeroBot'\)\.enRodaje\(\)/.test(ritmoSrc), 'el ritmo ya no mira si el número está en rodaje');
+    exige(/porPersona: true/.test(ritmoSrc) && /cfg\.porPersona && Array\.isArray\(args\[1\]\)/.test(ritmoSrc),
+      'el tope de expulsiones cuenta peticiones y no personas: una sola petición puede llevar a diez');
+    // El guardián no se reinicia por una promesa suelta de Baileys: cada
+    // reinicio es otra conexión a WhatsApp con su número.
+    const gSrc145 = soloCodigo('src/guardian.js');
+    const manejador145 = (gSrc145.match(/process\.on\('unhandledRejection'[\s\S]*?\n {2}\}\);/) || [''])[0];
+    exige(manejador145 && !/process\.exit/.test(manejador145), 'el guardián vuelve a salir con una promesa rechazada: pm2 lo levanta y se reconecta a WhatsApp cada vez');
+    // Y estado dice lo que hace pm2 tras una parada, no siempre «sigue vivo».
+    const est145 = soloCodigo('scripts/estado.js');
+    exige(/stop_exit_codes/.test(est145) && /pm2 lo deja parado, como debe/.test(est145) && /pm2 lo sigue levantando/.test(est145),
+      'npm run estado no distingue si pm2 deja parado al bot tras una parada o lo sigue levantando');
+    if (fallos === antes145) console.log(verde('   ✓ perfiles ajenos con tope por hora y por día, más bajo en rodaje; el tope no se reintenta y !scan dice a cuántos no miró'));
+  }
+
 
 
 

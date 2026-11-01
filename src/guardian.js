@@ -269,10 +269,17 @@ if (require.main === module) {
     console.error('guardián: excepción sin capturar:', e);
     process.exit(1);
   });
+  // UNA PROMESA RECHAZADA SE ANOTA Y SE SIGUE (1 nov), como en el bot
+  // (bot.js). Salía con 1: pm2 lo levantaba y el guardián volvía a conectarse
+  // a WhatsApp, y Baileys deja promesas sueltas al cerrar consultas de un
+  // socket que se cae. Veinticinco reinicios en 128 horas sin un solo
+  // despliegue. El fallo está contenido en esa promesa; el resto del proceso
+  // no ha perdido el hilo. No va al cuaderno de vidas: no es un final.
+  let ultimaQueja = 0;
   process.on('unhandledRejection', (e) => {
-    apuntarVida('promesa rechazada sin capturar', (e && e.message) || String(e));
-    console.error('guardián: promesa rechazada sin capturar:', e);
-    process.exit(1);
+    if (Date.now() - ultimaQueja < 60 * 1000) return;   // una por minuto basta
+    ultimaQueja = Date.now();
+    console.error('guardián: promesa rechazada sin capturar (sigo):', (e && e.stack) || e);
   });
   for (const señal of ['SIGTERM', 'SIGINT']) {
     process.on(señal, () => { apuntarVida(señal, 'de fuera: despliegue, pm2 restart, o el tope de RAM'); process.exit(0); });

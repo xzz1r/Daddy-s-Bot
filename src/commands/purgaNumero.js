@@ -330,8 +330,11 @@ async function barrerGrupos(sock, grupos, cuentas, hacerAviso) {
 
 // Los que se quedan sin comprobar por el tope, en UNA linea (dueño, 18 oct):
 // eran una por numero, la misma frase veintiseis veces.
+// El tope que de verdad saltó: con un número en rodaje es más bajo que el de
+// RITMOS (ver utils/ritmo.js), y decir 150 cuando eran 50 confunde.
+let topeVisto = null;
 function lineaDelTope(n) {
-  return `${n} número${n === 1 ? '' : 's'} sin comprobar: tope de ${RITMOS.onWhatsApp.porDia} comprobaciones de hoy alcanzado. `
+  return `${n} número${n === 1 ? '' : 's'} sin comprobar: tope de ${topeVisto || RITMOS.onWhatsApp.porDia} comprobaciones de hoy alcanzado. `
     + `Mánda${n === 1 ? 'lo' : 'los'} otra vez mañana.`;
 }
 
@@ -347,7 +350,10 @@ async function resolverCuenta(sock, digitos, groupMeta, protegido = null) {
   } catch (e) {
     // Consultar numeros en serie es lo que WhatsApp mas vigila, asi que hay un
     // tope al dia (utils/ritmo.js). Se dice tal cual: reintentar no sirve.
-    if (e?.code === 'TOPE_DIARIO') return { tope: true, error: `+${digitos}: tope de comprobaciones de hoy alcanzado. Sigue mañana.` };
+    if (e?.code === 'TOPE_DIARIO') {
+      if (e.limite) topeVisto = e.limite;
+      return { tope: true, error: `+${digitos}: tope de comprobaciones de hoy alcanzado. Sigue mañana.` };
+    }
     return { error: `No pude comprobar +${digitos}. Inténtalo de nuevo.` };
   }
 }

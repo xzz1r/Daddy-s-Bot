@@ -136,7 +136,10 @@ revisión en pocos días, y el bot pedía cientos de perfiles nada más conectar
 La precisión mira una muestra de 30 al día con pausas y espera a que el
 número lleve siete días; una cuenta normal comprobada no se vuelve a
 consultar en una semana. Ver `MOTOR.md` («Un número nuevo no pregunta en
-masa») y la capa 144.
+masa») y la capa 144. Debajo hay topes por hora y por día en el socket
+(`utils/ritmo.js`), más bajos los siete primeros días de un número: **no se
+suben para que algo quepa**; lo que no quepa se dice como «sin comprobar».
+Capa 145.
 
 ## La peña activa se halaga, sin veneno
 
