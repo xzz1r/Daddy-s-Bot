@@ -148,7 +148,9 @@ const POOLS_MODO = args.includes('--pools');
 // candado.» pasa a hablarle a quien guarda. Nadie 243.
 // Y el 23 oct, al reescribir los avisos de !kick: ya no cierran en «Fuera, X.».
 // Coletilla 7. Quedan aura, el roast del dueño, «Borrado, gilipoyas.» y los piropos.
-const TECHO = { nadie: 243, analogia: 6, coletilla: 7, eco: 0, molde: 66, enlatado: 127, roto: 0 };
+// Y el 1 nov, al reescribir lo soso (el cartel de la diana, «esto es de
+// grupo», el cierre de «no tienes acceso» y el «habla más» del aura): nadie 232.
+const TECHO = { nadie: 232, analogia: 6, coletilla: 7, eco: 0, molde: 66, enlatado: 127, roto: 0 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();

@@ -281,22 +281,22 @@ const MISERIA = [
 // que tirar— asi que es la unica que se dice. Y se dice en la misma linea del
 // precio, para que el mensaje entero quepa en dos.
 const HABLA_MAS = [
-  'Habla más, que es gratis.',
-  'Escribe en el grupo y tendrás.',
-  'El aura se gana hablando, no mirando.',
-  'Abre la boca en el grupo y sube.',
-  'Habla más y deja de mendigar.',
-  'Participa, que esto no cae del cielo.',
-  'Se consigue escribiendo. Pruébalo alguna vez.',
-  'Habla en el grupo. Ahí se gana.',
-  'Escribe. Es lo único que lo sube.',
-  'El que habla, cobra. Así que habla tú.',
-  'Menos pedir y más escribir.',
-  'Habla, aporta, y vuelve con saldo.',
-  'Un mensaje suelto no suma. Escribir de verdad, en el grupo, sí.',
-  'La cuenta se llena escribiendo en el grupo.',
-  'Escribe en el grupo y la cuenta se mueve sola.',
-  'Escribe más, cobra más. Así funciona.',
+  'Escribe en el grupo, que mirando no te va a llegar nunca.',
+  'Abre la boca en el grupo y deja de pedir fiado.',
+  'Habla más y lloriquea menos, que lo segundo no te paga.',
+  'Tu aura sale de escribir en el grupo, no de stalkear en silencio.',
+  'Escribe algo en el grupo y a lo mejor un día te lo puedes pagar.',
+  'Sal del modo avión y escribe en el grupo, que esto no te lo paga nadie.',
+  'Escribir es gratis y te da aura. Mirar también es gratis y te da esto.',
+  'Escribe en el grupo lo que escribes para pedir, y te sobrará.',
+  'Te pasas el día leyendo el chat a escondidas. Escribe en él.',
+  'Habla en el grupo. Tu aura no se hereda, se escribe.',
+  'Si escribieras la mitad de lo que lees, esto lo pagabas tú.',
+  'Aporta algo al grupo y te aparece el saldo. No hay otro truco.',
+  'Abre la boca en el grupo, que sin abrirla no te paga nadie.',
+  'Participa en el grupo y deja de mendigar comandos.',
+  'Habla en el grupo, que tu saldo no se llena con capturas.',
+  'Quien habla en el grupo cobra. Tú solo lees, y por eso miras el precio.',
 ];
 
 // Texto del rechazo: la burla, cuanto cuesta, cuanto tienes y habla mas.
