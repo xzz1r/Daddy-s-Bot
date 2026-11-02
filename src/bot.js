@@ -2223,7 +2223,12 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
       }
     }
 
-    if (action === 'demote' && !fromBot && author && !esOwnerAmplio(author, authorPn, meta)) {
+    // EL GUARDIÁN NUNCA LE QUITA EL ADMIN A UN DUEÑO (2 nov). Si su cuenta lo
+    // hace, es alguien usando ese móvil: el dueño lo probó así y no se revertía,
+    // porque al guardián se le trata como al propio bot. Se revierte como
+    // cualquier otra degradación del dueño, pero al guardián no se le castiga:
+    // es la defensa del grupo.
+    if (action === 'demote' && (!fromBot || autorEsGuardian) && !isBotJid(author) && author && !esOwnerAmplio(author, authorPn, meta)) {
       const ownerDegradado = (participants || [])
         .map(p => (typeof p === 'string' ? { id: p } : p))
         .filter(o => o?.id && !isBotJid(o.id))
@@ -2246,7 +2251,7 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
         ]));
 
         const repuestos = await cambiarRango(aRestaurar, 'promote');
-        const castigado = author ? (await cambiarRango([author], 'demote')).length > 0 : false;
+        const castigado = author && !autorEsGuardian ? (await cambiarRango([author], 'demote')).length > 0 : false;
         const sinReponer = aRestaurar.filter(j => !repuestos.includes(j));
 
         // Se nombra a todos juntos y sin distinguir a nadie: el texto no puede
@@ -2254,13 +2259,15 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
         const partes = ['*Degradación revertida.*'];
         if (repuestos.length)   partes.push(`${tags(repuestos)} ${repuestos.length === 1 ? 'lo tiene' : 'lo tienen'} de vuelta.`);
         if (sinReponer.length)  partes.push(`No he podido devolvérselo a ${tags(sinReponer)}: hacedlo a mano.`);
-        partes.push(castigado
-          ? `${authorTag} se queda sin admin.`
-          : `No he podido quitarle el admin a ${authorTag}.`);
+        if (!autorEsGuardian) {
+          partes.push(castigado
+            ? `${authorTag} se queda sin admin.`
+            : `No he podido quitarle el admin a ${authorTag}.`);
+        }
 
         sock.sendMessage(groupJid, {
           text: partes.join('\n'),
-          mentions: [...aRestaurar, ...(author ? [author] : [])],
+          mentions: [...aRestaurar, ...(author && !autorEsGuardian ? [author] : [])],
         }).catch(() => {});
         // El grupo lee «no he podido devolvérselo», pero el dueño puede no estar
         // mirando el grupo en ese momento — y es el unico que puede arreglarlo.

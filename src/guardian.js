@@ -752,6 +752,19 @@ async function alCambioDeAdmin(groupJid, participants, action, author, authorPn)
   }
   let meta = await fichaDelGrupo(groupJid);
   const autor = { id: author, phoneNumber: authorPn };
+  // SU PROPIA CUENTA QUITÁNDOLE EL ADMIN A UN DUEÑO (2 nov). El guardián no
+  // lo hace nunca por su cuenta (al dueño no se le toca), así que es alguien
+  // con ese móvil en la mano: el dueño lo probó así y nadie lo revertía. Se
+  // le devuelve al dueño y ya está, sin castigar a nadie.
+  if (action === 'demote' && soyYo(autor, meta)) {
+    const duenos = (participants || []).filter((p) => esDueno(p, meta));
+    if (!duenos.length) return null;
+    const turno = await leToca(groupJid, meta, 'devolverle el admin al dueño');
+    if (!turno || !turno.meta || !turno.soyAdmin) return turno ? { quitados: [], repuestos: [] } : null;
+    const repuestos = await cambiarRangos(groupJid, duenos.map(idDe).filter(Boolean), 'promote');
+    logger.warn(`guardián: mi propia cuenta le quitó el admin a un dueño en ${groupJid}; repuesto a ${repuestos.length}/${duenos.length}`);
+    return { quitados: [], repuestos };
+  }
   if (deConfianza(autor, meta)) return null;
 
   const encendido = antiadminEncendido(groupJid);

@@ -20806,6 +20806,18 @@ const manda = async (quien, tipo, opciones) => {
       await G.alCambioDeAdmin(GR, [p(OTRO)], 'promote', jid(DUENO));
       exige(hechos.length === 0, `el guardian revierte un ascenso del dueño: ${hechos.join(' ')}`);
 
+      // 5 bis. LA PROPIA CUENTA DEL GUARDIÁN LE QUITA EL ADMIN AL DUEÑO (2
+      // nov): el dueño lo probó así y nadie lo revertía. El guardián no hace
+      // eso nunca por su cuenta, así que se le devuelve al dueño, sin degradar
+      // a nadie. Y si degrada a otro (su anti-admin), no se toca.
+      monta({ antiadmin: false, admins: [] });
+      await G.alCambioDeAdmin(GR, [p(DUENO)], 'demote', jid(GUARD));
+      exige(hechos.join(' ') === `promote:${DUENO}`,
+        `la cuenta del guardián le quita el admin al dueño y no se le devuelve, o se castiga a alguien (hizo: ${hechos.join(' ') || 'nada'})`);
+      monta({ admins: [] });
+      await G.alCambioDeAdmin(GR, [p(OTRO)], 'demote', jid(GUARD));
+      exige(hechos.length === 0, `el guardián deshace su propio anti-admin: ${hechos.join(' ')}`);
+
       // 6. Sin admin, no puede; y no revienta.
       monta({ guardAdmin: false, admins: [ROGUE, OTRO] });
       await G.alCambioDeAdmin(GR, [p(OTRO)], 'promote', jid(ROGUE));
@@ -23599,6 +23611,11 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     const gSrc145 = soloCodigo('src/guardian.js');
     const manejador145 = (gSrc145.match(/process\.on\('unhandledRejection'[\s\S]*?\n {2}\}\);/) || [''])[0];
     exige(manejador145 && !/process\.exit/.test(manejador145), 'el guardián vuelve a salir con una promesa rechazada: pm2 lo levanta y se reconecta a WhatsApp cada vez');
+    // Y el bot revierte la degradación del dueño aunque la haga la cuenta del
+    // guardián (2 nov), sin quitarle el admin al guardián.
+    const bot145 = soloCodigo('src/bot.js');
+    exige(/\(!fromBot \|\| autorEsGuardian\) && !isBotJid\(author\)/.test(bot145) && /author && !autorEsGuardian \? \(await cambiarRango\(\[author\], 'demote'\)\)/.test(bot145),
+      'el bot ya no revierte la degradación del dueño hecha desde la cuenta del guardián, o castiga al guardián');
     // Y estado dice lo que hace pm2 tras una parada, no siempre «sigue vivo».
     const est145 = soloCodigo('scripts/estado.js');
     exige(/stop_exit_codes/.test(est145) && /pm2 lo deja parado, como debe/.test(est145) && /pm2 lo sigue levantando/.test(est145),

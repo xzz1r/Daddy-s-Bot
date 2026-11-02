@@ -318,6 +318,15 @@ número. Y `npm run estado` dice si pm2 deja parado al bot tras una parada a
 propósito o lo sigue levantando (si le falta el 78 en `stop_exit_codes`, da
 el arreglo). Capa 145.
 
+## Si la cuenta del guardián le quita el admin al dueño
+
+El guardián nunca le quita el admin a un dueño por su cuenta. Si su número lo
+hace, es alguien usando ese móvil (el dueño lo probó así el 2 nov y no se
+revertía: al guardián se le trataba como de confianza, igual que al bot). Ahora
+el guardián se lo devuelve al dueño, y el bot también si es admin, sin castigar
+a la cuenta del guardián, que es la defensa del grupo. Para que funcione, el
+guardián tiene que estar vinculado y ser admin en ese grupo. Capas 118 y 145.
+
 ## La lista negra con el bot fuera
 
 El veto se miraba solo al entrar, y el aviso de entrada llega una vez: quien
