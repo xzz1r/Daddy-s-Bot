@@ -139,7 +139,7 @@ const STUB_SOLICITUD = new Set([144, 172]);
 const autoAcceptPendiente = new Map();
 const { handleMessage, invalidateGroupMeta, getGroupMeta, metaParaBaileys, sembrarGrupos, reabrirPendientes } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, isAutoAceptarEnabled, flushState, vistoActivo } = require('./utils/state');
-const { isOwner, sameUser, isBotAdmin, phoneMatch, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto, resolverLid, bareJid } = require('./utils/wa');
+const { isOwner, sameUser, isBotAdmin, phoneMatch, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto, resolverLid, bareJid, aprenderLidsDeDueños } = require('./utils/wa');
 const { anotarDeuda, cobrarDeuda, flushDeuda } = require('./utils/adminDeuda');
 // anotarAlta apunta el motivo de cada alta; motivoDelAlta lo consulta cuando hay
 // que decidir si un alta fue a dedo (la unica que se sanciona).
@@ -429,15 +429,19 @@ async function sondearSolicitudes() {
 // Si WhatsApp lo rechaza, ese grupo no se reintenta en una hora: insistir cada
 // seis minutos contra un no es justo el tipo de patron que no queremos dar.
 const reponerFalloHasta = new Map();
+// Los del tier dueño que están en el grupo sin admin, por su id.
+function dueñosSinAdmin(meta) {
+  return (meta?.participants || []).filter((p) => {
+    if (!p || p.admin === 'admin' || p.admin === 'superadmin') return false;
+    return [p.id, p.lid, p.phoneNumber].filter(Boolean).some((f) => isOwner(f, false, meta));
+  }).map((p) => p.id);
+}
 async function reponerAdminDueños(grupo) {
   if (!sock) return;
   if ((reponerFalloHasta.get(grupo) || 0) > Date.now()) return;
   const meta = await getGroupMeta(sock, grupo).catch(() => null);
   if (!meta?.participants || !isBotAdmin(sock, meta)) return;
-  const sinAdmin = meta.participants.filter((p) => {
-    if (!p || p.admin === 'admin' || p.admin === 'superadmin') return false;
-    return [p.id, p.lid, p.phoneNumber].filter(Boolean).some((f) => isOwner(f, false, meta));
-  }).map((p) => p.id);
+  const sinAdmin = dueñosSinAdmin(meta);
   if (!sinAdmin.length) return;
   const r = await aplicarParticipantes(sock, grupo, sinAdmin, 'promote', meta);
   if (r?.ok?.length) {
@@ -1355,7 +1359,14 @@ async function connectToWhatsApp() {
       // estaba añadiendo a dedo. Se sondea al conectar y cada pocos minutos,
       // porque WhatsApp no avisa de las aprobaciones y una solicitud puede
       // llevar semanas ahí parada.
-      sondearSolicitudes().catch((e) => logger.unaVez('sondear solicitudes', e));
+      //
+      // Antes, el @lid de cada número del dueño (ver aprenderLidsDeDueños): es
+      // lo que deja al repaso reconocer a los números que casi no escriben.
+      aprenderLidsDeDueños(sock)
+        .then((r) => logger.info(`dueños: ${r.conocidos} de ${r.total} números con su @lid` + (r.aprendidos ? ` (${r.aprendidos} nuevos)` : '')))
+        .catch((e) => logger.unaVez('aprender el @lid de los dueños', e))
+        .then(() => sondearSolicitudes())
+        .catch((e) => logger.unaVez('sondear solicitudes', e));
       if (!timerSolicitudes) {
         timerSolicitudes = setInterval(() => { sondearSolicitudes().catch((e) => logger.unaVez('sondear solicitudes', e)); }, INTERVALO_SOLICITUDES);
         timerSolicitudes.unref();
@@ -2217,9 +2228,9 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
         + ` · ¿del bot? ${fromBot ? 'si' : 'no'} · ¿soy admin? ${meta ? (isBotAdmin(sock, meta) ? 'si' : 'NO') : 'sin metadata'}`);
       // Y si le han quitado el admin al dueño y esta rama no va a poder hacer
       // nada, se le dice a el en vez de callarse.
+      // Pero no al momento: ver avisarSiSigueSinAdmin.
       if (tocaAlDueño && (!meta || !isBotAdmin(sock, meta))) {
-        await avisarDueñoSinAdmin(sock, groupJid, meta, author,
-          meta ? 'yo tampoco soy admin en ese grupo' : 'no pude leer la metadata del grupo');
+        avisarSiSigueSinAdmin(groupJid, author).catch((e) => logger.unaVez('aviso al dueño sin admin', e));
       }
     }
 
@@ -2273,7 +2284,7 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
         // mirando el grupo en ese momento — y es el unico que puede arreglarlo.
         const dueñoSinReponer = ownerDegradado.filter((j) => !repuestos.includes(j));
         if (dueñoSinReponer.length) {
-          await avisarDueñoSinAdmin(sock, groupJid, meta, author, 'WhatsApp rechazó devolvértelo');
+          avisarSiSigueSinAdmin(groupJid, author).catch((e) => logger.unaVez('aviso al dueño sin admin', e));
         }
         return;
       }
@@ -2565,6 +2576,60 @@ async function saldarDeudaDeAdmin(sock, groupJid, meta) {
 //
 // Ahora se le avisa por privado, igual que cuando al bot le quitan el admin a
 // el: es el unico que puede arreglarlo y el unico que tiene que enterarse.
+//
+// SOLO SI ES VERDAD, Y UNA VEZ (2 nov). Al dueño le llegaron cuatro privados
+// «no he podido devolvértelo… yo tampoco soy admin», tres iguales en el mismo
+// minuto, y tenía el admin de vuelta: «esa notificación no está bien hecha, sí
+// me devolvió admin y sí que tenía admin». Se decidía con la metadata del
+// momento del evento, que puede ir por detrás (el bot recién hecho admin), y
+// sin esperar a nadie: el guardián, o el propio bot, se lo devuelven en unos
+// segundos. Y cada degradación del golpe mandaba el suyo.
+//
+// Ahora se espera ESPERA_AVISO_SIN_ADMIN, se relee el grupo y se mira lo que
+// hay: si el tier dueño ya tiene el admin, no se dice nada; si el bot sí es
+// admin, se lo devuelve él y solo avisa si WhatsApp se lo rechaza. Varias
+// degradaciones del mismo grupo esperan juntas, y del mismo grupo no sale más
+// de un privado cada AVISO_SIN_ADMIN_CADA.
+const ESPERA_AVISO_SIN_ADMIN = { ms: 20 * 1000 };
+const AVISO_SIN_ADMIN_CADA = 10 * 60 * 1000;
+const avisoSinAdminEnCurso = new Map();
+const avisoSinAdminUltimo = new Map();
+function avisarSiSigueSinAdmin(groupJid, author) {
+  if (avisoSinAdminEnCurso.has(groupJid)) return avisoSinAdminEnCurso.get(groupJid);
+  const p = new Promise((r) => { const t = setTimeout(r, ESPERA_AVISO_SIN_ADMIN.ms); t.unref?.(); })
+    .then(() => comprobarDueñoSinAdmin(groupJid, author))
+    .finally(() => avisoSinAdminEnCurso.delete(groupJid));
+  avisoSinAdminEnCurso.set(groupJid, p);
+  return p;
+}
+async function comprobarDueñoSinAdmin(groupJid, author) {
+  if (!sock) return 'sin socket';
+  const releer = async () => {
+    invalidateGroupMeta(groupJid);
+    return getGroupMeta(sock, groupJid).catch(() => null);
+  };
+  let meta = await releer();
+  let motivo = 'no pude leer la metadata del grupo';
+  if (meta?.participants) {
+    if (!dueñosSinAdmin(meta).length) {
+      logger.info(`al dueño le quitaron el admin en ${groupJid} y ya lo tiene de vuelta: no le escribo`);
+      return 'ya lo tiene';
+    }
+    motivo = 'yo tampoco soy admin en ese grupo';
+    if (isBotAdmin(sock, meta)) {
+      reponerFalloHasta.delete(groupJid);
+      await reponerAdminDueños(groupJid).catch(() => {});
+      meta = (await releer()) || meta;
+      if (meta?.participants && !dueñosSinAdmin(meta).length) return 'repuesto';
+      motivo = 'WhatsApp rechazó devolvértelo';
+    }
+  }
+  const ultimo = avisoSinAdminUltimo.get(groupJid) || 0;
+  if (Date.now() - ultimo < AVISO_SIN_ADMIN_CADA) return 'ya avisado';
+  avisoSinAdminUltimo.set(groupJid, Date.now());
+  return (await avisarDueñoSinAdmin(sock, groupJid, meta, author, motivo)) ? 'avisado' : 'no pude avisar';
+}
+
 async function avisarDueñoSinAdmin(sock, groupJid, meta, author, motivo) {
   logger.warn(`al dueño le quitaron el admin en ${groupJid} y no pude reponerlo (${motivo}; autor: ${author || '?'})`);
   const num = String(config.ownerNumber || '').replace(/\D/g, '');
@@ -2617,4 +2682,10 @@ function _sockDePrueba(s) {
   gruposFallos = 0;
 }
 
-module.exports = { _numeroDeVinculacion: numeroDeVinculacion, _latidoGuardian: { arrancar: arrancarLatidoGuardian, parar: pararLatidoGuardian, ruta: (f) => { RUTA_LATIDO = f; } }, connectToWhatsApp, listaDeGrupos, sondearSolicitudes, avisarDegradacion, saldarDeudaDeAdmin, _sockDePrueba, _latidoPresencia: latidoPresencia, _pararLatido: pararLatidoPresencia };
+module.exports = {
+  _avisoSinAdmin: {
+    avisar: avisarSiSigueSinAdmin,
+    espera: (ms) => { ESPERA_AVISO_SIN_ADMIN.ms = ms; },
+    olvidar: () => { avisoSinAdminEnCurso.clear(); avisoSinAdminUltimo.clear(); reponerFalloHasta.clear(); },
+  },
+  _numeroDeVinculacion: numeroDeVinculacion, _latidoGuardian: { arrancar: arrancarLatidoGuardian, parar: pararLatidoGuardian, ruta: (f) => { RUTA_LATIDO = f; } }, connectToWhatsApp, listaDeGrupos, sondearSolicitudes, avisarDegradacion, saldarDeudaDeAdmin, _sockDePrueba, _latidoPresencia: latidoPresencia, _pararLatido: pararLatidoPresencia };

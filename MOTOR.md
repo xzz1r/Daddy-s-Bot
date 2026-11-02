@@ -327,6 +327,26 @@ el guardián se lo devuelve al dueño, y el bot también si es admin, sin castig
 a la cuenta del guardián, que es la defensa del grupo. Para que funcione, el
 guardián tiene que estar vinculado y ser admin en ese grupo. Capas 118 y 145.
 
+## Todos los números del dueño, también los que casi no escriben
+
+En los grupos de ahora la gente llega por su @lid, y el bot solo sabía el de un
+número del dueño si alguna vez lo había visto con el teléfono al lado. Los que
+el dueño casi no usa eran un @lid cualquiera: ni el repaso de admin ni el
+revert los reconocían (dueño, 2 nov: «no le da el admin automáticamente a mis
+otros números +57»). Al conectar, antes del primer repaso, el bot le pregunta a
+su sesión por el @lid de cada número de `OWNER_NUMBER` y `CO_OWNERS`
+(`aprenderLidsDeDueños` en `utils/wa.js`). Baileys contesta con lo que ya tiene
+guardado y solo consulta a WhatsApp los que no sabe: un puñado, una vez, y un
+número que no sale no se vuelve a preguntar en 24 horas. Los escribe en
+`data/lidsDuenos.json`, que también lee el guardián. En el log sale «dueños: N de M números con su @lid».
+
+El privado «Te han quitado el admin y no he podido devolvértelo» ya no sale al
+momento con la ficha del evento: espera 20 segundos, relee el grupo y calla si
+el dueño ya tiene el admin (se lo devolvió el guardián o el bot). Si el bot es
+admin, se lo devuelve él y solo avisa si WhatsApp se lo rechaza. Varias
+degradaciones del mismo grupo dan un privado, y como mucho uno cada diez
+minutos por grupo (antes llegaron tres iguales en el mismo minuto). Capa 146.
+
 ## La lista negra con el bot fuera
 
 El veto se miraba solo al entrar, y el aviso de entrada llega una vez: quien

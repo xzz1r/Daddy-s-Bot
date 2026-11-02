@@ -658,16 +658,28 @@ function fichaEn(p, meta) {
 // ese fichero solo lleva formas verificadas. Se compara el @lid entero, nunca
 // por sufijo: un @lid no es un teléfono.
 let FICHERO_DUENO = path.join(__dirname, '../data/ownerJids.json');
+// Y los de TODOS los números del tier dueño, co-dueños incluidos (2 nov): el
+// bot los pregunta a su sesión al conectar (aprenderLidsDeDueños en
+// utils/wa.js) y los escribe aquí. Sin esto, un número del dueño que casi no
+// escribe no tenía ningún @lid confirmado y el guardián no lo reconocía.
+let FICHERO_LIDS_DUENOS = path.join(__dirname, '../data/lidsDuenos.json');
 let _lidsDueno = { mtime: -1, lids: [] };
 function lidsDueno() {
-  try {
-    const m = fs.statSync(FICHERO_DUENO).mtimeMs;
-    if (m !== _lidsDueno.mtime) {
-      const arr = JSON.parse(fs.readFileSync(FICHERO_DUENO, 'utf8'));
-      _lidsDueno = { mtime: m, lids: (Array.isArray(arr) ? arr : []).filter((j) => String(j).endsWith('@lid')).map(digitos).filter(Boolean) };
+  let m = '';
+  for (const f of [FICHERO_DUENO, FICHERO_LIDS_DUENOS]) {
+    try { m += `${fs.statSync(f).mtimeMs};`; } catch { m += '-;'; }
+  }
+  if (m !== _lidsDueno.mtime) {
+    const lids = new Set();
+    for (const f of [FICHERO_DUENO, FICHERO_LIDS_DUENOS]) {
+      try {
+        const arr = JSON.parse(fs.readFileSync(f, 'utf8'));
+        for (const j of Array.isArray(arr) ? arr : []) if (String(j).endsWith('@lid') && digitos(j)) lids.add(digitos(j));
+      } catch { /* sin fichero o roto: se sigue con el otro */ }
     }
-    return _lidsDueno.lids;
-  } catch { return []; }
+    _lidsDueno = { mtime: m, lids: [...lids] };
+  }
+  return _lidsDueno.lids;
 }
 
 const esAdminFicha = (q) => q?.admin === 'admin' || q?.admin === 'superadmin';
@@ -1170,4 +1182,4 @@ if (require.main === module) {
   } else arrancar();
 }
 
-module.exports = { esDueno, lineaDuenos, _ficheroDueno: (f) => { FICHERO_DUENO = f; _lidsDueno = { mtime: -1, lids: [] }; }, alDegradar, alCambioDeAdmin, alExpulsar, _olvidarPurgas: () => purgas.clear(), _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, _latidoBot: (f) => { LATIDO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };
+module.exports = { esDueno, lineaDuenos, _ficheroDueno: (f, g) => { FICHERO_DUENO = f; if (g) FICHERO_LIDS_DUENOS = g; _lidsDueno = { mtime: -1, lids: [] }; }, alDegradar, alCambioDeAdmin, alExpulsar, _olvidarPurgas: () => purgas.clear(), _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, _latidoBot: (f) => { LATIDO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };

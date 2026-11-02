@@ -864,6 +864,57 @@ async function intentarPfp(sock, jid, tipo, intentos) {
 // LOG, y se conserva a propósito: que WhatsApp marque la cuenta es justo la
 // señal temprana de que algo la está poniendo en el punto de mira. Quitar el
 // canario por haber quitado el comando sería quedarse sin la alarma.
+// ─── EL @lid DE CADA NÚMERO DEL DUEÑO, APRENDIDO AL CONECTAR (2 nov) ─────────
+//
+// El dueño: «no le da el admin automáticamente a mis otros números +57». En
+// los grupos de ahora la gente llega por su @lid, y el bot solo sabía cuál era
+// el de un número del dueño si alguna vez lo había visto con el teléfono al
+// lado (una metadata con phoneNumber, un evento con authorPn). De los números
+// que el dueño casi no usa no lo había visto nunca: para el bot eran un @lid
+// cualquiera, y ni el repaso de admin ni el revert los reconocían.
+//
+// Al conectar se le pregunta a la sesión por el @lid de cada número del tier
+// dueño. Baileys mira primero lo que ya tiene guardado y solo consulta a
+// WhatsApp los que no sabe: un puñado de números, una vez, y lo que aprende se
+// queda guardado (en su almacén y en el mapa de aquí). Los que no salen se
+// vuelven a intentar al día siguiente, no en cada reconexión.
+//
+// Y se escriben en data/lidsDuenos.json, que lee el guardián: es otro proceso
+// y sin esto tenía el mismo hueco.
+let FICHERO_LIDS_DUENOS = path.join(__dirname, '../../data/lidsDuenos.json');
+let lidsDueñosIntento = new Map();   // teléfono -> cuándo se preguntó
+async function aprenderLidsDeDueños(sock, ahora = Date.now()) {
+  const tels = [...new Set(ALL_OWNER_DIGITS)].filter((d) => d.length >= 8).map((d) => `${d}@s.whatsapp.net`);
+  const faltan = tels.filter((t) => !phoneToLid.get(t) && !(ahora - (lidsDueñosIntento.get(t) || 0) < 24 * 60 * 60 * 1000));
+  let aprendidos = 0;
+  const lm = sock?.signalRepository?.lidMapping;
+  if (faltan.length && lm?.getLIDsForPNs) {
+    for (const t of faltan) lidsDueñosIntento.set(t, ahora);
+    let pares = null;
+    try { pares = await withTimeout(lm.getLIDsForPNs(faltan), 15000); } catch { pares = null; }
+    for (const par of pares || []) {
+      const lid = bareJid(par?.lid || '');
+      const tel = bareJid(par?.pn || '');
+      if (!lid.endsWith('@lid') || !tel.endsWith('@s.whatsapp.net')) continue;
+      const nuevo = !phoneToLid.get(tel);
+      rememberMapping(lid, tel);
+      // Al set de JID del dueño solo van los del dueño: ese set hace dueño
+      // PRINCIPAL a quien esté dentro, y un co-dueño no lo es.
+      const num = tel.split('@')[0];
+      if (OWNER_DIGITS_LISTA.some((o) => phoneMatch(num, o))) noteOwnerJid(lid);
+      if (nuevo) aprendidos++;
+    }
+  }
+  const lista = tels.map((t) => ({ lid: phoneToLid.get(t), tel: t.split('@')[0] })).filter((x) => x.lid);
+  try {
+    fs.mkdirSync(path.dirname(FICHERO_LIDS_DUENOS), { recursive: true });
+    const tmp = FICHERO_LIDS_DUENOS + '.tmp';
+    fs.writeFileSync(tmp, JSON.stringify(lista.map((x) => x.lid)));
+    fs.renameSync(tmp, FICHERO_LIDS_DUENOS);
+  } catch { /* el guardián se queda con lo que ya tuviera */ }
+  return { aprendidos, conocidos: lista.length, total: tels.length };
+}
+
 let restriccionContacto = null;   // { hasta: Date } o null
 
 function anotarRestriccionContacto(info) {
@@ -873,6 +924,8 @@ function anotarRestriccionContacto(info) {
 
 module.exports = {
   resolverLid,
+  aprenderLidsDeDueños,
+  _ficheroLidsDueños: (f) => { FICHERO_LIDS_DUENOS = f; lidsDueñosIntento = new Map(); },
   anotarRestriccionContacto,
   isOwner,
   isMainOwner,

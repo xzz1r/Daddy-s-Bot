@@ -11886,7 +11886,7 @@ const di=async(quien,t)=>{out.length=0;
       const cuerpo = j > 0 ? bot.slice(j, j + 1400) : '';
       exige(/logger\.warn\(/.test(cuerpo) && /tocaAlDue/.test(cuerpo),
         'la traza de la degradación ya no dice si el degradado era el dueño: es el dato por el que se mira');
-      exige(/avisarDue.oSinAdmin\(/.test(cuerpo),
+      exige(/(avisarDue.oSinAdmin|avisarSiSigueSinAdmin)\(/.test(cuerpo),
         'al dueño ya no se le avisa cuando le quitan el admin y el bot no puede devolvérselo: se queda sin admin y sin enterarse');
     }
 
@@ -23191,7 +23191,8 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
       process.env.OWNER_NUMBER = `${D1},${D2}`; process.env.CO_OWNERS = ''; process.env.GUARDIAN_DE = BOT;
       fs.writeFileSync(path.join(dir, 'state.json'), JSON.stringify({ antiAdminEnabled: [] }));
       G._sock(sock); G._estadoBot(path.join(dir, 'state.json')); G._latidoBot(path.join(dir, 'sin-latido.json')); G._esperaAlBot(5);
-      G._ficheroDueno(duenoJids);
+      const lidsDuenos139 = path.join(dir, 'lidsDuenos.json');
+      G._ficheroDueno(duenoJids, lidsDuenos139);
 
       monta([{ id: jid(D2), admin: null }]);
       await G.alCambioDeAdmin(GR, [{ id: jid(D2), phoneNumber: jid(D2) }], 'demote', jid(ROGUE));
@@ -23210,6 +23211,13 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
       await G.alCambioDeAdmin(GR, [{ id: `${LIDX}@lid` }], 'demote', jid(ROGUE));
       exige(hechos.length === 0, `un @lid que no es del dueño cuenta como dueño: ${hechos.join(' ')}`);
 
+      // Y los que el bot pregunta a su sesión al conectar (lidsDuenos.json):
+      // un número del dueño que casi no escribe y no está en ownerJids.
+      fs.writeFileSync(lidsDuenos139, JSON.stringify([`${LIDX}9@lid`]));
+      monta([{ id: `${LIDX}9@lid`, admin: null }]);
+      await G.alCambioDeAdmin(GR, [{ id: `${LIDX}9@lid` }], 'demote', jid(ROGUE));
+      exige(hechos.join(' ') === `promote:${LIDX}9 demote:${ROGUE}`, `un número del dueño con su @lid en lidsDuenos.json no se repone (hizo: ${hechos.join(' ') || 'nada'})`);
+
       const linea = G.lineaDuenos();
       exige(/\+34···5139/.test(linea) && /\+33···5139/.test(linea), `el log de arranque no nombra los dos números del dueño: ${linea}`);
       exige(!linea.includes(D1) && !linea.includes(D2), `el log de arranque escribe el número entero: ${linea}`);
@@ -23217,7 +23225,7 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
       exige(false, `no pude probar el guardián: ${String(e.message).split('\n')[0]}`);
     } finally {
       for (const [k, v] of Object.entries(envAntes)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
-      G._ficheroDueno(path.join(R, 'data/ownerJids.json'));
+      G._ficheroDueno(path.join(R, 'data/ownerJids.json'), path.join(R, 'data/lidsDuenos.json'));
       fs.rmSync(dir, { recursive: true, force: true });
     }
     if (fallos === antes139) console.log(verde('   ✓ el guardián protege todos los números del dueño, también por su @lid aprendido, y ningún @lid ajeno'));
@@ -23621,6 +23629,86 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     exige(/stop_exit_codes/.test(est145) && /pm2 lo deja parado, como debe/.test(est145) && /pm2 lo sigue levantando/.test(est145),
       'npm run estado no distingue si pm2 deja parado al bot tras una parada o lo sigue levantando');
     if (fallos === antes145) console.log(verde('   ✓ perfiles ajenos con tope por hora y por día, más bajo en rodaje; el tope no se reintenta y !scan dice a cuántos no miró'));
+  }
+
+  // ── 146. LOS OTROS NÚMEROS DEL DUEÑO, Y EL AVISO SOLO SI ES VERDAD (2 nov) ─
+  // «Esa notificación no está bien hecha: sí me devolvió admin y sí que tenía
+  // admin. El fallo ahora es que no le da el admin automáticamente a mis otros
+  // números +57.» Dos cosas, en sandbox:
+  //   · al conectar, el bot pregunta a su sesión por el @lid de cada número del
+  //     tier dueño, lo recuerda (isOwner lo reconoce por su @lid suelto), solo
+  //     mete al dueño en el set de JID del dueño, se lo escribe al guardián y
+  //     no repite la pregunta en cada reconexión;
+  //   · el privado «no he podido devolvértelo» espera, relee el grupo y calla
+  //     si el dueño ya tiene el admin; si el bot es admin, se lo devuelve él; y
+  //     tres degradaciones seguidas dan un privado, no tres.
+  {
+    console.log('\n146. LOS NÚMEROS DEL DUEÑO SE RECONOCEN POR SU @lid, Y EL AVISO SIN ADMIN SOLO SI ES VERDAD');
+    const antes146 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const bot146 = soloCodigo('src/bot.js');
+    exige(/aprenderLidsDeDueños\(sock\)[\s\S]{0,400}\.then\(\(\) => sondearSolicitudes\(\)\)/.test(bot146),
+      'al conectar ya no se aprende el @lid de los números del dueño antes del primer repaso de admin');
+    const evento146 = (bot146.split("sock.ev.on('group-participants.update'")[1] || '').split('sock.ev.on(')[0];
+    exige(evento146 && !/avisarDueñoSinAdmin\(/.test(evento146) && /avisarSiSigueSinAdmin\(groupJid, author\)/.test(evento146),
+      'el privado «no he podido devolvértelo» vuelve a salir al momento, con la ficha del evento y sin esperar a nadie');
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'duenos146-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const fs = require('fs'); const wa = require('./src/utils/wa'); const bot = require('./src/bot');",
+        "const D1 = '33600000146', D2 = '57300000146', CO = '57310000146', BOT = '34600000146', G = '120363000000146001@g.us';",
+        "const tel = (d) => d + '@s.whatsapp.net'; const LID = { [D1]: '91000000146', [D2]: '92000000146', [CO]: '93000000146' };",
+        "(async () => { const r = {}; let preguntas = 0;",
+        "  const lm = { getLIDsForPNs: async (pns) => { preguntas++; return pns.filter((p) => LID[p.split('@')[0]] && p.split('@')[0] !== CO).map((p) => ({ pn: p, lid: LID[p.split('@')[0]] + '@lid' })); } };",
+        "  const s1 = { signalRepository: { lidMapping: lm } };",
+        "  r.antes = wa.isOwner(LID[D2] + '@lid', false, null);",
+        "  r.a1 = await wa.aprenderLidsDeDueños(s1); r.p1 = preguntas;",
+        "  r.d2 = wa.isOwner(LID[D2] + '@lid', false, null); r.d2main = wa.isMainOwner(LID[D2] + '@lid', false, null);",
+        "  r.co = wa.isOwner(LID[CO] + '@lid', false, null);",
+        "  r.ajeno = wa.isOwner('99000000146@lid', false, null);",
+        "  await wa.aprenderLidsDeDueños(s1); r.p2 = preguntas;",
+        "  await wa.aprenderLidsDeDueños(s1, Date.now() + 25 * 3600 * 1000); r.p3 = preguntas;",
+        "  lm.getLIDsForPNs = async (pns) => { preguntas++; return pns.map((p) => ({ pn: p, lid: LID[p.split('@')[0]] + '@lid' })); };",
+        "  await wa.aprenderLidsDeDueños(s1, Date.now() + 50 * 3600 * 1000);",
+        "  r.co2 = wa.isOwner(LID[CO] + '@lid', false, null); r.co2main = wa.isMainOwner(LID[CO] + '@lid', false, null);",
+        "  r.fichero = JSON.parse(fs.readFileSync('./data/lidsDuenos.json', 'utf8'));",
+        "  r.ownerJids = (wa.flushOwnerJids(), JSON.parse(fs.readFileSync('./data/ownerJids.json', 'utf8')));",
+        "  let enviados = [], ascensos = [], meta;",
+        "  const s2 = { user: { id: tel(BOT) }, groupMetadata: async () => JSON.parse(JSON.stringify(meta)),",
+        "    sendMessage: async (j, m) => { if (m && m.text) enviados.push(j); return {}; },",
+        "    groupParticipantsUpdate: async (g, ids, acc) => { if (acc === 'promote') { ascensos.push(...ids); for (const p of meta.participants) if (ids.includes(p.id)) p.admin = 'admin'; } return ids.map((id) => ({ jid: id, status: '200' })); } };",
+        "  bot._sockDePrueba(s2); bot._avisoSinAdmin.espera(5);",
+        "  const caso = async (participantes, veces = 1) => { bot._avisoSinAdmin.olvidar(); enviados = []; ascensos = []; meta = { id: G, subject: 'Prueba', participants: participantes };",
+        "    const ps = []; for (let i = 0; i < veces; i++) ps.push(bot._avisoSinAdmin.avisar(G, tel('34611100146'))); const out = await Promise.all(ps); return { out: out[0], enviados: enviados.length, ascensos: ascensos.slice() }; };",
+        "  r.yaLoTiene = await caso([{ id: tel(BOT) }, { id: LID[D2] + '@lid', admin: 'admin' }]);",
+        "  r.botSinAdmin = await caso([{ id: tel(BOT) }, { id: LID[D2] + '@lid' }], 3);",
+        "  r.botAdmin = await caso([{ id: tel(BOT), admin: 'admin' }, { id: LID[D2] + '@lid' }]);",
+        "  bot._sockDePrueba(null);",
+        "  console.log('R146' + JSON.stringify(r)); process.exit(0); })().catch((e) => { console.log('R146' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 60000,
+        env: { ...process.env, OWNER_NUMBER: '33600000146,57300000146', CO_OWNERS: '57310000146', GUARDIAN: '' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R146'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: (out.stderr || '').split('\n').slice(0, 4).join(' ') };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(r.antes === false, 'un @lid suelto ya contaba como dueño antes de aprender nada: la prueba no mide lo que dice');
+        exige(r.d2 === true && r.d2main === true, 'el segundo número del dueño sigue sin reconocerse por su @lid tras aprenderlo');
+        exige(r.co === false && r.ajeno === false, 'un @lid que no se ha aprendido cuenta como dueño');
+        exige(r.p1 === 1 && r.p2 === 1, `con lo mismo por saber, cada reconexión vuelve a preguntar a WhatsApp (${r.p1} → ${r.p2})`);
+        exige(r.p3 === 2, 'lo que no salió no se vuelve a intentar ni al día siguiente');
+        exige(r.co2 === true && r.co2main === false, 'el co-dueño aprendido no es del tier dueño, o se le cuela como dueño principal');
+        exige(Array.isArray(r.fichero) && r.fichero.length === 3 && r.fichero.every((j) => /@lid$/.test(j)), `el guardián no recibe los @lid de todos los números (${JSON.stringify(r.fichero)})`);
+        exige(!(r.ownerJids || []).includes('93000000146@lid'), 'el @lid del co-dueño entra en el set del dueño principal');
+        exige(r.yaLoTiene.enviados === 0 && r.yaLoTiene.out === 'ya lo tiene', 'con el admin ya de vuelta, el dueño recibe igual «no he podido devolvértelo»');
+        exige(r.botSinAdmin.enviados === 1, `tres degradaciones con el bot sin admin dan ${r.botSinAdmin.enviados} privados, no uno`);
+        exige(r.botAdmin.enviados === 0 && r.botAdmin.ascensos.includes('92000000146@lid'), 'con el bot admin, no le devuelve el admin al número del dueño, o le escribe igual');
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes146) console.log(verde('   ✓ cada número del dueño se reconoce por su @lid, y el aviso sin admin solo sale si es verdad, una vez'));
   }
 
 
