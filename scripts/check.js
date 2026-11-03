@@ -1579,12 +1579,25 @@ const di=async(quien,texto,extra)=>{
       ['un Drive es blocked',         { conversation: 'https://drive.google.com/file/x' }, 'blocked'],
       ['una web es blocked',          { conversation: 'https://elpais.com/x' }, 'blocked'],
       ['un acortador es blocked',     { conversation: 'https://bit.ly/3xyz' }, 'blocked'],
+      // ── y pegados a pelo, sin https ni www (3 nov): el spam de números
+      //    ajenos llega así y no se veía.
+      ['spam pelado con ruta',        { conversation: 'Anastasya.openinapp.link/mh1jw_sexoadultos' }, 'blocked'],
+      ['acortador pelado',            { conversation: 'mira bit.ly/3xyz' }, 'blocked'],
+      ['linktree pelado',             { conversation: 'linktr.ee/fulana' }, 'blocked'],
+      ['web pelada con ruta',         { conversation: 'onlyfans.com/fulana' }, 'blocked'],
+      ['dominio de spam sin ruta',    { conversation: 'entra en sexoadultos.xyz' }, 'blocked'],
+      ['spam pelado en una foto',     { imageMessage: { caption: 'Anastasya.openinapp.link/abc' } }, 'blocked'],
 
       // ── y lo que NO debe tocarse, que importa igual: un antilink que
       //    expulsa por hablar no dura en un grupo.
       ['conversacion normal',         { conversation: 'te lo mando por whatsapp luego' }, 'none'],
       ['hablando del grupo',          { conversation: 'este grupo de whatsapp esta muerto' }, 'none'],
       ['frase con puntos',            { conversation: 'vale. venga. hasta luego' }, 'none'],
+      ['una web nombrada sin ruta',   { conversation: 'lo vi en google.com ayer' }, 'none'],
+      ['un correo',                   { conversation: 'escríbeme a fulano@gmail.com' }, 'none'],
+      ['ficheros y versiones',        { conversation: 'node.js, archivo.txt, foto.jpg, la 1.5.2' }, 'none'],
+      ['números con barra',           { conversation: 'iba a 1.5km/h, o sea 3.14/2' }, 'none'],
+      ['youtube nombrado sin ruta',   { conversation: 'eso está en youtube.com' }, 'none'],
       ['youtube con ruta',            { conversation: 'https://youtube.com/watch?v=x' }, 'whitelisted'],
     ];
     let huecos = 0;

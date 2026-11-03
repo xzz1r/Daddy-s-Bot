@@ -327,6 +327,22 @@ el guardián se lo devuelve al dueño, y el bot también si es admin, sin castig
 a la cuenta del guardián, que es la defensa del grupo. Para que funcione, el
 guardián tiene que estar vinculado y ser admin en ese grupo. Capas 118 y 145.
 
+## Enlaces pegados a pelo
+
+El antilink solo veía un enlace si llevaba `https://`, `www.` o era de un
+dominio de invitación. El spam de números ajenos llega sin nada de eso
+(«Anastasya.openinapp.link/…», `bit.ly/…`, `linktr.ee/…`) y se colaba (dueño,
+3 nov). Ahora `src/utils/antilink.js` también cuenta:
+
+- un dominio **con ruta** (`algo.tld/loquesea`), con cualquier terminación;
+- un dominio **sin ruta** solo si termina en algo que casi solo usa el spam
+  (`TLD_SPAM`: `.link`, `.xyz`, `.click`, `.top`…).
+
+Nombrar una web en una frase («lo vi en google.com»), un correo, un fichero
+(`foto.jpg`) o un número con barra no cuenta: un falso positivo es un kick. Si
+hace falta otra terminación de spam, va en `TLD_SPAM`, no se abre a todas.
+Capa 8.
+
 ## Todos los números del dueño, también los que casi no escriben
 
 En los grupos de ahora la gente llega por su @lid, y el bot solo sabía el de un

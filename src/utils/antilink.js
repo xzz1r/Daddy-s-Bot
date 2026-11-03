@@ -27,8 +27,24 @@ const DOMINIOS_BLANCOS = String.raw`youtube\.com|youtu\.be|instagram\.com|instag
 // Un dominio de invitacion suelto no tiene uso legitimo en el grupo; los de la
 // lista blanca siguen exigiendo ruta, porque "youtube.com" suelto si sale en
 // conversaciones normales.
+//
+// Y EL DOMINIO PELADO, SIN https NI www (3 nov). El dueño: «el bot tiende a
+// tener problemas detectando esos links de números de spam». El de la captura
+// era «Anastasya.openinapp.link/mh1jw_sexoadultos», pegado tal cual, y no se
+// veía: sin esquema solo contaban las invitaciones. Igual pasaba con bit.ly,
+// linktr.ee, beacons.ai o una web cualquiera escrita a pelo. Ahora cuentan
+// dos formas más, sin que hablar cueste el grupo:
+//   · dominio CON RUTA («algo.tld/loquesea»): eso no lo escribe nadie
+//     hablando, así que vale cualquier terminación de letras;
+//   · dominio SIN RUTA solo con las terminaciones que casi solo usa el spam
+//     (TLD_SPAM). Un «google.com» o un «netflix.com» en una frase no es nada.
+// Un correo («fulano@gmail.com») no cuenta: lo que va pegado a una @ o a
+// otra palabra no empieza dominio.
+const TLD_SPAM = String.raw`link|links|click|xyz|site|online|top|live|club|shop|store|vip|fun|icu|bio|page|ly|ee|tk|ml|ga|cf|gq|ru|cn|lat|sbs|cfd|buzz|cam|sex|xxx|porn|adult|win|bid|pw|su|website|space|dating|love|girl|rest|onl`;
+const HOST_PELADO = String.raw`(?<![\w@.\-\/])(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+`;
 const URL_RE = new RegExp(
-  String.raw`(?:https?:\/\/|www\.)[^\s]+|(?:${DOMINIOS_INVITACION})(?:\/[^\s]*)?|(?:${DOMINIOS_BLANCOS})\/[^\s]+`,
+  String.raw`(?:https?:\/\/|www\.)[^\s]+|(?:${DOMINIOS_INVITACION})(?:\/[^\s]*)?|(?:${DOMINIOS_BLANCOS})\/[^\s]+` +
+  String.raw`|${HOST_PELADO}[a-z]{2,24}\/[^\s]+|${HOST_PELADO}(?:${TLD_SPAM})(?![\w.-])`,
   'gi'
 );
 
