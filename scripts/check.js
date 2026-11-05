@@ -16022,6 +16022,10 @@ require.cache[rutaDl].exports = Object.assign({}, dlReal, {
   acquireDownloadSlot: async () => { cogidos++; },
   releaseDownloadSlot: () => { cogidos--; sueltas++; if (cogidos < 0) negativos = true; },
   downloadUrlToFile: async (url, dest) => { await fs.copy(clip, dest); },
+  // NI yt-dlp TAMPOCO (5 nov). El runner de GitHub lo trae instalado y con
+  // red, y con la API caída el respaldo salía de verdad a TikTok: la capa
+  // dependía de lo que contestara internet ese día.
+  ytdlp: async () => { throw new Error('la prueba no sale a la red'); },
 });
 
 const axios = require('axios');
