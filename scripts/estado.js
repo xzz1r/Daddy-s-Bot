@@ -940,6 +940,24 @@ if (nodeMayor < 18) {
   }
 }
 
+// ─── La cola de salida: cuánto esperan los mensajes del bot ──────────────────
+//
+// El cuello de botella del bot (5 nov): todo lo que manda sale de uno en uno
+// con un hueco que protege al número. El bot apunta cuánto espera cada envío
+// (src/utils/ritmo.js) y aquí se ve si la fila se llena.
+{
+  try {
+    const r = require(path.join(RAIZ, 'src/utils/ritmo'));
+    let dato = null;
+    try { dato = JSON.parse(require('fs').readFileSync(path.join(RAIZ, 'data/colaSalida.json'), 'utf8')); } catch { dato = null; }
+    const l = r.lineaCola(dato);
+    if (l.tipo === 'aviso') aviso(l.texto, l.arreglo);
+    else bien(l.texto, true);
+  } catch (e) {
+    aviso(`Cola de salida: no pude leerla (${e.message})`);
+  }
+}
+
 // ─── Veredicto ───────────────────────────────────────────────────────────────
 const B = '\x1b[1m', F = '\x1b[0m', VERDE = '\x1b[32m', ROJO = '\x1b[31m', AMBAR = '\x1b[33m', AZUL = '\x1b[36m';
 

@@ -181,7 +181,7 @@ const { recordar: recordarHistorial, ingestarEvento: ingestarHistorial, flush: f
 const logger = require('./utils/logger');
 const { versionWA } = require('./utils/versionWA');
 const { explicarRechazo } = require('./utils/rechazoWA');
-const { ponerRitmo } = require('./utils/ritmo');
+const { ponerRitmo, estadoCola } = require('./utils/ritmo');
 
 const AUTH_DIR = path.join(__dirname, '../data/auth');
 
@@ -327,6 +327,7 @@ const MAX_CICLOS_LOGOUT = 2;
 // SONDEO_VALIDO_MS. Las solicitudes nuevas llegan ademas por evento.
 const INTERVALO_SOLICITUDES = 6 * 60 * 1000;
 let timerSolicitudes = null;
+let timerCola = null;
 
 // groupFetchAllParticipating se trae la metadata de TODOS los grupos de una
 // vez. Es la consulta más cara que hace el bot y pedirla cada tres minutos es
@@ -1375,6 +1376,16 @@ async function connectToWhatsApp() {
       // La precisión del anti-empresa: el bot la mide solo, una vez al día, y
       // `npm run estado` la enseña. No sale en ningún grupo (dueño, 22 oct).
       require('./utils/precisionEmpresa').programar(() => sock);
+
+      // Y cuánto espera la cola de salida (ver crearCola en utils/ritmo.js),
+      // para `npm run estado`. Cada diez minutos, un fichero de una línea.
+      if (!timerCola) {
+        timerCola = setInterval(() => {
+          atomicWriteJson(path.join(__dirname, '../data/colaSalida.json'), estadoCola())
+            .catch((e) => logger.unaVez('cola de salida', e));
+        }, 10 * 60 * 1000);
+        timerCola.unref();
+      }
 
       // Precarga en idle de los comandos pesados (lazy en el dispatcher).
       // Uno cada 250 ms para no clavar el event loop de un golpe justo

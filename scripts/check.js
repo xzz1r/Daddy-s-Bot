@@ -23724,6 +23724,49 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes146) console.log(verde('   ✓ cada número del dueño se reconoce por su @lid, y el aviso sin admin solo sale si es verdad, una vez'));
   }
 
+  // ── 147. LA COLA DE SALIDA: MISMO RITMO, MEJOR ORDEN (5 nov) ───────────────
+  // El dueño pidió el cuello de botella. Medido: es la fila de sendMessage, no
+  // la CPU. Un borrado del antilink esperaba 8,8 s detrás de doce respuestas
+  // de otro grupo. El hueco no se toca (protege al número); los borrados pasan
+  // delante, los chats se turnan, el orden dentro de un chat se respeta, un
+  // envío colgado no para la fila y se apunta cuánto espera cada uno.
+  {
+    console.log('\n147. LA COLA DE SALIDA: LOS BORRADOS DELANTE, LOS CHATS POR TURNOS Y EL MISMO RITMO');
+    const antes147 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const RT = require(path.join(R, 'src/utils/ritmo'));
+    const sm = RT.RITMOS.sendMessage || {};
+    exige(sm.cola === true, 'sendMessage ya no va por la cola con prioridad: los borrados vuelven a esperar detrás de todo');
+    exige(sm.hueco >= 600 && sm.azar >= 500, `el hueco de sendMessage ha bajado (${sm.hueco}+${sm.azar} ms): es lo que protege al número, se decide con el dueño`);
+    const HUECO = 40;
+    const salidas = [];
+    let colgar = true;
+    const s147 = { sendMessage: (j, c) => { salidas.push({ j, k: c.delete ? 'del' : c.text, t: Date.now() }); if (colgar) { colgar = false; return new Promise(() => {}); } return Promise.resolve('ok'); } };
+    RT._olvidarMedidas();
+    RT.ponerRitmo(s147, { sendMessage: { hueco: HUECO, azar: 0, cola: true } });
+    const ps = [];
+    ps.push(s147.sendMessage('A', { text: 'a0' }));   // este se queda colgado para siempre
+    for (const k of ['a1', 'a2', 'a3', 'a4']) ps.push(s147.sendMessage('A', { text: k }));
+    for (const k of ['b1', 'b2']) ps.push(s147.sendMessage('B', { text: k }));
+    ps.push(s147.sendMessage('C', { delete: { id: 'spam' } }));
+    const fin = await Promise.race([Promise.all(ps.slice(1)).then(() => 'ok'), new Promise((r) => setTimeout(() => r('colgado'), 3000))]);
+    exige(fin === 'ok', 'un envío colgado deja la cola parada');
+    const orden = salidas.map((x) => x.k);
+    exige(orden[1] === 'del', `el borrado no pasa delante: sale en la posición ${orden.indexOf('del')} de ${orden.join(',')}`);
+    exige(orden.join(',') === 'a0,del,a1,b1,a2,b2,a3,a4', `los chats no se turnan o se desordenan: ${orden.join(',')}`);
+    const huecos = salidas.slice(1).map((x, i) => x.t - salidas[i].t);
+    exige(huecos.every((h) => h >= HUECO - 5), `dos envíos salen más juntos que el hueco: ${huecos.join('/')} ms`);
+    const e = RT.estadoCola();
+    exige(e.n === 8 && e.borrados === 1 && e.maxMs >= HUECO * 6 && e.mediaMs > 0, `la cola no apunta lo que espera cada envío: ${JSON.stringify(e)}`);
+    const l1 = RT.lineaCola({ ...e, ts: Date.now(), n: 100, lentos: 1 });
+    const l2 = RT.lineaCola({ ...e, ts: Date.now(), n: 100, lentos: 10 });
+    exige(l1.tipo === 'ok' && l2.tipo === 'aviso' && /riesgo de revisión/.test(l2.arreglo || ''), 'npm run estado no avisa cuando la fila se llena, o avisa sin decir el precio de acortar el hueco');
+    exige(/estadoCola\(\)/.test(soloCodigo('src/bot.js')) && /colaSalida\.json/.test(soloCodigo('src/bot.js')), 'el bot ya no vuelca lo que espera la cola');
+    exige(/lineaCola\(/.test(soloCodigo('scripts/estado.js')), 'npm run estado ya no enseña la cola de salida');
+    RT._olvidarMedidas();
+    if (fallos === antes147) console.log(verde('   ✓ el borrado sale el segundo, los chats se turnan sin desordenarse, el hueco se respeta y npm run estado lo cuenta'));
+  }
+
 
 
 

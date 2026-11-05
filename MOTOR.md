@@ -123,6 +123,22 @@ se espera a que terminen: un envío colgado no deja mudo al bot. El visto y el
 «en línea» quedan fuera a propósito: el dueño los quiere como estaban. La capa
 123 lo vigila.
 
+**La cola de salida es el cuello de botella del bot** (medido el 5 nov). La CPU
+sobra: un mensaje normal cuesta 0,2 ms y un comando 3,4 ms. Lo que limita es
+`sendMessage`: sale de uno en uno con 600 ms más hasta 500 de azar, unos 70
+envíos por minuto para todos los grupos juntos. El hueco **no se baja** sin
+el dueño: es lo que protege al número. Lo que se cambió es el orden
+(`crearCola`):
+
+- Los borrados de moderación pasan delante de todo. Antes, uno esperaba 8,8 s
+  detrás de doce respuestas de otro grupo.
+- El resto sale por turnos entre chats, y en orden dentro de cada uno.
+
+El bot apunta cuánto espera cada envío y lo vuelca cada diez minutos en
+`data/colaSalida.json`. `npm run estado` lo enseña: envíos de 24 h, espera
+media y peor, cuántos pasaron de 5 s, el peor borrado y la hora punta. Avisa si
+más del 5 % pasa de 5 s. Capa 147.
+
 ## La versión de WhatsApp Web
 
 Al conectar, el bot (y el guardián) se presentan con una versión de WhatsApp
