@@ -40,8 +40,15 @@ const DOMINIOS_BLANCOS = String.raw`youtube\.com|youtu\.be|instagram\.com|instag
 //     (TLD_SPAM). Un «google.com» o un «netflix.com» en una frase no es nada.
 // Un correo («fulano@gmail.com») no cuenta: lo que va pegado a una @ o a
 // otra palabra no empieza dominio.
-const TLD_SPAM = String.raw`link|links|click|xyz|site|online|top|live|club|shop|store|vip|fun|icu|bio|page|ly|ee|tk|ml|ga|cf|gq|ru|cn|lat|sbs|cfd|buzz|cam|sex|xxx|porn|adult|win|bid|pw|su|website|space|dating|love|girl|rest|onl`;
-const HOST_PELADO = String.raw`(?<![\w@.\-\/])(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+`;
+//
+// TLD_SPAM ES CORTA A PROPÓSITO (5 nov). La primera lista llevaba .love,
+// .club, .vip, .fun, .store, .page, .top, .online… y con ella «sígueme en ig:
+// maria.love» o «dani.club» eran un enlace, o sea un kick por decir tu
+// Instagram. Ahí solo quedan terminaciones que nadie usa de nombre de usuario.
+// Y el primer trozo del dominio tiene que llevar alguna letra: «12.oct/2026»
+// es una fecha, no una web.
+const TLD_SPAM = String.raw`link|links|click|xyz|icu|tk|ml|ga|cf|gq|sbs|cfd|buzz|xxx|porn|bid|pw|onl`;
+const HOST_PELADO = String.raw`(?<![\w@.\-\/])(?=[a-z0-9-]*[a-z])(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+`;
 const URL_RE = new RegExp(
   String.raw`(?:https?:\/\/|www\.)[^\s]+|(?:${DOMINIOS_INVITACION})(?:\/[^\s]*)?|(?:${DOMINIOS_BLANCOS})\/[^\s]+` +
   String.raw`|${HOST_PELADO}[a-z]{2,24}\/[^\s]+|${HOST_PELADO}(?:${TLD_SPAM})(?![\w.-])`,

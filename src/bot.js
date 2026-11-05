@@ -137,14 +137,14 @@ const STUB_SOLICITUD = new Set([144, 172]);
 // Barridos de autoaccept pendientes, por grupo. Junta las rafagas: si llegan
 // cinco solicitudes seguidas se hace UN barrido, no cinco.
 const autoAcceptPendiente = new Map();
-const { handleMessage, invalidateGroupMeta, getGroupMeta, metaParaBaileys, sembrarGrupos, reabrirPendientes } = require('./handlers/messageHandler');
+const { handleMessage, invalidateGroupMeta, getGroupMeta, metaFrescaParaBaileys, peekGroupMeta, sembrarGrupos, reabrirPendientes } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, isAutoAceptarEnabled, flushState, vistoActivo } = require('./utils/state');
 const { isOwner, sameUser, isBotAdmin, phoneMatch, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto, resolverLid, bareJid, aprenderLidsDeDueños } = require('./utils/wa');
 const { anotarDeuda, cobrarDeuda, flushDeuda } = require('./utils/adminDeuda');
 // anotarAlta apunta el motivo de cada alta; motivoDelAlta lo consulta cuando hay
 // que decidir si un alta fue a dedo (la unica que se sanciona).
 const { anotarAlta, motivoDelAlta, ALTA_ADD } = require('./utils/joinReason');
-const { notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, aceptarPendientes, reactivarSondeo, frenoNuevo, flushJoinRequests, sondeoReciente, colaConocida } = require('./utils/joinRequests');
+const { notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, aceptarPendientes, reactivarSondeo, frenoNuevo, estaFrenado, flushJoinRequests, sondeoReciente, colaConocida } = require('./utils/joinRequests');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushNames, recordName, cuantosNombres } = require('./utils/nombreStore');
 const { flushPickHistory } = require('./utils/helpers');
@@ -395,14 +395,36 @@ async function listaDeGrupos() {
 // Relee las solicitudes pendientes de todos los grupos del bot. Los grupos que
 // no dejan leerlas se apartan solos (joinRequests aplica su propio freno), así
 // que esto no insiste contra una puerta cerrada.
-async function sondearSolicitudes() {
-  if (!sock) return;
+//
+// SIN RÁFAGA Y DE UNO EN UNO (5 nov). Medido con 20 grupos que piden
+// aprobación: las 20 consultas salían en el mismo segundo, cada seis minutos,
+// que es justo la firma de programa que utils/ritmo.js quita en todo lo demás.
+// No va por el ritmo del socket porque ahí haría esperar al comando que mira
+// las solicitudes a mano detrás del repaso entero; la pausa va aquí, solo
+// entre grupos a los que de verdad se ha preguntado. Y si una reconexión lanza
+// otro repaso mientras sigue este, se espera al que va.
+const PAUSA_SONDEO = { ms: 1000, azar: 2000 };
+let sondeoEnCurso = null;
+function sondearSolicitudes() {
+  if (!sock) return Promise.resolve();
+  if (sondeoEnCurso) return sondeoEnCurso;
+  sondeoEnCurso = repasarGrupos().finally(() => { sondeoEnCurso = null; });
+  return sondeoEnCurso;
+}
+async function repasarGrupos() {
+  let preguntados = 0;
   for (const g of await listaDeGrupos()) {
     // De paso, el admin de los dueños (ver reponerAdminDueños). Va antes del
     // sondeo porque no depende de que el grupo tenga solicitudes.
     await reponerAdminDueños(g).catch((e) => logger.unaVez('reponer admin a los dueños', e));
     // Y la lista negra, por lo mismo (ver echarVetadosDentro).
     await echarVetadosDentro(g).catch((e) => logger.unaVez('lista negra: repaso de grupos', e));
+    if (!estaFrenado(g)) {
+      if (preguntados++ && PAUSA_SONDEO.ms + PAUSA_SONDEO.azar > 0) {
+        await new Promise((r) => setTimeout(r, PAUSA_SONDEO.ms + Math.floor(Math.random() * PAUSA_SONDEO.azar)));
+      }
+      if (!sock) return;
+    }
     const n = await sondear(sock, g);
     if (n) logger.info(`solicitudes pendientes en ${g}: ${n}`);
     if (n === null) { await explicarFreno(g); continue; }
@@ -430,6 +452,20 @@ async function sondearSolicitudes() {
 // Si WhatsApp lo rechaza, ese grupo no se reintenta en una hora: insistir cada
 // seis minutos contra un no es justo el tipo de patron que no queremos dar.
 const reponerFalloHasta = new Map();
+
+// LA FICHA DEL GRUPO PARA LOS REPASOS, LA QUE YA HAY (5 nov). Medido con 20
+// grupos: el repaso de cada seis minutos releía la ficha de los veinte en
+// cuanto pasaba de diez minutos, 80 consultas por hora sin que nadie hiciera
+// nada, y todas por la misma fila que la ficha de un comando o de un envío.
+// La ficha en caché no se queda vieja sin más: cada entrada, salida o cambio
+// de admin la tira (invalidateGroupMeta), la lista entera se relee cada media
+// hora y al reconectar. Así que el repaso usa la que haya y solo pregunta por
+// los grupos que no tienen ninguna. Lo que necesita estar fresco (el aviso
+// al dueño sin admin, un envío, un comando) sigue releyendo.
+async function metaDelRepaso(grupo) {
+  return peekGroupMeta(grupo) || getGroupMeta(sock, grupo).catch(() => null);
+}
+
 // Los del tier dueño que están en el grupo sin admin, por su id.
 function dueñosSinAdmin(meta) {
   return (meta?.participants || []).filter((p) => {
@@ -440,7 +476,7 @@ function dueñosSinAdmin(meta) {
 async function reponerAdminDueños(grupo) {
   if (!sock) return;
   if ((reponerFalloHasta.get(grupo) || 0) > Date.now()) return;
-  const meta = await getGroupMeta(sock, grupo).catch(() => null);
+  const meta = await metaDelRepaso(grupo);
   if (!meta?.participants || !isBotAdmin(sock, meta)) return;
   const sinAdmin = dueñosSinAdmin(meta);
   if (!sinAdmin.length) return;
@@ -472,7 +508,7 @@ async function reponerAdminDueños(grupo) {
 const VETADOS_POR_VUELTA = 3;
 async function echarVetadosDentro(grupo) {
   if (!sock) return;
-  const meta = await getGroupMeta(sock, grupo).catch(() => null);
+  const meta = await metaDelRepaso(grupo);
   if (!meta?.participants || !isBotAdmin(sock, meta)) return;
   const esAdmin = (p) => p?.admin === 'admin' || p?.admin === 'superadmin';
   // POCOS POR VUELTA (30 oct). Un número recién vinculado que echa a veinte
@@ -802,11 +838,12 @@ async function connectToWhatsApp() {
     // —menciones, a quien cifrar, cada reintento— y esas consultas son
     // exactamente las que ya dieron `rate-overlimit` una vez.
     //
-    // Devuelve `undefined` si esta caducada, a proposito: ahi Baileys pregunta
-    // el mismo. Servirle una lista de miembros vieja seria peor que no
-    // servirle nada — el que acaba de entrar no estaria en ella y el mensaje
-    // saldria sin cifrar para el. Ver `metaParaBaileys`.
-    cachedGroupMetadata: async (jid) => metaParaBaileys(jid),
+    // Nunca se le sirve caducada: una lista de miembros vieja seria peor que
+    // no servirle nada — el que acaba de entrar no estaria en ella y el
+    // mensaje saldria sin cifrar para el. Si esta caducada, se relee UNA vez
+    // por la cache (5 nov) en vez de dejar que Baileys pregunte en cada envio.
+    // Ver `metaFrescaParaBaileys`.
+    cachedGroupMetadata: async (jid) => metaFrescaParaBaileys(sock, jid),
     // El valor por defecto de la propia libreria es 30_000; este bot lo tenia
     // en 10_000 (el triple de frecuente) sin necesidad probada. Mas trafico de
     // fondo del que la libreria considera normal no aporta nada y es exactamente
@@ -1361,6 +1398,11 @@ async function connectToWhatsApp() {
       // porque WhatsApp no avisa de las aprobaciones y una solicitud puede
       // llevar semanas ahí parada.
       //
+      // Lo que pasó mientras el bot no estaba no llegó por evento, y el repaso
+      // se fía de la ficha en caché (ver metaDelRepaso): al reconectar se
+      // relee la lista entera, una consulta, si la que hay tiene más de cinco
+      // minutos.
+      if (Date.now() - gruposTs > 5 * 60 * 1000) gruposTs = 0;
       // Antes, el @lid de cada número del dueño (ver aprenderLidsDeDueños): es
       // lo que deja al repaso reconocer a los números que casi no escriben.
       aprenderLidsDeDueños(sock)
@@ -2694,6 +2736,7 @@ function _sockDePrueba(s) {
 }
 
 module.exports = {
+  _pausaSondeo: (ms, azar = 0) => { PAUSA_SONDEO.ms = ms; PAUSA_SONDEO.azar = azar; },
   _avisoSinAdmin: {
     avisar: avisarSiSigueSinAdmin,
     espera: (ms) => { ESPERA_AVISO_SIN_ADMIN.ms = ms; },

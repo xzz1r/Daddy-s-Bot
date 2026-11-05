@@ -134,10 +134,35 @@ el dueño: es lo que protege al número. Lo que se cambió es el orden
   detrás de doce respuestas de otro grupo.
 - El resto sale por turnos entre chats, y en orden dentro de cada uno.
 
+- Las ediciones (el «⏳ sigo con ello…» de `utils/progreso.js`) salen las
+  últimas, y ese aviso no pide otra edición mientras una espera turno.
+
 El bot apunta cuánto espera cada envío y lo vuelca cada diez minutos en
-`data/colaSalida.json`. `npm run estado` lo enseña: envíos de 24 h, espera
-media y peor, cuántos pasaron de 5 s, el peor borrado y la hora punta. Avisa si
-más del 5 % pasa de 5 s. Capa 147.
+`data/colaSalida.json`. `npm run estado` lo enseña: envíos (de 24 h, o desde
+el arranque si fue antes), espera media y peor, cuántos pasaron de 5 s, el
+peor borrado y la hora punta. Avisa si más del 5 % pasa de 5 s. Capa 147.
+
+**Lo que se pregunta a WhatsApp de fondo** (5 nov, medido con 20 grupos y una
+hora de repasos): eran 282 consultas por hora sin que nadie hiciera nada.
+
+- **Fichas de grupo: de 80 a 0.** El repaso de cada seis minutos (admin del
+  dueño, lista negra) releía la ficha de cada grupo en cuanto pasaba de diez
+  minutos. Ahora usa la que hay en caché (`metaDelRepaso`): cada entrada,
+  salida o cambio de admin la tira, la lista entera se relee cada media hora
+  y, al reconectar, si tiene más de cinco minutos.
+- **Solicitudes de entrada: espaciadas.** Se siguen mirando en cada vuelta los
+  grupos que piden aprobación (hace falta para saber quién entró por la cola),
+  pero con 1 a 3 s entre grupo y grupo, no las veinte en el mismo segundo. Y
+  si una reconexión lanza otro repaso mientras sigue el anterior, se espera.
+  Los grupos sin aprobación no se pueden saltar con la ficha: el `forbidden`
+  que devuelven es lo que le dice al anti-admin que un alta fue a dedo
+  (`colaConocida`).
+- **Baileys ya no pregunta en cada envío.** Con la ficha caducada, Baileys
+  pedía `groupMetadata` por su cuenta en cada mensaje a ese grupo, sin hueco
+  ni caché. Ahora se relee una vez por la caché (`metaFrescaParaBaileys`) y
+  solo se le da fresca; si falla, pregunta él como antes.
+
+Capas 78 y 148.
 
 ## La versión de WhatsApp Web
 
@@ -352,12 +377,14 @@ dominio de invitación. El spam de números ajenos llega sin nada de eso
 
 - un dominio **con ruta** (`algo.tld/loquesea`), con cualquier terminación;
 - un dominio **sin ruta** solo si termina en algo que casi solo usa el spam
-  (`TLD_SPAM`: `.link`, `.xyz`, `.click`, `.top`…).
+  (`TLD_SPAM`: `.link`, `.xyz`, `.click`, `.icu`…).
 
 Nombrar una web en una frase («lo vi en google.com»), un correo, un fichero
-(`foto.jpg`) o un número con barra no cuenta: un falso positivo es un kick. Si
-hace falta otra terminación de spam, va en `TLD_SPAM`, no se abre a todas.
-Capa 8.
+(`foto.jpg`), un número con barra o una fecha («12.oct/2026») no cuenta: un
+falso positivo es un kick. Tampoco decir tu Instagram sin @ («maria.love»,
+«dani.club»): por eso `TLD_SPAM` no lleva `.love`, `.club`, `.vip`, `.top`,
+`.store`… (la primera versión sí, y se quitó el 5 nov). Una terminación nueva
+entra solo si nadie la usa de nombre de usuario. Capa 8.
 
 ## Todos los números del dueño, también los que casi no escriben
 

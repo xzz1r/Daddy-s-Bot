@@ -1598,6 +1598,11 @@ const di=async(quien,texto,extra)=>{
       ['ficheros y versiones',        { conversation: 'node.js, archivo.txt, foto.jpg, la 1.5.2' }, 'none'],
       ['números con barra',           { conversation: 'iba a 1.5km/h, o sea 3.14/2' }, 'none'],
       ['youtube nombrado sin ruta',   { conversation: 'eso está en youtube.com' }, 'none'],
+      // Decir tu Instagram sin @ no es un enlace (5 nov): era un kick.
+      ['instagram dicho sin @',       { conversation: 'sígueme en ig: maria.love o dani.club' }, 'none'],
+      ['más usuarios con punto',      { conversation: 'sofi.vip, lu.store, valen.page, pepe.top' }, 'none'],
+      ['una fecha con barra',         { conversation: 'quedamos el 12.oct/2026' }, 'none'],
+      ['x.com con ruta',              { conversation: 'mira x.com/fulano' }, 'blocked'],
       ['youtube con ruta',            { conversation: 'https://youtube.com/watch?v=x' }, 'whitelisted'],
     ];
     let huecos = 0;
@@ -15802,6 +15807,28 @@ const hacerFichero = async () => {
       mhMod.invalidateGroupMeta(G78);
       exige(mhMod.metaParaBaileys(G78) === undefined,
         'un join o un kick no invalida lo que se le sirve a Baileys: seguiría con la lista de antes del cambio');
+
+      // CADUCADA, SE RELEE UNA VEZ PARA TODOS (5 nov). Antes Baileys
+      // preguntaba él solo en cada envío: diez respuestas, diez consultas.
+      exige(/cachedGroupMetadata:\s*async\s*\(jid\)\s*=>\s*metaFrescaParaBaileys\(sock, jid\)/.test(botSrc),
+        'el socket ya no relee la caché caducada: Baileys vuelve a preguntar groupMetadata en cada envío a ese grupo');
+      if (typeof mhMod.metaFrescaParaBaileys === 'function') {
+        const G78b = '000000078001@g.us';
+        let lentas = 0, falla = false;
+        const sk2 = { groupMetadata: async (j) => { lentas++; await new Promise((r) => setTimeout(r, 30)); if (falla) throw new Error('timeout'); return { id: j, participants: [{ id: '34600000079@s.whatsapp.net' }] }; } };
+        const diez = await Promise.all(Array.from({ length: 10 }, () => mhMod.metaFrescaParaBaileys(sk2, G78b)));
+        exige(lentas === 1 && diez.every((m) => m && m.id === G78b), `diez envíos a un grupo sin caché hicieron ${lentas} consultas, no una compartida`);
+        const relojReal2 = Date.now;
+        Date.now = () => relojReal2() + 11 * 60_000;
+        try {
+          falla = true;
+          const vieja = await mhMod.metaFrescaParaBaileys(sk2, G78b);
+          exige(vieja === undefined, 'si la relectura falla se le sirve a Baileys la lista caducada: un miembro nuevo se quedaría sin cifrar');
+        } finally { Date.now = relojReal2; }
+        exige(await mhMod.metaFrescaParaBaileys(sk2, 'status@broadcast') === undefined && lentas === 2,
+          'para las historias se pregunta metadata de grupo: no es un grupo');
+        mhMod.invalidateGroupMeta(G78b);
+      }
     }
 
     if (fallos === antes) console.log(verde('   \u2713 el socket usa la caché del bot, y solo mientras está fresca'));
@@ -23285,7 +23312,7 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     const botSrc = fs.readFileSync(path.join(R, 'src/bot.js'), 'utf8');
     const m = botSrc.match(/async function echarVetadosDentro\(grupo\) \{[\s\S]*?\n\}\n/);
     exige(Boolean(m), 'no encuentro echarVetadosDentro en bot.js');
-    const sondeo = (botSrc.match(/async function sondearSolicitudes\(\) \{[\s\S]*?\n\}\n/) || [''])[0];
+    const sondeo = (botSrc.match(/async function repasarGrupos\(\) \{[\s\S]*?\n\}\n/) || [''])[0];
     exige(/await echarVetadosDentro\(g\)/.test(sondeo), 'el repaso de grupos ya no mira la lista negra: los vetados que entraron con el bot fuera se quedan');
     if (m) {
       const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'vetados-'));
@@ -23307,8 +23334,8 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
           "  groupParticipantsUpdate: async (j, p, acc) => { if (acc === 'remove') quitados.push(...p); return p.map((id) => ({ status: '200', jid: id })); } };",
           "const isBotAdmin = (s, mt) => mt.participants.some((p) => p.id === BOT && p.admin);",
           "const fuente = require('fs').readFileSync('./echar.js', 'utf8').replace('module.exports = echarVetadosDentro;', 'return echarVetadosDentro;');",
-          "const echar = new Function('sock', 'getGroupMeta', 'isBotAdmin', 'vetadosAlEntrar', 'invalidateGroupMeta', 'logger', 'isBanned', 'bareJid', fuente)(",
-          "  sock, async () => meta(), isBotAdmin, vetadosAlEntrar, () => { invalidada++; }, { warn: () => {}, info: () => {} }, banlist.isBanned, require('./src/utils/wa').bareJid);",
+          "const echar = new Function('sock', 'getGroupMeta', 'metaDelRepaso', 'isBotAdmin', 'vetadosAlEntrar', 'invalidateGroupMeta', 'logger', 'isBanned', 'bareJid', fuente)(",
+          "  sock, async () => meta(), async () => meta(), isBotAdmin, vetadosAlEntrar, () => { invalidada++; }, { warn: () => {}, info: () => {} }, banlist.isBanned, require('./src/utils/wa').bareJid);",
           "(async () => { const r = {};",
           "  for (const j of [MALO, MALO_ADM, OWN]) await banlist.banAccount([j], 'capa 141', 'capa');",
           "  await echar(G); r.uno = quitados.slice(); r.invalidada = invalidada;",
@@ -23756,8 +23783,34 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     exige(orden.join(',') === 'a0,del,a1,b1,a2,b2,a3,a4', `los chats no se turnan o se desordenan: ${orden.join(',')}`);
     const huecos = salidas.slice(1).map((x, i) => x.t - salidas[i].t);
     exige(huecos.every((h) => h >= HUECO - 5), `dos envíos salen más juntos que el hueco: ${huecos.join('/')} ms`);
+    // Las ediciones (el «⏳ sigo con ello…») salen las últimas.
+    const salidas2 = [];
+    const s147b = { sendMessage: async (j, c) => { salidas2.push(c.edit ? 'edit' : c.text); return {}; } };
+    RT.ponerRitmo(s147b, { sendMessage: { hueco: 15, azar: 0, cola: true } });
+    await Promise.all([
+      s147b.sendMessage('A', { text: 'x0' }), s147b.sendMessage('A', { text: 'ed', edit: { id: 'k' } }),
+      s147b.sendMessage('A', { text: 'x1' }), s147b.sendMessage('B', { text: 'y1' }),
+    ]);
+    exige(salidas2.join(',') === 'x0,x1,y1,edit', `una edición cosmética le quita el sitio a una respuesta: ${salidas2.join(',')}`);
+    // Y el aviso de progreso no apila ediciones mientras una espera turno.
+    {
+      const P = require(path.join(R, 'src/utils/progreso'));
+      let soltar = null, edits = 0;
+      const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
+      const skP = { sendPresenceUpdate: async () => {}, sendMessage: async (j, c) => { if (c.edit) { edits++; await new Promise((r) => { soltar = r; }); } return { key: { id: 'AV147' } }; } };
+      const msgP = { key: { id: 'P147', remoteJid: '120363000000147@g.us' } };
+      P.empezar(skP, msgP, { texto: 'Bajando', tras: 5, cada: 100000, azar: 0 });
+      await dormir(40);
+      P.etapa(msgP, 'Ajustando'); await dormir(10); P.etapa(msgP, 'Subiendo'); P.etapa(msgP, 'Casi');
+      await dormir(20);
+      if (soltar) soltar();
+      await dormir(40);
+      if (soltar) soltar();
+      exige(edits === 1, `con una edición esperando turno, el aviso de progreso pidió ${edits}: luego salen todas seguidas y viejas`);
+      await P.terminar(msgP);
+    }
     const e = RT.estadoCola();
-    exige(e.n === 8 && e.borrados === 1 && e.maxMs >= HUECO * 6 && e.mediaMs > 0, `la cola no apunta lo que espera cada envío: ${JSON.stringify(e)}`);
+    exige(e.n === 12 && e.borrados === 1 && e.maxMs >= HUECO * 6 && e.mediaMs > 0, `la cola no apunta lo que espera cada envío: ${JSON.stringify(e)}`);
     const l1 = RT.lineaCola({ ...e, ts: Date.now(), n: 100, lentos: 1 });
     const l2 = RT.lineaCola({ ...e, ts: Date.now(), n: 100, lentos: 10 });
     exige(l1.tipo === 'ok' && l2.tipo === 'aviso' && /riesgo de revisión/.test(l2.arreglo || ''), 'npm run estado no avisa cuando la fila se llena, o avisa sin decir el precio de acortar el hueco');
@@ -23765,6 +23818,62 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     exige(/lineaCola\(/.test(soloCodigo('scripts/estado.js')), 'npm run estado ya no enseña la cola de salida');
     RT._olvidarMedidas();
     if (fallos === antes147) console.log(verde('   ✓ el borrado sale el segundo, los chats se turnan sin desordenarse, el hueco se respeta y npm run estado lo cuenta'));
+  }
+
+  // ── 148. LOS REPASOS DE FONDO NO PREGUNTAN DE MÁS NI EN RÁFAGA (5 nov) ─────
+  // Medido con 20 grupos, una hora de repasos cada seis minutos: 282 consultas
+  // sin que nadie hiciera nada. 80 eran fichas de grupo que el repaso releía
+  // en cuanto pasaban de diez minutos, por la misma fila que los comandos y
+  // los envíos; y las 20 de solicitudes salían en el mismo segundo. Ahora el
+  // repaso usa la ficha en caché (los eventos la tiran cuando cambia, la
+  // lista se relee cada media hora y al reconectar), pausa entre grupos a los
+  // que pregunta, y dos repasos no corren a la vez. En sandbox, con reloj
+  // falso.
+  {
+    console.log('\n148. LOS REPASOS DE FONDO NO PREGUNTAN DE MÁS NI EN RÁFAGA');
+    const antes148 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const bot148 = soloCodigo('src/bot.js');
+    exige(/if \(Date\.now\(\) - gruposTs > 5 \* 60 \* 1000\) gruposTs = 0;/.test(bot148),
+      'al reconectar ya no se relee la lista de grupos: el repaso se fiaría de fichas de antes del corte');
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'repaso148-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "let reloj = Date.now(); const real = Date.now; Date.now = () => reloj;",
+        "const bot = require('./src/bot'); const BOT = '34600000148@s.whatsapp.net';",
+        "const grupos = {}; for (let i = 0; i < 6; i++) { const id = '1203630000001480' + i + '@g.us'; grupos[id] = { id, subject: 'G' + i, participants: [{ id: BOT, admin: 'admin' }, { id: (91480000 + i) + '@lid' }] }; }",
+        "const cuenta = {}; const c = (k) => { cuenta[k] = (cuenta[k] || 0) + 1; }; const tsReq = [];",
+        "const sock = { user: { id: BOT },",
+        "  groupFetchAllParticipating: async () => { c('lista'); return JSON.parse(JSON.stringify(grupos)); },",
+        "  groupMetadata: async (j) => { c('ficha'); return JSON.parse(JSON.stringify(grupos[j])); },",
+        "  groupRequestParticipantsList: async () => { c('solicitudes'); tsReq.push(real()); return []; },",
+        "  sendMessage: async () => ({}), groupParticipantsUpdate: async (g, ids) => ids.map((jid) => ({ jid, status: '200' })) };",
+        "bot._sockDePrueba(sock); bot._pausaSondeo(40, 0);",
+        "(async () => {",
+        "  await Promise.all([bot.sondearSolicitudes(), bot.sondearSolicitudes()]);",
+        "  const primera = { ...cuenta }; const huecos = tsReq.slice(1).map((t, i) => t - tsReq[i]);",
+        "  for (let v = 0; v < 9; v++) { reloj += 6 * 60 * 1000; await bot.sondearSolicitudes(); }",
+        "  bot._sockDePrueba(null);",
+        "  console.log('R148' + JSON.stringify({ primera, cuenta, huecoMin: Math.min(...huecos) })); process.exit(0);",
+        "})().catch((e) => { console.log('R148' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 90000,
+        env: { ...process.env, OWNER_NUMBER: '34600000999', CO_OWNERS: '', LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R148'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: (out.stderr || '').split('\n').slice(0, 4).join(' ') };
+      if (r.error) exige(false, `no pude probar el repaso: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(r.primera.solicitudes === 6 && r.primera.lista === 1, `dos repasos lanzados a la vez corren los dos (${JSON.stringify(r.primera)})`);
+        exige(r.huecoMin >= 35, `las consultas de solicitudes salen en ráfaga: ${r.huecoMin} ms entre dos`);
+        exige(!r.cuenta.ficha, `en una hora de repasos se releen ${r.cuenta.ficha} fichas de grupo que ya estaban en caché`);
+        exige(r.cuenta.lista <= 3, `la lista entera de grupos se pide ${r.cuenta.lista} veces en una hora: es la consulta más cara`);
+        exige(r.cuenta.solicitudes === 60, `los grupos que piden aprobación no se sondean cada vuelta (${r.cuenta.solicitudes} de 60)`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes148) console.log(verde('   ✓ una hora de repasos: cero fichas releídas, la lista cada media hora, solicitudes espaciadas y un repaso a la vez'));
   }
 
 

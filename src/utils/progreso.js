@@ -65,11 +65,20 @@ function mostrar(s) {
 
 // Se pone en la fila aunque el aviso aun no tenga clave: si esta saliendo, la
 // fila hace que el editado vaya detras y ya la encuentre.
+//
+// UNA EDICIÓN PENDIENTE COMO MUCHO (5 nov). Las ediciones van las últimas en
+// la cola de salida (utils/ritmo.js): con la cola llena, una puede tardar en
+// salir. Si mientras tanto el reloj pedía otra, se apilaban y luego salían
+// todas seguidas con textos ya pasados. Ahora, si hay una esperando, la
+// siguiente no se pide: la que salga ya lleva el texto del momento.
 function actualizar(s) {
-  if (s.acabado || !s.mostrando) return;
+  if (s.acabado || !s.mostrando || s.editando) return;
+  s.editando = true;
   enFila(s, async () => {
-    if (s.acabado || !s.clave) return;
-    await s.sock.sendMessage(s.jid, { text: textoDe(s), edit: s.clave });
+    try {
+      if (s.acabado || !s.clave) return;
+      await s.sock.sendMessage(s.jid, { text: textoDe(s), edit: s.clave });
+    } finally { s.editando = false; }
   });
 }
 

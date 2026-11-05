@@ -199,6 +199,12 @@ async function sondear(sock, grupo) {
   return (lista || []).length;
 }
 
+// ¿Está frenado ahora? Entonces sondear no pregunta nada a WhatsApp.
+function estaFrenado(grupo) {
+  const freno = frenados.get(grupo);
+  return Boolean(freno && Date.now() < freno.hasta);
+}
+
 // ¿Se acaba de frenar este grupo? Devuelve el freno la PRIMERA vez que se
 // pregunta tras crearlo, y null después. Sirve para explicar el motivo una sola
 // vez por bloqueo en lugar de en cada ciclo.
@@ -414,6 +420,6 @@ async function aceptarPendientes(sock, grupo) {
 module.exports = {
   aceptarPendientes, jidDeSolicitud,
   notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, sondeoReciente, colaConocida,
-  reactivarSondeo, frenoNuevo, flushJoinRequests, SONDEO_VALIDO_MS,
+  reactivarSondeo, frenoNuevo, estaFrenado, flushJoinRequests, SONDEO_VALIDO_MS,
   _reset, _marcarSondeo, _frenado,
 };

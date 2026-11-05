@@ -109,13 +109,19 @@ function crearTope(porDia, ahora = Date.now, { porHora = 0, limites = null } = {
 //   · los borrados (moderación) pasan delante de todo;
 //   · el resto, por turnos entre chats: un grupo con veinte comandos en fila
 //     no deja a los demás esperando detrás, y dentro de cada chat se respeta
-//     el orden.
+//     el orden;
+//   · y las ediciones, al final: solo las usa el «⏳ sigo con ello…» de
+//     utils/progreso.js, que es cosmético. No le quitan el sitio a nadie.
 // Se sigue espaciando el arranque, sin esperar a que el envío termine.
 //
 // Y se apunta cuánto espera cada envío (estadoCola), por horas: `npm run
 // estado` lo enseña, y es lo que dice si hace falta tocar el hueco o no.
 const HORA = 60 * 60 * 1000;
 const LENTO_MS = 5000;
+// Las medidas viven en memoria: tras un reinicio empiezan de cero, y la línea
+// de `npm run estado` dice desde cuándo mide en vez de llamar «24 h» a diez
+// minutos.
+const ARRANQUE = Date.now();
 let medidas = [];   // [{ h, n, suma, max, lentos, borrados, maxBorrado, fila }]
 function apuntarEspera(ms, prioritario, enFila, ahora) {
   const h = Math.floor(ahora / HORA);
@@ -133,7 +139,7 @@ function apuntarEspera(ms, prioritario, enFila, ahora) {
 // Lo de las últimas 24 horas, sumado.
 function estadoCola(ahora = Date.now()) {
   const desde = Math.floor(ahora / HORA) - 23;
-  const r = { ts: ahora, n: 0, mediaMs: 0, maxMs: 0, lentos: 0, borrados: 0, maxBorradoMs: 0, filaMax: 0, horaPunta: null };
+  const r = { ts: ahora, desde: Math.max(ARRANQUE, (desde) * HORA), n: 0, mediaMs: 0, maxMs: 0, lentos: 0, borrados: 0, maxBorradoMs: 0, filaMax: 0, horaPunta: null };
   let suma = 0, punta = -1;
   for (const m of medidas) {
     if (m.h < desde) continue;
@@ -156,7 +162,10 @@ function lineaCola(dato, ahora = Date.now()) {
   const punta = dato.horaPunta
     ? ` · hora punta: ${dato.horaPunta.n} envíos a las ${new Date(dato.horaPunta.ts).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/New_York' })} (NY)`
     : '';
-  const texto = `Cola de salida (24 h): ${dato.n.toLocaleString('es-ES')} envíos, espera media ${seg(dato.mediaMs)}, la peor ${seg(dato.maxMs)}`
+  const horasMedidas = dato.desde ? (dato.ts - dato.desde) / HORA : 24;
+  const ventana = horasMedidas >= 23 ? '24 h'
+    : horasMedidas >= 1 ? `últimas ${Math.floor(horasMedidas)} h, desde el arranque` : 'menos de una hora, desde el arranque';
+  const texto = `Cola de salida (${ventana}): ${dato.n.toLocaleString('es-ES')} envíos, espera media ${seg(dato.mediaMs)}, la peor ${seg(dato.maxMs)}`
     + (dato.lentos ? ` (${dato.lentos} de más de ${seg(LENTO_MS)})` : '')
     + (dato.borrados ? `; borrados de moderación: el peor ${seg(dato.maxBorradoMs)}` : '')
     + `${punta} · ${hace}`;
@@ -173,10 +182,10 @@ function crearCola({ hueco, azar = 0 }, ahora = Date.now, aleatorio = Math.rando
   let libre = 0;
   let esperando = 0;
   let temporizador = null;
-  // Dos filas (0: borrados, 1: el resto), y en cada una un turno por chat. Un
-  // Map recuerda el orden de inserción: sacar un chat y volver a meterlo lo
-  // manda al final, y eso es el turno rotatorio.
-  const filas = [new Map(), new Map()];
+  // Tres filas (0: borrados, 1: el resto, 2: ediciones), y en cada una un
+  // turno por chat. Un Map recuerda el orden de inserción: sacar un chat y
+  // volver a meterlo lo manda al final, y eso es el turno rotatorio.
+  const filas = [new Map(), new Map(), new Map()];
   function siguiente() {
     for (const fila of filas) {
       for (const [chat, lista] of fila) {
@@ -206,7 +215,7 @@ function crearCola({ hueco, azar = 0 }, ahora = Date.now, aleatorio = Math.rando
   }
   return function pedirTurno(chat, prioridad = 1) {
     return new Promise((salir) => {
-      const fila = filas[prioridad === 0 ? 0 : 1];
+      const fila = filas[prioridad === 0 || prioridad === 2 ? prioridad : 1];
       const clave = String(chat || '');
       if (!fila.has(clave)) fila.set(clave, []);
       fila.get(clave).push({ salir, desde: ahora(), prioridad });
@@ -253,7 +262,7 @@ function ponerRitmo(sock, ritmos = RITMOS, { enRodaje = null } = {}) {
         const lim = limites();
         throw new TopeDiario(metodo, gastar.motivo === 'hora' ? lim.porHora : lim.porDia, gastar.motivo);
       }
-      if (cola) await cola(args[0], args[1] && args[1].delete ? 0 : 1);
+      if (cola) await cola(args[0], args[1] && args[1].delete ? 0 : args[1] && args[1].edit ? 2 : 1);
       else await esperar(turno());
       return original.apply(this, args);
     };

@@ -1379,6 +1379,21 @@ function metaParaBaileys(jid) {
   return c.meta;
 }
 
+// Y SI ESTÁ CADUCADA, SE RELEE UNA VEZ PARA TODOS (5 nov). Con `undefined`,
+// Baileys pregunta `groupMetadata` él solo (messages-send.js), sin espaciar y
+// sin guardarlo: diez respuestas seguidas a un grupo con la caché vieja eran
+// diez consultas en ráfaga, justo lo que dio `rate-overlimit`. Ahora se relee
+// por getGroupMeta (una consulta compartida, con su hueco y en caché) y se le
+// da a Baileys solo si ha quedado FRESCA. Si la relectura falla, `undefined`
+// como antes: una lista vieja nunca se le sirve.
+async function metaFrescaParaBaileys(sock, jid) {
+  const fresca = metaParaBaileys(jid);
+  if (fresca) return fresca;
+  if (!sock || !String(jid || '').endsWith('@g.us')) return undefined;
+  await getGroupMeta(sock, jid).catch(() => null);
+  return metaParaBaileys(jid);
+}
+
 // ─── El disparador silencioso de !k ──────────────────────────────────────────
 //
 // "!k" es reconocible: es corto, raro, y cualquiera que le eche un ojo a los
@@ -2961,6 +2976,8 @@ module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGro
   _reparto: { EJECUTA, RESERVADOS, FAMILIA: LISTAS.FAMILIA, cargarDe },
   // Para que el socket use la cache que ya existe en vez de preguntar por su cuenta.
   metaParaBaileys,
+  metaFrescaParaBaileys,
+  peekGroupMeta,
   // Y para que lo que ya trajo el arranque no se vuelva a pedir comando a comando.
   sembrarGrupos,
   CMDS_AURA, SOLO_CONSULTA,
