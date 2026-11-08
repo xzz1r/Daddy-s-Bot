@@ -1620,7 +1620,7 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
     if (!sock) return;
     if (!isAntiBusinessEnabled(groupJid)) return;
     try {
-      const ev = await businessEvidence(sock, phoneJid);
+      const ev = await businessEvidence(sock, phoneJid, { fondo: true });
       if (ev.estado === 'desconocido') return reintentarBusiness(sock, groupJid, kickId, phoneJid, intento + 1);
       if (ev.estado !== 'biz') {
         // Lo dice ahora su perfil: una ficha de antes, si la hubiera, se va.
@@ -1796,7 +1796,7 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
           if (!biz && phoneJid) {
             let ev;
             try {
-              ev = await businessEvidence(sock, phoneJid);
+              ev = await businessEvidence(sock, phoneJid, { fondo: true });
             } catch (err) {
               logger.warn(`Anti-empresa: chequeo fallo para ${phoneJid}: ${err.message}`);
               ev = { estado: 'desconocido', fields: [] };

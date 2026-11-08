@@ -60,7 +60,10 @@ const SIN_CATEGORIA = /^(?:undefined|none|null|sin\s+definir|no\s+definida)$/i;
 
 // Núcleo. Devuelve { estado, fields } con el porqué, para que el dry-run del
 // scan pueda enseñar la evidencia en vez de un sí/no a secas.
-async function businessEvidence(sock, jid) {
+// `fondo`: la consulta no la ha pedido alguien que acaba de escribir (una
+// entrada, un reintento, la precisión, un escaneo). Sale detrás de lo urgente
+// y solo gasta su parte del tope (ver getBusinessProfile en utils/ritmo.js).
+async function businessEvidence(sock, jid, { fondo = false } = {}) {
   if (!jid || typeof jid !== 'string' || !jid.endsWith('@s.whatsapp.net')) {
     // Un @lid no admite la consulta de perfil. Eso NO quiere decir que sea una
     // cuenta personal: quiere decir que por aquí no se puede saber. Antes esto
@@ -73,7 +76,13 @@ async function businessEvidence(sock, jid) {
   let profile;
   try {
     const { withTimeout } = require('./helpers');
-    profile = await withTimeout(sock.getBusinessProfile(jid), 8000);
+    const { FONDO } = require('./ritmo');
+    // EL PLAZO CUENTA TAMBIÉN LA ESPERA EN LA COLA. Con 8 s, una consulta que
+    // esperaba turno detrás de otras tres vencía aquí, salía «no se sabe» y la
+    // consulta se hacía igual un poco después: cupo gastado y nadie leyendo la
+    // respuesta, y el siguiente mensaje volvía a pedirla. Baileys ya corta él
+    // solo una consulta que no contesta.
+    profile = await withTimeout(fondo ? sock.getBusinessProfile(jid, FONDO) : sock.getBusinessProfile(jid), fondo ? 120000 : 30000);
   } catch (e) {
     return { estado: 'desconocido', fields: [], motivo: `la consulta falló (${e?.message || 'error'})` };
   }

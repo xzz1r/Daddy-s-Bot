@@ -972,7 +972,7 @@ async function detectBusinesses(sock, idToPhone) {
       // de casi todo el que ha escrito: el número oculto no esconde nada aquí.
       const tel = phoneJid || await resolverLid(sock, kickId).catch(() => null);
       if (!tel) return porFicha({ estado: 'desconocido', fields: [], motivo: 'sin teléfono' });
-      const ev = await businessEvidence(sock, tel).catch(() => ({ estado: 'desconocido', fields: [] }));
+      const ev = await businessEvidence(sock, tel, { fondo: true }).catch(() => ({ estado: 'desconocido', fields: [] }));
       if (ev.estado === 'desconocido') return porFicha(ev);
       if (ev.estado === 'personal') {
         for (const forma of new Set([kickId, tel])) await recordFacts(forma, { empresa: false }).catch(() => {});

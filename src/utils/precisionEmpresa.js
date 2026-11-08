@@ -98,7 +98,7 @@ async function medir(sock, { tope = MUESTRA, pausa = PAUSA } = {}) {
         for (const f of p.formas) { tel = await resolverLid(sock, f).catch(() => null); if (tel) break; }
       }
       const ev = tel
-        ? await businessEvidence(sock, tel).catch(() => ({ estado: 'desconocido' }))
+        ? await businessEvidence(sock, tel, { fondo: true }).catch(() => ({ estado: 'desconocido' }))
         : { estado: 'desconocido' };
       if (ev.estado === 'biz' || ev.estado === 'personal') {
         fichas[p.cuenta] = { e: ev.estado === 'biz' ? 'biz' : 'normal', ts: Date.now(), tel: tel || null };

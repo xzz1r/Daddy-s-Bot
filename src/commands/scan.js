@@ -124,7 +124,7 @@ async function cmdScan(sock, msg, groupMeta) {
         const observado = await porFacts(phoneToId.get(j), j);
         if (observado) return [j, { estado: 'biz', fields: observado }];
         if (await yaNormal(phoneToId.get(j), j)) return [j, { estado: 'personal', fields: [] }];
-        const ev = await businessEvidence(sock, j).catch(() => ({ estado: 'desconocido', fields: [] }));
+        const ev = await businessEvidence(sock, j, { fondo: true }).catch(() => ({ estado: 'desconocido', fields: [] }));
         return [j, ev];
       }));
       for (const [j, ev] of results) {

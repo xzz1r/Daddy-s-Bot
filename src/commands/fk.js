@@ -706,7 +706,7 @@ async function vetoDeEmpresaSigue(sock, obj, veto, forms) {
   let tel = candidatos.find((f) => f.endsWith('@s.whatsapp.net'));
   if (!tel) tel = await resolverLid(sock, obj.id).catch(() => null);
   if (!tel) return true;
-  const ev = await businessEvidence(sock, tel).catch(() => ({ estado: 'desconocido' }));
+  const ev = await businessEvidence(sock, tel, { fondo: true }).catch(() => ({ estado: 'desconocido' }));
   if (ev.estado !== 'personal') return true;
   await unbanAccount([...forms, ...(veto.aka || []), tel]).catch(() => {});
   for (const f of new Set([...forms, tel])) await recordFacts(f, { empresa: false }).catch(() => {});

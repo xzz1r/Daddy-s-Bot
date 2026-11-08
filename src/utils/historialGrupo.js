@@ -196,6 +196,21 @@ function quitar(jid, id) {
   if (!cola.length) grupos.delete(jid);
 }
 
+// Los mensajes de UNA persona en ese grupo desde `desdeSeg`, los más nuevos
+// primero y como mucho `max`. `esSuyo(participante)` decide si un mensaje es
+// suyo: la persona puede venir con su @lid o con su teléfono.
+function dePersona(jid, esSuyo, desdeSeg, max = 10) {
+  const cola = grupos.get(jid);
+  if (!cola || !cola.length || typeof esSuyo !== 'function') return [];
+  const out = [];
+  for (let i = cola.length - 1; i >= 0 && out.length < max; i--) {
+    const x = cola[i];
+    if (x.fromMe || x.ts < desdeSeg) continue;
+    if (esSuyo(x.participant) || (x.key?.participantAlt && esSuyo(x.key.participantAlt))) out.push(x);
+  }
+  return out;
+}
+
 function cuantos(jid) {
   return grupos.get(jid)?.length || 0;
 }
@@ -314,7 +329,7 @@ function reset() {
 cargar();
 
 module.exports = {
-  recordar, ingestarLote, ingestarEvento, tomar, quitar, cuantos, reunir, masAntiguo, flush,
+  recordar, ingestarLote, ingestarEvento, tomar, quitar, cuantos, reunir, masAntiguo, flush, dePersona,
   TOPE_POR_GRUPO, MAX_GRUPOS, PAGINA,
   _reset: reset, _tieneContenido: tieneContenido, _pedirPagina: pedirPagina,
 };

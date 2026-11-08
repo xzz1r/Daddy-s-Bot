@@ -562,6 +562,13 @@ async function expulsarBusinessDetectado(sock, jid, sender, msg, motivo = 'cuent
     // inventar nada: el owner puede deshacerlo con *!fkunban*.
     await banAccount(allForms(sender, meta), `cuenta business en ${jid} (${motivo})`, 'auto')
       .catch((e) => logger.unaVez('vetar cuenta business', e));
+    // Y SU SPAM SE VA CON ELLA (8 nov). El dueño: «muchas llegan a hacer spam»
+    // antes de que se las detecte, y se las echaba dejando lo que habían
+    // soltado. Se borran sus mensajes en este grupo de la última media hora,
+    // como mucho diez, con las claves que guarda el historial del grupo. Son
+    // borrados de admin y van por la cola de salida, delante de las respuestas.
+    const borrados = await borrarSpamReciente(sock, jid, sender).catch(() => 0);
+    if (borrados) logger.info(`Anti-empresa: borrados ${borrados} mensaje(s) de ${sender} en ${jid}`);
     if (puedeAnunciar(jid, sender)) {
       sock.sendMessage(jid, {
         // SIN EL PORQUÉ: la categoría y demás van al log y a la lista negra.
@@ -582,6 +589,83 @@ async function expulsarBusinessDetectado(sock, jid, sender, msg, motivo = 'cuent
   avisoBizReciente.set(clave, Date.now());
 }
 
+
+const SPAM_RECIENTE_MS = 30 * 60 * 1000;
+const SPAM_RECIENTE_MAX = 10;
+async function borrarSpamReciente(sock, jid, sender) {
+  const { dePersona, quitar } = require('../utils/historialGrupo');
+  const desde = Math.floor((Date.now() - SPAM_RECIENTE_MS) / 1000);
+  const suyos = dePersona(jid, (p) => Boolean(p) && sameUser(p, sender), desde, SPAM_RECIENTE_MAX);
+  let n = 0;
+  for (const x of suyos) {
+    const key = { ...x.key, remoteJid: jid, fromMe: false, participant: x.key?.participant || x.participant || sender };
+    try {
+      await sock.sendMessage(jid, { delete: key });
+      quitar(jid, x.id);
+      n++;
+    } catch (e) {
+      logger.warn(`Anti-empresa: no pude borrar un mensaje de ${sender} en ${jid}: ${e?.message || e}`);
+    }
+  }
+  return n;
+}
+
+// ─── LA REPESCA: QUIEN ESCRIBIÓ Y NO SE PUDO COMPROBAR ────────────────────
+//
+// El dueño (8 nov): «muchas llegan a hacer spam y el bot a veces ni siquiera
+// las detecta después de eso». Si la consulta de perfil no contestaba —el tope
+// de la hora gastado, un fallo de red—, se reintentaba con el SIGUIENTE
+// mensaje de esa persona. El spammer suelta lo suyo de golpe y se calla, así
+// que no había siguiente mensaje y se quedaba dentro sin comprobar.
+//
+// Ahora queda apuntado y se vuelve a mirar en segundo plano: UNA consulta cada
+// REPESCA_CADA_MS como mucho, y solo de gente que ha escrito en un grupo con
+// el anti-empresa encendido. Va por el mismo tope que todo lo demás: si está
+// gastado, espera a la vuelta siguiente. Lo apuntado caduca a las 24 h o tras
+// ocho intentos, y en memoria: un reinicio lo olvida, que es el lado seguro.
+const REPESCA_CADA_MS = 3 * 60 * 1000;
+const REPESCA_VALE_MS = 24 * 60 * 60 * 1000;
+const REPESCA_INTENTOS = 8;
+const pendientesEmpresa = new Map();   // teléfono -> { jid, sender, ts, intentos }
+let repescaSock = null;
+let repescaTimer = null;
+function pendienteEmpresa(sock, jid, sender, tel) {
+  if (!tel) return;
+  repescaSock = sock;
+  if (!pendientesEmpresa.has(tel)) {
+    if (pendientesEmpresa.size >= 200) pendientesEmpresa.delete(pendientesEmpresa.keys().next().value);
+    pendientesEmpresa.set(tel, { jid, sender, ts: Date.now(), intentos: 0 });
+  }
+  if (!repescaTimer) {
+    repescaTimer = setInterval(() => { repescar().catch((e) => logger.unaVez('repesca del anti-empresa', e)); }, REPESCA_CADA_MS);
+    repescaTimer.unref?.();
+  }
+}
+async function repescar() {
+  for (const [tel, p] of pendientesEmpresa) {
+    pendientesEmpresa.delete(tel);
+    if (Date.now() - p.ts > REPESCA_VALE_MS || p.intentos >= REPESCA_INTENTOS) continue;
+    if (!isAntiBusinessEnabled(p.jid)) continue;
+    const sock = repescaSock;
+    if (!sock) { pendientesEmpresa.set(tel, p); return 'sin socket'; }
+    const perfil = await businessEvidence(sock, tel).catch(() => ({ estado: 'desconocido' }));
+    if (perfil.estado === 'desconocido') {
+      p.intentos++;
+      pendientesEmpresa.set(tel, p);   // al final de la cola
+      return 'desconocido';
+    }
+    if (perfil.estado !== 'biz') {
+      for (const forma of new Set([p.sender, tel])) await recordFacts(forma, { empresa: false }).catch(() => {});
+      return 'normal';
+    }
+    for (const forma of new Set([p.sender, tel])) await recordFacts(forma, { empresa: perfil.fields }).catch(() => {});
+    logger.warn(`Anti-empresa: ${tel} escribió en ${p.jid} sin poder comprobarse; la repesca dice que es Business`);
+    await expulsarBusinessDetectado(sock, p.jid, p.sender, { key: { fromMe: false } }, `${perfil.fields.join(', ')} (comprobada después de escribir)`);
+    return 'biz';
+  }
+  if (repescaTimer && !pendientesEmpresa.size) { clearInterval(repescaTimer); repescaTimer = null; }
+  return 'vacía';
+}
 
 // Una historia que llega por status@broadcast en vez de por el grupo.
 //
@@ -2186,6 +2270,9 @@ async function handleMessage(sock, msg, opciones = {}) {
         if (ev.estado === 'desconocido') {
           // Si no se supo, se deja que otro mensaje lo reintente más adelante.
           perfilMirado.delete(clave);
+          // Y si no vuelve a escribir, la repesca (8 nov): era el «a veces ni
+          // las detecta después». Ver pendienteEmpresa.
+          if (!f?.empresa) pendienteEmpresa(sock, jid, sender, tel);
           return porFicha();
         }
         if (ev.estado !== 'biz') {
@@ -2977,6 +3064,8 @@ module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGro
   // Para que el socket use la cache que ya existe en vez de preguntar por su cuenta.
   metaParaBaileys,
   metaFrescaParaBaileys,
+  _repescaEmpresa: { pendiente: pendienteEmpresa, repescar, pendientes: () => pendientesEmpresa.size, olvidar: () => { pendientesEmpresa.clear(); if (repescaTimer) { clearInterval(repescaTimer); repescaTimer = null; } } },
+  _borrarSpamReciente: borrarSpamReciente,
   peekGroupMeta,
   // Y para que lo que ya trajo el arranque no se vuelva a pedir comando a comando.
   sembrarGrupos,

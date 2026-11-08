@@ -139,7 +139,10 @@ consultar en una semana. Ver `MOTOR.md` («Un número nuevo no pregunta en
 masa») y la capa 144. Debajo hay topes por hora y por día en el socket
 (`utils/ritmo.js`), más bajos los siete primeros días de un número: **no se
 suben para que algo quepa**; lo que no quepa se dice como «sin comprobar».
-Capa 145.
+Capa 145. Dentro del tope, quien escribe va primero y tiene reservado el 40 %;
+lo de fondo lleva la marca `FONDO`. Quien escribió sin poder comprobarse se
+repesca después, y al echar a una cuenta Business se borra su spam reciente
+(dueño, 8 nov). Capa 150.
 
 ## La peña activa se halaga, sin veneno
 

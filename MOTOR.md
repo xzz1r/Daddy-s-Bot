@@ -336,6 +336,29 @@ vinculado se parecía a un raspador:
 No se añade nada que pregunte a WhatsApp por muchas cuentas seguidas sin
 muestra, sin pausa y sin esperar a que el número tenga días. Capa 144.
 
+**Con el mismo cupo, quien escribe primero** (8 nov). El dueño: «tarda en
+detectar cuentas Business; muchas llegan a hacer spam y a veces ni las detecta
+después». Con el número en rodaje caben 10 consultas de empresa por hora, y
+las entradas al grupo se las comían antes de que escribiera nadie. Los topes
+**no suben**; cambia el reparto:
+
+- Lo de fondo (las entradas y sus reintentos, la precisión, `!scan`, el veto
+  que se revisa al volver) va con la marca `FONDO` de `utils/ritmo.js`: sale
+  detrás de quien escribe y solo gasta el 60 % de cada tope. El 40 % queda
+  para comprobar a quien escribe.
+- **La repesca**: quien escribió y no se pudo comprobar (tope gastado, la
+  consulta no contestó) queda apuntado y se mira después en segundo plano, una
+  consulta cada tres minutos como mucho, dentro del mismo tope. Antes solo se
+  reintentaba con su siguiente mensaje, y el spammer suelta lo suyo y se calla.
+- **Su spam se va con ella**: al echar a una cuenta Business se borran sus
+  mensajes de la última media hora en ese grupo (diez como mucho), con las
+  claves del historial del grupo.
+- `npm run estado` dice cuántas veces se llegó a un tope en 24 h.
+
+El plazo de la consulta cuenta también la espera en la cola: con 8 s, una que
+esperaba turno vencía, salía «no se sabe» y se hacía igual después. Ahora son
+30 s para quien escribe y 120 para lo de fondo. Capa 150.
+
 **Y una red debajo** (1 nov). El ritmo (`utils/ritmo.js`) solo espaciaba: con
 dos segundos entre consultas caben mil ochocientas en una hora. Ahora:
 

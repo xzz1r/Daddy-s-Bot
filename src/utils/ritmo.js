@@ -44,7 +44,16 @@ const RITMOS = {
   // está bien; en serie es exactamente lo que hace un raspador.
   profilePictureUrl: { hueco: 1500, azar: 1000, porHora: 60, porDia: 400, rodaje: { porHora: 15, porDia: 100 } },
   fetchStatus: { hueco: 1500, azar: 1000, porHora: 30, porDia: 150, rodaje: { porHora: 8, porDia: 40 } },
-  getBusinessProfile: { hueco: 2000, azar: 1500, porHora: 40, porDia: 250, rodaje: { porHora: 10, porDia: 60 } },
+  // QUIEN ESCRIBE VA PRIMERO (8 nov). El dueño: «tarda en detectar cuentas
+  // Business; muchas llegan a hacer spam y a veces ni las detecta después».
+  // Con el número en rodaje caben 10 por hora, y las entradas al grupo se las
+  // comían antes de que escribiera nadie: el spammer que escribía se quedaba
+  // en la cola detrás de veinte que acababan de entrar, o sin cupo. Ahora lo
+  // de fondo (entradas, sus reintentos, la precisión, !scan) va con la marca
+  // FONDO: sale detrás de quien escribe y solo puede gastar el 60 % de cada
+  // tope; el 40 % queda para quien escribe. Los topes no suben.
+  getBusinessProfile: { hueco: 2000, azar: 1500, porHora: 40, porDia: 250, rodaje: { porHora: 10, porDia: 60 },
+    cola: true, reservaUrgente: 0.4 },
   // La metadata de los grupos. Casi siempre sale de la caché; cuando no, que
   // no salgan varias peticiones pegadas.
   groupMetadata: { hueco: 1000, azar: 500 },
@@ -78,9 +87,13 @@ function crearTope(porDia, ahora = Date.now, { porHora = 0, limites = null } = {
   const enLaHora = [];
   // `n`: cuántas unidades gasta esta llamada (una expulsión de diez cuenta
   // diez). Si no caben enteras, no sale ninguna.
-  function gastar(n = 1) {
+  // `factor` < 1: lo de fondo solo llega a esa parte del tope (el resto queda
+  // reservado para lo urgente). El contador es el mismo para los dos.
+  function gastar(n = 1, factor = 1) {
     const t = ahora();
-    const lim = limites ? limites() : { porHora, porDia };
+    const base = limites ? limites() : { porHora, porDia };
+    const parte = (x) => (x && factor < 1 ? Math.max(1, Math.floor(x * factor)) : x);
+    const lim = { porHora: parte(base.porHora), porDia: parte(base.porDia) };
     const hoy = new Date(t).toISOString().slice(0, 10);
     if (hoy !== dia) { dia = hoy; usados = 0; }
     while (enLaHora.length && t - enLaHora[0] >= 60 * 60 * 1000) enLaHora.shift();
@@ -139,7 +152,7 @@ function apuntarEspera(ms, prioritario, enFila, ahora) {
 // Lo de las últimas 24 horas, sumado.
 function estadoCola(ahora = Date.now()) {
   const desde = Math.floor(ahora / HORA) - 23;
-  const r = { ts: ahora, desde: Math.max(ARRANQUE, (desde) * HORA), n: 0, mediaMs: 0, maxMs: 0, lentos: 0, borrados: 0, maxBorradoMs: 0, filaMax: 0, horaPunta: null };
+  const r = { ts: ahora, desde: Math.max(ARRANQUE, (desde) * HORA), topes: topesDelDia(ahora), n: 0, mediaMs: 0, maxMs: 0, lentos: 0, borrados: 0, maxBorradoMs: 0, filaMax: 0, horaPunta: null };
   let suma = 0, punta = -1;
   for (const m of medidas) {
     if (m.h < desde) continue;
@@ -178,7 +191,7 @@ function lineaCola(dato, ahora = Date.now()) {
   return { tipo: 'ok', texto };
 }
 
-function crearCola({ hueco, azar = 0 }, ahora = Date.now, aleatorio = Math.random) {
+function crearCola({ hueco, azar = 0 }, ahora = Date.now, aleatorio = Math.random, medir = true) {
   let libre = 0;
   let esperando = 0;
   let temporizador = null;
@@ -209,7 +222,7 @@ function crearCola({ hueco, azar = 0 }, ahora = Date.now, aleatorio = Math.rando
       esperando--;
       const t = ahora();
       libre = t + hueco + Math.floor(aleatorio() * azar);
-      apuntarEspera(t - item.desde, item.prioridad === 0, esperando + 1, t);
+      if (medir) apuntarEspera(t - item.desde, item.prioridad === 0, esperando + 1, t);
       item.salir();
     }
   }
@@ -223,6 +236,34 @@ function crearCola({ hueco, azar = 0 }, ahora = Date.now, aleatorio = Math.rando
       bombear();
     });
   };
+}
+
+// LO DE FONDO SE MARCA CON ESTO, como último argumento de la llamada:
+//   sock.getBusinessProfile(jid, FONDO)
+// El ritmo lo quita antes de llamar a Baileys, que no lo ve nunca.
+const FONDO = Object.freeze({ ritmoFondo: true });
+
+// Cuántas veces se ha llegado a un tope, por hora y método: `npm run estado`
+// lo enseña. Es lo que dice si el anti-empresa tarda porque se acaba el cupo.
+let topesVistos = [];   // [{ h, metodos: { metodo: n } }]
+function apuntarTope(metodo, ahora = Date.now()) {
+  const h = Math.floor(ahora / HORA);
+  let m = topesVistos[topesVistos.length - 1];
+  if (!m || m.h !== h) {
+    m = { h, metodos: {} };
+    topesVistos.push(m);
+    while (topesVistos.length > 24) topesVistos.shift();
+  }
+  m.metodos[metodo] = (m.metodos[metodo] || 0) + 1;
+}
+function topesDelDia(ahora = Date.now()) {
+  const desde = Math.floor(ahora / HORA) - 23;
+  const r = {};
+  for (const m of topesVistos) {
+    if (m.h < desde) continue;
+    for (const [k, v] of Object.entries(m.metodos)) r[k] = (r[k] || 0) + v;
+  }
+  return r;
 }
 
 // Un tope alcanzado. `code` es 'TOPE_DIARIO' o 'TOPE_HORA'.
@@ -249,7 +290,8 @@ function ponerRitmo(sock, ritmos = RITMOS, { enRodaje = null } = {}) {
     const original = sock[metodo];
     if (typeof original !== 'function') continue;
     const turno = cfg.cola ? null : crearRitmo(cfg);
-    const cola = cfg.cola ? crearCola(cfg) : null;
+    const cola = cfg.cola ? crearCola(cfg, Date.now, Math.random, metodo === 'sendMessage') : null;
+    const reserva = Math.min(0.9, Math.max(0, Number(cfg.reservaUrgente) || 0));
     const conTope = cfg.porDia || cfg.porHora || cfg.rodaje;
     const limites = () => {
       if (cfg.rodaje && rodaje()) return { porHora: cfg.rodaje.porHora || 0, porDia: cfg.rodaje.porDia || 0 };
@@ -257,13 +299,20 @@ function ponerRitmo(sock, ritmos = RITMOS, { enRodaje = null } = {}) {
     };
     const gastar = conTope ? crearTope(0, Date.now, { limites }) : null;
     sock[metodo] = async function conRitmo(...args) {
+      const fondo = args.length > 0 && args[args.length - 1] === FONDO;
+      if (fondo) args = args.slice(0, -1);
       const n = cfg.porPersona && Array.isArray(args[1]) ? Math.max(1, args[1].length) : 1;
-      if (gastar && !gastar(n)) {
+      if (gastar && !gastar(n, fondo ? 1 - reserva : 1)) {
+        apuntarTope(metodo);
         const lim = limites();
         throw new TopeDiario(metodo, gastar.motivo === 'hora' ? lim.porHora : lim.porDia, gastar.motivo);
       }
-      if (cola) await cola(args[0], args[1] && args[1].delete ? 0 : args[1] && args[1].edit ? 2 : 1);
-      else await esperar(turno());
+      if (cola) {
+        const prioridad = metodo === 'sendMessage'
+          ? (args[1] && args[1].delete ? 0 : args[1] && args[1].edit ? 2 : 1)
+          : (fondo ? 2 : 1);
+        await cola(args[0], prioridad);
+      } else await esperar(turno());
       return original.apply(this, args);
     };
   }
@@ -271,5 +320,5 @@ function ponerRitmo(sock, ritmos = RITMOS, { enRodaje = null } = {}) {
   return sock;
 }
 
-module.exports = { ponerRitmo, crearRitmo, crearCola, crearTope, estadoCola, lineaCola, RITMOS, TopeDiario, esTope,
-  _olvidarMedidas: () => { medidas = []; } };
+module.exports = { ponerRitmo, crearRitmo, crearCola, crearTope, estadoCola, lineaCola, RITMOS, TopeDiario, esTope, FONDO, topesDelDia,
+  _olvidarMedidas: () => { medidas = []; topesVistos = []; } };

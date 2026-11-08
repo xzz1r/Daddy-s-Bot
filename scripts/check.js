@@ -1815,7 +1815,7 @@ const di=async(quien,texto,extra)=>{
     // El join decide con businessEvidence, NO con isBusiness. isBusiness aplana
     // los tres estados a un si/no, asi que un IQ vencido o un @lid sin telefono
     // salian como `false` —o sea, como cuenta personal— y entraban.
-    exige(/businessEvidence\(sock, phoneJid\)/.test(botSrc),
+    exige(/businessEvidence\(sock, phoneJid(?:\)|, \{ fondo: true \}\))/.test(botSrc),
       'el join volvio a decidir con isBusiness: lo que no se sabe cuenta como inocente');
     exige(/function reintentarBusiness/.test(botSrc),
       'el join ya no reintenta lo desconocido: quien no se pudo comprobar entra y se queda');
@@ -23926,6 +23926,88 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
       }
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     if (fallos === antes149) console.log(verde('   ✓ un mensaje de grupo sin descifrar se apunta aparte, y npm run estado dice si no llegó ninguna historia'));
+  }
+
+  // ── 150. EL ANTI-EMPRESA: QUIEN ESCRIBE PRIMERO, REPESCA Y SU SPAM FUERA ───
+  // El dueño (8 nov): «tarda en detectar cuentas Business; muchas llegan a
+  // hacer spam y a veces ni las detecta después», sin más riesgo de revisión.
+  // Los topes no suben. Lo que cambia:
+  //   · quien escribe pasa delante en la cola de consultas, y lo de fondo
+  //     (entradas, reintentos, precisión, !scan) solo gasta el 60 % del tope;
+  //   · quien escribió sin poder comprobarse se repesca después, de una en una;
+  //   · al echarla, se borra lo que soltó en la última media hora.
+  {
+    console.log('\n150. EL ANTI-EMPRESA: QUIEN ESCRIBE PRIMERO, REPESCA Y SU SPAM FUERA');
+    const antes150 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const RT = require(path.join(R, 'src/utils/ritmo'));
+    const gbp = RT.RITMOS.getBusinessProfile || {};
+    exige(gbp.porHora === 40 && gbp.porDia === 250 && gbp.rodaje?.porHora === 10 && gbp.rodaje?.porDia === 60,
+      `los topes de consultas de empresa han cambiado (${gbp.porHora}/${gbp.porDia}, rodaje ${gbp.rodaje?.porHora}/${gbp.rodaje?.porDia}): no se suben para que algo quepa`);
+    exige(gbp.cola === true && gbp.reservaUrgente >= 0.3 && gbp.reservaUrgente <= 0.6,
+      'las consultas de empresa ya no reservan parte del tope para quien escribe');
+    {
+      const orden = [];
+      const s150 = { getBusinessProfile: async (j, ...resto) => { orden.push(resto.length ? `${j}+marca` : j); return { wid: j }; } };
+      RT.ponerRitmo(s150, { getBusinessProfile: { hueco: 10, azar: 0, porHora: 10, porDia: 100, cola: true, reservaUrgente: 0.4 } }, { enRodaje: () => false });
+      const ps = [];
+      for (let i = 0; i < 8; i++) ps.push(s150.getBusinessProfile(`f${i}`, RT.FONDO).then(() => 'ok', (e) => e.code));
+      for (let i = 0; i < 6; i++) ps.push(s150.getBusinessProfile(`u${i}`).then(() => 'ok', (e) => e.code));
+      const r = await Promise.all(ps);
+      const fondoOk = r.slice(0, 8).filter((x) => x === 'ok').length;
+      const urgOk = r.slice(8).filter((x) => x === 'ok').length;
+      exige(fondoOk === 6 && urgOk === 4, `con un tope de 10, lo de fondo se lleva ${fondoOk} y quien escribe ${urgOk} (tenía que ser 6 y 4)`);
+      exige(orden[1] === 'u0', `quien escribe no pasa delante de las entradas en la cola: ${orden.slice(0, 4).join(',')}`);
+      exige(!orden.some((x) => x.includes('+marca')), 'la marca de fondo le llega a Baileys');
+      exige((RT.topesDelDia().getBusinessProfile || 0) >= 4, 'los topes alcanzados no se cuentan: npm run estado no puede decir por qué tarda');
+      RT._olvidarMedidas();
+    }
+    const usos = [['src/bot.js', 2], ['src/utils/precisionEmpresa.js', 1], ['src/commands/scan.js', 1], ['src/commands/group.js', 1]];
+    for (const [f, n] of usos) {
+      const veces = (soloCodigo(f).match(/businessEvidence\([^)]*\{ fondo: true \}\)/g) || []).length;
+      exige(veces >= n, `${f} consulta empresas sin la marca de fondo: se come el cupo de quien escribe`);
+    }
+    exige(!/businessEvidence\(sock, tel, \{ fondo/.test((soloCodigo('src/handlers/messageHandler.js').match(/getMemberFacts\(\[sender, canonicalJid\(sender\)\]\)[\s\S]{0,2500}/) || [''])[0]),
+      'la comprobación de quien escribe va como fondo: ha perdido la prioridad');
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'empresa150-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const mh = require('./src/handlers/messageHandler'); const st = require('./src/utils/state'); const hist = require('./src/utils/historialGrupo');",
+        "const G = '120363000000150001@g.us', BOT = '34600000150@s.whatsapp.net', SPAM = '91500000111@lid', TEL = '34655000150@s.whatsapp.net', OTRO = '91500000222@lid';",
+        "const partes = [{ id: BOT, admin: 'admin' }, { id: SPAM, phoneNumber: TEL }, { id: OTRO, phoneNumber: '34655000151@s.whatsapp.net' }];",
+        "let falla = true; const hechos = [];",
+        "const sock = { user: { id: BOT }, sendPresenceUpdate: async () => {}, readMessages: async () => {},",
+        "  sendMessage: async (j, c) => { hechos.push(c.delete ? 'borra:' + c.delete.id : 'texto'); return { key: { id: 'x' } }; },",
+        "  groupMetadata: async () => ({ id: G, subject: 'G', participants: partes }),",
+        "  groupParticipantsUpdate: async (g, ids, a) => { hechos.push(a); return ids.map((id) => ({ jid: id, status: '200' })); },",
+        "  getBusinessProfile: async (j) => { if (falla) throw new Error('tope fingido'); return j === TEL ? { wid: j, category: 'Not a business' } : { wid: j }; } };",
+        "(async () => {",
+        "  await st.toggleAntiBusiness(G, true); const t = Math.floor(Date.now() / 1000);",
+        "  for (let i = 0; i < 3; i++) { const m = { key: { remoteJid: G, participant: SPAM, participantAlt: TEL, addressingMode: 'lid', fromMe: false, id: 'S' + i }, message: { conversation: 'escríbeme ' + i }, pushName: 'x', messageTimestamp: t }; hist.recordar(m); await mh.handleMessage(sock, m); }",
+        "  hist.recordar({ key: { remoteJid: G, participant: OTRO, fromMe: false, id: 'O1' }, message: { conversation: 'hola' }, messageTimestamp: t });",
+        "  await new Promise((r) => setTimeout(r, 600));",
+        "  const antes = { pendientes: mh._repescaEmpresa.pendientes(), hechos: hechos.slice() };",
+        "  falla = false; const r = await mh._repescaEmpresa.repescar();",
+        "  mh._repescaEmpresa.olvidar();",
+        "  console.log('R150' + JSON.stringify({ antes, r, hechos })); process.exit(0);",
+        "})().catch((e) => { console.log('R150' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 60000,
+        env: { ...process.env, OWNER_NUMBER: '34600000999', CO_OWNERS: '', LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R150'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: (out.stderr || '').split('\n').slice(0, 4).join(' ') };
+      if (r.error) exige(false, `no pude probar la repesca: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(r.antes.pendientes === 1 && !r.antes.hechos.length, `quien escribe sin poder comprobarse no queda apuntado para la repesca (${JSON.stringify(r.antes)})`);
+        exige(r.r === 'biz' && r.hechos.includes('remove'), `la repesca no echa a la cuenta Business (${r.r}: ${r.hechos.join(' ')})`);
+        const borra = r.hechos.filter((h) => h.startsWith('borra:'));
+        exige(borra.length === 3 && !borra.includes('borra:O1'), `al echarla no se borra su spam, o se borra lo de otro (${borra.join(' ')})`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes150) console.log(verde('   ✓ quien escribe pasa delante y tiene su parte del tope, la repesca la caza después y su spam se borra'));
   }
 
 

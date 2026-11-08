@@ -964,6 +964,14 @@ if (nodeMayor < 18) {
     const l = r.lineaCola(dato);
     if (l.tipo === 'aviso') aviso(l.texto, l.arreglo);
     else bien(l.texto, true);
+    // Y los topes de consultas a los que se llegó (8 nov): si el anti-empresa
+    // tarda, aquí se ve si es porque se acaba el cupo.
+    const topes = Object.entries((dato && dato.topes) || {});
+    if (topes.length) {
+      const nombres = { getBusinessProfile: 'comprobar si es Business', profilePictureUrl: 'fotos de perfil', fetchStatus: 'info de perfil', onWhatsApp: 'números con WhatsApp', groupParticipantsUpdate: 'expulsar o dar admin' };
+      aviso(`Topes de consultas alcanzados en 24 h: ${topes.map(([k, v]) => `${nombres[k] || k} ${v}`).join(', ')}`,
+        'no se suben (protegen al número). Lo que no cupo se reintenta: quien escribe va primero, y el anti-empresa repesca a quien no se pudo mirar');
+    }
   } catch (e) {
     aviso(`Cola de salida: no pude leerla (${e.message})`);
   }
