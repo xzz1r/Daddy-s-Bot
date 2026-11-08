@@ -228,6 +228,56 @@ function apuntarVida(que, detalle) {
   } catch { /* si no se puede escribir, el guardián sigue siendo lo primero */ }
 }
 
+// ─── Y SE MUERE SIN DECIRLO SI SE QUEDA SIN MEMORIA DE JAVASCRIPT (8 nov) ───
+//
+// El cuaderno de la VPS: seis «arranca» seguidos entre las 16:16 y las 3:07,
+// uno cada dos horas y pico, sin un solo final entre medias. Un SIGTERM o un
+// SIGINT se apuntan, una excepción también; lo único que mata a un proceso de
+// Node sin dejarle escribir nada es quedarse sin montón: el guardián corre con
+// `--max-old-space-size=96` (ecosystem.config.js) y al llegar ahí V8 aborta en
+// seco. Y abortar en seco es peligroso: si pilla al proceso escribiendo las
+// claves de la sesión, la sesión queda a medias y hay que volver a vincular.
+//
+// Así que se mide cada minuto (se guardan las últimas en
+// data/guardianMemoria.json, para `npm run estado`) y, si el montón pasa del
+// LIMITE_MONTON de lo que V8 deja, el guardián se despide él: apunta el motivo,
+// cierra la conexión con WhatsApp como es debido y sale con 1. pm2 lo levanta
+// a los cinco segundos, igual que antes, pero limpio y diciendo por qué. Si es
+// una fuga, las medidas dicen cuánto crece por hora.
+const v8 = require('v8');
+const MEMORIA = path.join(__dirname, '../data/guardianMemoria.json');
+const MEDIDAS_QUE_CABEN = 30;
+const LIMITE_MONTON = 0.85;
+function medirMemoria() {
+  const h = v8.getHeapStatistics();
+  const m = {
+    ts: Date.now(),
+    rss: Math.round(process.memoryUsage.rss() / 1048576),
+    monton: Math.round(h.used_heap_size / 1048576),
+    limite: Math.round(h.heap_size_limit / 1048576),
+  };
+  try {
+    let v = [];
+    try { v = JSON.parse(fs.readFileSync(MEMORIA, 'utf8')); } catch { /* aún no hay */ }
+    if (!Array.isArray(v)) v = [];
+    v.push(m);
+    fs.writeFileSync(MEMORIA, JSON.stringify(v.slice(-MEDIDAS_QUE_CABEN)));
+  } catch { /* el cuaderno nunca tira el proceso */ }
+  return m;
+}
+// Devuelve true si toca despedirse. `salir` se pasa para poder probarlo.
+function vigilarMemoria(salir = () => process.exit(1)) {
+  const m = medirMemoria();
+  if (!m.limite || m.monton < m.limite * LIMITE_MONTON) return false;
+  apuntarVida('memoria al límite', `montón ${m.monton} MB de ${m.limite}: me reinicio antes de que V8 me tire en seco`);
+  console.error(`guardián: montón en ${m.monton} MB de ${m.limite}; me reinicio limpio antes de reventar`);
+  try { sock?.ev?.removeAllListeners(); } catch {}
+  try { sock?.end(); } catch {}
+  // Un respiro para que el cierre salga por el socket antes de irse.
+  setTimeout(salir, 1500).unref?.();
+  return true;
+}
+
 // SÍNCRONO Y AL FINAL, a propósito: cuando llega SIGTERM quedan milisegundos, y
 // un `writeFile` asíncrono no llega a terminar. Es la única escritura del
 // proceso y pesa menos de 2 KB.
@@ -284,6 +334,12 @@ if (require.main === module) {
   for (const señal of ['SIGTERM', 'SIGINT']) {
     process.on(señal, () => { apuntarVida(señal, 'de fuera: despliegue, pm2 restart, o el tope de RAM'); process.exit(0); });
   }
+  // La memoria, cada minuto (ver vigilarMemoria).
+  let despidiendo = false;
+  setInterval(() => {
+    if (despidiendo) return;
+    try { despidiendo = vigilarMemoria(); } catch { /* medir nunca tira el proceso */ }
+  }, 60 * 1000).unref();
 }
 
 // ─── A QUIÉN PROTEGE ────────────────────────────────────────────────────────
@@ -1182,4 +1238,4 @@ if (require.main === module) {
   } else arrancar();
 }
 
-module.exports = { esDueno, lineaDuenos, _ficheroDueno: (f, g) => { FICHERO_DUENO = f; if (g) FICHERO_LIDS_DUENOS = g; _lidsDueno = { mtime: -1, lids: [] }; }, alDegradar, alCambioDeAdmin, alExpulsar, _olvidarPurgas: () => purgas.clear(), _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, _latidoBot: (f) => { LATIDO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };
+module.exports = { esDueno, lineaDuenos, _ficheroDueno: (f, g) => { FICHERO_DUENO = f; if (g) FICHERO_LIDS_DUENOS = g; _lidsDueno = { mtime: -1, lids: [] }; }, alDegradar, alCambioDeAdmin, alExpulsar, _olvidarPurgas: () => purgas.clear(), _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, _latidoBot: (f) => { LATIDO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _vigilarMemoria: vigilarMemoria, _MEMORIA: MEMORIA, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };

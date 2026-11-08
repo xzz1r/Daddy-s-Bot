@@ -8050,7 +8050,7 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       exige(delBot.length === 0,
         `el guardian carga ${delBot.join(', ')} del repositorio: deja de poder correrse suelto, y acaba con un pie en el estado del bot`);
 
-      const NODE = new Set(['path', 'fs', 'fs/promises', 'os', 'crypto', 'util', 'events', 'child_process']);
+      const NODE = new Set(['path', 'fs', 'fs/promises', 'os', 'crypto', 'util', 'events', 'child_process', 'v8']);
       const fuera = requiere.filter((r) => !r.startsWith('.') && !NODE.has(r)
         && r !== '@whiskeysockets/baileys');
       exige(fuera.length === 0,
@@ -24008,6 +24008,53 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
       }
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     if (fallos === antes150) console.log(verde('   ✓ quien escribe pasa delante y tiene su parte del tope, la repesca la caza después y su spam se borra'));
+  }
+
+  // ── 151. EL GUARDIÁN NO REVIENTA POR MEMORIA: SE DESPIDE ANTES (8 nov) ────
+  // En la VPS: seis «arranca» seguidos, uno cada dos horas y pico, sin un final
+  // en medio. Lo único que mata así a Node es el montón lleno (el guardián va
+  // con --max-old-space-size=96), y abortar en seco puede pillarle escribiendo
+  // las claves de la sesión. Ahora mide cada minuto y, al 85 % del límite, lo
+  // apunta, cierra la conexión y sale para que pm2 lo levante limpio.
+  {
+    console.log('\n151. EL GUARDIÁN NO REVIENTA POR MEMORIA: SE DESPIDE ANTES');
+    const antes151 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const g151 = soloCodigo('src/guardian.js');
+    exige(/setInterval\(\(\) => \{[\s\S]{0,120}vigilarMemoria\(\)/.test(g151), 'el guardián ya no vigila su memoria cada minuto');
+    const est151 = soloCodigo('scripts/estado.js');
+    exige(/murió \$\{mudas\}/.test(est151) && /guardianMemoria\.json/.test(est151), 'npm run estado ya no cuenta las muertes sin rastro del guardián ni enseña su memoria');
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'memoria151-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const v8 = require('v8'); const fs = require('fs'); const real = v8.getHeapStatistics.bind(v8); let lleno = false;",
+        "v8.getHeapStatistics = () => { const h = real(); return lleno ? { ...h, used_heap_size: 90 * 1048576, heap_size_limit: 96 * 1048576 } : h; };",
+        "const G = require('./src/guardian'); let cerrado = 0, salio = 0;",
+        "G._sock({ ev: { removeAllListeners: () => {} }, end: () => { cerrado++; } });",
+        "const r = {}; r.normal = G._vigilarMemoria(() => { salio++; });",
+        "lleno = true; r.lleno = G._vigilarMemoria(() => { salio++; });",
+        "setTimeout(() => {",
+        "  const vidas = JSON.parse(fs.readFileSync(G._VIDAS, 'utf8')); const med = JSON.parse(fs.readFileSync(G._MEMORIA, 'utf8'));",
+        "  r.vida = vidas[vidas.length - 1]; r.medidas = med.length; r.ultima = med[med.length - 1]; r.cerrado = cerrado; r.salio = salio;",
+        "  console.log('R151' + JSON.stringify(r)); process.exit(0);",
+        "}, 1800);",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 30000,
+        env: { ...process.env, OWNER_NUMBER: '34600000999', CO_OWNERS: '', LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R151'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: (out.stderr || '').split('\n').slice(0, 4).join(' ') };
+      if (r.error) exige(false, `no pude probarlo: ${r.error}`);
+      else {
+        exige(r.normal === false, 'con la memoria normal el guardián se despide igual');
+        exige(r.lleno === true && r.salio === 1 && r.cerrado === 1, `con el montón al 94 % no se despide, o sale sin cerrar la conexión (sale ${r.salio}, cierra ${r.cerrado})`);
+        exige(r.vida && r.vida.que === 'memoria al límite' && /90 MB de 96/.test(r.vida.detalle || ''), `el motivo no queda en el cuaderno: ${JSON.stringify(r.vida)}`);
+        exige(r.medidas === 2 && r.ultima && r.ultima.monton === 90 && r.ultima.limite === 96, 'las medidas de memoria no se guardan');
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes151) console.log(verde('   ✓ el guardián mide su memoria, y al acercarse al límite se despide limpio y lo apunta'));
   }
 
 

@@ -441,6 +441,18 @@ tier dueño y los admins. Capa 141.
 
 ## El guardián
 
+**Si se queda sin memoria, se despide antes** (8 nov). En la VPS el cuaderno
+(`data/guardianVidas.json`) tenía seis «arranca» seguidos, uno cada dos horas y
+pico, sin un final en medio: 31 reinicios en 59 h. Lo único que mata así a Node
+es el montón lleno (el guardián va con `--max-old-space-size=96`), y abortar
+en seco puede pillarle escribiendo las claves de la sesión. Ahora mide su
+memoria cada minuto (`data/guardianMemoria.json`) y, al 85 % del límite,
+apunta «memoria al límite», cierra la conexión y sale con 1: pm2 lo levanta a
+los cinco segundos, limpio. `npm run estado` cuenta las muertes sin rastro,
+los reinicios por memoria y cuánto crece el montón por hora. Si crece sin
+parar, es una fuga y se busca con esas cifras; el límite no se sube a ciegas.
+Capa 151.
+
 **Vincular el guardián se pide a mano, y esto le pasó a una persona.** Con la
 sesión cerrada y pm2 reiniciándolo en bucle, cada arranque pedía código de
 vinculación: al co-owner le llegaron en ráfaga al móvil sin haber pedido

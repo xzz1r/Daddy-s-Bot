@@ -524,7 +524,33 @@ if (!bot) {
         const solos = finales.filter((v) => !/SIG/.test(v.que)).length;
         if (solos > 1) aviso(`${solos} de los últimos ${finales.length} finales del guardián no fueron despliegues`, 'pm2 logs guardian --err --lines 50');
       }
+      // LAS MUERTES SIN RASTRO (8 nov): dos «arranca» seguidos sin un final en
+      // medio. Lo único que mata así a Node es quedarse sin montón; el
+      // guardián ya se despide antes (vigilarMemoria), así que si esto vuelve
+      // a salir, es que algo lo mata de otra forma.
+      let mudas = 0;
+      for (let i = 1; i < vidas.length; i++) if (vidas[i].que === 'arranca' && vidas[i - 1].que === 'arranca') mudas++;
+      const porMemoria = finales.filter((v) => v.que === 'memoria al límite').length;
+      if (mudas) {
+        aviso(`el guardián murió ${mudas} vez/veces sin poder decir nada (de las últimas ${vidas.length} entradas)`,
+          'suele ser el montón de V8 lleno; desde el 8 nov se reinicia él antes y lo apunta como «memoria al límite». Si sigue saliendo: dmesg | grep -i kill');
+      }
+      if (porMemoria) {
+        aviso(`el guardián se ha reiniciado ${porMemoria} vez/veces por memoria al límite (limpio, sin perder la sesión)`,
+          'si es a menudo, pásale a quien mantenga el bot la salida de: npm run estado -v');
+      }
     } catch { /* sin cuaderno todavía: lo escribe el guardián en su próximo arranque */ }
+    // Y CUÁNTO CRECE: las medidas de memoria que apunta cada minuto.
+    try {
+      const med = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data/guardianMemoria.json'), 'utf8'));
+      const ult = med[med.length - 1];
+      if (ult) {
+        const primera = med.find((m) => m.ts >= ult.ts - 3 * 3600000 && m.ts < ult.ts) || med[0];
+        const horas = (ult.ts - primera.ts) / 3600000;
+        const ritmo = horas >= 0.25 ? Math.round((ult.monton - primera.monton) / horas) : null;
+        bien(`guardián: montón ${ult.monton} MB de ${ult.limite}` + (ritmo !== null ? ` · ${ritmo >= 0 ? '+' : ''}${ritmo} MB/h en las últimas ${horas.toFixed(1)} h` : ''), true);
+      }
+    } catch { /* sin medidas todavía */ }
   }
 }
 
