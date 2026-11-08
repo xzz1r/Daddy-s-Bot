@@ -23880,6 +23880,54 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes148) console.log(verde('   ✓ una hora de repasos: cero fichas releídas, la lista cada media hora, solicitudes espaciadas y un repaso a la vez'));
   }
 
+  // ── 149. LO QUE LLEGA AL GRUPO Y NO SE PUEDE ABRIR DEJA RASTRO (8 nov) ────
+  // El dueño: «el bot no detecta los números que hacen spam en los estados del
+  // grupo». La historia con la forma de WhatsApp se detecta y se castiga (capa
+  // 49). Si no pasa nada, se pierde antes: o no llega, o llega cifrada y
+  // Baileys entrega un aviso vacío. Lo segundo no dejaba ni una línea. Ahora se
+  // apunta y `npm run estado` lo dice, y también dice cuando en 24 h no ha
+  // llegado ninguna historia. En sandbox.
+  {
+    console.log('\n149. LO QUE LLEGA AL GRUPO Y NO SE PUEDE ABRIR DEJA RASTRO');
+    const antes149 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const bot149 = soloCodigo('src/bot.js');
+    exige(/avisarSolicitudNueva\(msg\);\s*avisarSinDescifrar\(msg\);/.test(bot149),
+      'los avisos de mensaje sin descifrar ya no pasan por avisarSinDescifrar: una historia cifrada vuelve a perderse sin rastro');
+    const est149 = soloCodigo('scripts/estado.js');
+    exige(/sinDescifrar\(24\)/.test(est149) && /ninguna detectada en 24 h/.test(est149),
+      'npm run estado ya no dice si llegaron mensajes sin descifrar o si no llegó ninguna historia');
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'cifrado149-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const bot = require('./src/bot'); const B = require('./src/utils/bitacoraEstados');",
+        "const G = '120363000000149001@g.us', Q = '91490000111@lid';",
+        "bot._avisarSinDescifrar({ key: { remoteJid: G, participant: Q, id: 'C1' }, messageStubType: 2, messageStubParameters: ['No session found'] });",
+        "bot._avisarSinDescifrar({ key: { remoteJid: G, participant: Q, id: 'C2' }, messageStubType: 2 });",
+        "bot._avisarSinDescifrar({ key: { remoteJid: '34600000149@s.whatsapp.net', id: 'C3' }, messageStubType: 2 });",
+        "bot._avisarSinDescifrar({ key: { remoteJid: G, participant: Q, id: 'C4' }, messageStubType: 2, message: { conversation: 'x' } });",
+        "bot._avisarSinDescifrar({ key: { remoteJid: G, participant: Q, id: 'C5' }, messageStubType: 27 });",
+        "const r = B.sinDescifrar(24);",
+        "console.log('R149' + JSON.stringify({ n: r.length, grupo: r[0] && r[0].grupo, quien: r[0] && r[0].quien, estados: B.resumen(24) }));",
+        "process.exit(0);",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 30000,
+        env: { ...process.env, OWNER_NUMBER: '34600000999', CO_OWNERS: '', LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R149'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: (out.stderr || '').split('\n').slice(0, 4).join(' ') };
+      if (r.error) exige(false, `no pude probarlo: ${r.error}`);
+      else {
+        exige(r.n === 2 && r.grupo === '120363000000149001' && r.quien === '91490000111',
+          `de dos mensajes de grupo sin descifrar se apuntan ${r.n} (${r.grupo}/${r.quien}); un privado, uno descifrado u otro aviso no cuentan`);
+        exige(r.estados === null, 'un mensaje sin descifrar cuenta como estado detectado: el resumen de estados no puede mezclarlos');
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes149) console.log(verde('   ✓ un mensaje de grupo sin descifrar se apunta aparte, y npm run estado dice si no llegó ninguna historia'));
+  }
+
 
 
 

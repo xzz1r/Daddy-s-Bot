@@ -182,6 +182,7 @@ const logger = require('./utils/logger');
 const { versionWA } = require('./utils/versionWA');
 const { explicarRechazo } = require('./utils/rechazoWA');
 const { ponerRitmo, estadoCola } = require('./utils/ritmo');
+const bitacoraEstados = require('./utils/bitacoraEstados');
 
 const AUTH_DIR = path.join(__dirname, '../data/auth');
 
@@ -2443,6 +2444,7 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
         // Se engancha al aviso en crudo, que si llega siempre y ya se estaba
         // recibiendo aqui para otra cosa.
         avisarSolicitudNueva(msg);
+        avisarSinDescifrar(msg);
       }
     }
     // LO QUE LLEGO MIENTRAS EL BOT NO ESTABA TAMBIEN SE MODERA.
@@ -2497,6 +2499,27 @@ function moderarDiferido(msg) {
   if (Date.now() - seg * 1000 > VENTANA_DIFERIDO_MS) return;
   handleMessage(sock, msg, { diferido: true })
     .catch(err => logger.error(`moderacion diferida: ${err.message}`));
+}
+
+// UN MENSAJE DE GRUPO QUE LLEGA Y NO SE PUEDE ABRIR (8 nov). Baileys lo
+// entrega como un aviso CIPHERTEXT sin `message`, y handleMessage no tiene nada
+// que mirar: si era una historia de grupo, el bot no la ve y no lo dice. Se
+// apunta (ver bitacoraEstados.apuntarSinDescifrar) y sale en el log una vez
+// por grupo cada cinco minutos, para que `npm run estado` y el log digan si
+// las historias llegan cifradas o no llegan.
+const STUB_CIFRADO = 2;   // WAMessageStubType.CIPHERTEXT
+const sinDescifrarAvisado = new Map();
+function avisarSinDescifrar(msg) {
+  const grupo = msg?.key?.remoteJid;
+  if (Number(msg?.messageStubType) !== STUB_CIFRADO || msg.message || !String(grupo || '').endsWith('@g.us')) return;
+  const quien = msg.key.participant || '';
+  bitacoraEstados.apuntarSinDescifrar({ grupo, quien });
+  const ahora = Date.now();
+  if (ahora - (sinDescifrarAvisado.get(grupo) || 0) < 5 * 60 * 1000) return;
+  sinDescifrarAvisado.set(grupo, ahora);
+  if (sinDescifrarAvisado.size > 500) sinDescifrarAvisado.delete(sinDescifrarAvisado.keys().next().value);
+  const motivo = (msg.messageStubParameters || []).join(' ').slice(0, 80);
+  logger.warn(`mensaje de grupo sin descifrar en ${grupo} de ${String(quien).split('@')[0] || '?'}${motivo ? ` (${motivo})` : ''}: si era una historia, el bot no la ha podido ver`);
 }
 
 // Alguien ha pedido entrar: si el grupo tiene autoaccept, se barre la cola.
@@ -2736,6 +2759,7 @@ function _sockDePrueba(s) {
 }
 
 module.exports = {
+  _avisarSinDescifrar: avisarSinDescifrar,
   _pausaSondeo: (ms, azar = 0) => { PAUSA_SONDEO.ms = ms; PAUSA_SONDEO.azar = azar; },
   _avisoSinAdmin: {
     avisar: avisarSiSigueSinAdmin,

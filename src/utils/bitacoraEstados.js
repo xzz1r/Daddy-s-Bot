@@ -76,4 +76,38 @@ function resumen(horas = 24) {
   return { total: v.length, cuenta, ultimo: v[v.length - 1] };
 }
 
-module.exports = { apuntar, resumen, RESULTADOS, _FICHERO: FICHERO };
+// LO QUE LLEGA Y NO SE PUEDE ABRIR (8 nov). El dueño: «el bot no detecta los
+// números que hacen spam en los estados del grupo». Con la forma que manda
+// WhatsApp (groupStatusMessageV2 al grupo) el bot la reconoce, la borra y echa
+// al autor; probado. Si en el grupo no pasa nada, la historia se pierde antes,
+// y había dos sitios donde se perdía sin dejar rastro: que no llegue nunca, o
+// que llegue y Baileys no la pueda descifrar (entonces solo queda un aviso
+// vacío y handleMessage no tiene nada que mirar). Lo segundo se apunta aquí,
+// sin contenido —no lo hay—: grupo, número y cuándo. Lo primero se ve por
+// descarte: una historia subida y ninguna línea ni aquí ni en el resumen.
+//
+// No todo lo que no se descifra es una historia: un mensaje normal también
+// puede llegar así un momento y recuperarse. Por eso va aparte y no cuenta
+// como estado.
+const FICHERO_CIFRADOS = path.join(__dirname, '../../data/gruposSinDescifrar.json');
+function leerCifrados() {
+  try {
+    const v = JSON.parse(fs.readFileSync(FICHERO_CIFRADOS, 'utf8'));
+    return Array.isArray(v) ? v : [];
+  } catch { return []; }
+}
+function apuntarSinDescifrar({ grupo, quien }) {
+  try {
+    const v = leerCifrados();
+    v.push({ ts: Date.now(), grupo: String(grupo || '').split('@')[0], quien: String(quien || '').split('@')[0] });
+    while (v.length > CABEN) v.shift();
+    fs.mkdirSync(path.dirname(FICHERO_CIFRADOS), { recursive: true });
+    fs.writeFileSync(FICHERO_CIFRADOS, JSON.stringify(v));
+  } catch { /* la bitácora no puede tirar el bot */ }
+}
+function sinDescifrar(horas = 24) {
+  const desde = Date.now() - horas * 3600000;
+  return leerCifrados().filter((x) => x.ts >= desde);
+}
+
+module.exports = { apuntar, resumen, RESULTADOS, apuntarSinDescifrar, sinDescifrar, _FICHERO: FICHERO, _FICHERO_CIFRADOS: FICHERO_CIFRADOS };

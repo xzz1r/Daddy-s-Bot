@@ -502,6 +502,24 @@ Ahora cada estado detectado apunta su final en `data/estadosVistos.json` y
 `npm run estado` lo resume de las últimas 24 h. «Sigue saliendo» y «no se
 detecta» se leían igual desde fuera y tienen arreglos opuestos.
 
+**Y lo que no llega al manejador** (8 nov, «el bot no detecta a los que hacen
+spam en los estados del grupo»). Las historias de grupo (Group Status,
+anunciado el 29 oct) viajan al JID del grupo envueltas en
+`groupStatusMessageV2`; con esa forma el bot las detecta, las borra como admin
+y echa al autor (capa 49). Si en el grupo no pasa nada, la historia se pierde
+antes, por uno de dos sitios que no dejaban rastro:
+
+- **llega cifrada y Baileys no la abre**: entrega un aviso CIPHERTEXT vacío.
+  Ahora se apunta en `data/gruposSinDescifrar.json`, sale en el log («mensaje
+  de grupo sin descifrar») y en `npm run estado`;
+- **no llega**: `npm run estado` dice «ninguna detectada en 24 h». Con una
+  historia subida en ese rato, eso quiere decir que WhatsApp no se la entrega
+  al bot.
+
+Hacerse pasar por un dispositivo de Apple al vincular no se ha hecho: cambia
+la huella del número (más riesgo de revisión), obliga a volver a vincular y no
+se sabe si cambia nada. Se decide con lo que digan esas dos líneas. Capa 149.
+
 ## El spam de texto
 
 Lo pidió el dueño (17 oct): 5 mensajes iguales del mismo número en menos de 10

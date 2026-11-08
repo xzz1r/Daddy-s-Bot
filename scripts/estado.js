@@ -540,8 +540,19 @@ if (!bot) {
 // problemas distintos con arreglos distintos.
 {
   let resumen = null;
-  try { ({ resumen } = require(path.join(RAIZ, 'src/utils/bitacoraEstados'))); } catch { /* módulo nuevo */ }
+  let sinDescifrar = null;
+  try { ({ resumen, sinDescifrar } = require(path.join(RAIZ, 'src/utils/bitacoraEstados'))); } catch { /* módulo nuevo */ }
   const r = resumen ? resumen(24) : null;
+  // Lo que llegó al grupo y no se pudo abrir (8 nov): si había una historia
+  // ahí, el bot no la vio. Y si no hay NADA, también se dice: «ninguna
+  // historia en 24 h» con historias subidas quiere decir que no llegan.
+  const cifrados = sinDescifrar ? sinDescifrar(24) : [];
+  if (cifrados.length) {
+    const quienes = [...new Set(cifrados.map((x) => `+${x.quien}`))].slice(0, 5).join(', ');
+    aviso(`${cifrados.length} mensaje(s) de grupo en 24 h que el bot no pudo descifrar (${quienes}): si eran historias, no las vio`,
+      'pm2 logs bot --lines 3000 --nostream | grep "sin descifrar"   ← grupo, número y el error');
+  }
+  if (!r) bien('Historias subidas al grupo: ninguna detectada en 24 h. Si alguien subió una, al bot no le llegó', true);
   if (r) {
     const c = r.cuenta;
     const parte = Object.entries(c).map(([k, v]) => `${v} ${k}`).join(', ');
