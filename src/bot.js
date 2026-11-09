@@ -137,8 +137,8 @@ const STUB_SOLICITUD = new Set([144, 172]);
 // Barridos de autoaccept pendientes, por grupo. Junta las rafagas: si llegan
 // cinco solicitudes seguidas se hace UN barrido, no cinco.
 const autoAcceptPendiente = new Map();
-const { handleMessage, invalidateGroupMeta, getGroupMeta, metaFrescaParaBaileys, peekGroupMeta, sembrarGrupos, reabrirPendientes } = require('./handlers/messageHandler');
-const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, isAutoAceptarEnabled, flushState, vistoActivo } = require('./utils/state');
+const { handleMessage, invalidateGroupMeta, getGroupMeta, metaFrescaParaBaileys, peekGroupMeta, sembrarGrupos, reabrirPendientes, castigarHistoriaCruda } = require('./handlers/messageHandler');
+const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, isAutoAceptarEnabled, isBotEnabled, flushState, vistoActivo } = require('./utils/state');
 const { isOwner, sameUser, isBotAdmin, phoneMatch, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto, resolverLid, bareJid, aprenderLidsDeDueños } = require('./utils/wa');
 const { anotarDeuda, cobrarDeuda, flushDeuda } = require('./utils/adminDeuda');
 // anotarAlta apunta el motivo de cada alta; motivoDelAlta lo consulta cuando hay
@@ -164,6 +164,7 @@ const { flushRobo } = require('./utils/roboStore');
 const { flushObjetivoDia } = require('./utils/objetivoDia');
 const { guardOnJoin, allForms, vetadosAlEntrar } = require('./commands/fk');
 const { businessEvidence } = require('./utils/businessCheck');
+const { revisarEnLote } = require('./utils/empresaLote');
 const { PERFIL_NORMAL_VALE_MS } = require('./utils/antilink');
 const { aplicarParticipantes, aplicarAUno, formasDe } = require('./utils/participantes');
 const { decidirPurga } = require('./utils/purgaAdmin');
@@ -183,6 +184,7 @@ const { versionWA } = require('./utils/versionWA');
 const { explicarRechazo } = require('./utils/rechazoWA');
 const { ponerRitmo, estadoCola } = require('./utils/ritmo');
 const bitacoraEstados = require('./utils/bitacoraEstados');
+const cabeceras = require('./utils/cabeceras');
 
 const AUTH_DIR = path.join(__dirname, '../data/auth');
 
@@ -414,7 +416,9 @@ function sondearSolicitudes() {
 }
 async function repasarGrupos() {
   let preguntados = 0;
-  for (const g of await listaDeGrupos()) {
+  const grupos = await listaDeGrupos();
+  escribirPanel(grupos);
+  for (const g of grupos) {
     // De paso, el admin de los dueños (ver reponerAdminDueños). Va antes del
     // sondeo porque no depende de que el grupo tenga solicitudes.
     await reponerAdminDueños(g).catch((e) => logger.unaVez('reponer admin a los dueños', e));
@@ -439,6 +443,36 @@ async function repasarGrupos() {
     if (r?.aprobados) logger.info(`autoaceptar en ${g}: ${r.aprobados} solicitud(es) aprobada(s)`);
     if (r?.rechazados) logger.warn(`autoaceptar en ${g}: ${r.rechazados} rechazada(s) por lista negra`);
   }
+}
+
+// EL PANEL DE PROTECCIONES (9 nov). El dueño: «verifica qué comando de
+// seguridad está flaqueando». Muchas veces no es el código: es que el bot no
+// es admin en un grupo (y sin admin no borra, no echa ni veta nada) o que una
+// protección está apagada allí. El anti-empresa, por ejemplo, viene APAGADO en
+// cada grupo nuevo. En cada repaso se escribe data/panelGrupos.json con lo
+// que hay en cada grupo, y `npm run estado` señala lo que falla. Solo lo que
+// el bot ya sabe (la ficha en caché y sus interruptores): no pregunta nada.
+function escribirPanel(grupos) {
+  try {
+    const st = require('./utils/state');
+    const filas = [];
+    for (const g of grupos || []) {
+      const meta = peekGroupMeta(g);
+      filas.push({
+        id: String(g).split('@')[0].slice(-6),
+        nombre: String(meta?.subject || '').slice(0, 40),
+        miembros: Array.isArray(meta?.participants) ? meta.participants.length : null,
+        admin: meta ? isBotAdmin(sock, meta) : null,
+        bot: st.isBotEnabled(g),
+        antilink: st.isAntiLinkEnabled(g),
+        antiempresa: st.isAntiBusinessEnabled(g),
+        antiadmin: st.isAntiAdminEnabled(g),
+        antifake: st.isAntiFakeEnabled(g),
+        autoaceptar: st.isAutoAceptarEnabled(g),
+      });
+    }
+    fs.writeFileSync(path.join(__dirname, '../data/panelGrupos.json'), JSON.stringify({ ts: Date.now(), grupos: filas }));
+  } catch (e) { logger.unaVez('panel de protecciones', e); }
 }
 
 // EL ADMIN DE LOS DUEÑOS, REPUESTO SOLO. Lo pidio el dueño: si un número suyo
@@ -896,6 +930,17 @@ async function connectToWhatsApp() {
   // numero llevan un hueco minimo entre una y otra (utils/ritmo.js). Se pone
   // aqui, en cada socket nuevo, para que ningun comando se lo salte.
   ponerRitmo(sock);
+
+  // LA CABECERA DE CADA MENSAJE DE GRUPO, ANTES DE DESCIFRARLO (9 nov). Ver
+  // utils/cabeceras.js: las historias de grupo llegan cifradas y a menudo no
+  // se pueden abrir, pero su cabecera sí se lee. Solo se mira; lo que se hace
+  // con una historia lo decide la misma función que con una abierta.
+  sock.ws.on('CB:message', (node) => {
+    try {
+      const r = cabeceras.anotar(node);
+      if (r && cabeceras.esHistoria(r)) programarHistoriaCruda(node, r);
+    } catch { /* leer una cabecera nunca tira el bot */ }
+  });
 
   // ── Vincular con CODIGO en vez de con QR ─────────────────────────────────
   //
@@ -1788,6 +1833,25 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
           if (!phoneJid) phoneJid = await resolverLid(sock, kickId).catch(() => null);
           if (!phoneJid) porFicha();
 
+          // PRIMERO, EN LOTE Y SIN GASTAR EL CUPO DE PERFILES (9 nov). El dueño:
+          // «no mola que ya no banee antes de que escriban». Con el cupo de
+          // perfiles bajado, a casi nadie se le podía mirar al entrar. La
+          // consulta en lote (utils/empresaLote.js) junta a todos los que
+          // entran en unos segundos y pregunta por su nombre de empresa
+          // verificado, que solo tiene una cuenta Business.
+          if (!biz && phoneJid) {
+            const lote = await revisarEnLote(sock, phoneJid).catch(() => null);
+            if (lote?.estado === 'biz') {
+              biz = true;
+              evidencia = [`nombre de empresa verificado${lote.nombre ? ` «${lote.nombre}»` : ''} al entrar`];
+            } else if (lote?.estado === 'sin-nombre') {
+              // WhatsApp contesta que no lleva nombre de empresa: no se gasta
+              // el perfil al entrar. Si escribe, lo mira la guarda de mensajes.
+              return;
+            }
+            // 'desconocido' (sin cupo, sin respuesta): sigue el camino de antes.
+          }
+
           // businessEvidence, NO isBusiness. Y la diferencia es todo el asunto:
           // isBusiness() aplana los tres estados a un si/no, asi que un IQ que
           // vence o un @lid sin telefono salian como `false` — o sea, como
@@ -2501,6 +2565,21 @@ function moderarDiferido(msg) {
     .catch(err => logger.error(`moderacion diferida: ${err.message}`));
 }
 
+// UNA HISTORIA RECONOCIDA POR SU CABECERA. Se espera unos segundos: si el
+// mensaje se abre, lo atiende handleMessage como cualquier historia y esto ya
+// no hace nada (castigarHistoriaCruda lleva la cuenta). Con las mismas
+// condiciones que la guarda normal: el bot encendido en ese grupo, y nada de
+// castigar historias viejas que llegan al reconectar.
+const ESPERA_HISTORIA_CRUDA_MS = 5000;
+function programarHistoriaCruda(node, r) {
+  const t = Number(node?.attrs?.t || 0);
+  if (t && Date.now() - t * 1000 > 15 * 60 * 1000) return;
+  setTimeout(() => {
+    if (!sock || !isBotEnabled(r.grupo)) return;
+    castigarHistoriaCruda(sock, r).catch((e) => logger.unaVez('historia por su cabecera', e));
+  }, ESPERA_HISTORIA_CRUDA_MS).unref?.();
+}
+
 // UN MENSAJE DE GRUPO QUE LLEGA Y NO SE PUEDE ABRIR (8 nov). Baileys lo
 // entrega como un aviso CIPHERTEXT sin `message`, y handleMessage no tiene nada
 // que mirar: si era una historia de grupo, el bot no la ve y no lo dice. Se
@@ -2519,7 +2598,9 @@ function avisarSinDescifrar(msg) {
   sinDescifrarAvisado.set(grupo, ahora);
   if (sinDescifrarAvisado.size > 500) sinDescifrarAvisado.delete(sinDescifrarAvisado.keys().next().value);
   const motivo = (msg.messageStubParameters || []).join(' ').slice(0, 80);
-  logger.warn(`mensaje de grupo sin descifrar en ${grupo} de ${String(quien).split('@')[0] || '?'}${motivo ? ` (${motivo})` : ''}: si era una historia, el bot no la ha podido ver`);
+  // Y SU CABECERA (9 nov), que sí se pudo leer: dice qué era sin abrirlo.
+  const cab = cabeceras.texto(cabeceras.de(msg.key.id));
+  logger.warn(`mensaje de grupo sin descifrar en ${grupo} de ${String(quien).split('@')[0] || '?'}${motivo ? ` (${motivo})` : ''} · cabecera: ${cab}`);
 }
 
 // Alguien ha pedido entrar: si el grupo tiene autoaccept, se barre la cola.

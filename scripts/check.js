@@ -24070,6 +24070,162 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes151) console.log(verde('   ✓ el guardián mide su memoria, y al acercarse al límite se despide limpio y lo apunta'));
   }
 
+  // ── 152. ANTI-EMPRESA ANTES DE ESCRIBIR: EN LOTE Y SIN EL CUPO DE PERFILES ─
+  // El dueño (9 nov): «no mola que ya no banee antes de que escriban». Con el
+  // cupo de perfiles bajado, al entrar casi no se miraba a nadie. Ahora una
+  // consulta usync pregunta por el nombre de empresa verificado de hasta
+  // veinte a la vez (solo lo tiene una cuenta Business), con su propio tope y
+  // la mitad en rodaje. SOLO AL ENTRAR: las solicitudes no se filtran (el
+  // dueño prefiere aceptar y vetar de por vida a rechazar a quien lo parezca).
+  {
+    console.log('\n152. ANTI-EMPRESA ANTES DE ESCRIBIR: EN LOTE Y SIN EL CUPO DE PERFILES');
+    const antes152 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const bot152 = soloCodigo('src/bot.js');
+    const iLote = bot152.indexOf('await revisarEnLote(sock, phoneJid)');
+    const iPerfil = bot152.indexOf('ev = await businessEvidence(sock, phoneJid, { fondo: true })', Math.max(0, iLote));
+    exige(iLote > 0 && iPerfil > iLote, 'la entrada al grupo ya no pregunta en lote antes de gastar el perfil de empresa');
+    const jr152 = soloCodigo('src/utils/joinRequests.js');
+    exige(!/empresaLote|revisarEnLote|isAntiBusinessEnabled/.test(jr152),
+      'las solicitudes vuelven a pasar por el anti-empresa: el dueño no quiere que se rechace a nadie por parecer Business (9 nov)');
+    const EL = require(path.join(R, 'src/utils/empresaLote'));
+    exige(EL.TOPES.porHora <= 12 && EL.TOPES.porDia <= 80 && EL.TOPES.rodaje.porHora <= 6 && EL.TOPES.rodaje.porDia <= 40 && EL.POR_CONSULTA <= 20,
+      `la consulta en lote ha crecido (${JSON.stringify(EL.TOPES)}, ${EL.POR_CONSULTA} por consulta): se sube solo con el dueño`);
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'lote152-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const B = require('@whiskeysockets/baileys'); const EL = require('./src/utils/empresaLote'); const JR = require('./src/utils/joinRequests'); const st = require('./src/utils/state');",
+        "EL._prueba({ fichero: './data/empresaLote.json', rodaje: () => true, hueco: { hueco: 0, azar: 0 } });",
+        "const det = B.proto.VerifiedNameCertificate.Details.encode({ serial: 1, issuer: 'smb:wa', verifiedName: 'Tienda' }).finish();",
+        "const cert = B.proto.VerifiedNameCertificate.encode({ details: det, signature: Buffer.alloc(64) }).finish();",
+        "const BIZ = new Set(['34611100152@s.whatsapp.net', '34611100153@s.whatsapp.net']); let consultas = 0; const usuarios = [];",
+        "const sock = { executeUSyncQuery: async (q) => { consultas++; usuarios.push(q.users.length); B.encodeBinaryNode({ tag: 'iq', attrs: {}, content: [{ tag: 'usync', attrs: { mode: q.mode, context: q.context }, content: [{ tag: 'query', attrs: {}, content: q.protocols.map((p) => p.getQueryElement()) }] }] });",
+        "  return q.parseUSyncQueryResult({ tag: 'iq', attrs: { type: 'result' }, content: [{ tag: 'usync', attrs: {}, content: [{ tag: 'list', attrs: {}, content: q.users.map((u) => ({ tag: 'user', attrs: { jid: u.id }, content: [BIZ.has(u.id) ? { tag: 'business', attrs: {}, content: [{ tag: 'verified_name', attrs: {}, content: cert }] } : { tag: 'business', attrs: {} }] })) }] }] }); },",
+        "  hechos: [], groupRequestParticipantsList: async () => [{ jid: '91000000153@lid', phone_number: '34611100153@s.whatsapp.net' }],",
+        "  groupRequestParticipantsUpdate: async (g, ids, a) => { sock.hechos.push(a + ':' + ids.join(',')); return ids.map((jid) => ({ jid, status: '200' })); } };",
+        "(async () => { const r = {};",
+        "  const tres = await Promise.all(['34611100152@s.whatsapp.net', '34611100154@s.whatsapp.net', '91000000152@lid'].map((t) => EL.revisarEnLote(sock, t)));",
+        "  r.entrada = tres.map((x) => x.estado); r.consultasEntrada = consultas; r.usuarios = usuarios.slice();",
+        "  let topes = 0; for (let i = 0; i < 8; i++) { const m = await EL._consultar(sock, ['3461110016' + i + '@s.whatsapp.net']); if ([...m.values()][0].tope) topes++; } r.topes = topes;",
+        "  const G = '120363000000152001@g.us'; await st.toggleAntiBusiness(G, true); consultas = 0;",
+        "  await JR.aceptarPendientes(sock, G); r.solicitud = sock.hechos.slice(); r.consultasSolicitud = consultas;",
+        "  console.log('R152' + JSON.stringify(r)); process.exit(0); })().catch((e) => { console.log('R152' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 60000,
+        env: { ...process.env, OWNER_NUMBER: '33600000152', CO_OWNERS: '', LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R152'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(JSON.stringify(r.entrada) === '["biz","sin-nombre","desconocido"]', `al entrar no se distingue Business, sin nombre y sin teléfono: ${JSON.stringify(r.entrada)}`);
+        exige(r.consultasEntrada === 1 && r.usuarios[0] === 2, `tres que entran a la vez no salen en una consulta (${r.consultasEntrada} consultas, ${JSON.stringify(r.usuarios)})`);
+        exige(r.topes === 3, `con un número en rodaje la consulta en lote no para en su tope de 6 por hora (pasaron ${8 - r.topes} de 8, con 1 ya gastada)`);
+        exige(r.consultasSolicitud === 0 && r.solicitud.length === 1 && /^approve:/.test(r.solicitud[0]),
+          `una solicitud de cuenta Business se rechaza o se consulta (${JSON.stringify(r.solicitud)}, ${r.consultasSolicitud} consultas): el dueño quiere aceptar y vetar después`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes152) console.log(verde('   ✓ al entrar se mira en lote si es Business, con su tope, y las solicitudes se aceptan como siempre'));
+  }
+
+  // ── 153. UNA HISTORIA DE GRUPO SE RECONOCE POR SU CABECERA (9 nov) ────────
+  // `npm run estado`: 40 mensajes de grupo sin descifrar y ninguna historia
+  // detectada. Las historias llegan cifradas y a menudo el bot no las puede
+  // abrir; su cabecera sí se lee. Con la marca explícita
+  // `<meta is_group_status="true">` se castigan igual que una abierta, una
+  // sola vez, con las mismas exenciones; y el log de «sin descifrar» enseña la
+  // cabecera para saber qué eran.
+  {
+    console.log('\n153. UNA HISTORIA DE GRUPO SE RECONOCE POR SU CABECERA');
+    const antes153 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const bot153 = soloCodigo('src/bot.js');
+    exige(/sock\.ws\.on\('CB:message'[\s\S]{0,200}cabeceras\.anotar\(node\)[\s\S]{0,120}cabeceras\.esHistoria\(r\)/.test(bot153),
+      'el bot ya no lee la cabecera de los mensajes de grupo: una historia que no se puede abrir vuelve a pasar sin que nadie la vea');
+    exige(/isBotEnabled\(r\.grupo\)/.test(bot153) && /cabeceras\.texto\(cabeceras\.de\(msg\.key\.id\)\)/.test(bot153),
+      'la historia por cabecera no respeta el bot apagado, o el log de «sin descifrar» ya no enseña la cabecera');
+    const C = require(path.join(R, 'src/utils/cabeceras'));
+    const conMarca = C.anotar({ tag: 'message', attrs: { from: '120363000000153001@g.us', id: 'H153', participant: '91530000111@lid', type: 'media' },
+      content: [{ tag: 'meta', attrs: { is_group_status: 'true', origin: 'group_status' } }, { tag: 'enc', attrs: { type: 'skmsg', v: '2', mediatype: 'image' }, content: Buffer.alloc(8) }] });
+    const sinMarca = C.anotar({ tag: 'message', attrs: { from: '120363000000153001@g.us', id: 'N153', participant: '91530000111@lid', type: 'text' },
+      content: [{ tag: 'enc', attrs: { type: 'skmsg', v: '2' }, content: Buffer.alloc(8) }] });
+    exige(C.esHistoria(conMarca) && !C.esHistoria(sinMarca), 'la marca de historia de grupo no se reconoce, o se ve donde no está');
+    exige(/meta\{is_group_status=true/.test(C.texto(conMarca)) && !/AAAA|\\u0000/.test(C.texto(conMarca)), `la cabecera no se resume bien, o lleva contenido: ${C.texto(conMarca)}`);
+    exige(C.anotar({ tag: 'message', attrs: { from: '34600000153@s.whatsapp.net', id: 'P153' } }) === null, 'se apuntan cabeceras de privados: solo hacen falta las de los grupos');
+    C._olvidar();
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'cabecera153-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const mh = require('./src/handlers/messageHandler'); const BL = require('./src/utils/banlist');",
+        "const G = '120363000000153001@g.us', BOT = '34600000153@s.whatsapp.net', SPAM = '91530000111@lid', DUENO = '33600000153@s.whatsapp.net';",
+        "const partes = [{ id: BOT, admin: 'admin' }, { id: SPAM, phoneNumber: '34655000153@s.whatsapp.net' }, { id: DUENO }];",
+        "const hechos = []; const sock = { user: { id: BOT }, sendPresenceUpdate: async () => {}, readMessages: async () => {},",
+        "  sendMessage: async (j, c) => { hechos.push(c.delete ? 'borra:' + c.delete.id + ':' + c.delete.participant : 'texto'); return { key: { id: 'x' } }; },",
+        "  groupMetadata: async () => ({ id: G, subject: 'G', participants: partes }),",
+        "  groupParticipantsUpdate: async (g, ids, a) => { hechos.push(a + ':' + ids.join(',')); return ids.map((jid) => ({ jid, status: '200' })); } };",
+        "(async () => { const r = {};",
+        "  r.primera = await mh.castigarHistoriaCruda(sock, { id: 'H1', grupo: G, autor: SPAM, autorAlt: '' });",
+        "  r.hechos = hechos.slice(); r.vetado = Boolean(await BL.isBanned([SPAM]));",
+        "  r.segunda = await mh.castigarHistoriaCruda(sock, { id: 'H1', grupo: G, autor: SPAM, autorAlt: '' });",
+        "  hechos.length = 0;",
+        "  await mh.handleMessage(sock, { key: { remoteJid: G, participant: SPAM, fromMe: false, id: 'H2' }, message: { groupStatusMessageV2: { message: { imageMessage: { mimetype: 'image/jpeg', contextInfo: { isGroupStatus: true } } } } }, pushName: 'x', messageTimestamp: Math.floor(Date.now() / 1000) });",
+        "  r.tercera = await mh.castigarHistoriaCruda(sock, { id: 'H2', grupo: G, autor: SPAM, autorAlt: '' }); r.hechosAbierta = hechos.filter((h) => h.startsWith('borra')).length;",
+        "  hechos.length = 0; r.dueno = await mh.castigarHistoriaCruda(sock, { id: 'H3', grupo: G, autor: DUENO, autorAlt: '' }); r.hechosDueno = hechos.slice();",
+        "  console.log('R153' + JSON.stringify(r)); process.exit(0); })().catch((e) => { console.log('R153' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 60000,
+        env: { ...process.env, OWNER_NUMBER: '33600000153', CO_OWNERS: '', LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R153'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(r.primera === 'castigada' && r.hechos.includes(`borra:H1:91530000111@lid`) && r.hechos.includes('remove:91530000111@lid') && r.vetado,
+          `una historia reconocida por su cabecera no se borra, no se echa a su autor o no va a la lista negra (${JSON.stringify(r.hechos)})`);
+        exige(r.segunda === 'ya atendida', 'la misma historia se castiga dos veces');
+        exige(r.tercera === 'ya atendida' && r.hechosAbierta === 1, `una historia abierta y vista también por su cabecera se castiga dos veces (${r.tercera}, ${r.hechosAbierta} borrados)`);
+        exige(!r.hechosDueno.some((h) => /^remove:|^borra:/.test(h)), `la historia de un número del dueño se borra o se le echa: ${JSON.stringify(r.hechosDueno)}`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes153) console.log(verde('   ✓ una historia con la marca en la cabecera se borra y se castiga aunque no se pueda abrir, una sola vez y nunca al dueño'));
+  }
+
+  // ── 154. NPM RUN ESTADO DICE QUÉ PROTECCIÓN FALLA EN CADA GRUPO (9 nov) ───
+  // «Verifica qué comando de seguridad está flaqueando.» Muchas veces no es el
+  // código: el bot no es admin en un grupo, o una protección está apagada (el
+  // anti-empresa viene apagado en cada grupo nuevo). El bot deja en cada
+  // repaso data/panelGrupos.json y `npm run estado` lo señala.
+  {
+    console.log('\n154. NPM RUN ESTADO DICE QUÉ PROTECCIÓN FALLA EN CADA GRUPO');
+    const antes154 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    exige(/const grupos = await listaDeGrupos\(\);\s*escribirPanel\(grupos\);/.test(soloCodigo('src/bot.js')),
+      'el repaso de grupos ya no escribe el panel de protecciones');
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'panel154-'));
+    try {
+      for (const d of ['src', 'scripts']) fs.cpSync(path.join(R, d), path.join(caja, d), { recursive: true });
+      for (const f of ['package.json', 'ecosystem.config.js']) fs.copyFileSync(path.join(R, f), path.join(caja, f));
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const panel = (grupos) => fs.writeFileSync(path.join(caja, 'data/panelGrupos.json'), JSON.stringify({ ts: Date.now(), grupos }));
+      const fila = (nombre, x) => ({ id: '000154', nombre, miembros: 10, admin: true, bot: true, antilink: true, antiempresa: true, antiadmin: false, antifake: false, autoaceptar: false, ...x });
+      const estado = () => (spawnSync('node', ['scripts/estado.js'], { cwd: caja, encoding: 'utf8', timeout: 60000, env: { ...process.env, NO_COLOR: '1' } }).stdout || '');
+      panel([fila('EROS', { admin: false, antiempresa: false }), fila('Charla', { bot: false }), fila('Bien', {})]);
+      const mal = estado();
+      exige(/NO es admin en 1 grupo\(s\): EROS/.test(mal), 'npm run estado no dice en qué grupo el bot no es admin');
+      exige(/anti-empresa APAGADO en 1 grupo\(s\): EROS/.test(mal), 'npm run estado no dice dónde está apagado el anti-empresa');
+      exige(/bot apagado \(!off\) en 1 grupo\(s\): Charla/.test(mal), 'npm run estado no dice dónde está apagado el bot');
+      panel([fila('EROS', {}), fila('Bien', {})]);
+      exige(/Protecciones: 2 grupo\(s\), admin en todos/.test(estado()), 'con todo en orden, npm run estado no lo dice');
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes154) console.log(verde('   ✓ npm run estado dice dónde el bot no es admin y qué protección está apagada en cada grupo'));
+  }
+
+
 
 
 

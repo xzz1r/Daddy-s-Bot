@@ -975,6 +975,54 @@ if (nodeMayor < 18) {
   } catch (e) {
     aviso(`Anti-empresa: no pude leer la precisión (${e.message})`);
   }
+  // Y la comprobación en lote al entrar (9 nov): cuántos, cuántos Business, y
+  // si a alguno se le escapó (lo vio el perfil después).
+  try {
+    const L = require(path.join(RAIZ, 'src/utils/empresaLote'));
+    let d = null;
+    try { d = JSON.parse(require('fs').readFileSync(path.join(RAIZ, 'data/empresaLote.json'), 'utf8')); } catch { d = null; }
+    const l = L.lineaEstado(d);
+    if (l.tipo === 'aviso') aviso(l.texto, l.arreglo);
+    else bien(l.texto, true);
+  } catch { /* módulo nuevo */ }
+}
+
+// ─── Las protecciones, grupo a grupo (9 nov) ────────────────────────────────
+//
+// «Verifica qué comando de seguridad está flaqueando.» El bot escribe en cada
+// repaso (cada seis minutos) si es admin y qué tiene encendido en cada grupo.
+// Aquí se señala lo que falla: sin admin no se borra ni se echa nada, y una
+// protección apagada no protege. El anti-empresa viene apagado en cada grupo.
+{
+  let panel = null;
+  try { panel = JSON.parse(require('fs').readFileSync(path.join(RAIZ, 'data/panelGrupos.json'), 'utf8')); } catch { panel = null; }
+  const filas = Array.isArray(panel?.grupos) ? panel.grupos : [];
+  if (!filas.length) {
+    bien('Protecciones por grupo: el bot aún no ha hecho su primer repaso (sale a los pocos minutos de conectar)', true);
+  } else {
+    const nombre = (f) => f.nombre || `grupo …${f.id}`;
+    const lista = (xs) => xs.slice(0, 6).map(nombre).join(', ') + (xs.length > 6 ? ` y ${xs.length - 6} más` : '');
+    const hace = Math.round((Date.now() - panel.ts) / 60000);
+    const activos = filas.filter((f) => f.bot);
+    const sinAdmin = activos.filter((f) => f.admin === false);
+    const sinFicha = activos.filter((f) => f.admin === null);
+    const apagados = filas.filter((f) => !f.bot);
+    const sinLink = activos.filter((f) => !f.antilink);
+    const sinEmpresa = activos.filter((f) => !f.antiempresa);
+    if (sinAdmin.length) {
+      mal(`el bot NO es admin en ${sinAdmin.length} grupo(s): ${lista(sinAdmin)}. Ahí no borra, no echa ni veta nada`,
+        'dale admin al número del bot en esos grupos');
+    }
+    if (sinEmpresa.length) {
+      aviso(`anti-empresa APAGADO en ${sinEmpresa.length} grupo(s): ${lista(sinEmpresa)}`, 'en cada uno: !antiempresa on');
+    }
+    if (sinLink.length) aviso(`antilink apagado en ${sinLink.length} grupo(s): ${lista(sinLink)}`, 'en cada uno: !antilink on');
+    if (apagados.length) aviso(`bot apagado (!off) en ${apagados.length} grupo(s): ${lista(apagados)}. Ahí no vigila nada, tampoco las historias`, 'en cada uno: !on');
+    if (sinFicha.length) bien(`${sinFicha.length} grupo(s) sin ficha todavía: se sabrá en el próximo repaso`, true);
+    if (!sinAdmin.length && !sinEmpresa.length && !sinLink.length && !apagados.length) {
+      bien(`Protecciones: ${filas.length} grupo(s), admin en todos, antilink y anti-empresa encendidos (hace ${hace} min)`, true);
+    }
+  }
 }
 
 // ─── La cola de salida: cuánto esperan los mensajes del bot ──────────────────

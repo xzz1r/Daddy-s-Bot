@@ -330,5 +330,5 @@ function ponerRitmo(sock, ritmos = RITMOS, { enRodaje = null } = {}) {
   return sock;
 }
 
-module.exports = { ponerRitmo, crearRitmo, crearCola, crearTope, estadoCola, lineaCola, RITMOS, TopeDiario, esTope, FONDO, topesDelDia,
+module.exports = { ponerRitmo, crearRitmo, crearCola, crearTope, estadoCola, lineaCola, RITMOS, TopeDiario, esTope, FONDO, topesDelDia, apuntarTope, esperar,
   _olvidarMedidas: () => { medidas = []; topesVistos = []; } };

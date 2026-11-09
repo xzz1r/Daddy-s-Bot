@@ -146,6 +146,16 @@ repesca después, y al echar a una cuenta Business se borra su spam reciente
 de rodaje (empresa 10/h y 60/día) y el rodaje la mitad: el 321 cayó el día
 después de que se multiplicaran por cuatro. Capa 150.
 
+**Al entrar se mira en lote** (dueño, 9 nov: «no mola que ya no banee antes
+de que escriban»). `src/utils/empresaLote.js` pregunta con una consulta usync
+por el nombre de empresa verificado (solo lo tiene Business) de hasta veinte
+que acaban de entrar, con su propio tope (12/h y 80/día, la mitad en rodaje).
+Quien lo tiene se echa y va a la lista negra antes de escribir. **Las
+solicitudes de entrada no se filtran**: se llegó a rechazar a las cuentas
+Business que pedían entrar y el dueño lo quitó («mejor vetarlas de por vida
+que arriesgarse a no aceptar cuentas que también pueden parecer Business»).
+No se vuelve a poner. Capa 152.
+
 ## La peña activa se halaga, sin veneno
 
 Lo pidió el dueño (18 oct): a quien escribe, el bot lo halaga por su actividad,

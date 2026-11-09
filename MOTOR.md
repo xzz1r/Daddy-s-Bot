@@ -359,6 +359,22 @@ El plazo de la consulta cuenta también la espera en la cola: con 8 s, una que
 esperaba turno vencía, salía «no se sabe» y se hacía igual después. Ahora son
 30 s para quien escribe y 120 para lo de fondo. Capa 150.
 
+**Al entrar, en lote y sin el cupo de perfiles** (9 nov). El dueño: «no mola
+que ya no banee antes de que escriban». Con el cupo de perfiles bajado, al
+entrar casi no se miraba a nadie. `utils/empresaLote.js` usa la consulta con la
+que los clientes de WhatsApp enseñan el nombre de empresa de un contacto: usync
+con `business` › `verified_name` (formato de whatsmeow, `GetUserInfo`: modo
+`full`, contexto `background`, JID de teléfono). Ese certificado solo lo tiene
+una cuenta Business, el mismo que viaja en sus mensajes. Junta a los que entran
+en tres segundos y pregunta por hasta veinte de una vez, con su propio tope:
+12 consultas por hora y 80 al día, la mitad en rodaje. Lo que no cabe espera y
+sale en la siguiente. Business → fuera y a la lista negra antes de escribir;
+«sin nombre» → no se gasta el perfil al entrar, lo mira la guarda de mensajes
+si escribe; «no se sabe» → el camino de antes. `npm run estado` dice cuántos
+revisó, cuántos eran Business y si a alguno se le escapó (el perfil lo vio
+después). **Las solicitudes no se filtran**: el dueño prefiere aceptar y vetar
+de por vida a rechazar a quien solo lo parezca. Capa 152.
+
 **Y una red debajo** (1 nov). El ritmo (`utils/ritmo.js`) solo espaciaba: con
 dos segundos entre consultas caben mil ochocientas en una hora. Ahora:
 
@@ -445,6 +461,14 @@ minutos, el mismo que le devuelve el admin al dueño, pasa a los miembros de
 cada grupo donde el bot es admin por el filtro de la entrada
 (`echarVetadosDentro` en `bot.js`): fuera, en silencio, salvo el bot, el
 tier dueño y los admins. Capa 141.
+
+## Qué protección falla, grupo a grupo
+
+`npm run estado` (9 nov) dice en qué grupos el bot no es admin (ahí no borra,
+no echa ni veta nada), dónde está apagado el anti-empresa (viene apagado en
+cada grupo nuevo: `!antiempresa on`), el antilink o el propio bot. Sale del
+panel que el bot escribe en cada repaso (`data/panelGrupos.json`), sin
+preguntar nada a WhatsApp. Capa 154.
 
 ## El guardián
 
@@ -557,6 +581,17 @@ antes, por uno de dos sitios que no dejaban rastro:
 - **no llega**: `npm run estado` dice «ninguna detectada en 24 h». Con una
   historia subida en ese rato, eso quiere decir que WhatsApp no se la entrega
   al bot.
+
+**Y por su cabecera, aunque no se pueda abrir** (9 nov). `npm run estado` en
+la VPS: 40 mensajes de grupo sin descifrar de cinco números y ninguna historia
+detectada. La cabecera de un mensaje se lee antes de descifrarlo
+(`utils/cabeceras.js`, desde `sock.ws.on('CB:message')`: solo atributos y
+nombres de nodo, nunca contenido). Al enviar una historia de grupo el cliente
+pone `<meta is_group_status="true" origin="group_status">`; si esa marca llega,
+a los cinco segundos, si el mensaje no se ha abierto, se castiga igual que
+una historia abierta (`castigarHistoriaCruda`): borrar, lista negra y fuera,
+con las mismas exenciones y una sola vez. Y el log de «sin descifrar» enseña
+la cabecera, para saber qué eran esos mensajes. Capa 153.
 
 Hacerse pasar por un dispositivo de Apple al vincular no se ha hecho: cambia
 la huella del número (más riesgo de revisión), obliga a volver a vincular y no

@@ -610,6 +610,112 @@ async function borrarSpamReciente(sock, jid, sender) {
   return n;
 }
 
+// ─── EL CASTIGO DE UNA HISTORIA SUBIDA AL GRUPO ──────────────────────────
+//
+// Lo mismo venga de donde venga: del mensaje ya abierto (handleMessage) o de
+// su cabecera cuando no se ha podido abrir (castigarHistoriaCruda, 9 nov).
+// Cada historia se atiende UNA vez (historiaYaAtendida), así que las dos
+// puertas no castigan dos veces.
+const historiasAtendidas = new Set();
+function historiaYaAtendida(id) {
+  if (!id) return false;
+  if (historiasAtendidas.has(id)) return true;
+  if (historiasAtendidas.size >= 500) historiasAtendidas.delete(historiasAtendidas.values().next().value);
+  historiasAtendidas.add(id);
+  return false;
+}
+
+async function castigarHistoria(sock, jid, msg, sender, senderPn, deteccion) {
+  const { motivo: porQue, seguro } = deteccion;
+  // Se registra SIEMPRE, se actúe o no: si mañana WhatsApp cambia el sobre,
+  // este log es lo que dice si el mensaje llegó a reconocerse.
+  logger.info(`estado en grupo detectado por ${porQue} (${seguro ? 'sobre' : 'heuristica'}) — tipos=[${Object.keys(msg.message || {}).join(',')}]`);
+
+  const meta = await getGroupMeta(sock, jid);
+  const protegido = !meta ||
+    isGroupAdmin(sender, msg.key.fromMe, meta) ||
+    esOwnerDelMensaje(msg, sender, senderPn, meta);
+
+  // EL SALTO POR PROTEGIDO YA NO ES SILENCIOSO, y era el hueco mas grande
+  // del diagnostico: si quien sube el estado a diario es admin del grupo o
+  // del tier dueño, el bot no hacia nada Y NO DECIA NADA. Desde fuera se ve
+  // igual que un bot que no detecta el estado, que es un problema
+  // completamente distinto y con otro arreglo.
+  if (protegido) {
+    logger.info(`estado en grupo ${jid} de +${String(sender).split('@')[0]}: no se toca, es admin o tier dueño`);
+    bitacoraEstados.apuntar({ grupo: jid, quien: sender, motivo: porQue, seguro, resultado: bitacoraEstados.RESULTADOS.PROTEGIDO });
+    return;
+  }
+  if (!isBotAdmin(sock, meta)) {
+    logger.warn(`estado en grupo ${jid}: no soy admin, no puedo borrarlo ni expulsar`);
+    bitacoraEstados.apuntar({ grupo: jid, quien: sender, motivo: porQue, seguro, resultado: bitacoraEstados.RESULTADOS.SIN_ADMIN });
+    return;
+  }
+
+  const borrado = await borrarMensaje(sock, jid, msg, sender, 'un estado subido al grupo');
+  bitacoraEstados.apuntar({
+    grupo: jid, quien: sender, motivo: porQue, seguro,
+    resultado: borrado ? bitacoraEstados.RESULTADOS.BORRADO : bitacoraEstados.RESULTADOS.NO_BORRADO,
+  });
+
+  // La sanción depende de lo seguro que sea el diagnóstico.
+  //
+  // NO se banea nunca de forma automática por esto. La lista negra es
+  // GLOBAL y permanente: veta la cuenta en todos los grupos del bot. Que un
+  // guardia automático la aplicara solo por reconocer un sobre significaba
+  // que un fallo de detección — y hubo uno, con un vídeo corriente — dejaba
+  // a una persona vetada en todas partes. Echar es reversible: se vuelve a
+  // añadir. Un baneo global no lo es en la práctica. Si alguien merece la
+  // lista negra, un admin lo decide con *!fkban*.
+  if (!seguro) {
+    // Heurística: se borra y se avisa, nada más. No cuesta el grupo.
+    sock.sendMessage(jid, {
+      text: `@${sender.split('@')[0]}, los estados no se publican aquí.`
+        + (borrado ? ' Borrado.' : ' No he podido borrarlo: que lo quite un admin.'),
+      mentions: [sender],
+    }).catch(() => {});
+    if (!borrado) anotarTropiezo(`Estado en ${jid} de +${sender.split('@')[0]}: detectado pero NO borrado. Quitalo a mano.`);
+    return;
+  }
+
+  // AQUI SI SE BANEA, y es un cambio deliberado sobre lo que habia.
+  //
+  // El motivo de no banear era el falso positivo: la lista negra es GLOBAL
+  // y permanente, y un guardia que se equivoca deja a alguien vetado en
+  // todos los grupos. Ese miedo vale para la HEURISTICA — que ya se queda
+  // arriba, solo borrando y avisando — pero no para esta rama: aqui el
+  // sobre viene identificado por nombre (groupStatusMessageV2 y compañia),
+  // no hay nada que interpretar. O es una historia subida al grupo o no lo
+  // es.
+  //
+  // Y por decision del owner: subir spam a la historia del grupo se paga
+  // con la lista negra, no con un "vuelve cuando quieras".
+  const forms = allForms(sender, meta);
+  await banAccount(forms, `historia subida al grupo ${jid}`, 'auto').catch((e) => logger.unaVez('vetar por historia', e));
+  const fuera = await expulsar(sock, jid, sender, meta);
+  sock.sendMessage(jid, {
+    text: `@${sender.split('@')[0]} fuera y a la lista negra por subir una historia al grupo. Aquí no se suben estados, ni con enlaces ni sin ellos.`,
+    mentions: [sender],
+  }).catch(() => {});
+  if (!fuera) anotarTropiezo(`Historia en ${jid} de +${sender.split('@')[0]}: vetado pero NO expulsado. Hazlo a mano.`);
+}
+
+// LA HISTORIA QUE NO SE PUEDE ABRIR, POR SU CABECERA (9 nov). bot.js la llama
+// cuando la cabecera trae la marca explícita de historia de grupo
+// (utils/cabeceras.js) y el mensaje no ha pasado por handleMessage como
+// historia en unos segundos (porque no se pudo descifrar). Se castiga igual:
+// borrar, lista negra y fuera, con las mismas exenciones.
+async function castigarHistoriaCruda(sock, r) {
+  if (!r || !r.grupo || !r.autor || !r.id) return 'sin datos';
+  if (historiaYaAtendida(r.id)) return 'ya atendida';
+  const msg = { key: { remoteJid: r.grupo, id: r.id, participant: r.autor, fromMe: false } };
+  const alt = String(r.autorAlt || '');
+  const senderPn = alt.endsWith('@s.whatsapp.net') ? alt : null;
+  logger.info(`historia de grupo reconocida por su cabecera en ${r.grupo} de ${r.autor} (no se pudo abrir)`);
+  await castigarHistoria(sock, r.grupo, msg, r.autor, senderPn, { motivo: 'cabecera is_group_status', seguro: true });
+  return 'castigada';
+}
+
 // ─── LA REPESCA: QUIEN ESCRIBIÓ Y NO SE PUDO COMPROBAR ────────────────────
 //
 // El dueño (8 nov): «muchas llegan a hacer spam y el bot a veces ni siquiera
@@ -661,6 +767,7 @@ async function repescar() {
       return 'normal';
     }
     for (const forma of new Set([p.sender, tel])) await recordFacts(forma, { empresa: perfil.fields }).catch(() => {});
+    require('../utils/empresaLote').anotarComprobacion(tel, true);
     logger.warn(`Anti-empresa: ${tel} escribió en ${p.jid} sin poder comprobarse; la repesca dice que es Business`);
     await expulsarBusinessDetectado(sock, p.jid, p.sender, { key: { fromMe: false } }, `${perfil.fields.join(', ')} (comprobada después de escribir)`);
     return 'biz';
@@ -2286,6 +2393,9 @@ async function handleMessage(sock, msg, opciones = {}) {
           return;
         }
         for (const forma of new Set([sender, tel])) await recordFacts(forma, { empresa: ev.fields }).catch(() => {});
+        // Si la consulta en lote la había dado por «sin nombre de empresa»,
+        // se cuenta: es lo que dice si ese atajo se puede creer.
+        require('../utils/empresaLote').anotarComprobacion(tel, true);
         return expulsarBusinessDetectado(sock, jid, sender, msg, ev.fields.join(', '));
       }).catch(() => {});
     }
@@ -2333,78 +2443,10 @@ async function handleMessage(sock, msg, opciones = {}) {
     anotarTipoDesconocido(msg.message, jid, sender);
     const deteccion = estadoCrudo;
     if (deteccion) {
-      const { motivo: porQue, seguro } = deteccion;
-      // Se registra SIEMPRE, se actúe o no: si mañana WhatsApp cambia el sobre,
-      // este log es lo que dice si el mensaje llegó a reconocerse.
-      logger.info(`estado en grupo detectado por ${porQue} (${seguro ? 'sobre' : 'heuristica'}) — tipos=[${Object.keys(msg.message || {}).join(',')}]`);
-
-      const meta = await getGroupMeta(sock, jid);
-      const protegido = !meta ||
-        isGroupAdmin(sender, msg.key.fromMe, meta) ||
-        esOwnerDelMensaje(msg, sender, senderPn, meta);
-
-      // EL SALTO POR PROTEGIDO YA NO ES SILENCIOSO, y era el hueco mas grande
-      // del diagnostico: si quien sube el estado a diario es admin del grupo o
-      // del tier dueño, el bot no hacia nada Y NO DECIA NADA. Desde fuera se ve
-      // igual que un bot que no detecta el estado, que es un problema
-      // completamente distinto y con otro arreglo.
-      if (protegido) {
-        logger.info(`estado en grupo ${jid} de +${String(sender).split('@')[0]}: no se toca, es admin o tier dueño`);
-        bitacoraEstados.apuntar({ grupo: jid, quien: sender, motivo: porQue, seguro, resultado: bitacoraEstados.RESULTADOS.PROTEGIDO });
-        return;
-      }
-      if (!isBotAdmin(sock, meta)) {
-        logger.warn(`estado en grupo ${jid}: no soy admin, no puedo borrarlo ni expulsar`);
-        bitacoraEstados.apuntar({ grupo: jid, quien: sender, motivo: porQue, seguro, resultado: bitacoraEstados.RESULTADOS.SIN_ADMIN });
-        return;
-      }
-
-      const borrado = await borrarMensaje(sock, jid, msg, sender, 'un estado subido al grupo');
-      bitacoraEstados.apuntar({
-        grupo: jid, quien: sender, motivo: porQue, seguro,
-        resultado: borrado ? bitacoraEstados.RESULTADOS.BORRADO : bitacoraEstados.RESULTADOS.NO_BORRADO,
-      });
-
-      // La sanción depende de lo seguro que sea el diagnóstico.
-      //
-      // NO se banea nunca de forma automática por esto. La lista negra es
-      // GLOBAL y permanente: veta la cuenta en todos los grupos del bot. Que un
-      // guardia automático la aplicara solo por reconocer un sobre significaba
-      // que un fallo de detección — y hubo uno, con un vídeo corriente — dejaba
-      // a una persona vetada en todas partes. Echar es reversible: se vuelve a
-      // añadir. Un baneo global no lo es en la práctica. Si alguien merece la
-      // lista negra, un admin lo decide con *!fkban*.
-      if (!seguro) {
-        // Heurística: se borra y se avisa, nada más. No cuesta el grupo.
-        sock.sendMessage(jid, {
-          text: `@${sender.split('@')[0]}, los estados no se publican aquí.`
-            + (borrado ? ' Borrado.' : ' No he podido borrarlo: que lo quite un admin.'),
-          mentions: [sender],
-        }).catch(() => {});
-        if (!borrado) anotarTropiezo(`Estado en ${jid} de +${sender.split('@')[0]}: detectado pero NO borrado. Quitalo a mano.`);
-        return;
-      }
-
-      // AQUI SI SE BANEA, y es un cambio deliberado sobre lo que habia.
-      //
-      // El motivo de no banear era el falso positivo: la lista negra es GLOBAL
-      // y permanente, y un guardia que se equivoca deja a alguien vetado en
-      // todos los grupos. Ese miedo vale para la HEURISTICA — que ya se queda
-      // arriba, solo borrando y avisando — pero no para esta rama: aqui el
-      // sobre viene identificado por nombre (groupStatusMessageV2 y compañia),
-      // no hay nada que interpretar. O es una historia subida al grupo o no lo
-      // es.
-      //
-      // Y por decision del owner: subir spam a la historia del grupo se paga
-      // con la lista negra, no con un "vuelve cuando quieras".
-      const forms = allForms(sender, meta);
-      await banAccount(forms, `historia subida al grupo ${jid}`, 'auto').catch((e) => logger.unaVez('vetar por historia', e));
-      const fuera = await expulsar(sock, jid, sender, meta);
-      sock.sendMessage(jid, {
-        text: `@${sender.split('@')[0]} fuera y a la lista negra por subir una historia al grupo. Aquí no se suben estados, ni con enlaces ni sin ellos.`,
-        mentions: [sender],
-      }).catch(() => {});
-      if (!fuera) anotarTropiezo(`Historia en ${jid} de +${sender.split('@')[0]}: vetado pero NO expulsado. Hazlo a mano.`);
+      // Una historia se castiga UNA vez, la vea quien la vea primero: esta
+      // guarda o la de la cabecera (castigarHistoriaCruda).
+      if (historiaYaAtendida(msg.key.id)) return;
+      await castigarHistoria(sock, jid, msg, sender, senderPn, deteccion);
       return; // un estado no sigue procesándose en ningún caso
     }
   }
@@ -3069,6 +3111,7 @@ module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGro
   // Para que el socket use la cache que ya existe en vez de preguntar por su cuenta.
   metaParaBaileys,
   metaFrescaParaBaileys,
+  castigarHistoriaCruda,
   _repescaEmpresa: { pendiente: pendienteEmpresa, repescar, pendientes: () => pendientesEmpresa.size, olvidar: () => { pendientesEmpresa.clear(); if (repescaTimer) { clearInterval(repescaTimer); repescaTimer = null; } } },
   _borrarSpamReciente: borrarSpamReciente,
   peekGroupMeta,
