@@ -74,10 +74,12 @@ const RITMOS = {
 // expulsión, y al revés.
 function crearRitmo({ hueco, azar = 0 }, ahora = Date.now, aleatorio = Math.random) {
   let libre = 0;
-  return function turno() {
+  // `urgente`: sale ya, sin ponerse detrás de lo que espera, y lo siguiente
+  // guarda su hueco después de ella. Lo que ya tenía turno lo conserva.
+  return function turno(urgente = false) {
     const t = ahora();
-    const sale = Math.max(t, libre);
-    libre = sale + hueco + Math.floor(aleatorio() * azar);
+    const sale = urgente ? t : Math.max(t, libre);
+    libre = Math.max(libre, sale + hueco + Math.floor(aleatorio() * azar));
     return sale - t;   // cuánto hay que esperar antes de salir
   };
 }
@@ -253,6 +255,15 @@ function crearCola({ hueco, azar = 0 }, ahora = Date.now, aleatorio = Math.rando
 // El ritmo lo quita antes de llamar a Baileys, que no lo ve nunca.
 const FONDO = Object.freeze({ ritmoFondo: true });
 
+// Y LO QUE NO PUEDE ESPERAR, CON ESTO (9 nov). El dueño: «cuando se le quita
+// admin al 333 se le devuelve instantáneo; a mi número francés tarda un poco,
+// y con Jean Claude tarda múltiples minutos. Todo debe ser instantáneo». La
+// devolución del admin al tier dueño esperaba su hueco detrás de cualquier
+// expulsión en curso. Con URGENTE sale ya. Sigue contando para el tope: lo que
+// se salta es la cola, no el límite.
+//   sock.groupParticipantsUpdate(grupo, [jid], 'promote', URGENTE)
+const URGENTE = Object.freeze({ ritmoUrgente: true });
+
 // Cuántas veces se ha llegado a un tope, por hora y método: `npm run estado`
 // lo enseña. Es lo que dice si el anti-empresa tarda porque se acaba el cupo.
 let topesVistos = [];   // [{ h, metodos: { metodo: n } }]
@@ -311,6 +322,8 @@ function ponerRitmo(sock, ritmos = RITMOS, { enRodaje = null } = {}) {
     sock[metodo] = async function conRitmo(...args) {
       const fondo = args.length > 0 && args[args.length - 1] === FONDO;
       if (fondo) args = args.slice(0, -1);
+      const urgente = !fondo && args.length > 0 && args[args.length - 1] === URGENTE;
+      if (urgente) args = args.slice(0, -1);
       const n = cfg.porPersona && Array.isArray(args[1]) ? Math.max(1, args[1].length) : 1;
       if (gastar && !gastar(n, fondo ? 1 - reserva : 1)) {
         apuntarTope(metodo);
@@ -320,9 +333,9 @@ function ponerRitmo(sock, ritmos = RITMOS, { enRodaje = null } = {}) {
       if (cola) {
         const prioridad = metodo === 'sendMessage'
           ? (args[1] && args[1].delete ? 0 : args[1] && args[1].edit ? 2 : 1)
-          : (fondo ? 2 : 1);
+          : (fondo ? 2 : urgente ? 0 : 1);
         await cola(args[0], prioridad);
-      } else await esperar(turno());
+      } else await esperar(turno(urgente));
       return original.apply(this, args);
     };
   }
@@ -330,5 +343,5 @@ function ponerRitmo(sock, ritmos = RITMOS, { enRodaje = null } = {}) {
   return sock;
 }
 
-module.exports = { ponerRitmo, crearRitmo, crearCola, crearTope, estadoCola, lineaCola, RITMOS, TopeDiario, esTope, FONDO, topesDelDia, apuntarTope, esperar,
+module.exports = { ponerRitmo, crearRitmo, crearCola, crearTope, estadoCola, lineaCola, RITMOS, TopeDiario, esTope, FONDO, URGENTE, topesDelDia, apuntarTope, esperar,
   _olvidarMedidas: () => { medidas = []; topesVistos = []; } };

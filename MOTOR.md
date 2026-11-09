@@ -414,6 +414,26 @@ el guardián se lo devuelve al dueño, y el bot también si es admin, sin castig
 a la cuenta del guardián, que es la defensa del grupo. Para que funcione, el
 guardián tiene que estar vinculado y ser admin en ese grupo. Capas 118 y 145.
 
+## Al tier dueño, el admin de vuelta al momento
+
+El dueño (9 nov): «cuando se le quita admin al 333 se le devuelve
+instantáneo; a mi número francés tarda un poco, y con Jean Claude tarda
+múltiples minutos. Todo debe ser instantáneo». Al bot lo repone el guardián
+nada más llegar el aviso; a los números del dueño, no:
+
+- si se lo quitaba otro número del tier dueño, o el aviso llegaba sin autor,
+  el evento no hacía nada y esperaba al repaso, que pasa cada 6 minutos;
+- antes de devolverlo se releía la ficha del grupo, una consulta con turno;
+- la devolución esperaba su hueco detrás de cualquier expulsión en curso.
+
+Ahora el bot lo pide lo primero del evento, con la ficha que ya tenía
+(`reponerDueñosYa` en `bot.js`), lo haya quitado quien lo haya quitado. Va con
+`URGENTE` (`utils/ritmo.js`): no hace cola, pero sigue contando para el tope.
+Si lo quitó alguien de fuera, el castigo y el aviso siguen como siempre; entre
+números del tier dueño se devuelve callado. Con el bot fuera, el guardián
+también lo devuelve cuando lo quitó un número de confianza o el aviso no dice
+quién. Capa 155.
+
 ## Enlaces pegados a pelo
 
 El antilink solo veía un enlace si llevaba `https://`, `www.` o era de un

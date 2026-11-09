@@ -91,6 +91,14 @@ recodificar**, también el HEVC (solo se le cambia la caja a `hvc1`); con
 cambia por una copia peor (capa 84). Las herramientas lentas avisan con
 `espera` en su fila (`utils/progreso.js`). Capas 96 y 124.
 
+## Al tier dueño, el admin de vuelta al momento
+
+Lo pidió el dueño (9 nov): «todo debe ser instantáneo». Cuando le quitan el
+admin a un número del tier dueño, el bot se lo devuelve lo primero del
+evento, lo haya quitado quien lo haya quitado (también otro número del dueño
+o un aviso sin autor), con `URGENTE`: sin hacer cola, pero dentro del tope.
+No se vuelve a dejar para el repaso. Ver `MOTOR.md`; capa 155.
+
 ## Spam de texto: aviso 1 de 2 y ban
 
 Lo pidió el dueño (17 oct): 5 mensajes iguales del mismo número en menos de 10

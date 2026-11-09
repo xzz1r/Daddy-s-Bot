@@ -813,7 +813,7 @@ const comoVaElBot = (estado) => (estado === 'vivo' ? 'en linea pero sin admin ah
 // Devuelve lo que hizo ({ quitados, repuestos }), o null si no le tocaba.
 async function alCambioDeAdmin(groupJid, participants, action, author, authorPn) {
   if (action !== 'promote' && action !== 'demote') return null;
-  if (!author) return null;
+  if (!author && action !== 'demote') return null;
   if (!numerosDueno().length) {
     logger.unaVez('guardian: anti-admin apagado', 'no hay OWNER_NUMBER en el .env y sin saber quien manda revertiria al propio dueño');
     return null;
@@ -824,13 +824,19 @@ async function alCambioDeAdmin(groupJid, participants, action, author, authorPn)
   // lo hace nunca por su cuenta (al dueño no se le toca), así que es alguien
   // con ese móvil en la mano: el dueño lo probó así y nadie lo revertía. Se
   // le devuelve al dueño y ya está, sin castigar a nadie.
-  if (action === 'demote' && soyYo(autor, meta)) {
+  //
+  // Y LO MISMO SI LO QUITA OTRO NÚMERO DEL TIER DUEÑO, O SI EL AVISO LLEGA SIN
+  // AUTOR (9 nov). El dueño: «con Jean Claude tarda múltiples minutos; todo
+  // debe ser instantáneo». Eso solo lo devolvía el repaso del bot, cada seis
+  // minutos. Con el bot fuera, lo devuelve el guardián al momento.
+  if (action === 'demote' && (!author || deConfianza(autor, meta))) {
     const duenos = (participants || []).filter((p) => esDueno(p, meta));
     if (!duenos.length) return null;
     const turno = await leToca(groupJid, meta, 'devolverle el admin al dueño');
     if (!turno || !turno.meta || !turno.soyAdmin) return turno ? { quitados: [], repuestos: [] } : null;
     const repuestos = await cambiarRangos(groupJid, duenos.map(idDe).filter(Boolean), 'promote');
-    logger.warn(`guardián: mi propia cuenta le quitó el admin a un dueño en ${groupJid}; repuesto a ${repuestos.length}/${duenos.length}`);
+    const quien = !author ? 'alguien (el aviso no dice quién)' : soyYo(autor, meta) ? 'mi propia cuenta' : 'un número de confianza';
+    logger.warn(`guardián: ${quien} le quitó el admin a un dueño en ${groupJid}; repuesto a ${repuestos.length}/${duenos.length}`);
     return { quitados: [], repuestos };
   }
   if (deConfianza(autor, meta)) return null;

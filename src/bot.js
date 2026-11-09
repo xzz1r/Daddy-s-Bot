@@ -508,6 +508,41 @@ function dueñosSinAdmin(meta) {
     return [p.id, p.lid, p.phoneNumber].filter(Boolean).some((f) => isOwner(f, false, meta));
   }).map((p) => p.id);
 }
+// LOS DEL TIER DUEÑO QUE TRAE UN EVENTO DE DEGRADACION, por su id del evento.
+// Se mira cada forma que trae (id, lid, teléfono) y, si la hay, la ficha del
+// grupo para cruzar el @lid con su número.
+function dueñosDelEvento(participants, meta, esBot) {
+  return (participants || [])
+    .map((p) => (typeof p === 'string' ? { id: p } : p))
+    .filter((o) => o?.id && !esBot(o.id))
+    .filter((o) => [o.id, o.lid, o.phoneNumber].filter(Boolean).some((f) => isOwner(f, false, meta)))
+    .map((o) => o.id);
+}
+
+// AL TIER DUEÑO SE LE DEVUELVE EL ADMIN AL MOMENTO (9 nov). El dueño: «cuando
+// se le quita admin al 333 se le devuelve instantáneo; a mi número francés
+// tarda un poco, y con Jean Claude tarda múltiples minutos. Todo debe ser
+// instantáneo». Tres cosas lo retrasaban:
+//   · si quien lo quitaba era otro número del tier dueño (o el evento llegaba
+//     sin autor), el evento no hacía nada y esperaba al repaso, que pasa cada
+//     INTERVALO_SOLICITUDES (6 min): de ahí los minutos;
+//   · antes de devolverlo se releía la ficha del grupo, y eso es una consulta
+//     con su propio turno;
+//   · la devolución esperaba su hueco detrás de cualquier expulsión en curso.
+// Ahora sale lo primero, con la ficha que ya hubiera, quienquiera que lo haya
+// quitado y sin hacer cola (URGENTE). El castigo y el aviso, si tocan, siguen
+// después como siempre; y si con lo que había no se pudo reconocer a nadie,
+// se reconoce con la ficha recién leída y se devuelve entonces.
+async function reponerDueñosYa(grupo, ids, meta) {
+  if (!sock || !ids.length) return { pedidos: [], ok: [] };
+  // Con ficha y sin ser admin, ni se intenta: WhatsApp lo rechazaría seguro.
+  if (meta?.participants && !isBotAdmin(sock, meta)) return { pedidos: ids, ok: [], sinAdmin: true };
+  const r = await aplicarParticipantes(sock, grupo, ids, 'promote', meta, { urgente: true });
+  if (r.ok.length) logger.warn(`admin devuelto al momento a ${r.ok.length} del tier dueño en ${grupo}`);
+  else logger.warn(`no he podido devolver al momento el admin al tier dueño en ${grupo}: ${r.error || JSON.stringify(r.fallidos).slice(0, 160)}`);
+  return { pedidos: ids, ok: r.ok };
+}
+
 async function reponerAdminDueños(grupo) {
   if (!sock) return;
   if ((reponerFalloHasta.get(grupo) || 0) > Date.now()) return;
@@ -1697,31 +1732,12 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
     // forma se encuentre preguntando por la otra. Lo hace rememberMapping, que
     // es el sitio donde vive ese mapa; recordName solo guarda nombres.
     if (author && authorPn) rememberMapping(author, authorPn);
+    // La ficha que ya hubiera, ANTES de tirarla: con ella se reconoce al tier
+    // dueño sin esperar a releer el grupo (ver reponerDueñosYa).
+    const metaPrevia = action === 'demote' ? peekGroupMeta(groupJid) : null;
     // Any participant change invalidates the cached metadata for that group —
     // otherwise commands run within 30s of a join/kick see stale member lists.
     invalidateGroupMeta(groupJid);
-
-    // Fetch fresh metadata so isOwner() can resolve the author via the group's
-    // participant list. Without it, owner/co-owner checks fall back to the
-    // global LID cache only, and a co-owner whose LID hasn't been seen yet (e.g.
-    // right after a restart) would have their legit promote/add wrongly reverted
-    // by anti-admin. Null on failure → same cache-only behavior as before.
-    const meta = await getGroupMeta(sock, groupJid).catch(() => null);
-
-    // Newer Baileys emits participants as objects { id, phoneNumber, lid, admin, ... }.
-    // Older versions used plain JID strings. Normalize to an array of JID strings.
-    const partJids = (participants || [])
-      .map(p => (typeof p === 'string' ? p : p?.id))
-      .filter(Boolean);
-
-    // ¿Es del owner tier? Se miran las DOS formas que trae el evento.
-    //
-    // Baileys entrega `authorPn` junto a `author` en cada cambio de participantes
-    // (Types/Events.d.ts), igual que hace con las solicitudes de entrada. Mirar
-    // solo `author` dejaba al owner comprobado en una sola forma: si venía como
-    // @lid sin mapear, el bot lo trataba como a un miembro cualquiera.
-    const esOwnerAmplio = (a, aPn, m) =>
-      Boolean((a && isOwner(a, false, m)) || (aPn && isOwner(aPn, false, m)));
 
     // Bot detection covers both phone JID (older groups) and LID (newer groups).
     // botIds is precomputed at 'connection: open' to skip the rebuild per event.
@@ -1744,6 +1760,36 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
       return [sock.user?.id, sock.user?.lid].filter(Boolean)
         .some((j) => String(j).split('@')[0].split(':')[0] === base);
     };
+
+    // Lo primero de todo: al tier dueño degradado se le devuelve el admin ya.
+    const reposicionDueños = action === 'demote' && !isBotJid(author)
+      ? reponerDueñosYa(groupJid, dueñosDelEvento(participants, metaPrevia, isBotJid), metaPrevia)
+        .catch((e) => { logger.unaVez('admin del dueño al momento', e); return { pedidos: [], ok: [] }; })
+      : null;
+    // Lo que ya salió al momento: quien siga sin admin se pide después.
+    const yaRepuestos = async () => (reposicionDueños ? (await reposicionDueños).ok : []);
+
+    // Fetch fresh metadata so isOwner() can resolve the author via the group's
+    // participant list. Without it, owner/co-owner checks fall back to the
+    // global LID cache only, and a co-owner whose LID hasn't been seen yet (e.g.
+    // right after a restart) would have their legit promote/add wrongly reverted
+    // by anti-admin. Null on failure → same cache-only behavior as before.
+    const meta = await getGroupMeta(sock, groupJid).catch(() => null);
+
+    // Newer Baileys emits participants as objects { id, phoneNumber, lid, admin, ... }.
+    // Older versions used plain JID strings. Normalize to an array of JID strings.
+    const partJids = (participants || [])
+      .map(p => (typeof p === 'string' ? p : p?.id))
+      .filter(Boolean);
+
+    // ¿Es del owner tier? Se miran las DOS formas que trae el evento.
+    //
+    // Baileys entrega `authorPn` junto a `author` en cada cambio de participantes
+    // (Types/Events.d.ts), igual que hace con las solicitudes de entrada. Mirar
+    // solo `author` dejaba al owner comprobado en una sola forma: si venía como
+    // @lid sin mapear, el bot lo trataba como a un miembro cualquiera.
+    const esOwnerAmplio = (a, aPn, m) =>
+      Boolean((a && isOwner(a, false, m)) || (aPn && isOwner(aPn, false, m)));
 
     // Anti-business: kick WhatsApp Business accounts that just joined.
     // Parallel check across all new joiners — keeps response time flat when
@@ -2207,9 +2253,9 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
     // contesta por @lid y no encontraba ninguna. El contrato unico cruza las
     // dos formas por la metadata, asi que "sin fila" pasa a ser raro de verdad
     // y ya se puede tratar como lo que es: no confirmado.
-    const cambiarRango = async (jids, accion) => {
+    const cambiarRango = async (jids, accion, urgente = false) => {
       if (!jids.length) return [];
-      const r = await aplicarParticipantes(sock, groupJid, jids, accion, meta);
+      const r = await aplicarParticipantes(sock, groupJid, jids, accion, meta, { urgente });
       if (r.error) logger.warn(`anti-admin: ${accion} fallo en ${groupJid}: ${r.error}`);
       return r.ok;
     };
@@ -2358,11 +2404,7 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
     // cualquier otra degradación del dueño, pero al guardián no se le castiga:
     // es la defensa del grupo.
     if (action === 'demote' && (!fromBot || autorEsGuardian) && !isBotJid(author) && author && !esOwnerAmplio(author, authorPn, meta)) {
-      const ownerDegradado = (participants || [])
-        .map(p => (typeof p === 'string' ? { id: p } : p))
-        .filter(o => o?.id && !isBotJid(o.id))
-        .filter(o => [o.id, o.lid, o.phoneNumber].filter(Boolean).some(f => isOwner(f, false, meta)))
-        .map(o => o.id);
+      const ownerDegradado = dueñosDelEvento(participants, meta, isBotJid);
 
       if (ownerDegradado.length) {
         // Si en el mismo golpe cayeron el owner Y otros admins, se restaura a
@@ -2379,7 +2421,11 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
           ...(isAntiAdminEnabled(groupJid) ? otros : []),
         ]));
 
-        const repuestos = await cambiarRango(aRestaurar, 'promote');
+        // Al tier dueño ya se le pidió al entrar el evento: aquí solo va quien
+        // siga sin él (los demás admins, o un dueño que no se reconoció hasta
+        // tener la ficha recién leída).
+        const ya = (await yaRepuestos()).filter(j => aRestaurar.includes(j));
+        const repuestos = [...ya, ...await cambiarRango(aRestaurar.filter(j => !ya.includes(j)), 'promote', true)];
         const castigado = author && !autorEsGuardian ? (await cambiarRango([author], 'demote')).length > 0 : false;
         const sinReponer = aRestaurar.filter(j => !repuestos.includes(j));
 
@@ -2408,6 +2454,25 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
       }
     }
 
+    // ─── Y SI LO QUITÓ UN NÚMERO DEL TIER DUEÑO, O NO SE SABE QUIÉN ────────
+    //
+    // Antes esto no lo devolvía nadie hasta el repaso (6 min): era el «con Jean
+    // Claude tarda múltiples minutos». Se devuelve igual que con cualquier otro
+    // autor, pero callado y sin castigar a nadie: entre los del tier dueño no
+    // hay agresión que anunciar.
+    let dueñosRepuestos = [];
+    if (action === 'demote' && !isBotJid(author) && (!author || esOwnerAmplio(author, authorPn, meta))) {
+      const dueños = dueñosDelEvento(participants, meta, isBotJid);
+      if (dueños.length) {
+        const ya = (await yaRepuestos()).filter(j => dueños.includes(j));
+        const faltan = dueños.filter(j => !ya.includes(j));
+        dueñosRepuestos = [...ya, ...(faltan.length && meta && isBotAdmin(sock, meta) ? await cambiarRango(faltan, 'promote', true) : [])];
+        if (dueñosRepuestos.length < dueños.length) {
+          avisarSiSigueSinAdmin(groupJid, author).catch((e) => logger.unaVez('aviso al dueño sin admin', e));
+        }
+      }
+    }
+
     // Anti-admin: revert any demote that didn't come from the bot
     // Admin A removes B's admin → bot restores B and removes A's admin.
     // Track each step separately so the notification reflects what actually
@@ -2416,7 +2481,8 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
       // Al bot no se le puede reponer el admin a sí mismo: si es él el
       // degradado, ya no tiene permiso para nada. Se filtra para no gastar una
       // llamada que WhatsApp va a rechazar seguro.
-      const aReponer = partJids.filter(j => !isBotJid(j));
+      // Al tier dueño ya se le devolvió arriba: no se le pide dos veces.
+      const aReponer = partJids.filter(j => !isBotJid(j) && !dueñosRepuestos.includes(j));
       const repuestos = await cambiarRango(aReponer, 'promote');
       const castigado = author ? (await cambiarRango([author], 'demote')).length > 0 : false;
 

@@ -24225,6 +24225,111 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes154) console.log(verde('   ✓ npm run estado dice dónde el bot no es admin y qué protección está apagada en cada grupo'));
   }
 
+  // ── 155. AL TIER DUEÑO SE LE DEVUELVE EL ADMIN AL MOMENTO (9 nov) ─────────
+  // «Cuando se le quita admin al 333 se le devuelve instantáneo; a mi número
+  // francés tarda un poco, y con Jean Claude tarda múltiples minutos. Todo
+  // debe ser instantáneo.» Si lo quitaba otro número del tier dueño (o el
+  // aviso venía sin autor) nadie lo devolvía hasta el repaso de 6 minutos, y
+  // la devolución esperaba turno detrás de las expulsiones. Ahora:
+  //   · el bot la pide lo primero del evento, con la ficha que ya tenía y sin
+  //     hacer cola (URGENTE), quienquiera que lo haya quitado;
+  //   · URGENTE se salta la cola pero no el tope;
+  //   · con el bot fuera, el guardián la devuelve también cuando la quitó un
+  //     número de confianza o el aviso no dice quién.
+  {
+    console.log('\n155. AL TIER DUEÑO SE LE DEVUELVE EL ADMIN AL MOMENTO');
+    const antes155 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    // El bot: el orden dentro del evento, que es lo que hace que sea al momento.
+    const codigo155 = soloCodigo('src/bot.js');
+    const evento155 = (codigo155.split("sock.ev.on('group-participants.update'")[1] || '').split('sock.ev.on(')[0];
+    const iPeek = evento155.indexOf('peekGroupMeta(groupJid)');
+    const iInval = evento155.indexOf('invalidateGroupMeta(groupJid)');
+    const iYa = evento155.indexOf('reponerDueñosYa(');
+    const iFicha = evento155.indexOf('await getGroupMeta(sock, groupJid)');
+    exige(iPeek >= 0 && iPeek < iInval, 'el evento ya no guarda la ficha que había antes de tirarla');
+    exige(iYa >= 0 && iFicha >= 0 && iYa < iFicha, 'la devolución del admin al dueño espera a releer la ficha del grupo');
+    exige(/action === 'demote' && !isBotJid\(author\)\s*\?\s*reponerDueñosYa\(/.test(evento155),
+      'la devolución al momento depende de quién quitó el admin');
+    exige(/\(!author \|\| esOwnerAmplio\(author, authorPn, meta\)\)/.test(evento155) && /cambiarRango\(faltan, 'promote', true\)/.test(evento155),
+      'si lo quita un número del tier dueño o no se sabe quién, el evento no lo devuelve (espera al repaso)');
+    const ya155 = (codigo155.split('async function reponerDueñosYa(')[1] || '').split('\nasync function ')[0];
+    exige(/aplicarParticipantes\([^)]*\{ urgente: true \}\)/.test(ya155), 'la devolución al dueño hace cola detrás de las expulsiones');
+
+    // El ritmo: URGENTE sale ya, lo que esperaba conserva su turno, y el tope cuenta.
+    const { ponerRitmo, URGENTE } = require(path.join(R, 'src/utils/ritmo'));
+    const salidas = [];
+    const falso = { groupParticipantsUpdate: async (g, ids, que, ...resto) => { salidas.push({ que, t: Date.now(), resto: resto.length }); return ids.map((i) => ({ jid: i, status: '200' })); } };
+    ponerRitmo(falso, { groupParticipantsUpdate: { hueco: 400, azar: 0, porPersona: true, rodaje: { porHora: 4 } } }, { enRodaje: () => true });
+    const t0 = Date.now();
+    const cola155 = [falso.groupParticipantsUpdate('g', ['a'], 'remove'), falso.groupParticipantsUpdate('g', ['b'], 'remove'), falso.groupParticipantsUpdate('g', ['c'], 'remove')];
+    await new Promise((r) => setTimeout(r, 30));
+    await falso.groupParticipantsUpdate('g', ['d'], 'promote', URGENTE);
+    const tUrg = salidas.find((x) => x.que === 'promote')?.t - t0;
+    await Promise.all(cola155);
+    exige(tUrg < 200, `una devolución URGENTE esperó ${tUrg} ms detrás de las expulsiones`);
+    exige(salidas.filter((x) => x.que === 'remove').length === 3 && salidas[salidas.length - 1].t - t0 >= 700, 'URGENTE les quitó el turno a las expulsiones que esperaban');
+    exige(salidas.every((x) => x.resto === 0), 'la marca URGENTE le llega a Baileys');
+    let frenada = false;
+    try { await falso.groupParticipantsUpdate('g', ['e'], 'promote', URGENTE); } catch (e) { frenada = e.code === 'TOPE_HORA'; }
+    exige(frenada, 'URGENTE se salta el tope por hora, no solo la cola');
+
+    // El guardián, con el bot fuera: lo quita otro número del dueño o nadie sabe quién.
+    const G = require(path.join(R, 'src/guardian'));
+    const envAntes = { OWNER_NUMBER: process.env.OWNER_NUMBER, CO_OWNERS: process.env.CO_OWNERS, GUARDIAN_DE: process.env.GUARDIAN_DE };
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'guard155-'));
+    const GR = '120363000000000155@g.us';
+    const D1 = '34600095155', D2 = '33600095155', BOT = '34600095156', GUARD = '34600095157', ROGUE = '34600095158';
+    const jid = (n) => `${n}@s.whatsapp.net`;
+    let meta, hechos;
+    const monta = () => {
+      meta = { id: GR, participants: [
+        { id: jid(D1), admin: 'admin' }, { id: jid(D2), admin: null }, { id: jid(BOT), admin: 'admin' },
+        { id: jid(GUARD), admin: 'admin' }, { id: jid(ROGUE), admin: 'admin' }] };
+      hechos = [];
+    };
+    const sock = {
+      user: { id: `${GUARD}:3@s.whatsapp.net` },
+      sendMessage: async () => ({}),
+      groupMetadata: async () => JSON.parse(JSON.stringify(meta)),
+      groupParticipantsUpdate: async (g, ids, que) => { hechos.push(`${que}:${ids.map((i) => i.split('@')[0]).sort().join(',')}`); return ids.map((i) => ({ jid: i, status: '200' })); },
+    };
+    const latido = path.join(dir, 'botLatido.json');
+    try {
+      process.env.OWNER_NUMBER = D1; process.env.CO_OWNERS = D2; process.env.GUARDIAN_DE = BOT;
+      fs.writeFileSync(path.join(dir, 'state.json'), JSON.stringify({ antiAdminEnabled: [] }));
+      G._sock(sock); G._estadoBot(path.join(dir, 'state.json')); G._esperaAlBot(5);
+      G._ficheroDueno(path.join(dir, 'ownerJids.json'), path.join(dir, 'lidsDuenos.json'));
+      fs.writeFileSync(latido, JSON.stringify({ conectado: false, ts: Date.now() }));
+      G._latidoBot(latido);
+
+      monta();
+      await G.alCambioDeAdmin(GR, [{ id: jid(D2), phoneNumber: jid(D2) }], 'demote', jid(D1));
+      exige(hechos.join(' ') === `promote:${D2}`, `con el bot fuera, si otro número del dueño le quita el admin a uno suyo, el guardián no lo devuelve (hizo: ${hechos.join(' ') || 'nada'})`);
+      monta();
+      await G.alCambioDeAdmin(GR, [{ id: jid(D2), phoneNumber: jid(D2) }], 'demote', undefined);
+      exige(hechos.join(' ') === `promote:${D2}`, `con el bot fuera y un aviso sin autor, el guardián no le devuelve el admin al dueño (hizo: ${hechos.join(' ') || 'nada'})`);
+      monta();
+      await G.alCambioDeAdmin(GR, [{ id: jid(ROGUE), phoneNumber: jid(ROGUE) }], 'demote', jid(D1));
+      exige(hechos.length === 0, `el guardián devuelve el admin a quien el dueño se lo quitó y no es del tier dueño: ${hechos.join(' ')}`);
+
+      // Con el bot en línea y admin, es su trabajo: el guardián no pide nada.
+      fs.writeFileSync(latido, JSON.stringify({ conectado: true, ts: Date.now(), pid: process.pid }));
+      monta();
+      await G.alCambioDeAdmin(GR, [{ id: jid(D2), phoneNumber: jid(D2) }], 'demote', jid(D1));
+      exige(hechos.length === 0, `con el bot en línea y admin, el guardián también pide el ascenso: ${hechos.join(' ')}`);
+    } catch (e) {
+      exige(false, `no pude probar el guardián: ${String(e.message).split('\n')[0]}`);
+    } finally {
+      for (const [k, v] of Object.entries(envAntes)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+      G._ficheroDueno(path.join(R, 'data/ownerJids.json'), path.join(R, 'data/lidsDuenos.json'));
+      G._latidoBot(path.join(R, 'data/botLatido.json'));
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+    if (fallos === antes155) console.log(verde('   ✓ al tier dueño se le devuelve el admin al momento, lo quite quien lo quite, sin colarse en el tope'));
+  }
+
 
 
 

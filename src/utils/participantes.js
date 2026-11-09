@@ -59,13 +59,17 @@ function formasDe(jid, groupMeta) {
 // no traen fila, ni los que vienen con otro codigo, ni el caso de que la
 // llamada entera reviente. Quien quiera anunciar algo, vetar a alguien o fichar
 // un hecho, que lo haga sobre `ok` y solo sobre `ok`.
-async function aplicarParticipantes(sock, groupJid, ids, accion, groupMeta = null) {
+// `urgente`: no espera su hueco detrás de otras expulsiones (ver URGENTE en
+// utils/ritmo.js). Solo para devolverle el admin al tier dueño.
+async function aplicarParticipantes(sock, groupJid, ids, accion, groupMeta = null, { urgente = false } = {}) {
   const pedidos = [...new Set((ids || []).filter(Boolean))];
   if (!pedidos.length) return { ok: [], fallidos: [], error: null };
 
   let res;
   try {
-    res = await withTimeout(sock.groupParticipantsUpdate(groupJid, pedidos, accion), TOPE_PARTICIPANTES);
+    const args = [groupJid, pedidos, accion];
+    if (urgente) args.push(require('./ritmo').URGENTE);
+    res = await withTimeout(sock.groupParticipantsUpdate(...args), TOPE_PARTICIPANTES);
   } catch (err) {
     // La llamada entera fallo: NADIE cambio. Antes varios sitios se comian la
     // excepcion y seguian como si hubiera ido bien.
