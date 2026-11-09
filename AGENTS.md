@@ -133,7 +133,7 @@ interno (dueño, 22 oct). Capas 9 y 137. Ver `MOTOR.md`.
 
 **Nada pregunta a WhatsApp en masa** (30 oct): dos números del bot cayeron en
 revisión en pocos días, y el bot pedía cientos de perfiles nada más conectar.
-La precisión mira una muestra de 30 al día con pausas y espera a que el
+La precisión mira una muestra de 10 al día con pausas y espera a que el
 número lleve siete días; una cuenta normal comprobada no se vuelve a
 consultar en una semana. Ver `MOTOR.md` («Un número nuevo no pregunta en
 masa») y la capa 144. Debajo hay topes por hora y por día en el socket
@@ -142,7 +142,9 @@ suben para que algo quepa**; lo que no quepa se dice como «sin comprobar».
 Capa 145. Dentro del tope, quien escribe va primero y tiene reservado el 40 %;
 lo de fondo lleva la marca `FONDO`. Quien escribió sin poder comprobarse se
 repesca después, y al echar a una cuenta Business se borra su spam reciente
-(dueño, 8 nov). Capa 150.
+(dueño, 8 nov). Desde el 9 nov los topes de mirar perfiles son los que eran
+de rodaje (empresa 10/h y 60/día) y el rodaje la mitad: el 321 cayó el día
+después de que se multiplicaran por cuatro. Capa 150.
 
 ## La peña activa se halaga, sin veneno
 

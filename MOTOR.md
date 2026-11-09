@@ -322,7 +322,7 @@ vinculado se parecía a un raspador:
 
 - **La precisión del anti-empresa** pedía el perfil de empresa de TODAS las
   vetadas seguidas, unas 630, a los diez minutos de conectar. Ahora mira una
-  muestra de 30 al día, con 20-40 s entre una y otra, empieza a las dos horas,
+  muestra de 10 al día (eran 30 hasta el 9 nov), con 20-40 s entre una y otra, empieza a las dos horas,
   y no mide nada hasta que el número lleva **siete días** vinculado
   (`desde` en `data/numeroBot.json`, que se conserva mientras el número sea
   el mismo). La precisión sale de las fichas de los últimos 30 días.
@@ -363,11 +363,18 @@ esperaba turno vencía, salía «no se sabe» y se hacía igual después. Ahora 
 dos segundos entre consultas caben mil ochocientas en una hora. Ahora:
 
 - Mirar perfiles ajenos tiene **tope por hora y por día**: información de
-  empresa 40/h y 250/día, foto 60/h y 400/día, estado 30/h y 150/día. Da
-  igual qué función nueva se escriba mañana: el socket no deja pasar más, y
-  quien llama trata el tope como «no se sabe» (nunca echa a nadie por eso).
+  empresa 10/h y 60/día, foto 15/h y 100/día, estado 8/h y 40/día. Da igual
+  qué función nueva se escriba mañana: el socket no deja pasar más, y quien
+  llama trata el tope como «no se sabe» (nunca echa a nadie por eso).
+- **Bajaron el 9 nov.** Eran 40/250, 60/400 y 30/150, y esas cifras eran
+  las de rodaje. El 321 aguantó sus siete días de rodaje con ellas; el 8
+  acabó el rodaje, todo se multiplicó por cuatro (y a la vez empezaron la
+  precisión y el barrido de fotos) y el 9 estaba en revisión, con el cupo
+  gastado entero cada día (8.790 intentos frenados en 24 h). Lo que aguantó
+  es ahora lo normal. Cuando el cupo está gastado, a quien escribe no se le
+  reintenta con cada mensaje: espera en la repesca.
 - **Rodaje**: los siete primeros días de un número (`utils/numeroBot.js`, con
-  el `desde` de `data/numeroBot.json`) los topes bajan a una cuarta parte, y
+  el `desde` de `data/numeroBot.json`) los topes bajan a la mitad, y
   además expulsar y aceptar solicitudes van a 30 personas por hora y la
   consulta de números a 50 al día. El tope de expulsiones cuenta personas,
   no peticiones.

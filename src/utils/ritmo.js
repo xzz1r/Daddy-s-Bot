@@ -42,8 +42,18 @@ const RITMOS = {
   onWhatsApp: { hueco: 2000, azar: 1500, porDia: 150, rodaje: { porDia: 50 } },
   // Mirar perfiles ajenos: foto, «info» y si es cuenta de empresa. Una a una
   // está bien; en serie es exactamente lo que hace un raspador.
-  profilePictureUrl: { hueco: 1500, azar: 1000, porHora: 60, porDia: 400, rodaje: { porHora: 15, porDia: 100 } },
-  fetchStatus: { hueco: 1500, azar: 1000, porHora: 30, porDia: 150, rodaje: { porHora: 8, porDia: 40 } },
+  //
+  // LOS DE RODAJE SON YA LOS DE SIEMPRE (9 nov). El 321 aguantó sus siete días
+  // de rodaje con 10 consultas de empresa a la hora y 60 al día, 15 y 100 de
+  // fotos, 8 y 40 de info. El 8 acabó el rodaje, todo se multiplicó por cuatro
+  // —y a la vez empezaron la precisión y el barrido de fotos— y el 9 estaba en
+  // revisión. `npm run estado` decía que el bot gastaba el cupo entero cada día
+  // (8.790 intentos frenados en 24 h). No es una prueba, pero es la única pista
+  // con fechas, y apunta a lo mismo que la regla de siempre: mirar perfiles en
+  // serie es lo que hace un raspador. Las cifras que aguantaron pasan a ser las
+  // normales, y las de un número recién vinculado, la mitad.
+  profilePictureUrl: { hueco: 1500, azar: 1000, porHora: 15, porDia: 100, rodaje: { porHora: 8, porDia: 50 } },
+  fetchStatus: { hueco: 1500, azar: 1000, porHora: 8, porDia: 40, rodaje: { porHora: 4, porDia: 20 } },
   // QUIEN ESCRIBE VA PRIMERO (8 nov). El dueño: «tarda en detectar cuentas
   // Business; muchas llegan a hacer spam y a veces ni las detecta después».
   // Con el número en rodaje caben 10 por hora, y las entradas al grupo se las
@@ -52,7 +62,7 @@ const RITMOS = {
   // de fondo (entradas, sus reintentos, la precisión, !scan) va con la marca
   // FONDO: sale detrás de quien escribe y solo puede gastar el 60 % de cada
   // tope; el 40 % queda para quien escribe. Los topes no suben.
-  getBusinessProfile: { hueco: 2000, azar: 1500, porHora: 40, porDia: 250, rodaje: { porHora: 10, porDia: 60 },
+  getBusinessProfile: { hueco: 2000, azar: 1500, porHora: 10, porDia: 60, rodaje: { porHora: 5, porDia: 30 },
     cola: true, reservaUrgente: 0.4 },
   // La metadata de los grupos. Casi siempre sale de la caché; cuando no, que
   // no salgan varias peticiones pegadas.

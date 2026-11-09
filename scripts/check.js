@@ -23942,8 +23942,15 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
     const RT = require(path.join(R, 'src/utils/ritmo'));
     const gbp = RT.RITMOS.getBusinessProfile || {};
-    exige(gbp.porHora === 40 && gbp.porDia === 250 && gbp.rodaje?.porHora === 10 && gbp.rodaje?.porDia === 60,
-      `los topes de consultas de empresa han cambiado (${gbp.porHora}/${gbp.porDia}, rodaje ${gbp.rodaje?.porHora}/${gbp.rodaje?.porDia}): no se suben para que algo quepa`);
+    // Las cifras que aguantó el 321 en su rodaje son las de siempre desde el 9
+    // nov, y el rodaje es la mitad. No se suben para que algo quepa.
+    const techo150 = { getBusinessProfile: [10, 60, 5, 30], profilePictureUrl: [15, 100, 8, 50], fetchStatus: [8, 40, 4, 20] };
+    for (const [m, [h, d, rh, rd]] of Object.entries(techo150)) {
+      const c = RT.RITMOS[m] || {};
+      exige(c.porHora > 0 && c.porHora <= h && c.porDia > 0 && c.porDia <= d && c.rodaje?.porHora <= rh && c.rodaje?.porDia <= rd,
+        `${m} vuelve a mirar perfiles de más (${c.porHora}/h, ${c.porDia}/día; rodaje ${c.rodaje?.porHora}/${c.rodaje?.porDia}): el 321 cayó el día después de que se multiplicaran por cuatro`);
+    }
+    exige(require(path.join(R, 'src/utils/precisionEmpresa')).MUESTRA <= 10, 'la precisión vuelve a gastar más de 10 consultas al día');
     exige(gbp.cola === true && gbp.reservaUrgente >= 0.3 && gbp.reservaUrgente <= 0.6,
       'las consultas de empresa ya no reservan parte del tope para quien escribe');
     {
@@ -23990,6 +23997,11 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
         "  hist.recordar({ key: { remoteJid: G, participant: OTRO, fromMe: false, id: 'O1' }, message: { conversation: 'hola' }, messageTimestamp: t });",
         "  await new Promise((r) => setTimeout(r, 600));",
         "  const antes = { pendientes: mh._repescaEmpresa.pendientes(), hechos: hechos.slice() };",
+        "  const B = '91500000333@lid', TELB = '34655000152@s.whatsapp.net'; partes.push({ id: B, phoneNumber: TELB }); let pedidosB = 0;",
+        "  const getReal = sock.getBusinessProfile; sock.getBusinessProfile = async (j) => { if (j === TELB) { pedidosB++; throw Object.assign(new Error('tope'), { code: 'TOPE_DIARIO' }); } return getReal(j); };",
+        "  for (let i = 0; i < 3; i++) { const m = { key: { remoteJid: G, participant: B, participantAlt: TELB, addressingMode: 'lid', fromMe: false, id: 'B' + i }, message: { conversation: 'hola ' + i }, pushName: 'y', messageTimestamp: t }; await mh.handleMessage(sock, m); await new Promise((r) => setTimeout(r, 150)); }",
+        "  await new Promise((r) => setTimeout(r, 400)); antes.pedidosB = pedidosB; antes.pendientesB = mh._repescaEmpresa.pendientes();",
+        "  sock.getBusinessProfile = getReal;",
         "  falla = false; const r = await mh._repescaEmpresa.repescar();",
         "  mh._repescaEmpresa.olvidar();",
         "  console.log('R150' + JSON.stringify({ antes, r, hechos })); process.exit(0);",
@@ -24002,6 +24014,7 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
       if (r.error) exige(false, `no pude probar la repesca: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
       else {
         exige(r.antes.pendientes === 1 && !r.antes.hechos.length, `quien escribe sin poder comprobarse no queda apuntado para la repesca (${JSON.stringify(r.antes)})`);
+        exige(r.antes.pedidosB === 1 && r.antes.pendientesB === 2, `con el cupo gastado se reintenta con cada mensaje (${r.antes.pedidosB} intentos de 3) o no va a la repesca`);
         exige(r.r === 'biz' && r.hechos.includes('remove'), `la repesca no echa a la cuenta Business (${r.r}: ${r.hechos.join(' ')})`);
         const borra = r.hechos.filter((h) => h.startsWith('borra:'));
         exige(borra.length === 3 && !borra.includes('borra:O1'), `al echarla no se borra su spam, o se borra lo de otro (${borra.join(' ')})`);

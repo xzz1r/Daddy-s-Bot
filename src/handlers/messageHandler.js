@@ -650,7 +650,9 @@ async function repescar() {
     if (!sock) { pendientesEmpresa.set(tel, p); return 'sin socket'; }
     const perfil = await businessEvidence(sock, tel).catch(() => ({ estado: 'desconocido' }));
     if (perfil.estado === 'desconocido') {
-      p.intentos++;
+      // Con el cupo gastado no se ha preguntado: no cuenta como intento, se
+      // espera (lo que caduca es el día, REPESCA_VALE_MS).
+      if (!perfil.tope) p.intentos++;
       pendientesEmpresa.set(tel, p);   // al final de la cola
       return 'desconocido';
     }
@@ -2269,7 +2271,10 @@ async function handleMessage(sock, msg, opciones = {}) {
         const ev = await businessEvidence(sock, tel).catch(() => ({ estado: 'desconocido' }));
         if (ev.estado === 'desconocido') {
           // Si no se supo, se deja que otro mensaje lo reintente más adelante.
-          perfilMirado.delete(clave);
+          // SALVO SI EL CUPO ESTÁ GASTADO (9 nov): reintentarlo con cada
+          // mensaje fueron 8.790 intentos frenados en un día. Se queda como
+          // mirado y lo recoge la repesca cuando haya cupo.
+          if (!ev.tope) perfilMirado.delete(clave);
           // Y si no vuelve a escribir, la repesca (8 nov): era el «a veces ni
           // las detecta después». Ver pendienteEmpresa.
           if (!f?.empresa) pendienteEmpresa(sock, jid, sender, tel);

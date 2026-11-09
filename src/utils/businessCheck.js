@@ -84,7 +84,10 @@ async function businessEvidence(sock, jid, { fondo = false } = {}) {
     // solo una consulta que no contesta.
     profile = await withTimeout(fondo ? sock.getBusinessProfile(jid, FONDO) : sock.getBusinessProfile(jid), fondo ? 120000 : 30000);
   } catch (e) {
-    return { estado: 'desconocido', fields: [], motivo: `la consulta falló (${e?.message || 'error'})` };
+    // `tope`: no se preguntó, el cupo está gastado. Quien llama no lo reintenta
+    // con cada mensaje: espera (ver la repesca en messageHandler).
+    const tope = e?.code === 'TOPE_HORA' || e?.code === 'TOPE_DIARIO';
+    return { estado: 'desconocido', fields: [], tope, motivo: `la consulta falló (${e?.message || 'error'})` };
   }
 
   // Baileys resuelve `undefined` TANTO cuando no hay nodo <profile> como cuando

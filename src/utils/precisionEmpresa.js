@@ -47,7 +47,10 @@ const numeroBot = require('./numeroBot');
 const FILE = path.join(__dirname, '../../data/precisionEmpresa.json');
 const DIA = 24 * 60 * 60 * 1000;
 const PRIMERA_MS = 2 * 60 * 60 * 1000;
-const MUESTRA = 30;
+// 10 y no 30 (9 nov): con 60 consultas de empresa al día (utils/ritmo.js), 30
+// para medir se comían la mitad del cupo de fondo. Las fichas son de 30 días,
+// así que la cifra sigue saliendo de cientos de cuentas.
+const MUESTRA = 10;
 const VIGENCIA = 30 * DIA;
 const DIAS_VINCULADO = numeroBot.DIAS_RODAJE;
 let PAUSA = () => 20000 + Math.random() * 20000;
