@@ -99,6 +99,16 @@ evento, lo haya quitado quien lo haya quitado (también otro número del dueño
 o un aviso sin autor), con `URGENTE`: sin hacer cola, pero dentro del tope.
 No se vuelve a dejar para el repaso. Ver `MOTOR.md`; capa 155.
 
+## Por privado, el aura es solo del dueño
+
+Lo pidió el dueño (11 nov): «solo yo puedo tener acceso a esos comandos al
+DM». `!aura` (tirada, consulta, top, apuesta), `!premiar`, `!dar` y `!banco`
+le funcionan por privado al dueño principal (`dueñoEnPrivado` en
+`src/utils/wa.js`, que mira todas las formas del chat, también el @lid); a
+cualquier otro, co-dueños incluidos, se le sigue diciendo que es de grupo.
+Por privado se nombra a alguien por su número (`!premiar 573001234567 500`),
+y `!premiar yo 500` es `!premiaryo`. Capa 156.
+
 ## Spam de texto: aviso 1 de 2 y ban
 
 Lo pidió el dueño (17 oct): 5 mensajes iguales del mismo número en menos de 10

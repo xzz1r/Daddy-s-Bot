@@ -1,4 +1,4 @@
-const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameUser, soloMiembros } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameUser, soloMiembros, enGrupoODueño, dueñoEnPrivado, numeroEnArgs } = require('../utils/wa');
 const { apel } = require('../utils/vocativo');
 const { pickFresh, fmt, parseCantidad, resolverCantidad, etiquetaRiesgo } = require('../utils/helpers');
 const { getAura, addAura, spendAura, getAuraRanking, flushAura, verCaja, BOLSA } = require('../utils/auraStore');
@@ -458,7 +458,7 @@ function pintarTopGris(filas) {
 
 async function showRanking(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
-  if (!jid.endsWith('@g.us')) {
+  if (!enGrupoODueño(msg)) {   // por privado, solo el dueño principal
     return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
@@ -474,7 +474,7 @@ async function showRanking(sock, msg, groupMeta) {
     const quien = getSender(msg);
     let enTop = false;
     try {
-      const r = soloMiembros(await getAuraRanking(), groupMeta, true).slice(0, 10);
+      const r = soloMiembros(await getAuraRanking(), groupMeta, jid.endsWith('@g.us')).slice(0, 10);
       enTop = r.some((x) => sameUser(x.jid, quien));
     } catch { /* si falla la lectura, se usa el tono del que no sale */ }
 
@@ -541,7 +541,8 @@ async function showRanking(sock, msg, groupMeta) {
   // La lista entera se guarda: el objetivo del dia la necesita sin recortar y la
   // rehacia por su cuenta tres lineas mas abajo. Medido en un grupo de 250: 250
   // us de los 524 que costaba el comando, en construir dos veces lo mismo.
-  const rankingCompleto = soloMiembros(await getAuraRanking(), groupMeta, true);
+  // Por privado (solo el dueño) no hay miembros que filtrar: sale la bolsa entera.
+  const rankingCompleto = soloMiembros(await getAuraRanking(), groupMeta, jid.endsWith('@g.us'));
   const ranking = rankingCompleto.slice(0, 10);
   if (ranking.length === 0) {
     ultimoRanking.delete(jid);
@@ -712,7 +713,7 @@ const APUESTA_POBRE = [
 
 async function jugarApuesta(sock, msg, groupMeta, args) {
   const jid = msg.key.remoteJid;
-  if (!jid.endsWith('@g.us')) {
+  if (!enGrupoODueño(msg)) {   // por privado, solo el dueño principal
     return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
@@ -953,7 +954,8 @@ async function cmdAura(sock, msg, args, groupMeta) {
   // Se salvo solo porque el atajo *!guia* del dispatcher traduce a 'info'.
   const SUBS_GUIA = ['info', 'help', 'ayuda', 'como', 'cómo', '?', 'guia', 'guía'];
   const esGuia = SUBS_GUIA.includes(sub);
-  if (!jid.endsWith('@g.us') && !esGuia) {
+  // Al dueño principal se le deja jugar por privado (11 nov): es la misma aura.
+  if (!enGrupoODueño(msg) && !esGuia) {
     return sock.sendMessage(jid, {
       text: 'El aura se juega en los grupos, no por privado. Es la misma en todos.\n_Para saber cómo va: *!aura info*_',
     }, { quoted: msg });
@@ -1029,7 +1031,8 @@ async function cmdAura(sock, msg, args, groupMeta) {
   // El aura es como una moneda: solo el dueño la juega. !aura @alguien es solo
   // una CONSULTA del aura de esa persona — no tira, no gasta cooldown y no
   // modifica nada. Tirar (subir/bajar) siempre es sobre uno mismo.
-  const mentioned = getTarget(msg);
+  // Por privado no hay menciones: el dueño nombra por número (*!aura 573001234567*).
+  const mentioned = getTarget(msg) || (dueñoEnPrivado(msg) ? numeroEnArgs(args).jid : null);
   if (mentioned && !sameUser(mentioned, sender)) {
     const [aura, guardado] = await Promise.all([getAura(jid, mentioned), verCaja(jid, mentioned)]);
     return sock.sendMessage(jid, {

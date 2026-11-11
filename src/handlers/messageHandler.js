@@ -28,7 +28,7 @@ const { isMuted } = require('../commands/group');
 const { maybeIndex } = require('../utils/pfpIndexer');
 const acciones = require('../commands/acciones');
 const { construirListas, cargarComando } = require('./comandos');
-const { isOwner, isMainOwner, isGroupAdmin, isAdmin, isBotAdmin, isBotJid, esBotCreador, extractText, getSender, getTarget, canonicalJid, sameUser, indexGroupMeta, resolverLid } = require('../utils/wa');
+const { dueñoEnPrivado, isOwner, isMainOwner, isGroupAdmin, isAdmin, isBotAdmin, isBotJid, esBotCreador, extractText, getSender, getTarget, canonicalJid, sameUser, indexGroupMeta, resolverLid } = require('../utils/wa');
 const { sinApelativo } = require('../utils/vocativo');
 const logger = require('../utils/logger');
 const bitacoraEstados = require('../utils/bitacoraEstados');
@@ -2951,7 +2951,9 @@ async function handleMessage(sock, msg, opciones = {}) {
   // ownerEnPrivado, mucho mas arriba, ya solo deja entrar al owner tier al
   // privado, asi que si ademas se eximiera al tier entero la condicion no
   // podria cumplirse nunca. La capa 6 lo vigila.
-  if (!jid.endsWith('@g.us') && conceptoCobro && !isMainOwner(sender, msg.key.fromMe, null)) {
+  // dueñoEnPrivado mira todas las formas del privado: con el chat por @lid,
+  // isMainOwner(sender) a secas no lo reconocía y al dueño le contestaba esto.
+  if (!jid.endsWith('@g.us') && conceptoCobro && !dueñoEnPrivado(msg)) {
     await sock.sendMessage(jid, { text: 'Eso se juega en el grupo. Aquí no hay aura que gastar.' }, { quoted: msg });
     return;
   }

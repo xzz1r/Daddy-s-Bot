@@ -1517,11 +1517,12 @@ const di=async(quien,texto,extra)=>{
     // seguiria sin servirse... solo que por el corte de ownerEnPrivado, no por
     // esta puerta. Un verde que no mira nada. Esto lo impide.
     const puerta6 = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8')
-      .match(/if \(![\s\S]{0,40}endsWith\('@g\.us'\) && conceptoCobro && !(isMainOwner|isOwner)\(/);
+      .match(/if \(![\s\S]{0,40}endsWith\('@g\.us'\) && conceptoCobro && !(isMainOwner|isOwner|dueñoEnPrivado)\(/);
     if (!puerta6) {
       fallos++;
       console.log(rojo('   ✗ no encuentro la puerta del privado en messageHandler: la prueba de arriba ya no sabe que esta midiendo'));
-    } else if (puerta6[1] !== 'isMainOwner') {
+    // dueñoEnPrivado (11 nov) es isMainOwner sobre todas las formas del privado.
+    } else if (puerta6[1] !== 'isMainOwner' && puerta6[1] !== 'dueñoEnPrivado') {
       fallos++;
       console.log(rojo(`   ✗ la puerta del privado usa ${puerta6[1]} y tiene que usar isMainOwner: al owner tier entero ya lo deja pasar ownerEnPrivado, asi que eximirlo aqui tambien deja la condicion imposible de cumplir — codigo muerto y un aviso que no vuelve a salir`));
     }
@@ -24328,6 +24329,56 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
       fs.rmSync(dir, { recursive: true, force: true });
     }
     if (fallos === antes155) console.log(verde('   ✓ al tier dueño se le devuelve el admin al momento, lo quite quien lo quite, sin colarse en el tope'));
+  }
+
+  // ── 156. LOS COMANDOS DEL AURA, POR PRIVADO, SOLO PARA EL DUEÑO (11 nov) ──
+  // «Soluciona eso. Solo yo puedo tener acceso a esos comandos al DM.» Con
+  // captura: *!aura* y *!premiar yo 3333* le contestaban «eso en el grupo».
+  // El dueño principal juega por privado (es la misma aura), también si el
+  // chat llega por su @lid; nombra a otros por su número; *!premiar yo* es
+  // *!premiaryo*. A un co-dueño se le sigue diciendo que es de grupo.
+  {
+    console.log('\n156. LOS COMANDOS DEL AURA, POR PRIVADO, SOLO PARA EL DUEÑO');
+    const antes156 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'privado156-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const mh = require('./src/handlers/messageHandler'); const { getAura } = require('./src/utils/auraStore');",
+        "const BOT = '34600000156@s.whatsapp.net', DUENO = '33600000156@s.whatsapp.net', CO = '57300000156@s.whatsapp.net', OTRO = '34611000156@s.whatsapp.net';",
+        "let textos = []; const sock = { user: { id: BOT }, sendPresenceUpdate: async () => {}, readMessages: async () => {},",
+        "  sendMessage: async (j, c) => { if (c && c.text) textos.push(c.text); return { key: { id: 'x' + Math.random() } }; },",
+        "  groupMetadata: async () => { throw new Error('no es un grupo'); } };",
+        "let n = 0; const escribe = async (key, texto) => { textos = []; await mh.handleMessage(sock, { key: { fromMe: false, id: 'P156' + (n++), ...key }, message: { conversation: texto }, pushName: 'x', messageTimestamp: Math.floor(Date.now() / 1000) }); await new Promise((r) => setTimeout(r, 50)); return textos.join(' | '); };",
+        "(async () => { const r = {};",
+        "  r.aura = await escribe({ remoteJid: DUENO }, '!aura');",
+        "  r.yo = await escribe({ remoteJid: DUENO }, '!premiar yo 3333'); r.saldo = await getAura('dm', DUENO);",
+        "  r.otro = await escribe({ remoteJid: DUENO }, '!premiar 34611000156 500'); r.saldoOtro = await getAura('dm', OTRO);",
+        "  r.consulta = await escribe({ remoteJid: DUENO }, '!aura 34611000156');",
+        "  r.top = await escribe({ remoteJid: '915600000156@lid', remoteJidAlt: DUENO }, '!aura top');",
+        "  r.coAura = await escribe({ remoteJid: CO }, '!aura'); r.coPremiar = await escribe({ remoteJid: CO }, '!premiar yo 100');",
+        "  console.log('R156' + JSON.stringify(r)); process.exit(0); })().catch((e) => { console.log('R156' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 90000,
+        env: { ...process.env, OWNER_NUMBER: '33600000156', CO_OWNERS: '57300000156', LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R156'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        const { SOLO_GRUPOS } = require(path.join(R, 'src/data/avisos'));
+        const deGrupo = (t) => !t || /se juega en (los grupos|el grupo)/.test(t) || SOLO_GRUPOS.some((f) => t.includes(f));
+        exige(!deGrupo(r.aura), `al dueño, *!aura* por privado le dice que es de grupo: «${r.aura}»`);
+        exige(!deGrupo(r.yo) && r.saldo >= 3333, `*!premiar yo 3333* por privado no le da el aura al dueño («${r.yo}», saldo ${r.saldo})`);
+        exige(/REGALO DE AURA/.test(r.otro) && r.saldoOtro >= 500, `por privado el dueño no puede premiar a otro por su número («${r.otro}», saldo ${r.saldoOtro})`);
+        exige(/@34611000156/.test(r.consulta), `*!aura <número>* por privado no enseña el aura de esa persona: «${r.consulta}»`);
+        exige(!deGrupo(r.top), `con el privado por @lid, al dueño se le niega el top: «${r.top}»`);
+        exige(deGrupo(r.coAura) && deGrupo(r.coPremiar), `por privado un co-dueño también juega al aura: «${r.coAura}» / «${r.coPremiar}»`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes156) console.log(verde('   ✓ por privado, los comandos del aura son del dueño y de nadie más, también por su @lid'));
   }
 
 

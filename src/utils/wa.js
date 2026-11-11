@@ -922,7 +922,39 @@ function anotarRestriccionContacto(info) {
   restriccionContacto = { hasta: info.timeEnforcementEnds || null };
 }
 
+// EL PRIVADO DEL DUEÑO PRINCIPAL (11 nov). El dueño: «solo yo puedo tener
+// acceso a esos comandos al DM». Los del aura (*!aura*, *!premiar*, *!dar*,
+// *!banco*…) contestaban «eso en el grupo» también a él. El aura es una sola
+// en todos los grupos, así que jugarla por privado es la misma cuenta: a él
+// se le deja; a nadie más, ni a los co-dueños. Se miran todas las formas del
+// privado (por @lid el teléfono solo viene en remoteJidAlt).
+function dueñoEnPrivado(msg) {
+  const k = msg?.key || {};
+  if (String(k.remoteJid || '').endsWith('@g.us')) return false;
+  if (k.fromMe) return true;
+  const formas = [getSender(msg), k.remoteJid, k.remoteJidAlt, k.participantAlt, k.participantPn]
+    .filter(Boolean).flatMap((f) => [f, canonicalJid(f)]).filter(Boolean);
+  return formas.some((f) => isMainOwner(f, false, null));
+}
+// ¿Puede ir aquí un comando de grupo? En un grupo, sí; por privado, solo él.
+const enGrupoODueño = (msg) => String(msg?.key?.remoteJid || '').endsWith('@g.us') || dueñoEnPrivado(msg);
+
+// Por privado no hay a quién mencionar, así que se le nombra por su número:
+// *!premiar 573001234567 500*. Un token de 8 a 15 cifras (con + delante si
+// se quiere); una cantidad de aura no llega a tanto (el premio máximo tiene 7).
+// Devuelve el JID y los argumentos sin ese token, para que la cantidad no lo lea.
+function numeroEnArgs(args) {
+  const lista = Array.isArray(args) ? args : [];
+  const i = lista.findIndex((a) => /^\+?\d{8,15}$/.test(String(a || '').trim()));
+  if (i < 0) return { jid: null, resto: lista };
+  const digitos = String(lista[i]).replace(/\D/g, '');
+  return { jid: `${digitos}@s.whatsapp.net`, resto: lista.filter((_, j) => j !== i) };
+}
+
 module.exports = {
+  dueñoEnPrivado,
+  enGrupoODueño,
+  numeroEnArgs,
   resolverLid,
   aprenderLidsDeDueños,
   _ficheroLidsDueños: (f) => { FICHERO_LIDS_DUENOS = f; lidsDueñosIntento = new Map(); },

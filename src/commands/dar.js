@@ -1,4 +1,4 @@
-const { getSender, getTarget, sameUser, isOwner, isMainOwner, isBotJid } = require('../utils/wa');
+const { getSender, getTarget, sameUser, isOwner, isMainOwner, isBotJid, enGrupoODueño, dueñoEnPrivado, numeroEnArgs } = require('../utils/wa');
 const { transferAura, flushAura, addAura } = require('../utils/auraStore');
 const { fmt, parseCantidad, avisoPermiso } = require('../utils/helpers');
 const { aportarAlBote } = require('../utils/roboStore');
@@ -20,14 +20,24 @@ const NO_SE_LE_DA = 'A este usuario no se le puede dar aura.';
 const aDuenoAjeno = (sender, fromMe, target, groupMeta) =>
   isMainOwner(target, false, groupMeta) && !isMainOwner(sender, fromMe, groupMeta);
 
+// A quién va, y lo que queda para leer la cantidad. Por privado (solo el
+// dueño) no hay menciones, así que vale su número: *!dar 573001234567 500*.
+function objetivoYArgs(msg, args) {
+  const t = getTarget(msg);
+  if (t || !dueñoEnPrivado(msg)) return { target: t, args };
+  const { jid, resto } = numeroEnArgs(args);
+  return { target: jid, args: resto };
+}
+
 async function cmdDar(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
-  if (!jid.endsWith('@g.us')) {
+  if (!enGrupoODueño(msg)) {   // por privado, solo el dueño principal
     return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   const sender = getSender(msg);
-  const target = getTarget(msg);
+  let target;
+  ({ target, args } = objetivoYArgs(msg, args));
 
   if (!target) {
     return sock.sendMessage(jid, {
@@ -119,16 +129,23 @@ const PREMIO_MAX = 1000000;
 // En el menu va bajo *ADMINS PREMIUM*, que es como el dueño quiere que se llame
 // el tier (11 oct). Y asi se le nombra tambien en el mensaje: «el dueño» no sale
 // por WhatsApp (capa 27).
+// *!premiar yo 500* es lo que sale natural (dueño, 11 nov): es *!premiaryo*.
+const PARA_MI = new Set(['yo', 'me', 'mi', 'mí']);
+
 async function cmdPremiar(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
-  if (!jid.endsWith('@g.us')) {
+  if (!enGrupoODueño(msg)) {   // por privado, solo el dueño principal
     return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   const sender = getSender(msg);
-  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
+  if (!isOwner(sender, msg.key.fromMe, groupMeta) && !dueñoEnPrivado(msg)) {
     return sock.sendMessage(jid, { text: avisoPermiso(jid, sender, groupMeta) }, { quoted: msg });
   }
-  const target = getTarget(msg);
+  if (PARA_MI.has(String(args?.[0] || '').toLowerCase()) && !getTarget(msg)) {
+    return cmdPremiarYo(sock, msg, args.slice(1), groupMeta);
+  }
+  let target;
+  ({ target, args } = objetivoYArgs(msg, args));
   if (!target) {
     return sock.sendMessage(jid, { text: 'Menciona a quién le das el aura: *!premiar @alguien 500*' }, { quoted: msg });
   }
@@ -172,7 +189,7 @@ async function cmdPremiar(sock, msg, args, groupMeta) {
 async function cmdPremiarYo(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   const sender = getSender(msg);
-  if (!isOwner(sender, msg.key.fromMe, groupMeta)) return;
+  if (!isOwner(sender, msg.key.fromMe, groupMeta) && !dueñoEnPrivado(msg)) return;
   const amount = parseCantidad(args).valor;
   if (!amount || amount < 1 || amount > PREMIO_MAX) {
     return sock.sendMessage(jid, { text: `Indica cuánta, hasta *${fmt(PREMIO_MAX)}*: *!premiaryo 500*` }, { quoted: msg });

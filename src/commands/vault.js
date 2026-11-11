@@ -60,7 +60,7 @@ const SACAR = ['unlock', 'sacar', 'abrir', 'recuperar'];
 
 async function cmdVault(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
-  if (!jid.endsWith('@g.us')) {
+  if (!require('../utils/wa').enGrupoODueño(msg)) {   // por privado, solo el dueño principal
     return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
