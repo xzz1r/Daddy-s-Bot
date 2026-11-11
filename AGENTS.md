@@ -109,6 +109,18 @@ cualquier otro, co-dueños incluidos, se le sigue diciendo que es de grupo.
 Por privado se nombra a alguien por su número (`!premiar 573001234567 500`),
 y `!premiar yo 500` es `!premiaryo`. Capa 156.
 
+## El dueño quema aura y no espera
+
+Lo pidió el dueño (11 nov). `!despremiar <cantidad|mitad|todo>` quema aura
+suelta suya: no va al bote ni a nadie, no baja de cero y el banco no se toca.
+Es solo del dueño principal, oculto (`COMANDOS_OCULTOS`, fuera del menú) y a
+cualquier otro no le contesta. Vale en el grupo y por privado. Capa 157.
+
+Y al dueño principal no le frena ninguna espera del aura: tirada, apuesta,
+top, robo y asalto, butrón, objeto de ventaja y banco (`sinEsperaAura` en
+`src/utils/wa.js`). Lo que protege a otro (su escudo, su caja blindada) sigue
+valiendo contra él, y a los co-dueños les quedan sus esperas. Capa 158.
+
 ## Spam de texto: aviso 1 de 2 y ban
 
 Lo pidió el dueño (17 oct): 5 mensajes iguales del mismo número en menos de 10

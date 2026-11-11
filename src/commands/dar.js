@@ -1,6 +1,6 @@
 const { getSender, getTarget, sameUser, isOwner, isMainOwner, isBotJid, enGrupoODueño, dueñoEnPrivado, numeroEnArgs } = require('../utils/wa');
-const { transferAura, flushAura, addAura } = require('../utils/auraStore');
-const { fmt, parseCantidad, avisoPermiso } = require('../utils/helpers');
+const { transferAura, flushAura, addAura, drainAura, getAura } = require('../utils/auraStore');
+const { fmt, parseCantidad, resolverCantidad, avisoPermiso } = require('../utils/helpers');
 const { aportarAlBote } = require('../utils/roboStore');
 const logger = require('../utils/logger');
 const { lineaAura, nombresCortos } = require('../utils/formatoJuego');
@@ -199,4 +199,30 @@ async function cmdPremiarYo(sock, msg, args, groupMeta) {
   return sock.sendMessage(jid, { text: lineaAura('', amount, current) }, { quoted: msg });
 }
 
-module.exports = { cmdDar, cmdPremiar, cmdPremiarYo, PREMIO_MAX, NO_SE_LE_DA };
+// *!despremiar* <cant.|todo|mitad|N%>: el dueño quema aura suya (11 nov).
+//
+// «Quiero quemar aura. Haz el comando que solo yo pueda usar y no esté en el
+// menú.» Es lo contrario de *!premiaryo*, y más cerrado: solo el dueño
+// principal, no los co-dueños. Oculto igual que aquel (COMANDOS_OCULTOS): a
+// cualquier otro no le contesta nada, porque un «no puedes» confirmaría que
+// existe. Vale en el grupo y por privado.
+//
+// Sale del aura suelta y no va a ninguna parte: ni al bote ni a nadie. Lo
+// guardado en el banco no se toca, y el saldo no baja de cero.
+async function cmdDespremiar(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  const sender = getSender(msg);
+  if (!isMainOwner(sender, msg.key.fromMe, groupMeta) && !dueñoEnPrivado(msg)) return;
+  const parsed = parseCantidad(args);
+  const saldo = await getAura(jid, sender);
+  if ((!parsed.modo && !parsed.valor) || parsed.valor === 0) {
+    return sock.sendMessage(jid, { text: `Indica cuánta quemas: *!despremiar 500*, *!despremiar mitad* o *!despremiar todo*. Tienes *${fmt(saldo)}*.` }, { quoted: msg });
+  }
+  if (saldo <= 0) return sock.sendMessage(jid, { text: 'No tienes aura suelta que quemar.' }, { quoted: msg });
+  const { stake } = resolverCantidad(parsed, { max: saldo });
+  const { cobrado, current } = await drainAura(jid, sender, stake);
+  logger.info(`despremiar: ${sender} quema ${cobrado} de aura`);
+  return sock.sendMessage(jid, { text: lineaAura('', -cobrado, current) }, { quoted: msg });
+}
+
+module.exports = { cmdDar, cmdPremiar, cmdPremiarYo, cmdDespremiar, PREMIO_MAX, NO_SE_LE_DA };

@@ -6226,7 +6226,7 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     // ese es un falso positivo barato comparado con no ver nada.
     const menu = fs.readFileSync(path.join(R, 'src/commands/social.js'), 'utf8');
 
-    for (const oculto of ['p', 'purge', 'visto', 'limpiar', 'wipe', 'z', 'premiaryo']) {
+    for (const oculto of ['p', 'purge', 'visto', 'limpiar', 'wipe', 'z', 'premiaryo', 'despremiar']) {
       // 1) fuera del menu
       exige(!new RegExp(`\\$\\{p\\}${oculto}\\b`).test(menu),
         `*!${oculto}* ha aparecido en el menu: es un comando que no puede saber nadie que existe`);
@@ -24379,6 +24379,119 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
       }
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     if (fallos === antes156) console.log(verde('   ✓ por privado, los comandos del aura son del dueño y de nadie más, también por su @lid'));
+  }
+
+  // ── 157. !despremiar: EL DUEÑO QUEMA AURA SUYA (11 nov) ───────────────────
+  // «Quiero quemar aura. Haz el comando que solo yo pueda usar y no esté en
+  // el menú, que sea /despremiar, y quema el aura mía que yo elija.» Solo el
+  // dueño principal; a cualquier otro, co-dueños incluidos, silencio y nada
+  // cambia. Sale del aura suelta, no baja de cero, no va al bote ni a nadie,
+  // y vale en el grupo y por privado. Que no salga en el menú lo mira la capa
+  // de los comandos ocultos.
+  {
+    console.log('\n157. !despremiar: EL DUEÑO QUEMA AURA SUYA, Y NADIE MÁS');
+    const antes157 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'despremiar157-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const mh = require('./src/handlers/messageHandler'); const A = require('./src/utils/auraStore'); const R = require('./src/utils/roboStore');",
+        "const G = '120363000000157001@g.us', BOT = '34600000157@s.whatsapp.net', DUENO = '33600000157@s.whatsapp.net', CO = '57300000157@s.whatsapp.net', M = '34611000157@s.whatsapp.net';",
+        "const partes = [{ id: BOT, admin: 'admin' }, { id: DUENO, admin: 'superadmin' }, { id: CO, admin: 'admin' }, { id: M }];",
+        "let textos = []; const sock = { user: { id: BOT }, sendPresenceUpdate: async () => {}, readMessages: async () => {},",
+        "  sendMessage: async (j, c) => { if (c && c.text) textos.push(c.text); return { key: { id: 'x' + Math.random() } }; },",
+        "  groupMetadata: async () => ({ id: G, subject: 'G', participants: partes }) };",
+        "let n = 0; const escribe = async (key, texto) => { textos = []; await mh.handleMessage(sock, { key: { fromMe: false, id: 'D157' + (n++), ...key }, message: { conversation: texto }, pushName: 'x', messageTimestamp: Math.floor(Date.now() / 1000) }); await new Promise((r) => setTimeout(r, 50)); return textos.join(' | '); };",
+        "(async () => { const r = {};",
+        "  await A.addAura(G, DUENO, 5000); await A.addAura(G, CO, 5000); await A.addAura(G, M, 5000);",
+        "  const d0 = await A.getAura(G, DUENO); const bote0 = await (R.verBote ? R.verBote(G) : 0);",
+        "  r.grupo = await escribe({ remoteJid: G, participant: DUENO }, '!despremiar 300'); r.d1 = d0 - await A.getAura(G, DUENO);",
+        "  r.privado = await escribe({ remoteJid: DUENO }, '!despremiar 200'); r.d2 = d0 - await A.getAura(G, DUENO);",
+        "  r.bote = (await (R.verBote ? R.verBote(G) : 0)) - bote0;",
+        "  const c0 = await A.getAura(G, CO); r.co = await escribe({ remoteJid: G, participant: CO }, '!despremiar 300'); r.coCambio = c0 - await A.getAura(G, CO);",
+        "  const m0 = await A.getAura(G, M); r.m = await escribe({ remoteJid: G, participant: M }, '!despremiar 300'); r.mCambio = m0 - await A.getAura(G, M);",
+        "  r.coDm = await escribe({ remoteJid: CO }, '!despremiar 300');",
+        "  r.todo = await escribe({ remoteJid: G, participant: DUENO }, '!despremiar todo'); r.fin = await A.getAura(G, DUENO);",
+        "  r.otraVez = await escribe({ remoteJid: G, participant: DUENO }, '!despremiar 10'); r.fin2 = await A.getAura(G, DUENO);",
+        "  console.log('R157' + JSON.stringify(r)); process.exit(0); })().catch((e) => { console.log('R157' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 90000,
+        env: { ...process.env, OWNER_NUMBER: '33600000157', CO_OWNERS: '57300000157', LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R157'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(r.d1 === 300 && /−300/.test(r.grupo), `*!despremiar 300* del dueño en el grupo quema ${r.d1} («${r.grupo}»)`);
+        exige(r.d2 === 500 && /−200/.test(r.privado), `*!despremiar 200* por privado no quema lo pedido (lleva ${r.d2} de 500: «${r.privado}»)`);
+        exige(!r.bote, `el aura quemada acaba en el bote (+${r.bote})`);
+        // Otros mensajes del grupo (la diana del día) pueden salir a la vez: lo
+        // que no puede salir es nada de *!despremiar*.
+        const delComando = (t) => /despremiar|quemas|aura suelta|−\d/.test(t || '');
+        exige(!delComando(r.co) && r.coCambio === 0 && !delComando(r.coDm), `a un co-dueño *!despremiar* le contesta o le quema aura («${r.co}» / «${r.coDm}», ${r.coCambio})`);
+        exige(!delComando(r.m) && r.mCambio === 0, `a un miembro *!despremiar* le contesta o le quema aura («${r.m}», ${r.mCambio})`);
+        exige(r.fin === 0 && /→ \*0\*/.test(r.todo), `*!despremiar todo* no deja el aura a cero (${r.fin}: «${r.todo}»)`);
+        exige(r.fin2 === 0 && !/−/.test(r.otraVez), `sin aura, *!despremiar* baja de cero o dice que quemó algo (${r.fin2}: «${r.otraVez}»)`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes157) console.log(verde('   ✓ !despremiar quema el aura que pide el dueño, en el grupo y por privado, sin bajar de cero, y a nadie más le contesta'));
+  }
+
+  // ── 158. AL DUEÑO NO LE FRENA NINGUNA ESPERA DEL AURA (11 nov) ────────────
+  // «Haz que yo (owner) no tenga cooldown en ningún comando de aura.» Tirada,
+  // apuesta, robo y banco seguidos: al dueño principal nunca le sale «EN
+  // COOLDOWN»; a un co-dueño, sí, como siempre.
+  {
+    console.log('\n158. AL DUEÑO NO LE FRENA NINGUNA ESPERA DEL AURA');
+    const antes158 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const codigo158 = ['src/commands/aura.js', 'src/commands/robo.js'].map((f) => soloCodigo(f)).join('\n');
+    for (const [que, re] of [['tirada', /ROLL_COOLDOWN_MS - \(Date\.now\(\) - last\);\s*if \(remaining > 0 && !sinEsperaAura\(/],
+      ['apuesta', /APUESTA_COOLDOWN_MS - \(Date\.now\(\) - ultimo\);\s*if \(queda > 0 && !sinEsperaAura\(/],
+      ['top', /desde < RANKING_COOLDOWN_MS && !sinEsperaAura\(/],
+      ['butrón', /BUTRON\.esperaMin \* 60000 - ahora;\s*if \(espera > 0 && !sinEsperaAura\(/],
+      ['ventaja de la tienda', /VENTAJA\.cooldownHoras \* 3600000;\s*if \(desde < espera && !sinEsperaAura\(/]]) {
+      exige(re.test(codigo158), `al dueño le vuelve a frenar la espera de ${que}`);
+    }
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'espera158-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const mh = require('./src/handlers/messageHandler'); const A = require('./src/utils/auraStore');",
+        "const G = '120363000000158001@g.us', BOT = '34600000158@s.whatsapp.net', DUENO = '33600000158@s.whatsapp.net', CO = '57300000158@s.whatsapp.net', M = '34611000158@s.whatsapp.net';",
+        "const partes = [{ id: BOT, admin: 'admin' }, { id: DUENO, admin: 'superadmin' }, { id: CO, admin: 'admin' }, { id: M }];",
+        "let textos = []; const sock = { user: { id: BOT }, sendPresenceUpdate: async () => {}, readMessages: async () => {},",
+        "  sendMessage: async (j, c) => { if (c && c.text) textos.push(c.text); return { key: { id: 'x' + Math.random() } }; },",
+        "  groupMetadata: async () => ({ id: G, subject: 'G', participants: partes }) };",
+        "let n = 0; const escribe = async (quien, texto, menciona) => { textos = []; const message = menciona ? { extendedTextMessage: { text: texto, contextInfo: { mentionedJid: [menciona] } } } : { conversation: texto };",
+        "  await mh.handleMessage(sock, { key: { remoteJid: G, participant: quien, fromMe: false, id: 'E158' + (n++) }, message, pushName: 'x', messageTimestamp: Math.floor(Date.now() / 1000) }); await new Promise((r) => setTimeout(r, 80)); return textos.join(' | '); };",
+        "(async () => { const r = {};",
+        "  for (const q of [DUENO, CO, M]) await A.addAura(G, q, 20000);",
+        "  const veces = async (quien, texto, menciona) => { const out = []; for (let i = 0; i < 3; i++) out.push(await escribe(quien, texto, menciona)); return out; };",
+        "  r.tirada = await veces(DUENO, '!aura'); r.apuesta = await veces(DUENO, '!aura apostar 100');",
+        "  r.robo = await veces(DUENO, '!robo @34611000158', M); r.banco = await veces(DUENO, '!lock 200');",
+        "  r.coTirada = await veces(CO, '!aura'); r.coBanco = await veces(CO, '!lock 200');",
+        "  console.log('R158' + JSON.stringify(r)); process.exit(0); })().catch((e) => { console.log('R158' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 120000,
+        env: { ...process.env, OWNER_NUMBER: '33600000158', CO_OWNERS: '57300000158', LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R158'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        for (const k of ['tirada', 'apuesta', 'robo', 'banco']) {
+          const frenada = r[k].find((t) => /EN COOLDOWN/.test(t));
+          exige(!frenada && r[k].every(Boolean), `al dueño le frena la espera de ${k}: «${(frenada || '(sin respuesta)').slice(0, 90)}»`);
+        }
+        exige(r.coTirada.slice(1).some((t) => /TIRADA EN COOLDOWN/.test(t)), 'a un co-dueño ya no le frena la espera de la tirada: solo se le quita al dueño');
+        exige(r.coBanco.slice(1).some((t) => /BANCO EN COOLDOWN/.test(t)), 'a un co-dueño ya no le frena la espera del banco: solo se le quita al dueño');
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes158) console.log(verde('   ✓ al dueño no le frena ninguna espera del aura, y a los demás sí'));
   }
 
 

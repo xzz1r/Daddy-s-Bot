@@ -1,4 +1,4 @@
-const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameUser, soloMiembros, enGrupoODueño, dueñoEnPrivado, numeroEnArgs } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameUser, soloMiembros, enGrupoODueño, dueñoEnPrivado, numeroEnArgs, sinEsperaAura } = require('../utils/wa');
 const { apel } = require('../utils/vocativo');
 const { pickFresh, fmt, parseCantidad, resolverCantidad, etiquetaRiesgo } = require('../utils/helpers');
 const { getAura, addAura, spendAura, getAuraRanking, flushAura, verCaja, BOLSA } = require('../utils/auraStore');
@@ -463,7 +463,7 @@ async function showRanking(sock, msg, groupMeta) {
   }
 
   const desde = Date.now() - (ultimoRanking.get(jid) || 0);
-  if (desde < RANKING_COOLDOWN_MS) {
+  if (desde < RANKING_COOLDOWN_MS && !sinEsperaAura(msg, groupMeta)) {
     // El reloj lo pinta utils/formatoJuego.js. Aqui habia una tercera forma de
     // escribirlo ("3 h 20 min", con espacios) que no coincidia con la de robo
     // ni con la de la tirada.
@@ -737,7 +737,7 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
     // que la caida no ocurra en diez minutos.
     const ultimo = ultimaApuesta.get(clave) || 0;
     const queda = APUESTA_COOLDOWN_MS - (Date.now() - ultimo);
-    if (queda > 0) {
+    if (queda > 0 && !sinEsperaAura(msg, groupMeta)) {
       return sock.sendMessage(jid, {
         text: bloqueCooldown({
           que: 'apuesta',
@@ -1049,7 +1049,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
   // Con las dos formas de la persona juntas, igual que la apuesta.
   const { clave: coolKey, valor: last = 0 } = juntarEnMapa(lastRoll, clavesMapa(`${BOLSA}|`, sender));
   const remaining = ROLL_COOLDOWN_MS - (Date.now() - last);
-  if (remaining > 0) {
+  if (remaining > 0 && !sinEsperaAura(msg, groupMeta)) {
     return sock.sendMessage(jid, {
       text: bloqueCooldown({
         que: 'tirada',
@@ -1215,6 +1215,10 @@ async function cmdAura(sock, msg, args, groupMeta) {
           extraObjetivo = `\n_Hoy se caza a @${obj.jid.split('@')[0]}: ${pagaTxt}._`;
         } else {
           const nombre = getName(obj.jid);
+          // Sin nombre, la @ va con su mención: un @número sin ella es texto
+          // muerto. Salía en la segunda tirada del día, y las tiradas seguidas
+          // del dueño (sin espera desde el 11 nov) lo destaparon.
+          if (!nombre) mentions.push(obj.jid);
           extraObjetivo = nombre
             ? `\n_Hoy se caza a *${nombre}*: ${pagaTxt}._`
             : `\n_Hoy se caza a @${obj.jid.split('@')[0]}: ${pagaTxt}._`;

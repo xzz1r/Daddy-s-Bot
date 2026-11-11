@@ -522,7 +522,8 @@ function brutoQueCabe(hueco) {
 // mismo bloque serializado, porque un corte entre ellas duplicaria o
 // evaporaria aura. `guardado` es lo que sale del saldo, `entra` lo que llega
 // a la caja y `comision` la diferencia, que quien llama manda al bote.
-async function meterEnCaja(groupJid, userJid, cuanto) {
+// `sinEspera`: el dueño principal no tiene enfriamiento (11 nov).
+async function meterEnCaja(groupJid, userJid, cuanto, { sinEspera = false } = {}) {
   await load();
   const qKey = canonicalJid(userJid);
   return serialized(qKey, () => {
@@ -532,7 +533,7 @@ async function meterEnCaja(groupJid, userJid, cuanto) {
     const ts = tsDe();
     const kTs = foldCierre(ts, userJid);
     const espera = CAJA.enfriamientoMs - (Date.now() - (ts[kTs] || 0));
-    if (espera > 0) return { ok: false, motivo: 'enfriamiento', espera };
+    if (espera > 0 && !sinEspera) return { ok: false, motivo: 'enfriamiento', espera };
 
     const z = cajaDe();
     const kZ = foldCaja(z, userJid);

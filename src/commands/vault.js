@@ -95,7 +95,7 @@ async function cmdVault(sock, msg, args, groupMeta) {
     const { stake: pedido } = resolverCantidad(parseCantidad(args.slice(1)), {
       max: saldo, suelo: CAJA.minimoGuardar, porDefecto: Math.round(saldo / 2),
     });
-    const r = await meterEnCaja(jid, sender, pedido);
+    const r = await meterEnCaja(jid, sender, pedido, { sinEspera: require('../utils/wa').sinEsperaAura(msg, groupMeta) });
 
     if (!r.ok) {
       if (r.motivo === 'enfriamiento') {

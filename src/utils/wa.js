@@ -939,6 +939,15 @@ function dueñoEnPrivado(msg) {
 // ¿Puede ir aquí un comando de grupo? En un grupo, sí; por privado, solo él.
 const enGrupoODueño = (msg) => String(msg?.key?.remoteJid || '').endsWith('@g.us') || dueñoEnPrivado(msg);
 
+// AL DUEÑO NO LE FRENA NINGUNA ESPERA DEL AURA (11 nov). «Haz que yo no
+// tenga cooldown en ningún comando de aura.» Tirada, apuesta, top, robo y
+// asalto, butrón, objeto de ventaja y banco. Solo el dueño principal, como
+// todo lo suyo del aura; lo que protege a OTRO (su escudo, su caja blindada)
+// sigue valiendo contra él.
+function sinEsperaAura(msg, groupMeta = null) {
+  return isMainOwner(getSender(msg), Boolean(msg?.key?.fromMe), groupMeta) || dueñoEnPrivado(msg);
+}
+
 // Por privado no hay a quién mencionar, así que se le nombra por su número:
 // *!premiar 573001234567 500*. Un token de 8 a 15 cifras (con + delante si
 // se quiere); una cantidad de aura no llega a tanto (el premio máximo tiene 7).
@@ -952,6 +961,7 @@ function numeroEnArgs(args) {
 }
 
 module.exports = {
+  sinEsperaAura,
   dueñoEnPrivado,
   enGrupoODueño,
   numeroEnArgs,

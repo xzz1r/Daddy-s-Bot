@@ -329,6 +329,10 @@ const FAMILIAS = [
   // delataria que el comando existe.
   { nombres: ['premiaryo'], meta: true,
     hace: (c) => c.de('dar').cmdPremiarYo(c.sock, c.msg, c.args, c.meta) },
+  // Y quemar aura propia, también OCULTO y solo del dueño principal. Sin
+  // `aura`, por lo mismo que *!premiaryo*. Ver cmdDespremiar en dar.js.
+  { nombres: ['despremiar'], meta: true,
+    hace: (c) => c.de('dar').cmdDespremiar(c.sock, c.msg, c.args, c.meta) },
 
   // ─── El robo y su tienda ───────────────────────────────────────────────────
   //

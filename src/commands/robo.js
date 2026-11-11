@@ -1,4 +1,4 @@
-const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser, soloMiembros } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser, soloMiembros, sinEsperaAura } = require('../utils/wa');
 const { apel } = require('../utils/vocativo');
 const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
 // ─── POR QUE HAY VOLCADOS DE AURA A MANO EN ESTE FICHERO ────────────────────
@@ -417,7 +417,7 @@ async function asaltarBote(sock, msg, jid, sender, groupMeta) {
   const coolKey = llaveRobo(jid, sender);
   const desde = lastRob.get(coolKey) || 0;
   const queda = ROB_COOLDOWN_MS - (Date.now() - desde);
-  if (queda > 0) {
+  if (queda > 0 && !sinEsperaAura(msg, groupMeta)) {
     const fueAsalto = ultimoFueAsalto.has(coolKey);
     return sock.sendMessage(jid, {
       text: bloqueCooldown({
@@ -596,7 +596,7 @@ async function comprarObjeto(sock, msg, jid, sender, que, nombre) {
   if (obj.ventaja) {
     const desde = Date.now() - await tienda.ultimaVentaja(jid, sender);
     const espera = VENTAJA.cooldownHoras * 3600000;
-    if (desde < espera) {
+    if (desde < espera && !sinEsperaAura(msg)) {
       return sock.sendMessage(jid, {
         text: bloqueCooldown({
           que: 'ventaja',
@@ -953,7 +953,7 @@ async function butron(sock, msg, jid, sender, groupMeta) {
 
   const kYo = juntarEnMapa(ultimoButron, clavesMapa(`${BOLSA}|`, sender));
   const espera = (kYo.valor || 0) + BUTRON.esperaMin * 60000 - ahora;
-  if (espera > 0) {
+  if (espera > 0 && !sinEsperaAura(msg, groupMeta)) {
     return sock.sendMessage(jid, {
       text: bloqueCooldown({ que: 'robo al banco', frase: 'Todavía tienes tierra en las uñas del último túnel.', queda: espera }),
     }, { quoted: msg });
@@ -1187,7 +1187,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const coolKey = llaveRobo(jid, sender);
   const last = lastRob.get(coolKey) || 0;
   const remaining = ROB_COOLDOWN_MS - (Date.now() - last);
-  if (remaining > 0) {
+  if (remaining > 0 && !sinEsperaAura(msg, groupMeta)) {
     // Igual que en el asalto: se dice QUÉ gastó el reloj. Quien acaba de
     // reventar el bote y escribe *!robo* tiene que leer que espera por el
     // asalto, no una pulla sobre un robo que no ha hecho.
