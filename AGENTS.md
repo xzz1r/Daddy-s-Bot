@@ -121,6 +121,20 @@ top, robo y asalto, butrón, objeto de ventaja y banco (`sinEsperaAura` en
 `src/utils/wa.js`). Lo que protege a otro (su escudo, su caja blindada) sigue
 valiendo contra él, y a los co-dueños les quedan sus esperas. Capa 158.
 
+## Historias de grupo: se abren, se reconocen y se quitan
+
+Lo pidió el dueño (13 nov): «el bot no está baneando la peña que sube
+estados al grupo ni borrando los estados». Lo que no se abre no se mira. Antes
+de dar por perdido un mensaje de grupo, se prueba la clave del autor con su
+otra forma (@lid o teléfono) y con los otros grupos para los que la repartió
+(`src/utils/rescateClaves.js`, solo lee el disco). La cabecera se lee también
+por `status@broadcast`, y una historia marcada (`group_status` en la
+cabecera) se castiga sin abrirla, en su grupo y una vez. `isGroupStatus` sin
+cita es la marca, no una pista. El borrado sale dos veces: el de siempre y con
+`<meta is_group_status>`. Lo que el bot no abre se lo pide Baileys al teléfono
+del número del bot: `npm run estado` dice cuántos devolvió, y si son cero el
+teléfono no contesta. Capa 159. Ver `MOTOR.md`.
+
 ## Spam de texto: aviso 1 de 2 y ban
 
 Lo pidió el dueño (17 oct): 5 mensajes iguales del mismo número en menos de 10
@@ -185,6 +199,14 @@ solicitudes de entrada no se filtran**: se llegó a rechazar a las cuentas
 Business que pedían entrar y el dueño lo quitó («mejor vetarlas de por vida
 que arriesgarse a no aceptar cuentas que también pueden parecer Business»).
 No se vuelve a poner. Capa 152.
+
+**Fuera antes de que escriba** (dueño, 13 nov: «te dije que lo quiero fuera
+antes de que siquiera puedan escribir»). En el lote, lo que WhatsApp no
+contesta (sin apartado de empresa o con error) es 'desconocido' y va por el
+perfil: no es un «sin nombre». Quien entra solo con su @lid también se mira en
+lote. Al entrar, la expulsión sale `URGENTE` y se lleva lo que soltó. Y un
+mensaje que no se puede abrir trae igual el nombre de empresa verificado en
+la cabecera (`verifiedBizName`): echa, veta y se borra. Capa 160.
 
 ## La peña activa se halaga, sin veneno
 

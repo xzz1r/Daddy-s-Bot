@@ -24083,7 +24083,7 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     const antes152 = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
     const bot152 = soloCodigo('src/bot.js');
-    const iLote = bot152.indexOf('await revisarEnLote(sock, phoneJid)');
+    const iLote = bot152.indexOf('await revisarEnLote(sock, paraLote)');
     const iPerfil = bot152.indexOf('ev = await businessEvidence(sock, phoneJid, { fondo: true })', Math.max(0, iLote));
     exige(iLote > 0 && iPerfil > iLote, 'la entrada al grupo ya no pregunta en lote antes de gastar el perfil de empresa');
     const jr152 = soloCodigo('src/utils/joinRequests.js');
@@ -24121,8 +24121,10 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
       const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
       if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
       else {
-        exige(JSON.stringify(r.entrada) === '["biz","sin-nombre","desconocido"]', `al entrar no se distingue Business, sin nombre y sin teléfono: ${JSON.stringify(r.entrada)}`);
-        exige(r.consultasEntrada === 1 && r.usuarios[0] === 2, `tres que entran a la vez no salen en una consulta (${r.consultasEntrada} consultas, ${JSON.stringify(r.usuarios)})`);
+        // El tercero entra solo con su @lid: desde el 13 nov también se mira
+        // en lote (capa 160), y antes se quedaba sin mirar.
+        exige(JSON.stringify(r.entrada) === '["biz","sin-nombre","sin-nombre"]', `al entrar no se distingue Business, sin nombre y solo @lid: ${JSON.stringify(r.entrada)}`);
+        exige(r.consultasEntrada === 1 && r.usuarios[0] === 3, `tres que entran a la vez no salen en una consulta (${r.consultasEntrada} consultas, ${JSON.stringify(r.usuarios)})`);
         exige(r.topes === 3, `con un número en rodaje la consulta en lote no para en su tope de 6 por hora (pasaron ${8 - r.topes} de 8, con 1 ya gastada)`);
         exige(r.consultasSolicitud === 0 && r.solicitud.length === 1 && /^approve:/.test(r.solicitud[0]),
           `una solicitud de cuenta Business se rechaza o se consulta (${JSON.stringify(r.solicitud)}, ${r.consultasSolicitud} consultas): el dueño quiere aceptar y vetar después`);
@@ -24145,7 +24147,10 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     const bot153 = soloCodigo('src/bot.js');
     exige(/sock\.ws\.on\('CB:message'[\s\S]{0,200}cabeceras\.anotar\(node\)[\s\S]{0,120}cabeceras\.esHistoria\(r\)/.test(bot153),
       'el bot ya no lee la cabecera de los mensajes de grupo: una historia que no se puede abrir vuelve a pasar sin que nadie la vea');
-    exige(/isBotEnabled\(r\.grupo\)/.test(bot153) && /cabeceras\.texto\(cabeceras\.de\(msg\.key\.id\)\)/.test(bot153),
+    // Desde el 13 nov el grupo es el que nombra la cabecera (cabeceras.destino),
+    // y la cabecera del log se lee una vez (const r = cabeceras.de(...)).
+    exige(/const grupo = cabeceras\.destino\(r\);[\s\S]{0,200}isBotEnabled\(grupo\)/.test(bot153)
+      && /const r = cabeceras\.de\(msg\.key\.id\);[\s\S]{0,800}cabeceras\.texto\(r\)/.test(bot153),
       'la historia por cabecera no respeta el bot apagado, o el log de «sin descifrar» ya no enseña la cabecera');
     const C = require(path.join(R, 'src/utils/cabeceras'));
     const conMarca = C.anotar({ tag: 'message', attrs: { from: '120363000000153001@g.us', id: 'H153', participant: '91530000111@lid', type: 'media' },
@@ -24492,6 +24497,227 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
       }
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     if (fallos === antes158) console.log(verde('   ✓ al dueño no le frena ninguna espera del aura, y a los demás sí'));
+  }
+
+  // ── 159. LAS HISTORIAS DE GRUPO: ABRIRLAS, RECONOCERLAS Y QUITARLAS (13 nov) ──
+  // El dueño: «el bot no está baneando la peña que sube estados al grupo ni
+  // borrando los estados». Lo que no se abre no se mira. Ahora:
+  //   · una clave de grupo guardada con la otra forma de la persona (@lid o
+  //     teléfono) o para otro grupo se prueba antes de rendirse, sin cambiar
+  //     nada si no abre (utils/rescateClaves.js);
+  //   · la cabecera se lee también por status@broadcast y con todos sus
+  //     atributos, y una historia marcada se castiga sin abrirla, solo en
+  //     grupos del bot y una vez;
+  //   · `isGroupStatus` sin cita es la marca, no una pista;
+  //   · el borrado de una historia sale también con su marca de historia;
+  //   · lo que no se abre se apunta con su porqué, y lo que devuelve el
+  //     teléfono del bot se marca. En sandbox.
+  {
+    console.log('\n159. LAS HISTORIAS DE GRUPO: ABRIRLAS, RECONOCERLAS Y QUITARLAS');
+    const antes159 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const bot159 = soloCodigo('src/bot.js');
+    exige(/rescateClaves\.instalar\(sock/.test(bot159), 'bot.js ya no engancha el rescate de claves al socket: las claves guardadas con otro nombre vuelven a no abrir nada');
+    exige(/if \(requestId\) for \(const msg of messages\) bitacoraEstados\.marcarRecuperado/.test(bot159),
+      'bot.js ya no marca lo que devuelve el teléfono del bot: npm run estado no puede decir si contesta');
+    exige(/const grupo = cabeceras\.destino\(r\);/.test(bot159), 'una historia reconocida por su cabecera ya no va al grupo que nombra');
+    exige(/relayMessage: \{ hueco: \d+/.test(soloCodigo('src/utils/ritmo.js')), 'el borrado en crudo de una historia sale sin ritmo');
+    exige(/devolvió \$\{devueltos\} de \$\{conId\}/.test(soloCodigo('scripts/estado.js')), 'npm run estado ya no dice cuántos mensajes devolvió el teléfono del bot');
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'historia159-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const RC = require('./src/utils/rescateClaves'); const CAB = require('./src/utils/cabeceras');",
+        "const B = require('./src/utils/bitacoraEstados');",
+        "const G = '120363000000159001@g.us', G2 = '120363000000159002@g.us';",
+        "const BOT = '34600000159@s.whatsapp.net', M = '34611000159@s.whatsapp.net', M2 = '34611000259@s.whatsapp.net', M3 = '34611000359@s.whatsapp.net';",
+        "(async () => { const r = {};",
+        "  // A. la clave con otro nombre",
+        "  const llaves = { 'lid-mapping': { '91590000111_reverse': '34622000159', '34622000159': '91590000111' } };",
+        "  const keys = { get: async (t, ids) => { const o = {}; for (const i of ids) if (llaves[t] && llaves[t][i]) o[i] = llaves[t][i]; return o; } };",
+        "  const guardadas = new Set([G + '|34622000159:3@s.whatsapp.net', 'OTRO@g.us|91590000222@lid']);",
+        "  const repo = {",
+        "    decryptGroupMessage: async ({ group, authorJid }) => { if (guardadas.has(group + '|' + authorJid)) return Buffer.from('ok'); throw new Error('No session found to decrypt message'); },",
+        "    processSenderKeyDistributionMessage: async () => 'repartida',",
+        "  };",
+        "  const s0 = { signalRepository: repo, authState: { keys } };",
+        "  r.instala = [RC.instalar(s0), RC.instalar(s0)];",
+        "  r.forma = String(await repo.decryptGroupMessage({ group: G, authorJid: '91590000111:3@lid', msg: 1 }));",
+        "  r.reparto = await repo.processSenderKeyDistributionMessage({ authorJid: '91590000222@lid', item: { groupId: 'OTRO@g.us' } });",
+        "  r.grupo = String(await repo.decryptGroupMessage({ group: G, authorJid: '91590000222@lid', msg: 1 }));",
+        "  r.nada = await repo.decryptGroupMessage({ group: G, authorJid: '91590000333@lid', msg: 1 }).then(() => 'abrió', (e) => e.message);",
+        "  r.cuantos = RC.cuantos().rescatados;",
+        "  // B. cabeceras",
+        "  const nodo = (from, hijos, extra = {}) => ({ tag: 'message', attrs: { from, id: 'N' + Math.random().toString(36).slice(2, 8), participant: M, type: 'media', ...extra }, content: hijos });",
+        "  const enc = { tag: 'enc', attrs: { type: 'skmsg', v: '2' }, content: Buffer.from('x') };",
+        "  const d = (n) => CAB.destino(CAB.anotar(n));",
+        "  r.vo = (() => { const x = CAB.anotar(nodo(G, [{ tag: 'unavailable', attrs: { type: 'view_once' } }])); return [CAB.esHistoria(x), CAB.noEnviado(x)]; })();",
+        "  r.meta = d(nodo(G, [enc, { tag: 'meta', attrs: { is_group_status: 'true' } }]));",
+        "  r.mencion = d(nodo(G, [enc, { tag: 'meta', attrs: { is_group_status_mention: 'true' } }]));",
+        "  r.falso = d(nodo(G, [enc, { tag: 'meta', attrs: { is_group_status: 'false' } }]));",
+        "  r.normal = d(nodo(G, [enc]));",
+        "  r.difusion = d(nodo('status@broadcast', [enc, { tag: 'meta', attrs: { target_chat_jid: G } }]));",
+        "  r.difusionSola = d(nodo('status@broadcast', [enc]));",
+        "  r.textoCab = CAB.texto(CAB.anotar(nodo(G, [{ tag: 'unavailable', attrs: { type: 'group_status_unavailable_fanout' } }], { addressing_mode: 'lid' })));",
+        "  // C. el castigo, abierta y por cabecera",
+        "  const mh = require('./src/handlers/messageHandler'); const ban = require('./src/utils/banlist');",
+        "  const partes = [{ id: BOT, admin: 'admin' }, { id: M }, { id: M2 }, { id: M3 }];",
+        "  const salen = [], textos = [], crudos = [];",
+        "  const sock = { user: { id: BOT }, sendPresenceUpdate: async () => {}, readMessages: async () => {},",
+        "    sendMessage: async (j, c) => { if (c && c.text) textos.push(c.text); if (c && c.delete) salen.push('borra ' + c.delete.id); return { key: { id: 'x' + Math.random() } }; },",
+        "    relayMessage: async (j, m, o) => { crudos.push({ id: m.protocolMessage && m.protocolMessage.key.id, tipo: m.protocolMessage && m.protocolMessage.type, edit: o.additionalAttributes && o.additionalAttributes.edit, meta: (o.additionalNodes || []).map((n) => n.attrs.is_group_status).join() }); return 'ok'; },",
+        "    groupParticipantsUpdate: async (j, ids, a) => { for (const i of ids) salen.push(a + ' ' + i.split('@')[0]); return ids.map((i) => ({ jid: i, status: '200' })); },",
+        "    groupMetadata: async (j) => { if (j !== G) throw new Error('item-not-found'); return { id: G, subject: 'G', participants: partes }; } };",
+        "  const t = Math.floor(Date.now() / 1000);",
+        "  await mh.handleMessage(sock, { key: { remoteJid: G, participant: M, fromMe: false, id: 'H159A' }, message: { imageMessage: { mimetype: 'image/jpeg', contextInfo: { isGroupStatus: true } } }, pushName: 'x', messageTimestamp: t });",
+        "  await new Promise((res) => setTimeout(res, 300));",
+        "  r.abierta = { salen: salen.splice(0), crudos: crudos.splice(0), vetado: await ban.isBanned([M]), aviso: textos.splice(0).join(' | ') };",
+        "  await mh.handleMessage(sock, { key: { remoteJid: G, participant: M2, fromMe: false, id: 'H159B' }, message: { extendedTextMessage: { text: 'jaja', contextInfo: { isGroupStatus: true, stanzaId: 'Q1', participant: M3, quotedMessage: { conversation: 'a' } } } }, pushName: 'x', messageTimestamp: t });",
+        "  await new Promise((res) => setTimeout(res, 300));",
+        "  r.respuesta = { salen: salen.splice(0), vetado: await ban.isBanned([M2]), aviso: textos.splice(0).join(' | ') };",
+        "  const rDif = CAB.anotar(nodo('status@broadcast', [enc, { tag: 'meta', attrs: { target_chat_jid: G } }], { participant: M3 }));",
+        "  r.cruda = await mh.castigarHistoriaCruda(sock, rDif);",
+        "  await new Promise((res) => setTimeout(res, 300));",
+        "  r.porDifusion = { salen: salen.splice(0), crudos: crudos.splice(0), vetado: await ban.isBanned([M3]), aviso: textos.splice(0).join(' | ') };",
+        "  r.otraVez = await mh.castigarHistoriaCruda(sock, rDif);",
+        "  r.ajena = await mh.castigarHistoriaCruda(sock, CAB.anotar(nodo('status@broadcast', [enc, { tag: 'meta', attrs: { target_chat_jid: G2 } }])));",
+        "  // D. la bitácora: porqué y lo que devuelve el teléfono",
+        "  const bot = require('./src/bot');",
+        "  const n1 = nodo(G, [{ tag: 'unavailable', attrs: { type: 'hosted_unavailable_fanout' } }]); CAB.anotar(n1);",
+        "  bot._avisarSinDescifrar({ key: { remoteJid: G, participant: M, id: n1.attrs.id }, messageStubType: 2, messageStubParameters: ['Message absent from node'] });",
+        "  r.devuelto = [B.marcarRecuperado(n1.attrs.id), B.marcarRecuperado(n1.attrs.id), B.marcarRecuperado('NOEXISTE')];",
+        "  const e = B.sinDescifrar(24).find((x) => x.id === n1.attrs.id) || {};",
+        "  r.apunte = { motivo: e.motivo, noEnviado: e.noEnviado, recuperado: Boolean(e.recuperado) };",
+        "  B.apuntarRescate({ via: 'otra forma' }); r.rescates = B.rescates(24);",
+        "  console.log('R159' + JSON.stringify(r)); process.exit(0);",
+        "})().catch((e) => { console.log('R159' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 90000,
+        env: { ...process.env, OWNER_NUMBER: '33600000159', CO_OWNERS: '', LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R159'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(r.instala[0] && r.instala[1], 'el rescate de claves no se engancha, o se engancha dos veces al mismo socket');
+        exige(r.forma === 'ok', 'una clave guardada con el teléfono no abre lo que llega con el @lid');
+        exige(r.reparto === 'repartida' && r.grupo === 'ok', 'una clave repartida para otro grupo no se prueba, o el reparto deja de llegar a Baileys');
+        exige(r.nada === 'No session found to decrypt message', `si ninguna clave abre, el error de Baileys tiene que salir intacto (sale «${r.nada}»): de su texto depende que pida el mensaje al teléfono`);
+        exige(r.cuantos === 2, `se cuentan ${r.cuantos} rescates de 2`);
+        exige(r.vo[0] === false && r.vo[1] === 'view_once', 'un «ver una vez» no enviado cuenta como historia, o no se apunta el porqué');
+        exige(r.meta === 'G' || r.meta === '120363000000159001@g.us', 'la cabecera is_group_status ya no reconoce la historia');
+        exige(r.mencion === '120363000000159001@g.us', 'la cabecera is_group_status_mention no se reconoce');
+        exige(r.falso === '' && r.normal === '', 'un mensaje normal, o uno con is_group_status="false", se toma por historia');
+        exige(r.difusion === '120363000000159001@g.us' && r.difusionSola === '', 'por status@broadcast, la historia solo va al grupo que nombra su cabecera, y sin grupo no va a ninguno');
+        exige(/modo=lid/.test(r.textoCab) && /unavailable\{type=group_status_unavailable_fanout\}/.test(r.textoCab), `la cabecera del log pierde el modo o el porqué del aviso de no enviado: ${r.textoCab}`);
+        exige(r.abierta.salen.includes('borra H159A') && r.abierta.salen.includes('remove 34611000159') && r.abierta.vetado,
+          `una historia con isGroupStatus y sin cita no se borra, no se echa o no se veta: ${JSON.stringify(r.abierta.salen)}`);
+        exige(r.abierta.crudos.length === 1 && r.abierta.crudos[0].id === 'H159A' && r.abierta.crudos[0].edit === '8' && r.abierta.crudos[0].meta === 'true' && r.abierta.crudos[0].tipo === 0,
+          `el borrado con la marca de historia no sale, o sale mal: ${JSON.stringify(r.abierta.crudos)}`);
+        exige(!r.respuesta.vetado && !r.respuesta.salen.some((x) => x.startsWith('remove')), 'a quien responde a una historia citándola se le echa o se le veta como si la hubiera subido');
+        exige(r.cruda === 'castigada' && r.porDifusion.salen.includes('remove 34611000359') && r.porDifusion.vetado && r.porDifusion.crudos.length === 1,
+          `una historia por status@broadcast reconocida por su cabecera no se castiga en su grupo: ${JSON.stringify(r.porDifusion)}`);
+        exige(r.otraVez === 'ya atendida', 'la misma historia se castiga dos veces');
+        exige(r.ajena === 'grupo ajeno', `una historia que nombra un grupo que no es del bot se toca (${r.ajena})`);
+        exige(r.devuelto[0] === true && r.devuelto[1] === false && r.devuelto[2] === false, `lo que devuelve el teléfono se marca mal: ${JSON.stringify(r.devuelto)}`);
+        exige(r.apunte.motivo === 'Message absent from node' && r.apunte.noEnviado === 'hosted_unavailable_fanout' && r.apunte.recuperado,
+          `lo que no se abre se apunta sin su porqué: ${JSON.stringify(r.apunte)}`);
+        exige(r.rescates['otra forma'] === 1, 'los rescates de claves no se cuentan para npm run estado');
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes159) console.log(verde('   ✓ la clave con otro nombre se prueba, la historia se reconoce por su cabecera también por status@broadcast, y se quita con su marca'));
+  }
+
+  // ── 160. EL ANTI-EMPRESA, FUERA ANTES DE QUE ESCRIBA (13 nov) ──────────────
+  // El dueño: «te dije que lo quiero fuera antes de que siquiera puedan
+  // escribir». Tres agujeros cerrados:
+  //   · la consulta en lote daba por «sin nombre de empresa» a quien WhatsApp
+  //     no contestaba (sin apartado o con error), y eso al entrar es pase
+  //     libre: ahora es 'desconocido' y va por el perfil;
+  //   · quien entraba solo con su @lid no se miraba: el lote acepta @lid;
+  //   · un mensaje que no se puede abrir trae igual el nombre de empresa
+  //     verificado en la cabecera, y se tiraba sin mirarlo: ahora echa, veta
+  //     y borra.
+  // Y al entrar, la expulsión sale urgente y se lleva lo que soltó. En sandbox.
+  {
+    console.log('\n160. EL ANTI-EMPRESA, FUERA ANTES DE QUE ESCRIBA');
+    const antes160 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const bot160 = soloCodigo('src/bot.js');
+    exige((bot160.match(/aplicarAUno\(sock, groupJid, kickId, 'remove', meta, \{ urgente: true \}\)/g) || []).length >= 2,
+      'la expulsión de una cuenta Business al entrar ya no sale urgente: espera detrás de otras mientras escribe');
+    exige(/revisarEnLote\(sock, paraLote\)/.test(bot160) && /String\(kickId\)\.endsWith\('@lid'\) \? kickId/.test(bot160),
+      'quien entra solo con su @lid vuelve a no mirarse en lote');
+    exige((bot160.match(/borrarSpamReciente\(sock, groupJid, kickId\)/g) || []).length >= 2, 'al echar a una cuenta Business al entrar ya no se borra lo que soltó');
+    exige(/\(!msg\?\.message && !msg\?\.verifiedBizName\)/.test(bot160), 'lo que llega al reconectar sin abrir pero con nombre de empresa ya no pasa por el anti-empresa');
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'empresa160-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const L = require('./src/utils/empresaLote'); const st = require('./src/utils/state');",
+        "const G = '120363000000160001@g.us', BOT = '34600000160@s.whatsapp.net';",
+        "const A = '34611000160@s.whatsapp.net', Bn = '34622000160@s.whatsapp.net', C = '34633000160@s.whatsapp.net', D = '34644000160@s.whatsapp.net', X = '91600000999@lid';",
+        "(async () => { const r = {};",
+        "  L._prueba({ fichero: require('path').join(process.cwd(), 'data', 'lote160.json'), rodaje: () => false, hueco: { hueco: 0, azar: 0 } });",
+        "  const P = L._protocolo();",
+        "  r.parser = [P.parser({ tag: 'business', attrs: {}, content: [{ tag: 'error', attrs: { code: '500' } }] }), P.parser({ tag: 'business', attrs: {} }), P.parser(undefined)];",
+        "  let pedidos = [];",
+        "  const sockU = { executeUSyncQuery: async (q) => { pedidos = q.users.map((u) => u.id); return { list: [",
+        "    { id: A, business: { empresa: true, nombre: 'Tienda' } }, { id: Bn, business: { empresa: false } }, { id: C }, { id: D, business: { error: '500' } }, { id: X, business: { empresa: true, nombre: '' } } ] }; } };",
+        "  const m = await L._consultar(sockU, [A, Bn, C, D]);",
+        "  r.lote = Object.fromEntries([...m].map(([k, v]) => [k.split('@')[0], v.estado]));",
+        "  r.cifras = L.cifras();",
+        "  r.lid = await Promise.race([L.revisarEnLote(sockU, X), new Promise((res) => setTimeout(() => res({ estado: 'tarde' }), 8000))]);",
+        "  r.pedidosLid = pedidos;",
+        "  // la cuenta Business que no se puede abrir",
+        "  st.initState && st.initState(); st.toggleAntiBusiness(G, true);",
+        "  const mh = require('./src/handlers/messageHandler'); const ban = require('./src/utils/banlist');",
+        "  const partes = [{ id: BOT, admin: 'admin' }, { id: A }, { id: Bn }];",
+        "  const salen = [], textos = [], urgentes = [];",
+        "  const RT = require('./src/utils/ritmo');",
+        "  const sock = { user: { id: BOT }, sendPresenceUpdate: async () => {}, readMessages: async () => {},",
+        "    sendMessage: async (j, c) => { if (c && c.text) textos.push(c.text); if (c && c.delete) salen.push('borra ' + c.delete.id); return { key: { id: 'x' } }; },",
+        "    groupParticipantsUpdate: async (...a) => { const ult = a[a.length - 1]; if (ult === RT.URGENTE) urgentes.push(a[2]); const ids = a[1]; for (const i of ids) salen.push(a[2] + ' ' + i.split('@')[0]); return ids.map((i) => ({ jid: i, status: '200' })); },",
+        "    groupMetadata: async () => ({ id: G, subject: 'G', participants: partes }) };",
+        "  const t = Math.floor(Date.now() / 1000);",
+        "  await mh.handleMessage(sock, { key: { remoteJid: G, participant: A, fromMe: false, id: 'S160A' }, messageStubType: 2, messageStubParameters: ['No session found to decrypt message'], verifiedBizName: 'Tienda', messageTimestamp: t });",
+        "  await new Promise((res) => setTimeout(res, 300));",
+        "  r.sinAbrir = { salen: salen.splice(0), urgentes: urgentes.splice(0), vetado: Boolean(await ban.isBanned([A])), aviso: textos.splice(0).join(' | ') };",
+        "  await mh.handleMessage(sock, { key: { remoteJid: G, participant: Bn, fromMe: false, id: 'S160B' }, messageStubType: 2, messageStubParameters: ['No session found to decrypt message'], messageTimestamp: t });",
+        "  await new Promise((res) => setTimeout(res, 200));",
+        "  r.normal = { salen: salen.splice(0), vetado: Boolean(await ban.isBanned([Bn])) };",
+        "  st.toggleAntiBusiness(G, false);",
+        "  await mh.handleMessage(sock, { key: { remoteJid: G, participant: Bn, fromMe: false, id: 'S160C' }, messageStubType: 2, verifiedBizName: 'Otra', messageTimestamp: t });",
+        "  await new Promise((res) => setTimeout(res, 200));",
+        "  r.apagado = { salen: salen.splice(0) };",
+        "  console.log('R160' + JSON.stringify(r)); process.exit(0);",
+        "})().catch((e) => { console.log('R160' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 90000,
+        env: { ...process.env, OWNER_NUMBER: '33600000160', CO_OWNERS: '', LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R160'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(r.parser[0] && r.parser[0].error === '500' && r.parser[1] && r.parser[1].empresa === false && r.parser[2] === null,
+          `el lector del apartado de empresa no distingue un error de un «no»: ${JSON.stringify(r.parser)}`);
+        exige(r.lote['34611000160'] === 'biz' && r.lote['34622000160'] === 'sin-nombre',
+          `el lote ya no reconoce a la Business o a la que no lo es: ${JSON.stringify(r.lote)}`);
+        exige(r.lote['34633000160'] === 'desconocido' && r.lote['34644000160'] === 'desconocido',
+          `quien WhatsApp no contesta (sin apartado o con error) vuelve a salir «sin nombre» y entra sin mirarse: ${JSON.stringify(r.lote)}`);
+        exige(r.cifras.revisados === 2 && r.cifras.sinRespuesta === 2, `las cifras del lote cuentan como revisados a los que no contestaron: ${JSON.stringify(r.cifras)}`);
+        exige(r.lid.estado === 'biz' && r.pedidosLid.includes('91600000999@lid'), `el lote no mira a quien solo trae @lid: ${JSON.stringify(r.lid)}`);
+        exige(r.sinAbrir.salen.includes('remove 34611000160') && r.sinAbrir.salen.includes('borra S160A') && r.sinAbrir.vetado && /Anti-empresa/.test(r.sinAbrir.aviso),
+          `una cuenta Business con un mensaje que no se puede abrir no se echa, no se veta o su mensaje no se borra: ${JSON.stringify(r.sinAbrir)}`);
+        exige(r.sinAbrir.urgentes.includes('remove'), 'la expulsión de una cuenta Business no sale urgente');
+        exige(!r.normal.salen.length && !r.normal.vetado, 'un mensaje sin abrir y sin nombre de empresa echa a alguien');
+        exige(!r.apagado.salen.length, 'con el anti-empresa apagado en el grupo, un mensaje sin abrir echa a alguien');
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes160) console.log(verde('   ✓ un «no contesta» no es un «no es Business», el @lid se mira, y lo que no se abre delata igual'));
   }
 
 

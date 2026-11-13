@@ -137,7 +137,7 @@ const STUB_SOLICITUD = new Set([144, 172]);
 // Barridos de autoaccept pendientes, por grupo. Junta las rafagas: si llegan
 // cinco solicitudes seguidas se hace UN barrido, no cinco.
 const autoAcceptPendiente = new Map();
-const { handleMessage, invalidateGroupMeta, getGroupMeta, metaFrescaParaBaileys, peekGroupMeta, sembrarGrupos, reabrirPendientes, castigarHistoriaCruda } = require('./handlers/messageHandler');
+const { handleMessage, invalidateGroupMeta, getGroupMeta, metaFrescaParaBaileys, peekGroupMeta, sembrarGrupos, reabrirPendientes, castigarHistoriaCruda, borrarSpamReciente } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, isAutoAceptarEnabled, isBotEnabled, flushState, vistoActivo } = require('./utils/state');
 const { isOwner, sameUser, isBotAdmin, phoneMatch, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto, resolverLid, bareJid, aprenderLidsDeDueños } = require('./utils/wa');
 const { anotarDeuda, cobrarDeuda, flushDeuda } = require('./utils/adminDeuda');
@@ -185,6 +185,7 @@ const { explicarRechazo } = require('./utils/rechazoWA');
 const { ponerRitmo, estadoCola } = require('./utils/ritmo');
 const bitacoraEstados = require('./utils/bitacoraEstados');
 const cabeceras = require('./utils/cabeceras');
+const rescateClaves = require('./utils/rescateClaves');
 
 const AUTH_DIR = path.join(__dirname, '../data/auth');
 
@@ -977,6 +978,12 @@ async function connectToWhatsApp() {
     } catch { /* leer una cabecera nunca tira el bot */ }
   });
 
+  // LA CLAVE DE GRUPO CON OTRO NOMBRE (13 nov). Ver utils/rescateClaves.js:
+  // antes de dar un mensaje de grupo por imposible de abrir, se prueba la
+  // clave del autor con su otra forma (@lid o teléfono) y con los otros grupos
+  // para los que la repartió. Solo lee lo que ya está en el disco.
+  rescateClaves.instalar(sock, { logger, alRescatar: (x) => bitacoraEstados.apuntarRescate(x) });
+
   // ── Vincular con CODIGO en vez de con QR ─────────────────────────────────
   //
   // El QR sirve cuando quien administra el servidor tiene DOS pantallas: una
@@ -1711,9 +1718,10 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
       for (const forma of new Set([kickId, phoneJid])) await recordFacts(forma, { empresa: ev.fields }).catch(() => {});
 
       const meta = await withTimeout(sock.groupMetadata(groupJid), TOPE_RED).catch(() => null);
-      if (!await aplicarAUno(sock, groupJid, kickId, 'remove', meta)) {
+      if (!await aplicarAUno(sock, groupJid, kickId, 'remove', meta, { urgente: true })) {
         return logger.warn(`Anti-empresa: kick rechazado para ${kickId} en ${groupJid}`);
       }
+      borrarSpamReciente(sock, groupJid, kickId).catch(() => {});
 
       await banAccount(allForms(kickId, meta), `cuenta business al entrar en ${groupJid} (${ev.fields.join(', ')})`, 'auto').catch(() => {});
       sock.sendMessage(groupJid, {
@@ -1885,8 +1893,11 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
           // consulta en lote (utils/empresaLote.js) junta a todos los que
           // entran en unos segundos y pregunta por su nombre de empresa
           // verificado, que solo tiene una cuenta Business.
-          if (!biz && phoneJid) {
-            const lote = await revisarEnLote(sock, phoneJid).catch(() => null);
+          // Y con el @lid si no hay teléfono (13 nov): la consulta en lote lo
+          // acepta, y antes quien entraba sin teléfono conocido no se miraba.
+          const paraLote = phoneJid || (String(kickId).endsWith('@lid') ? kickId : null);
+          if (!biz && paraLote) {
+            const lote = await revisarEnLote(sock, paraLote).catch(() => null);
             if (lote?.estado === 'biz') {
               biz = true;
               evidencia = [`nombre de empresa verificado${lote.nombre ? ` «${lote.nombre}»` : ''} al entrar`];
@@ -1940,10 +1951,19 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
           try {
             // WhatsApp responde por participante. Sin mirarlo, el bot anunciaba
             // expulsiones que el servidor había rechazado y la cuenta seguía dentro.
-            if (!await aplicarAUno(sock, groupJid, kickId, 'remove', meta)) {
+            //
+            // URGENTE (13 nov): el dueño la quiere fuera antes de que escriba,
+            // y la expulsión esperaba su turno detrás de cualquier otra. Sale
+            // ya; sigue contando para el tope.
+            if (!await aplicarAUno(sock, groupJid, kickId, 'remove', meta, { urgente: true })) {
               logger.warn(`Anti-empresa: kick rechazado para ${kickId} en ${groupJid}`);
               return;
             }
+            // Y LO QUE HAYA SOLTADO EN ESOS SEGUNDOS SE VA CON ELLA (13 nov),
+            // como cuando se la pilla escribiendo.
+            borrarSpamReciente(sock, groupJid, kickId)
+              .then((n) => { if (n) logger.info(`Anti-empresa: borrados ${n} mensaje(s) de ${kickId} en ${groupJid} al echarla`); })
+              .catch(() => {});
             // Y SE VETA, igual que hace la guarda de mensajes. Sin esto era una
             // puerta giratoria: con el enlace del grupo vuelve a entrar y hay
             // que echarlo otra vez, y otra.
@@ -2535,7 +2555,13 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
     ingestarHistorial(data);
   });
 
-  sock.ev.on('messages.upsert', ({ messages, type }) => {
+  sock.ev.on('messages.upsert', ({ messages, type, requestId }) => {
+    // LO QUE DEVUELVE EL TELÉFONO DEL BOT (13 nov). Lo que este dispositivo no
+    // pudo abrir, Baileys se lo pide al teléfono del número, y la respuesta
+    // llega por aquí con `requestId`. Se marca en la bitácora para que `npm
+    // run estado` diga si el teléfono contesta; el mensaje sigue su camino y
+    // se modera como cualquier otro.
+    if (requestId) for (const msg of messages) bitacoraEstados.marcarRecuperado(msg?.key?.id);
     for (const msg of messages) {
       // Lo que manda el bot se guarda por si hay que reenviarlo (getMessage).
       if (msg?.key?.fromMe && msg.message) recordarMensaje(msg.key, msg.message);
@@ -2613,7 +2639,9 @@ const VENTANA_DIFERIDO_MS = 15 * 60 * 1000;
 // Modera un mensaje que llego tarde. Nada de comandos ni contadores: eso lo
 // decide handleMessage con la opcion `diferido`.
 function moderarDiferido(msg) {
-  if (!msg?.message || msg.key?.fromMe) return;
+  // Sin abrir también, si trae el nombre de empresa verificado (13 nov): ver
+  // la puerta del anti-empresa al principio de handleMessage.
+  if ((!msg?.message && !msg?.verifiedBizName) || msg.key?.fromMe) return;
   // LAS HISTORIAS TAMBIEN, y este era un agujero mio. Aqui solo pasaban los
   // mensajes de grupo, y una historia subida al grupo NO viaja con el jid del
   // grupo: viaja por `status@broadcast`. O sea que justo el tipo de spam que
@@ -2640,8 +2668,11 @@ const ESPERA_HISTORIA_CRUDA_MS = 5000;
 function programarHistoriaCruda(node, r) {
   const t = Number(node?.attrs?.t || 0);
   if (t && Date.now() - t * 1000 > 15 * 60 * 1000) return;
+  // El grupo al que va: el propio, o el que nombra si llega por el canal de
+  // los estados (13 nov).
+  const grupo = cabeceras.destino(r);
   setTimeout(() => {
-    if (!sock || !isBotEnabled(r.grupo)) return;
+    if (!sock || !grupo || !isBotEnabled(grupo)) return;
     castigarHistoriaCruda(sock, r).catch((e) => logger.unaVez('historia por su cabecera', e));
   }, ESPERA_HISTORIA_CRUDA_MS).unref?.();
 }
@@ -2658,14 +2689,20 @@ function avisarSinDescifrar(msg) {
   const grupo = msg?.key?.remoteJid;
   if (Number(msg?.messageStubType) !== STUB_CIFRADO || msg.message || !String(grupo || '').endsWith('@g.us')) return;
   const quien = msg.key.participant || '';
-  bitacoraEstados.apuntarSinDescifrar({ grupo, quien });
+  const motivo = (msg.messageStubParameters || []).join(' ').slice(0, 80);
+  // Con el porqué y lo que dijo la cabecera (13 nov): `npm run estado` lo
+  // resume sin tener que buscar en el log.
+  const r = cabeceras.de(msg.key.id);
+  bitacoraEstados.apuntarSinDescifrar({
+    grupo, quien, id: msg.key.id, motivo: (msg.messageStubParameters || [])[0] || '',
+    noEnviado: cabeceras.noEnviado(r), historia: cabeceras.marcaDeHistoria(r),
+  });
   const ahora = Date.now();
   if (ahora - (sinDescifrarAvisado.get(grupo) || 0) < 5 * 60 * 1000) return;
   sinDescifrarAvisado.set(grupo, ahora);
   if (sinDescifrarAvisado.size > 500) sinDescifrarAvisado.delete(sinDescifrarAvisado.keys().next().value);
-  const motivo = (msg.messageStubParameters || []).join(' ').slice(0, 80);
   // Y SU CABECERA (9 nov), que sí se pudo leer: dice qué era sin abrirlo.
-  const cab = cabeceras.texto(cabeceras.de(msg.key.id));
+  const cab = cabeceras.texto(r);
   logger.warn(`mensaje de grupo sin descifrar en ${grupo} de ${String(quien).split('@')[0] || '?'}${motivo ? ` (${motivo})` : ''} · cabecera: ${cab}`);
 }
 

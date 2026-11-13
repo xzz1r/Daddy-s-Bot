@@ -33,17 +33,32 @@ function atributos(attrs, claves) {
   return out;
 }
 
+// TODOS LOS NODOS CON SUS ATRIBUTOS (13 nov). Antes solo `enc` y `meta`
+// llevaban los suyos, y el resto salía con el nombre a secas: un
+// `<unavailable type="…">` —WhatsApp diciendo que a este dispositivo no le
+// manda el mensaje, y por qué— se apuntaba como «unavailable» sin el porqué.
+// Siguen siendo atributos: el contenido de un nodo no se mira nunca.
+const MAX_HIJOS = 8;
+const MAX_ATRIBUTOS = 8;
+
+// Las historias de grupo también pueden viajar por el canal de los estados,
+// `status@broadcast`, con el grupo nombrado en la cabecera (13 nov). Se
+// apuntan igual que las de grupo.
+const DIFUSION = 'status@broadcast';
+
 function anotar(node) {
   if (!node || node.tag !== 'message' || !node.attrs) return null;
   const a = node.attrs;
   const grupo = String(a.from || '');
-  if (!grupo.endsWith('@g.us') || !a.id) return null;
+  if ((!grupo.endsWith('@g.us') && grupo !== DIFUSION) || !a.id) return null;
   const hijos = [];
   for (const h of Array.isArray(node.content) ? node.content : []) {
     if (!h || typeof h.tag !== 'string') continue;
-    if (h.tag === 'enc') hijos.push({ tag: 'enc', attrs: atributos(h.attrs, ['type', 'v', 'mediatype']) });
-    else if (h.tag === 'meta') hijos.push({ tag: 'meta', attrs: atributos(h.attrs) });
-    else hijos.push({ tag: corto(h.tag), attrs: {} });
+    if (hijos.length >= MAX_HIJOS) break;
+    const at = h.tag === 'enc'
+      ? atributos(h.attrs, ['type', 'v', 'mediatype'])
+      : atributos(h.attrs, Object.keys(h.attrs || {}).slice(0, MAX_ATRIBUTOS));
+    hijos.push({ tag: corto(h.tag), attrs: at });
   }
   const r = {
     ts: Date.now(),
@@ -52,6 +67,7 @@ function anotar(node) {
     autor: a.participant ? String(a.participant) : '',
     autorAlt: a.participant_pn || a.participant_lid ? String(a.participant_pn || a.participant_lid) : '',
     tipo: a.type ? corto(a.type) : '',
+    modo: a.addressing_mode ? corto(a.addressing_mode) : '',
     hijos,
   };
   if (resumenes.has(r.id)) resumenes.delete(r.id);
@@ -60,18 +76,58 @@ function anotar(node) {
   return r;
 }
 
-// La marca explícita de historia de grupo. Solo esa: nada se deduce.
-function esHistoria(r) {
-  return Boolean(r && r.hijos.some((h) => h.tag === 'meta'
-    && (h.attrs.is_group_status === 'true' || h.attrs.origin === 'group_status')));
+// LA MARCA EXPLÍCITA DE HISTORIA DE GRUPO. Nada se deduce: o la cabecera dice
+// «group_status» —`is_group_status="true"`, `is_group_status_mention="true"`,
+// `origin="group_status"`, un `<unavailable type="…group_status…">`— o no es
+// una historia. `view_once` y compañía no cuentan.
+const MARCA_HISTORIA = /group_status/i;
+function marcaDeHistoria(r) {
+  if (!r) return '';
+  for (const h of r.hijos || []) {
+    if (MARCA_HISTORIA.test(h.tag)) return h.tag;
+    for (const [k, v] of Object.entries(h.attrs || {})) {
+      if (MARCA_HISTORIA.test(k) && String(v) !== 'false' && String(v) !== '0') return `${h.tag}{${k}=${v}}`;
+      if (MARCA_HISTORIA.test(String(v))) return `${h.tag}{${k}=${v}}`;
+    }
+  }
+  if (MARCA_HISTORIA.test(r.tipo || '')) return `tipo=${r.tipo}`;
+  return '';
 }
 
+// El grupo nombrado en la cabecera de algo que llega por `status@broadcast`.
+function grupoNombrado(r) {
+  for (const h of (r && r.hijos) || []) {
+    for (const v of Object.values(h.attrs || {})) {
+      if (/^\d[\d-]*@g\.us$/.test(String(v))) return String(v);
+    }
+  }
+  return '';
+}
+
+// ¿A qué grupo va esta historia? '' si no es una historia de grupo. En un
+// grupo, el propio grupo si trae la marca. Por `status@broadcast`, el grupo
+// que nombre la cabecera, y solo si lo nombra.
+function destino(r) {
+  if (!r) return '';
+  if (r.grupo === DIFUSION) return grupoNombrado(r);
+  return marcaDeHistoria(r) ? r.grupo : '';
+}
+
+function esHistoria(r) { return Boolean(destino(r)); }
+
 function de(id) { return id ? resumenes.get(String(id)) || null : null; }
+
+// ¿Le ha dicho WhatsApp a este dispositivo que no le manda el mensaje?
+function noEnviado(r) {
+  const h = (r && r.hijos || []).find((x) => x.tag === 'unavailable');
+  return h ? (h.attrs.type || 'sin tipo') : '';
+}
 
 // «tipo=media · enc skmsg v2 image · meta{is_group_status=true}»
 function texto(r) {
   if (!r) return 'sin cabecera apuntada';
   const partes = [`tipo=${r.tipo || '?'}`];
+  if (r.modo) partes.push(`modo=${r.modo}`);
   for (const h of r.hijos) {
     const at = Object.entries(h.attrs).map(([k, v]) => `${k}=${v}`).join(',');
     partes.push(h.tag === 'enc' ? `enc ${Object.values(h.attrs).join(' ')}` : `${h.tag}${at ? `{${at}}` : ''}`);
@@ -79,4 +135,4 @@ function texto(r) {
   return partes.join(' · ');
 }
 
-module.exports = { anotar, esHistoria, de, texto, _olvidar: () => resumenes.clear() };
+module.exports = { anotar, esHistoria, destino, marcaDeHistoria, noEnviado, de, texto, DIFUSION, _olvidar: () => resumenes.clear() };

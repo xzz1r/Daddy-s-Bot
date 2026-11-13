@@ -361,6 +361,41 @@ async function borrarMensaje(sock, jid, msg, sender, motivo) {
   }
 }
 
+// ─── EL BORRADO DE UNA HISTORIA DE GRUPO, TAMBIÉN CON SU MARCA (13 nov) ─────
+//
+// Una historia subida al grupo no vive en el chat: vive en la fila de
+// historias del grupo, y quien la sube la manda con `<meta
+// is_group_status="true">` para que cada teléfono la ponga ahí. El borrado de
+// admin de siempre (`edit=8`) sale sin esa marca, y un teléfono que busca el
+// mensaje en el chat no lo encuentra. El dueño lo vio desde el otro lado: en
+// el iPhone un admin sí la quita para todos.
+//
+// Se mandan los dos: el de siempre, que quita lo que esté en el chat, y el
+// mismo con la marca de historia. Pedir dos veces el borrado de un mismo
+// mensaje no hace nada la segunda, y si el servidor no acepta el marcado, se
+// queda el de siempre. Solo para historias: una mención del grupo en un
+// estado (groupStatusMentionMessage) es un mensaje del chat y va sin marca.
+const ES_HISTORIA_PROPIA = /groupStatusMessage|isGroupStatus|cabecera/;
+async function borrarHistoria(sock, jid, msg, sender, porQue = '') {
+  const borrado = await borrarMensaje(sock, jid, msg, sender, 'un estado subido al grupo');
+  if (!ES_HISTORIA_PROPIA.test(porQue) || /Mention/i.test(porQue) || typeof sock.relayMessage !== 'function') return borrado;
+  try {
+    await sock.relayMessage(jid, {
+      protocolMessage: {
+        type: 0,   // REVOKE
+        key: { remoteJid: jid, fromMe: Boolean(msg?.key?.fromMe), id: idABorrar(msg), participant: sender },
+      },
+    }, {
+      additionalAttributes: { edit: '8' },
+      additionalNodes: [{ tag: 'meta', attrs: { is_group_status: 'true' } }],
+    });
+    return true;
+  } catch (e) {
+    logger.warn(`historia en ${jid}: el borrado con marca de historia no salió (${e?.message || e}); queda el de siempre`);
+    return borrado;
+  }
+}
+
 // ─── UN SILENCIADO NO HABLA: LO QUE ESCRIBA SE BORRA PARA TODOS ─────────────
 //
 // El mute solo frenaba COMANDOS. Vivia ciento cincuenta lineas mas abajo, justo
@@ -410,8 +445,8 @@ async function borrarDeSilenciado(sock, jid, msg, sender, meta) {
 // Lo que gana al pasar por el contrato: cruza LID↔telefono por la METADATA, no
 // solo por canonicalJid. canonicalJid necesita el mapa caliente, y el mapa esta
 // frio justo despues de cada reinicio; la metadata trae las dos formas siempre.
-async function expulsar(sock, jid, target, meta = null) {
-  return aplicarAUno(sock, jid, target, 'remove', meta);
+async function expulsar(sock, jid, target, meta = null, opciones = {}) {
+  return aplicarAUno(sock, jid, target, 'remove', meta, opciones);
 }
 
 // EL SPAM DE TEXTO, CASTIGADO. La rafaga ya la ha medido utils/spamTexto.js, y
@@ -550,8 +585,12 @@ async function expulsarBusinessDetectado(sock, jid, sender, msg, motivo = 'cuent
   if (ultimo && Date.now() - ultimo < 10 * 60 * 1000) return;
 
   logger.info(`Anti-empresa: ${sender} en ${jid} — ${motivo}`);
-  const fuera = await expulsar(sock, jid, sender, meta);
+  // Urgente (13 nov): no espera detrás de otras expulsiones.
+  const fuera = await expulsar(sock, jid, sender, meta, { urgente: true });
   const num = sender.split('@')[0];
+  // El mensaje que la delató, si no se pudo abrir, no está en el historial del
+  // grupo y borrarSpamReciente no lo ve: se borra aquí (13 nov).
+  if (fuera && !msg.message && msg.key?.id) await borrarMensaje(sock, jid, msg, sender, 'un mensaje de una cuenta Business');
 
   if (fuera) {
     // ECHAR SIN VETAR ES UNA PUERTA GIRATORIA. Era la unica guarda automatica
@@ -652,7 +691,7 @@ async function castigarHistoria(sock, jid, msg, sender, senderPn, deteccion) {
     return;
   }
 
-  const borrado = await borrarMensaje(sock, jid, msg, sender, 'un estado subido al grupo');
+  const borrado = await borrarHistoria(sock, jid, msg, sender, porQue);
   bitacoraEstados.apuntar({
     grupo: jid, quien: sender, motivo: porQue, seguro,
     resultado: borrado ? bitacoraEstados.RESULTADOS.BORRADO : bitacoraEstados.RESULTADOS.NO_BORRADO,
@@ -706,13 +745,30 @@ async function castigarHistoria(sock, jid, msg, sender, senderPn, deteccion) {
 // historia en unos segundos (porque no se pudo descifrar). Se castiga igual:
 // borrar, lista negra y fuera, con las mismas exenciones.
 async function castigarHistoriaCruda(sock, r) {
-  if (!r || !r.grupo || !r.autor || !r.id) return 'sin datos';
+  const cab = require('../utils/cabeceras');
+  // bot.js solo llama aquí con una historia ya reconocida (cabeceras.esHistoria):
+  // en un grupo vale el propio grupo; por status@broadcast, el que nombre.
+  const grupo = r && (cab.destino(r) || (String(r.grupo || '').endsWith('@g.us') ? r.grupo : ''));
+  if (!r || !grupo || !r.autor || !r.id) return 'sin datos';
   if (historiaYaAtendida(r.id)) return 'ya atendida';
-  const msg = { key: { remoteJid: r.grupo, id: r.id, participant: r.autor, fromMe: false } };
+  // Solo en grupos del bot: una historia que nombra un grupo ajeno no es cosa
+  // suya, y sin metadata castigarHistoria lo apuntaría como «protegido».
+  const meta = await getGroupMeta(sock, grupo).catch(() => null);
+  if (!meta) return 'grupo ajeno';
+  const marca = cab.marcaDeHistoria(r) || (r.grupo === cab.DIFUSION ? 'grupo nombrado' : 'is_group_status');
+  // POR EL CANAL DE LOS ESTADOS (13 nov): la misma puerta que una historia
+  // abierta que llega por ahí, con el grupo que nombra la cabecera.
+  if (r.grupo === cab.DIFUSION) {
+    logger.info(`historia por status@broadcast reconocida por su cabecera para ${grupo} de ${r.autor} (${marca})`);
+    const msg = { key: { remoteJid: cab.DIFUSION, id: r.id, participant: r.autor, fromMe: false }, statusMentionSources: [grupo], message: null };
+    await historiaPorBroadcast(sock, msg, { motivo: `cabecera ${marca}`, seguro: true }, { yaAtendida: true });
+    return 'castigada';
+  }
+  const msg = { key: { remoteJid: grupo, id: r.id, participant: r.autor, fromMe: false } };
   const alt = String(r.autorAlt || '');
   const senderPn = alt.endsWith('@s.whatsapp.net') ? alt : null;
-  logger.info(`historia de grupo reconocida por su cabecera en ${r.grupo} de ${r.autor} (no se pudo abrir)`);
-  await castigarHistoria(sock, r.grupo, msg, r.autor, senderPn, { motivo: 'cabecera is_group_status', seguro: true });
+  logger.info(`historia de grupo reconocida por su cabecera en ${grupo} de ${r.autor} (no se pudo abrir: ${marca})`);
+  await castigarHistoria(sock, grupo, msg, r.autor, senderPn, { motivo: `cabecera ${marca}`, seguro: true });
   return 'castigada';
 }
 
@@ -864,7 +920,9 @@ async function gruposConEsteMiembro(sock, autor) {
   return encontrados;
 }
 
-async function historiaPorBroadcast(sock, msg, deteccion) {
+async function historiaPorBroadcast(sock, msg, deteccion, { yaAtendida = false } = {}) {
+  // Una vez por historia, venga abierta o por su cabecera (13 nov).
+  if (!yaAtendida && historiaYaAtendida(msg.key?.id)) return;
   const autor = msg.key.participant || msg.participant;
   // SE BUSCA EN EL SOBRE ENTERO, NO EN `msg.message`. AQUI ESTABA EL FALLO.
   //
@@ -964,9 +1022,10 @@ async function historiaPorBroadcast(sock, msg, deteccion) {
     // servidor lo acepta, la historia se va para todos; si no, estamos donde ya
     // estabamos. No cuesta nada intentarlo y el bot ya tiene el admin que hace
     // falta —lo comprueba tres lineas mas arriba.
-    sock.sendMessage(g, {
-      delete: { remoteJid: g, fromMe: false, id: msg.key.id, participant: autor },
-    }).catch((e) => logger.unaVez('borrar historia del grupo', e));
+    // Con la marca de historia también, si es una historia (13 nov): ver
+    // borrarHistoria.
+    borrarHistoria(sock, g, { key: { remoteJid: g, fromMe: false, id: msg.key.id } }, autor, deteccion.motivo)
+      .catch((e) => logger.unaVez('borrar historia del grupo', e));
 
     // Queda apuntado para que el resumen no confunda «no se detecto» con «se
     // detecto y no se pudo quitar», que es justo la diferencia que hacia falta.
@@ -1826,6 +1885,15 @@ function motivoEstado(message, msg = null) {
       if (!m) continue;
       for (const k of Object.keys(m)) {
         const ctx = m[k]?.contextInfo;
+        // `isGroupStatus` A SECAS ES LA MARCA, NO UNA PISTA (13 nov). Es un
+        // booleano propio (ContextInfo 66) que pone quien sube la historia en
+        // el mensaje de dentro, y lo que devuelve el teléfono del bot cuando
+        // se la pide puede venir ya desenvuelto, con solo esto. Sin cita: si
+        // el mensaje responde a otro (stanzaId, quotedMessage), la marca puede
+        // ser de lo citado, y eso sigue siendo una pista.
+        if (ctx && ctx.isGroupStatus === true && !ctx.stanzaId && !ctx.quotedMessage) {
+          return { motivo: `contextInfo.${k}.isGroupStatus`, seguro: true };
+        }
         if (ctx && marcaDeEstado(ctx)) return { motivo: `contextInfo.${k}`, seguro: false };
       }
     }
@@ -2060,6 +2128,28 @@ async function handleMessage(sock, msg, opciones = {}) {
   // una reaccion o una historia lo traen igual que un mensaje normal. Es lo que
   // deja que *!purge @alguien* encuentre a alguien cuya metadata esta vieja.
   aprenderDeMensaje(msg);
+
+  // ─── UNA CUENTA BUSINESS SE DELATA AUNQUE NO SE PUEDA ABRIR (13 nov) ─────
+  //
+  // El dueño: «te dije que lo quiero fuera antes de que siquiera puedan
+  // escribir». El nombre de empresa verificado viaja en la CABECERA del
+  // mensaje (`<verified_name>`, Baileys lo pone en `verifiedBizName` antes de
+  // descifrar), no en el contenido. Un mensaje que el bot no puede abrir —y
+  // tras volver a vincular un número son muchos— se tiraba aquí sin mirarlo, y
+  // con él la prueba de que era Business. Se actúa igual que con uno abierto,
+  // y el mensaje se borra.
+  if (!msg.message && msg.verifiedBizName && !msg.key?.fromMe && String(msg.key?.remoteJid || '').endsWith('@g.us')) {
+    const jid = msg.key.remoteJid;
+    const sender = getSender(msg);
+    if (sender && !isOwner(sender, false, peekGroupMeta(jid))) {
+      for (const forma of new Set([sender, canonicalJid(sender)].filter(Boolean))) {
+        recordFacts(forma, { empresa: ['nombre verificado de negocio'] }).catch(() => {});
+      }
+      await expulsarBusinessDetectado(sock, jid, sender, msg, 'nombre verificado de negocio (sin abrir)')
+        .catch((e) => logger.unaVez('expulsar business sin abrir', e));
+    }
+    return;
+  }
 
   if (!msg.message) return;
 
@@ -3114,6 +3204,7 @@ module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGro
   metaParaBaileys,
   metaFrescaParaBaileys,
   castigarHistoriaCruda,
+  borrarSpamReciente,
   _repescaEmpresa: { pendiente: pendienteEmpresa, repescar, pendientes: () => pendientesEmpresa.size, olvidar: () => { pendientesEmpresa.clear(); if (repescaTimer) { clearInterval(repescaTimer); repescaTimer = null; } } },
   _borrarSpamReciente: borrarSpamReciente,
   peekGroupMeta,

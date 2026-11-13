@@ -90,24 +90,90 @@ function resumen(horas = 24) {
 // puede llegar así un momento y recuperarse. Por eso va aparte y no cuenta
 // como estado.
 const FICHERO_CIFRADOS = path.join(__dirname, '../../data/gruposSinDescifrar.json');
+// 200 y no 40 (13 nov): con 40 el resumen decía «40 en 24 h», que era el tope
+// de la bitácora y no lo que había llegado.
+const CABEN_CIFRADOS = 200;
 function leerCifrados() {
   try {
     const v = JSON.parse(fs.readFileSync(FICHERO_CIFRADOS, 'utf8'));
     return Array.isArray(v) ? v : [];
   } catch { return []; }
 }
-function apuntarSinDescifrar({ grupo, quien }) {
+function guardarCifrados(v) {
+  while (v.length > CABEN_CIFRADOS) v.shift();
+  fs.mkdirSync(path.dirname(FICHERO_CIFRADOS), { recursive: true });
+  fs.writeFileSync(FICHERO_CIFRADOS, JSON.stringify(v));
+}
+// Con el PORQUÉ (13 nov): el error de Baileys (`motivo`, recortado), lo que
+// dice la cabecera —si WhatsApp avisó de que no se lo manda a este
+// dispositivo (`noEnviado`) o si traía la marca de historia (`historia`)— y el
+// id, para saber después si el teléfono del bot lo devolvió. Nada de
+// contenido: no lo hay.
+function apuntarSinDescifrar({ grupo, quien, id = '', motivo = '', noEnviado = '', historia = '' }) {
   try {
     const v = leerCifrados();
-    v.push({ ts: Date.now(), grupo: String(grupo || '').split('@')[0], quien: String(quien || '').split('@')[0] });
-    while (v.length > CABEN) v.shift();
-    fs.mkdirSync(path.dirname(FICHERO_CIFRADOS), { recursive: true });
-    fs.writeFileSync(FICHERO_CIFRADOS, JSON.stringify(v));
+    const x = { ts: Date.now(), grupo: String(grupo || '').split('@')[0], quien: String(quien || '').split('@')[0] };
+    if (id) x.id = String(id).slice(0, 40);
+    if (motivo) x.motivo = String(motivo).slice(0, 60);
+    if (noEnviado) x.noEnviado = String(noEnviado).slice(0, 40);
+    if (historia) x.historia = String(historia).slice(0, 60);
+    v.push(x);
+    guardarCifrados(v);
   } catch { /* la bitácora no puede tirar el bot */ }
+}
+// EL TELÉFONO DEL BOT LO DEVOLVIÓ (13 nov). Lo que este dispositivo no puede
+// abrir, Baileys se lo pide al teléfono del número del bot, que sí lo tiene.
+// Si contesta, el mensaje llega entero y se modera como cualquier otro. Se
+// marca aquí para que `npm run estado` diga cuántos volvieron: si son cero, el
+// teléfono no está contestando (apagado, sin datos, o la app cerrada).
+function marcarRecuperado(id) {
+  if (!id) return false;
+  try {
+    const v = leerCifrados();
+    const x = v.find((e) => e.id === String(id).slice(0, 40));
+    if (!x || x.recuperado) return false;
+    x.recuperado = Date.now();
+    guardarCifrados(v);
+    return true;
+  } catch { return false; }
 }
 function sinDescifrar(horas = 24) {
   const desde = Date.now() - horas * 3600000;
   return leerCifrados().filter((x) => x.ts >= desde);
 }
 
-module.exports = { apuntar, resumen, RESULTADOS, apuntarSinDescifrar, sinDescifrar, _FICHERO: FICHERO, _FICHERO_CIFRADOS: FICHERO_CIFRADOS };
+// LAS CLAVES RESCATADAS (13 nov, utils/rescateClaves.js): mensajes que se
+// abrieron probando la otra forma de la persona o el otro grupo. Solo cuántos
+// y por qué vía, por hora.
+const FICHERO_RESCATES = path.join(__dirname, '../../data/clavesRescatadas.json');
+function apuntarRescate({ via = '?' } = {}) {
+  try {
+    let v = [];
+    try { v = JSON.parse(fs.readFileSync(FICHERO_RESCATES, 'utf8')); } catch { v = []; }
+    if (!Array.isArray(v)) v = [];
+    const h = Math.floor(Date.now() / 3600000);
+    let m = v[v.length - 1];
+    if (!m || m.h !== h) { m = { h, vias: {} }; v.push(m); }
+    m.vias[via] = (m.vias[via] || 0) + 1;
+    while (v.length > 48) v.shift();
+    fs.mkdirSync(path.dirname(FICHERO_RESCATES), { recursive: true });
+    fs.writeFileSync(FICHERO_RESCATES, JSON.stringify(v));
+  } catch { /* contar no tumba nada */ }
+}
+function rescates(horas = 24) {
+  try {
+    const v = JSON.parse(fs.readFileSync(FICHERO_RESCATES, 'utf8'));
+    const desde = Math.floor(Date.now() / 3600000) - horas + 1;
+    const r = {};
+    for (const m of Array.isArray(v) ? v : []) {
+      if (m.h < desde) continue;
+      for (const [k, n] of Object.entries(m.vias || {})) r[k] = (r[k] || 0) + n;
+    }
+    return r;
+  } catch { return {}; }
+}
+
+module.exports = {
+  apuntar, resumen, RESULTADOS, apuntarSinDescifrar, marcarRecuperado, sinDescifrar, apuntarRescate, rescates,
+  _FICHERO: FICHERO, _FICHERO_CIFRADOS: FICHERO_CIFRADOS, _FICHERO_RESCATES: FICHERO_RESCATES,
+};

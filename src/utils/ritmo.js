@@ -28,6 +28,9 @@
 const RITMOS = {
   // Mensajes, stickers, borrados y reacciones: todo es sendMessage.
   sendMessage: { hueco: 600, azar: 500, cola: true },
+  // El borrado de una historia de grupo con su marca (13 nov) sale en crudo,
+  // porque sendMessage no deja añadirle nodos. Con el mismo hueco.
+  relayMessage: { hueco: 600, azar: 500 },
   // Expulsar, ascender, degradar. Sin tope normal (una purga del dueño tiene
   // que poder acabar), pero un número recién vinculado echando a decenas de
   // personas en una hora es justo lo que no debe hacer.

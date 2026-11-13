@@ -617,6 +617,37 @@ Hacerse pasar por un dispositivo de Apple al vincular no se ha hecho: cambia
 la huella del número (más riesgo de revisión), obliga a volver a vincular y no
 se sabe si cambia nada. Se decide con lo que digan esas dos líneas. Capa 149.
 
+**Y abrirlas, y quitarlas con su marca** (13 nov, «el bot no está baneando la
+peña que sube estados al grupo ni borrando los estados»). Lo que no se abre:
+
+- **la clave está, con otro nombre.** Baileys guarda la clave de remitente de
+  cada persona por grupo, persona y dispositivo, y la busca con las mismas
+  tres. WhatsApp manda a la misma persona unas veces con su @lid y otras con
+  su teléfono, y Baileys no traduce el nombre de las claves de grupo (sí el de
+  las sesiones). `utils/rescateClaves.js` envuelve `decryptGroupMessage` del
+  socket: si falla, prueba la otra forma (la que ya está en `lid-mapping`, sin
+  preguntar a WhatsApp) y los grupos para los que esa persona repartió clave.
+  Una clave equivocada no pasa la firma y Baileys solo guarda tras abrir, así
+  que probar no cambia nada; si ninguna abre, sale el error de siempre;
+- **la clave no está.** Pasa tras volver a vincular un número: los teléfonos
+  de los demás no le reparten su clave al dispositivo nuevo y no contestan a
+  los reintentos (Baileys #2884, sin arreglo). Lo que queda es el teléfono del
+  número del bot, que sí lo tiene todo: Baileys se lo pide (petición de
+  reenvío al primario) y la respuesta llega a `messages.upsert` con
+  `requestId`. Se marca en la bitácora, y `npm run estado` dice «el teléfono
+  del bot devolvió N de M». Con cero, el teléfono no contesta: apagado, sin
+  datos o con la app dormida.
+
+La cabecera se lee también por `status@broadcast`, y con todos los atributos
+de cada nodo (un `<unavailable type="…">` dice por qué no se manda). Marca de
+historia es `group_status` en la cabecera, nada más; por `status@broadcast`
+cuenta si nombra un grupo del bot. `isGroupStatus` sin cita es la marca, y con
+cita sigue siendo pista: quien responde a una historia no la ha subido.
+
+El borrado de una historia sale dos veces: el de admin de siempre y el mismo
+con `<meta is_group_status="true">`, que es como la manda quien la sube (el
+segundo por `relayMessage`, con su ritmo). Capa 159.
+
 ## El spam de texto
 
 Lo pidió el dueño (17 oct): 5 mensajes iguales del mismo número en menos de 10
@@ -728,6 +759,23 @@ Capas 9 (la regla, caso a caso) y 137 (el camino entero en una copia).
 
 ---
 
+
+**Fuera antes de que escriba** (13 nov). Tres agujeros:
+
+- `utils/empresaLote.js` daba por 'sin-nombre' a quien volvía sin el apartado
+  `business` o con un `<error>` dentro (Baileys no distingue: `u.business`
+  sale vacío). Al entrar, 'sin-nombre' es pase libre, así que si WhatsApp no
+  contestaba a ese apartado entraban todas. Ahora es 'desconocido', se cuenta
+  (`sinRespuesta`, sale en `npm run estado`) y la entrada sigue por el perfil;
+- el lote exigía teléfono, y quien entra solo con su @lid sin teléfono
+  conocido no se miraba. La consulta usync acepta @lid;
+- el nombre de empresa verificado viaja en la cabecera (`<verified_name>`), y
+  Baileys lo pone en `verifiedBizName` antes de descifrar. Un mensaje que no se
+  abre se tiraba en `if (!msg.message) return` con la prueba dentro. Ahora va
+  antes: echa, veta y borra ese mensaje, también en el lote de al reconectar.
+
+Al entrar, la expulsión sale `URGENTE` (sin cola, dentro del tope) y se lleva
+lo que soltó con `borrarSpamReciente`. Capa 160.
 ## Las acciones por dentro
 
 Dos cosas del motor que conviene saber aunque no se toquen: el gif se prepara

@@ -113,8 +113,8 @@ async function aplicarParticipantes(sock, groupJid, ids, accion, groupMeta = nul
 
 // Azucar para el caso de uno solo, que es el 90% de las llamadas. true = salio
 // de verdad.
-async function aplicarAUno(sock, groupJid, jid, accion, groupMeta = null) {
-  const r = await aplicarParticipantes(sock, groupJid, [jid], accion, groupMeta);
+async function aplicarAUno(sock, groupJid, jid, accion, groupMeta = null, opciones = {}) {
+  const r = await aplicarParticipantes(sock, groupJid, [jid], accion, groupMeta, opciones);
   return r.ok.length === 1;
 }
 

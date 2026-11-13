@@ -48,7 +48,9 @@ const { withTimeout } = require('./helpers');
 const logger = require('./logger');
 
 const POR_CONSULTA = 20;
-const VENTANA_MS = 3000;
+// 1,5 s y no 3 (13 nov): el dueño las quiere fuera antes de que escriban, y
+// la ventana es lo primero que espera quien acaba de entrar.
+const VENTANA_MS = 1500;
 const ESPERA_MAX_MS = 20 * 60 * 1000;
 const REINTENTO_TOPE_MS = 5 * 60 * 1000;
 const TOPES = { porHora: 12, porDia: 80, rodaje: { porHora: 6, porDia: 40 } };
@@ -69,6 +71,10 @@ function protocoloEmpresa() {
     getUserElement: () => null,
     parser: (node) => {
       if (!node || node.tag !== 'business') return null;
+      // UN ERROR NO ES UN «NO» (13 nov): si WhatsApp contesta con error a este
+      // apartado, no se sabe nada de esa persona.
+      const error = getBinaryNodeChild(node, 'error');
+      if (error) return { error: String(error.attrs?.code || error.attrs?.text || 'error').slice(0, 40) };
       const vn = getBinaryNodeChild(node, 'verified_name');
       if (!vn || !(vn.content instanceof Uint8Array) || !vn.content.length) return { empresa: false };
       let nombre = '';
@@ -134,14 +140,26 @@ async function consultar(sock, telefonos) {
   }
   const d = cargar();
   d.cifras.consultas++;
+  // LO QUE NO CONTESTA NO ES UN «SIN NOMBRE» (13 nov). Una persona sin el
+  // apartado de empresa en la respuesta, o con un error en él, se daba por
+  // «sin nombre de empresa», y al entrar eso es pase libre: si WhatsApp no
+  // contestaba a ese apartado, entraban todas, Business incluidas. Ahora solo
+  // es 'sin-nombre' lo que WhatsApp dice de verdad; lo demás, 'desconocido', y
+  // quien llama sigue por el perfil.
+  let sinApartado = 0;
   for (const u of r?.list || []) {
     const tel = bare(u.id);
     if (!salida.has(tel)) continue;
-    const res = u.business?.empresa ? { estado: 'biz', nombre: u.business.nombre || '' } : { estado: 'sin-nombre' };
+    if (!u.business || u.business.error) { sinApartado++; continue; }
+    const res = u.business.empresa ? { estado: 'biz', nombre: u.business.nombre || '' } : { estado: 'sin-nombre' };
     salida.set(tel, res);
     d.cifras.revisados++;
     if (res.estado === 'biz') d.cifras.empresas++;
     d.vistos[tel] = { e: res.estado, ts: Date.now() };
+  }
+  if (sinApartado) {
+    d.cifras.sinRespuesta = (d.cifras.sinRespuesta || 0) + sinApartado;
+    logger.info(`empresa en lote: ${sinApartado} de ${telefonos.length} sin respuesta al apartado de empresa; van por el perfil`);
   }
   guardar();
   return salida;
@@ -184,9 +202,12 @@ async function vaciar() {
 let sockActual = null;
 // Pide la comprobación de un teléfono. Se resuelve cuando sale su lote (o a
 // los ESPERA_MAX_MS, como 'desconocido').
+// CON EL @LID TAMBIÉN (13 nov). Quien entra solo con su @lid y sin teléfono
+// conocido no se miraba al entrar: el perfil de empresa no acepta @lid y esta
+// consulta lo exigía sin necesidad. La consulta usync sí los acepta.
 function revisarEnLote(sock, telefono) {
   const t = bare(telefono);
-  if (!t.endsWith('@s.whatsapp.net')) return Promise.resolve({ estado: 'desconocido', motivo: 'sin teléfono' });
+  if (!t.endsWith('@s.whatsapp.net') && !t.endsWith('@lid')) return Promise.resolve({ estado: 'desconocido', motivo: 'sin teléfono' });
   sockActual = sock || sockActual;
   return new Promise((resolve) => {
     const c = cola.get(t) || { esperan: [], desde: Date.now() };
@@ -216,6 +237,7 @@ function lineaEstado(d) {
   const c = d?.cifras;
   if (!c || !c.consultas) return { tipo: 'ok', texto: 'Anti-empresa al entrar (en lote): sin consultas todavía' };
   const texto = `Anti-empresa al entrar (en lote): ${c.revisados} revisados en ${c.consultas} consultas, ${c.empresas} Business`
+    + (c.sinRespuesta ? `; ${c.sinRespuesta} sin respuesta, mirados por el perfil` : '')
     + (c.fallos ? `; ${c.fallos} que resultaron Business al escribir sin que el lote lo viera` : '');
   if (c.fallos && c.revisados >= 20 && c.fallos / Math.max(1, c.empresas + c.fallos) > 0.2) {
     return { tipo: 'aviso', texto, arreglo: 'el lote no ve a parte de las cuentas Business: pásaselo a quien mantenga el bot' };
