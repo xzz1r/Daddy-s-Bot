@@ -2530,7 +2530,9 @@ const di=async(quien,texto,extra)=>{
     const { cmdKick, avisoDeKick } = require(path.join(R, 'src/commands/group'));
     const { AVISOS_KICK } = require(path.join(R, 'src/data/kickPhrases'));
 
-    exige(AVISOS_KICK.length >= 50, `el pool de !kick se quedó en ${AVISOS_KICK.length} avisos: con menos de 50 la ventana anti-repetición tapa poco`);
+    // 60 desde el 13 nov (dueño: «haz que sean 60 para kicks individuales»).
+    exige(AVISOS_KICK.length >= 60, `el pool de !kick se quedó en ${AVISOS_KICK.length} avisos: el dueño los quiere en 60`);
+    exige(new Set(AVISOS_KICK.map((a) => a.uno)).size === AVISOS_KICK.length, 'hay dos avisos de !kick con la misma frase: avisoDeKick busca por el texto y el plural saldría del otro');
     for (const f of AVISOS_KICK) {
       exige(typeof f?.uno === 'string' && typeof f?.varios === 'string', 'aviso de kick incompleto');
       exige(f.uno.includes('%M') && f.varios.includes('%M'), 'aviso de kick no menciona');

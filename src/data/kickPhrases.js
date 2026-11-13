@@ -15,6 +15,15 @@
 // %M se sustituye por las menciones. Singular (tú) y plural (vosotros).
 // Nada de ustedes.
 //
+// SESENTA, Y CADA UNA CON SU ÁNGULO (dueño, 13 nov: «muchas son demasiado
+// repetitivas»). Las quince primeras fijaron el molde —«%M eres [algo],
+// [insulto]», la lista «no aportas, no sumas, no vales», el cierre «Te echan
+// porque…» o «Hoy se…»— y de la 16 en adelante casi todas lo copiaban
+// cambiando el sustantivo. Las flojas de ese tramo se reescribieron, cada una
+// por un defecto distinto (el ego, la cobardía, la envidia, la falsedad, el
+// victimismo, la pesadez…), y se añadieron diez. Una nueva no repite ángulo,
+// apertura ni cierre de otra: si se parece a una que ya está, no entra.
+//
 const AVISOS_KICK = [
   {
     uno: '%M das asco, gilipoyas, y no hay forma bonita de decirlo. Das asco cuando escribes, das asco cuando miras y das asco hasta cuando no estás, porque tu nombre en la lista ya revuelve el estómago. Nadie aquí te quiere cerca y nadie lo ha querido nunca. Te echan porque el grupo merece respirar aire limpio, y contigo dentro eso era imposible.',
@@ -77,20 +86,20 @@ const AVISOS_KICK = [
     varios: '%M sois una lacra, hijos de puta, de esa gente que no sirve para nada y aun así exige que se la aguante. Aquí no se aguanta a nadie gratis, y no tenéis nada con qué pagar: ni gracia, ni seso, ni una pizca de valor. Os echan porque sobráis de arriba abajo, y sobrar es lo único que habéis conseguido.',
   },
   {
-    uno: '%M das vergüenza ajena, retrasado, y la das sin esfuerzo, solo con ser como eres. No hay nada en ti que se pueda defender, nada que se salve y nada que alguien vaya a echar en falta. El grupo se cansa de cargar con tanta vergüenza, y hoy la deja en la puerta contigo.',
-    varios: '%M dais vergüenza ajena, retrasados, y la dais sin esfuerzo, solo con ser como sois. No hay nada en vosotros que se pueda defender, nada que se salve y nada que alguien vaya a echar en falta. El grupo se cansa de cargar con tanta vergüenza, y hoy la deja en la puerta con vosotros.',
+    uno: '%M, lo tuyo no tiene nombre, imbécil, y mira que se ha intentado ponérselo. Eres mediocre en todo lo que tocas, aburres en cuanto abres la boca y das grima cuando intentas caer bien. Aquí nadie te ha leído con ganas ni una sola vez. Lo que tú llamas personalidad es ruido, y al ruido no se le guarda sitio: se le quita.',
+    varios: '%M, lo vuestro no tiene nombre, imbéciles, y mira que se ha intentado ponérselo. Sois mediocres en todo lo que tocáis, aburrís en cuanto abrís la boca y dais grima cuando intentáis caer bien. Aquí nadie os ha leído con ganas ni una sola vez. Lo que vosotros llamáis personalidad es ruido, y al ruido no se le guarda sitio: se le quita.',
   },
   {
     uno: '%M eres prescindible, cabrón, de lo más prescindible que ha pisado este grupo. Tu ausencia no la va a notar nadie, y tu presencia solo la notaba quien tenía la mala suerte de leerte. No aportas, no sumas y no vales. Te echan porque mantenerte era un favor, y aquí se acabaron los favores para quien no los merece.',
     varios: '%M sois prescindibles, cabrones, de lo más prescindible que ha pisado este grupo. Vuestra ausencia no la va a notar nadie, y vuestra presencia solo la notaba quien tenía la mala suerte de leeros. No aportáis, no sumáis y no valéis. Os echan porque manteneros era un favor, y aquí se acabaron los favores para quien no los merece.',
   },
   {
-    uno: '%M eres un desperdicio, puta, un desperdicio de sitio, de tiempo y de paciencia. Todo lo que se te da lo conviertes en nada, porque es lo único que sabes hacer. No hay más que rascar: por mucho que se busque, debajo de ti no aparece nada. Hoy se deja de buscar y se te saca.',
-    varios: '%M sois un desperdicio, putas, un desperdicio de sitio, de tiempo y de paciencia. Todo lo que se os da lo convertís en nada, porque es lo único que sabéis hacer. No hay más que rascar: por mucho que se busque, debajo de vosotros no aparece nada. Hoy se deja de buscar y se os saca.',
+    uno: '%M, te crees importante, comemierda, y eres la única persona del grupo que se lo cree. Hablas con unos aires que no te ha dado nadie, opinas de todo sin saber de nada y te ofendes cuando no te hacen caso, que es siempre. Tanto ego para tan poca cosa da hasta risa, pero risa de la mala. Se acabó el teatro: a la calle, que el escenario nunca fue tuyo.',
+    varios: '%M, os creéis importantes, comemierdas, y sois la única gente del grupo que se lo cree. Habláis con unos aires que no os ha dado nadie, opináis de todo sin saber de nada y os ofendéis cuando no os hacen caso, que es siempre. Tanto ego para tan poca cosa da hasta risa, pero risa de la mala. Se acabó el teatro: a la calle, que el escenario nunca fue vuestro.',
   },
   {
-    uno: '%M das lástima, imbécil, y la lástima ya no da para más. Te das una importancia que no tienes, presumes de una gracia que no hace reír a nadie y esperas un cariño que nadie te da. Hoy se te acaba el cuento, y el grupo cierra la puerta detrás de ti.',
-    varios: '%M dais lástima, imbéciles, y la lástima ya no da para más. Os dais una importancia que no tenéis, presumís de una gracia que no hace reír a nadie y esperáis un cariño que nadie os da. Hoy se os acaba el cuento, y el grupo cierra la puerta detrás de vosotros.',
+    uno: '%M, mendigas atención, gilipoyas, y no te llega ni la de quien te lee por error. Cada cosa que escribes pide a gritos que alguien te mire, y nadie te mira, porque no hay nada que ver. Confundes estar con importar y molestar con existir, y nadie se ha molestado en sacarte del error. Aquí ya no se reparte limosna: ni atención, ni paciencia, ni sitio.',
+    varios: '%M, mendigáis atención, gilipoyas, y no os llega ni la de quien os lee por error. Cada cosa que escribís pide a gritos que alguien os mire, y nadie os mira, porque no hay nada que ver. Confundís estar con importar y molestar con existir, y nadie se ha molestado en sacaros del error. Aquí ya no se reparte limosna: ni atención, ni paciencia, ni sitio.',
   },
   {
     uno: '%M eres veneno, hijo de puta, y el veneno no se guarda en casa. Todo lo que te rodea se pudre un poco: el ambiente, las ganas y hasta la paciencia de la gente más tranquila. No aportas nada bueno y encima restas lo que traen los demás. Te echan y el grupo deja de envenenarse, y va a notar el alivio en cuanto salgas.',
@@ -101,16 +110,16 @@ const AVISOS_KICK = [
     varios: '%M no tenéis nada, subnormales: ni gracia, ni luces, ni dignidad, ni una sola cualidad que justifique que alguien os aguante. Sois el vacío con nombre y número de teléfono. Ninguna lista necesita tanto vacío, así que hoy se vacía por vosotros. Nadie va a pedir que volváis, y si lo pedís vosotros, la respuesta ya la sabéis.',
   },
   {
-    uno: '%M eres un lastre, gilipoyas, un peso muerto que el grupo arrastra sin ningún motivo. No empujas, no ayudas, no sumas: solo pesas. Y cuando algo solo pesa, se suelta. Hoy el grupo te suelta, y lo único que va a pasar es que todo va a ir más ligero sin ti colgando.',
-    varios: '%M sois un lastre, gilipoyas, un peso muerto que el grupo arrastra sin ningún motivo. No empujáis, no ayudáis, no sumáis: solo pesáis. Y cuando algo solo pesa, se suelta. Hoy el grupo os suelta, y lo único que va a pasar es que todo va a ir más ligero sin vosotros colgando.',
+    uno: '%M, eres falsedad con patas, hipócrita de mierda. Sonríes a quien te conviene, sueltas el veneno cuando no te ven y luego vas de buena gente. Buena gente no eres ni en sueños: eres de lo más rastrero que ha pasado por esta lista. A una persona así no se le da otra oportunidad; se le enseña la salida y se le cierra el chat en la cara.',
+    varios: '%M, sois falsedad con patas, hipócritas de mierda. Sonreís a quien os conviene, soltáis el veneno cuando no os ven y luego vais de buena gente. Buena gente no sois ni en sueños: sois de lo más rastrero que ha pasado por esta lista. A gente así no se le da otra oportunidad; se le enseña la salida y se le cierra el chat en la cara.',
   },
   {
-    uno: '%M eres una rata, cabrón, de las que viven a costa de los demás sin dar nada a cambio. No hay una sola cosa buena que decir de ti, y se nota en que nadie la dice. Aquí no se alimenta a nadie gratis, y menos a una rata. Hoy se cierra la despensa y se abre la puerta.',
-    varios: '%M sois ratas, cabrones, de las que viven a costa de los demás sin dar nada a cambio. No hay una sola cosa buena que decir de vosotros, y se nota en que nadie la dice. Aquí no se alimenta a nadie gratis, y menos a unas ratas. Hoy se cierra la despensa y se abre la puerta.',
+    uno: '%M, eres una sanguijuela, cabrón, y a este grupo ya no le queda nada que chuparle. Pides, coges y desapareces, y lo único que devuelves es mal ambiente. Ni una palabra tuya le ha alegrado el día a nadie. Gente que vive de los demás hay en todas partes, pero muy poca con tanto descaro. Se acabó la barra libre.',
+    varios: '%M, sois unas sanguijuelas, cabrones, y a este grupo ya no le queda nada que chuparle. Pedís, cogéis y desaparecéis, y lo único que devolvéis es mal ambiente. Ni una palabra vuestra le ha alegrado el día a nadie. Gente que vive de los demás hay en todas partes, pero muy poca con tanto descaro. Se acabó la barra libre.',
   },
   {
-    uno: '%M eres irrelevante, puta. Tan irrelevante que ni siquiera molestas: para molestar hay que importar, y tú no le importas a nadie. Eres un nombre en la lista y nada más, y desde hoy ni eso. El grupo te quita igual que se quita una notificación que nadie quiere leer, sin mirarla dos veces.',
-    varios: '%M sois irrelevantes, putas. Tan irrelevantes que ni siquiera molestáis: para molestar hay que importar, y vosotros no le importáis a nadie. Sois nombres en la lista y nada más, y desde hoy ni eso. El grupo os quita igual que se quita una notificación que nadie quiere leer, sin mirarla dos veces.',
+    uno: '%M, tu mediocridad es de manual, subnormal: se te olvida antes de terminar de leerte. Ni siquiera llegas a lo peor del grupo, porque para eso hace falta personalidad y tú no tienes ni una pizca. Todo en ti es gris, y eres una persona que no deja huella ni cuando la echan. Mírala bien, gente, que mañana nadie va a recordar esta cara.',
+    varios: '%M, vuestra mediocridad es de manual, subnormales: se os olvida antes de terminar de leeros. Ni siquiera llegáis a lo peor del grupo, porque para eso hace falta personalidad y vosotros no tenéis ni una pizca. Todo en vosotros es gris, y sois gente que no deja huella ni cuando la echan. Miradla bien, que mañana nadie va a recordar estas caras.',
   },
   {
     uno: '%M eres un asco de persona, imbécil, y no hace falta que hagas nada para demostrarlo: basta con mirarte. No tienes valor, no tienes gracia y no tienes nada que ofrecer que no sea mal rollo. El grupo ha tenido demasiada paciencia contigo, y se ha agotado. Lárgate y no mires atrás, que aquí nadie te va a mirar a ti.',
@@ -133,20 +142,20 @@ const AVISOS_KICK = [
     varios: '%M no sois nadie, gilipoyas, y no lo vais a ser nunca. Ni aquí, ni fuera, ni en ningún grupo que tenga un mínimo de nivel. Sois ceros que se creen algo, y la diferencia la ve todo el mundo menos vosotros. Hoy la ve también la lista de miembros, que deja de contaros. Ya está: aquí ya no existís.',
   },
   {
-    uno: '%M eres una carga, cabrón, y nadie quiere cargar contigo. No aportas nada, no mejoras nada y lo único que haces es estar en medio. Estorbas sin hacer nada, que ya es un talento. Hoy el grupo deja de llevarte a cuestas, y te vas a dar cuenta de que fuera tampoco te quiere llevar nadie.',
-    varios: '%M sois una carga, cabrones, y nadie quiere cargar con vosotros. No aportáis nada, no mejoráis nada y lo único que hacéis es estar en medio. Estorbáis sin hacer nada, que ya es un talento. Hoy el grupo deja de llevaros a cuestas, y os vais a dar cuenta de que fuera tampoco os quiere llevar nadie.',
+    uno: '%M, aburres, pedazo de mierda, y aburrir a un grupo entero tiene su mérito. Cada mensaje tuyo es un bostezo, cada opinión una pérdida de tiempo y cada intento de hacer gracia una pena. Nadie te contesta por gusto: te contestan por educación, y la educación tiene un límite. Lo has encontrado. Fuera, y llévate el sopor contigo.',
+    varios: '%M, aburrís, pedazos de mierda, y aburrir a un grupo entero tiene su mérito. Cada mensaje vuestro es un bostezo, cada opinión una pérdida de tiempo y cada intento de hacer gracia una pena. Nadie os contesta por gusto: os contestan por educación, y la educación tiene un límite. Lo habéis encontrado. Fuera, y llevaos el sopor con vosotros.',
   },
   {
-    uno: '%M eres de lo peor que se ha visto aquí, imbécil. Ni chispa, ni luces, ni nada que valga la pena. Cuando alguien piense en este grupo, no va a pensar en ti, y si lo hace será para preguntarse qué hacías dentro. Hoy se responde la pregunta: nada. Por eso te vas.',
-    varios: '%M sois de lo peor que se ha visto aquí, imbéciles. Ni chispa, ni luces, ni nada que valga la pena. Cuando alguien piense en este grupo, no va a pensar en vosotros, y si lo hace será para preguntarse qué hacíais dentro. Hoy se responde la pregunta: nada. Por eso os vais.',
+    uno: '%M, eres cobarde hasta para caer mal, imbécil: ni para eso tienes valor. Tiras la piedra y escondes la mano, hablas por la espalda y callas de cara, y te crees que nadie lo nota. Lo nota todo el mundo. Una persona sin agallas no le sirve a ningún grupo, y a este le sobra. Ahí tienes la salida, y esta vez no hace falta que te escondas.',
+    varios: '%M, sois cobardes hasta para caer mal, imbéciles: ni para eso tenéis valor. Tiráis la piedra y escondéis la mano, habláis por la espalda y calláis de cara, y os creéis que nadie lo nota. Lo nota todo el mundo. Gente sin agallas no le sirve a ningún grupo, y a este le sobra. Ahí tenéis la salida, y esta vez no hace falta que os escondáis.',
   },
   {
-    uno: '%M eres insufrible, subnormal, de principio a fin. No hay un solo momento en que no lo seas, y eso tiene mérito, aunque sea del malo. El grupo ha hecho lo posible por ignorarte, pero ignorar algo tan pesado cansa. Hoy se deja de ignorar y se te echa, que es mucho más rápido.',
-    varios: '%M sois insufribles, subnormales, de principio a fin. No hay un solo momento en que no lo seáis, y eso tiene mérito, aunque sea del malo. El grupo ha hecho lo posible por ignoraros, pero ignorar algo tan pesado cansa. Hoy se deja de ignorar y se os echa, que es mucho más rápido.',
+    uno: '%M, tienes la gracia en negativo, payaso: cada chiste tuyo le quita las ganas de reír a alguien. Lo intentas una y otra vez, y la única risa que sacas es la de la gente riéndose de ti a tus espaldas. Das cringe, das grima y das la vergüenza que a ti te falta. El grupo se ha cansado de reírse de ti en silencio, así que lo dice en voz alta: fuera.',
+    varios: '%M, tenéis la gracia en negativo, payasos: cada chiste vuestro le quita las ganas de reír a alguien. Lo intentáis una y otra vez, y la única risa que sacáis es la de la gente riéndose de vosotros a vuestras espaldas. Dais cringe, dais grima y dais la vergüenza que a vosotros os falta. El grupo se ha cansado de reírse de vosotros en silencio, así que lo dice en voz alta: fuera.',
   },
   {
-    uno: '%M eres un error con patas, puta, y los errores se corrigen. Alguien te dejó entrar y desde entonces el grupo es un poco peor. No aportas, no caes bien y no sirves para nada que haga falta aquí. Hoy se corrige el error, y el grupo vuelve a ser lo que era antes de que llegaras.',
-    varios: '%M sois errores con patas, putas, y los errores se corrigen. Alguien os dejó entrar y desde entonces el grupo es un poco peor. No aportáis, no caéis bien y no servís para nada que haga falta aquí. Hoy se corrige el error, y el grupo vuelve a ser lo que era antes de que llegarais.',
+    uno: '%M, la envidia te come por dentro, rata, y se lee en todo lo que escribes. No soportas que a otra gente le vaya mejor, y en lugar de mejorar tú, te dedicas a soltar bilis. Ese es todo tu talento: amargarte y amargar. Una persona tan mezquina no cabe en ningún grupo decente, y este acaba de decidir serlo. Amárgate fuera, que aquí ya no te queda público.',
+    varios: '%M, la envidia os come por dentro, ratas, y se lee en todo lo que escribís. No soportáis que a otra gente le vaya mejor, y en lugar de mejorar vosotros, os dedicáis a soltar bilis. Ese es todo vuestro talento: amargaros y amargar. Gente tan mezquina no cabe en ningún grupo decente, y este acaba de decidir serlo. Amargaos fuera, que aquí ya no os queda público.',
   },
   {
     uno: '%M eres un puto chiste, hijo de puta, pero de los que no hacen gracia: de los que se cuentan para reírse de quien los protagoniza. Eres la vergüenza del grupo, el ejemplo de lo que nadie quiere ser y la razón de que esto vaya peor. Te echan para que el chiste se acabe, y nadie lo va a contar otra vez.',
@@ -161,8 +170,8 @@ const AVISOS_KICK = [
     varios: '%M no tenéis sangre, cabrones, ni carácter, ni opinión propia, ni nada que os haga ser alguien. Sois el eco de lo que dicen los demás, y un eco no hace falta en ningún grupo. Dais pena de lo poco que sois. Os echan porque aquí se queda la gente que es algo, y vosotros no sois nada.',
   },
   {
-    uno: '%M no tienes vida, imbécil, y se nota en todo lo que eres. Ni una chispa, ni una idea, ni un gramo de interés por nada que no seas tú. Eres un vacío que respira, y nadie aquí quiere seguir respirando a tu lado. Hoy el grupo te saca para que entre un poco de aire.',
-    varios: '%M no tenéis vida, imbéciles, y se nota en todo lo que sois. Ni una chispa, ni una idea, ni un gramo de interés por nada que no seáis vosotros. Sois un vacío que respira, y nadie aquí quiere seguir respirando a vuestro lado. Hoy el grupo os saca para que entre un poco de aire.',
+    uno: '%M, eres un NPC con conexión a internet, zombi. Repites lo que dicen otros, te ríes cuando se ríen los demás y no has tenido una idea propia en tu vida. Si mañana te cambiaran por otra cuenta cualquiera, el grupo no notaría la diferencia, y eso lo dice todo de ti. Un relleno así no se guarda: se borra y se pasa a lo siguiente.',
+    varios: '%M, sois NPCs con conexión a internet, zombis. Repetís lo que dicen otros, os reís cuando se ríen los demás y no habéis tenido una idea propia en vuestra vida. Si mañana os cambiaran por otras cuentas cualesquiera, el grupo no notaría la diferencia, y eso lo dice todo de vosotros. Un relleno así no se guarda: se borra y se pasa a lo siguiente.',
   },
   {
     uno: '%M eres el peor miembro que ha tenido este grupo, retrasado, y no es una exageración. No hay nadie que aporte menos, que valga menos ni que dé más asco que tú. Lo has conseguido sin intentarlo, que es lo más patético. Hoy se acaba el récord, y se acaba contigo en la calle.',
@@ -177,24 +186,24 @@ const AVISOS_KICK = [
     varios: '%M dais ganas de vomitar, gilipoyas, y no es fácil llegar a eso. Hace falta ser muy poca cosa y dar mucho asco a la vez, y vosotros lo habéis logrado sin despeinaros. El grupo tiene el estómago revuelto desde que estáis dentro, y hoy por fin se queda en paz.',
   },
   {
-    uno: '%M no aportas nada, hijo de puta, y nunca lo vas a hacer, porque no tienes nada que aportar. Ni ideas, ni gracia, ni humanidad. Eres una cáscara vacía con un nombre puesto. El grupo no colecciona cáscaras, y hoy tira la tuya a la basura, que es donde tenía que haber estado siempre.',
-    varios: '%M no aportáis nada, hijos de puta, y nunca lo vais a hacer, porque no tenéis nada que aportar. Ni ideas, ni gracia, ni humanidad. Sois cáscaras vacías con un nombre puesto. El grupo no colecciona cáscaras, y hoy tira las vuestras a la basura, que es donde tenían que haber estado siempre.',
+    uno: '%M, eres una persona miserable, hijo de puta, y no por lo que tienes, sino por lo que eres. Ruin con quien se descuida, cobarde con quien te planta cara e insoportable con todo el resto. No hay una virtud en ti que alguien haya podido encontrar, y se ha buscado. Una miseria así no se corrige con paciencia: se corta de raíz, que es lo que toca.',
+    varios: '%M, sois gente miserable, hijos de puta, y no por lo que tenéis, sino por lo que sois. Ruines con quien se descuida, cobardes con quien os planta cara e insoportables con todo el resto. No hay una virtud en vosotros que alguien haya podido encontrar, y se ha buscado. Una miseria así no se corrige con paciencia: se corta de raíz, que es lo que toca.',
   },
   {
     uno: '%M eres despreciable, cabrón, y lo sabes. No hay una sola persona aquí que te tenga aprecio, ni una que te vaya a defender, ni una que lamente verte salir. Eso no pasa por casualidad: pasa porque te lo has ganado siendo como eres. Y siendo así, aquí sobras. Adiós, y que no se te ocurra volver.',
     varios: '%M sois despreciables, cabrones, y lo sabéis. No hay una sola persona aquí que os tenga aprecio, ni una que os vaya a defender, ni una que lamente veros salir. Eso no pasa por casualidad: pasa porque os lo habéis ganado siendo como sois. Y siendo así, aquí sobráis. Adiós, y que no se os ocurra volver.',
   },
   {
-    uno: '%M eres un estorbo, imbécil, y nada más. No hay nada más que decir de ti, porque no tienes nada más. Estorbas en la lista, estorbas en el chat y estorbas en la cabeza de quien tiene que aguantarte. Hoy el grupo se quita el estorbo de encima y sigue tan tranquilo.',
-    varios: '%M sois estorbos, imbéciles, y nada más. No hay nada más que decir de vosotros, porque no tenéis nada más. Estorbáis en la lista, estorbáis en el chat y estorbáis en la cabeza de quien tiene que aguantaros. Hoy el grupo se quita los estorbos de encima y sigue tan tranquilo.',
+    uno: '%M, vives de lamer culos, imbécil, y ni eso haces bien. Le das la razón a quien manda, cambias de opinión según quién te mire y te arrastras por una palmada en la espalda que nunca llega. Dignidad no tienes, y la poca que te quedaba la has gastado haciendo la pelota. Arrástrate hasta la salida, que aquí ya no queda nadie a quien hacérsela.',
+    varios: '%M, vivís de lamer culos, imbéciles, y ni eso hacéis bien. Le dais la razón a quien manda, cambiáis de opinión según quién os mire y os arrastráis por una palmada en la espalda que nunca llega. Dignidad no tenéis, y la poca que os quedaba la habéis gastado haciendo la pelota. Arrastraos hasta la salida, que aquí ya no queda nadie a quien hacérsela.',
   },
   {
-    uno: '%M eres mierda, subnormal, y la mierda no se queda dentro de casa. No vales, no sirves y no le importas a nadie, y eso ya no lo arregla nadie. El grupo ha aguantado el olor demasiado tiempo por no complicarse. Hoy se complica: te saca a la calle y abre las ventanas.',
-    varios: '%M sois mierda, subnormales, y la mierda no se queda dentro de casa. No valéis, no servís y no le importáis a nadie, y eso ya no lo arregla nadie. El grupo ha aguantado el olor demasiado tiempo por no complicarse. Hoy se complica: os saca a la calle y abre las ventanas.',
+    uno: '%M, todo lo que tocas lo pudres, puta. Entras en una conversación buena y la conviertes en bronca, entras en una tranquila y la conviertes en drama. No sabes estar sin enrarecer el ambiente, porque es lo único que se te da bien. Personas tóxicas hay muchas, pero pocas lo son con tanta dedicación como tú. Ve a pudrir otro sitio, que este ya no te lo deja.',
+    varios: '%M, todo lo que tocáis lo pudrís, putas. Entráis en una conversación buena y la convertís en bronca, entráis en una tranquila y la convertís en drama. No sabéis estar sin enrarecer el ambiente, porque es lo único que se os da bien. Personas tóxicas hay muchas, pero pocas lo son con tanta dedicación como vosotros. Id a pudrir otro sitio, que este ya no os lo deja.',
   },
   {
-    uno: '%M haces el ridículo solo con existir, retrasado, y ni te das cuenta. Todo el mundo lo ve menos tú, y eso ya da pena. No tienes nada que ofrecer, nada que decir y nada que merezca un sitio aquí. Te echan para ahorrarte más vergüenza, aunque no tengas la suficiente para notarla.',
-    varios: '%M hacéis el ridículo solo con existir, retrasados, y ni os dais cuenta. Todo el mundo lo ve menos vosotros, y eso ya da pena. No tenéis nada que ofrecer, nada que decir y nada que merezca un sitio aquí. Os echan para ahorraros más vergüenza, aunque no tengáis la suficiente para notarla.',
+    uno: '%M, eres una decepción constante, subnormal, de esas que ya no sorprenden a nadie. Se esperaba poco de ti y aun así has conseguido dar menos. Cada vez que parecía que no podías caer más bajo, encontrabas la forma. Eso no es mala suerte: es lo que eres. Aquí ya no se espera nada de ti, y menos que te quedes.',
+    varios: '%M, sois una decepción constante, subnormales, de esas que ya no sorprenden a nadie. Se esperaba poco de vosotros y aun así habéis conseguido dar menos. Cada vez que parecía que no podíais caer más bajo, encontrabais la forma. Eso no es mala suerte: es lo que sois. Aquí ya no se espera nada de vosotros, y menos que os quedéis.',
   },
   {
     uno: '%M eres una desgracia, puta, y las desgracias no se invitan a quedarse. No traes nada bueno, no dejas nada bueno y no eres nada bueno. Lo mejor que puedes hacer por este grupo es justo lo que toca ahora: irte. Y lo mejor que puede hacer el grupo es olvidarte, cosa que va a tardar minutos.',
@@ -209,12 +218,52 @@ const AVISOS_KICK = [
     varios: '%M sois casos perdidos, hijos de puta. No hay forma de arreglaros, de mejoraros ni de hacer que valgáis algo, porque no hay nada debajo que rescatar. El grupo ya lo ha intentado lo suficiente, y no vale la pena seguir. Os echan porque hay causas perdidas que no merecen ni el esfuerzo, y vosotros sois las más perdidas de todas.',
   },
   {
-    uno: '%M eres una molestia, cabrón, una molestia constante que el grupo ha aguantado de más. No aportas nada, no haces falta y no le caes bien a nadie, y aun así seguías aquí como si tuvieras derecho. No lo tienes. Nunca lo tuviste. Hoy se te quita el sitio que no te ganaste y se le da a quien lo valga.',
-    varios: '%M sois una molestia, cabrones, una molestia constante que el grupo ha aguantado de más. No aportáis nada, no hacéis falta y no le caéis bien a nadie, y aun así seguíais aquí como si tuvierais derecho. No lo tenéis. Nunca lo tuvisteis. Hoy se os quita el sitio que no os ganasteis y se le da a quien lo valga.',
+    uno: '%M, eres pesadez en estado puro, cabrón. Insistes cuando nadie quiere, repites lo que ya nadie escucha y te pegas a cualquier conversación ajena hasta que se muere. La gente se calla cuando apareces, y no es respeto: es agotamiento. Ese silencio que dejas al entrar es lo más cerca que vas a estar de caer bien, así que llévatelo puesto.',
+    varios: '%M, sois pesadez en estado puro, cabrones. Insistís cuando nadie quiere, repetís lo que ya nadie escucha y os pegáis a cualquier conversación ajena hasta que se muere. La gente se calla cuando aparecéis, y no es respeto: es agotamiento. Ese silencio que dejáis al entrar es lo más cerca que vais a estar de caer bien, así que lleváoslo puesto.',
   },
   {
-    uno: '%M eres un puto desastre, imbécil, de esos que no tienen arreglo ni ganas de tenerlo. Das asco, das pena y das vergüenza, y todo a la vez. Bastante se ha aguantado ya un desastre así, y hoy se suelta. Vete, y que te aguante quien quiera, porque aquí no queda nadie con ganas.',
-    varios: '%M sois un puto desastre, imbéciles, de esos que no tienen arreglo ni ganas de tenerlo. Dais asco, dais pena y dais vergüenza, y todo a la vez. Bastante se ha aguantado ya un desastre así, y hoy se suelta. Idos, y que os aguante quien quiera, porque aquí no queda nadie con ganas.',
+    uno: '%M, eres una piltrafa, desgraciado, y ni siquiera te das cuenta, que es lo más triste. Vas por la vida con la cabeza muy alta y sin nada dentro que lo justifique. Opinas sin pensar, discutes sin razón y pierdes sin enterarte. Lo que queda de ti al final de cada conversación da lástima, y al grupo ya no le quedan ganas de recoger los pedazos. Fuera.',
+    varios: '%M, sois unas piltrafas, desgraciados, y ni siquiera os dais cuenta, que es lo más triste. Vais por la vida con la cabeza muy alta y sin nada dentro que lo justifique. Opináis sin pensar, discutís sin razón y perdéis sin enteraros. Lo que queda de vosotros al final de cada conversación da lástima, y al grupo ya no le quedan ganas de recoger los pedazos. Fuera.',
+  },
+  {
+    uno: '%M, eres fantasma hasta la médula, farsante: presumes de lo que no tienes y alardeas de lo que nunca has hecho. Te inventas una vida que nadie se cree y te molesta que nadie te aplauda. Aquí se te caló desde el primer día, aunque por educación nadie lo dijera. La educación se ha terminado, y el personaje también: recoge el disfraz y vete.',
+    varios: '%M, sois fantasmas hasta la médula, farsantes: presumís de lo que no tenéis y alardeáis de lo que nunca habéis hecho. Os inventáis una vida que nadie se cree y os molesta que nadie os aplauda. Aquí se os caló desde el primer día, aunque por educación nadie lo dijera. La educación se ha terminado, y el personaje también: recoged el disfraz e idos.',
+  },
+  {
+    uno: '%M, siempre vas de víctima, cabrón, y ya no cuela. Todo te pasa a ti, todo el mundo te trata mal y la culpa nunca es tuya. La culpa es tuya, y siempre lo ha sido: de lo que dices, de cómo lo dices y de que no haya nadie dispuesto a defenderte. Llora todo lo que quieras, pero llora fuera, que aquí nadie te va a pasar un pañuelo.',
+    varios: '%M, siempre vais de víctimas, cabrones, y ya no cuela. Todo os pasa a vosotros, todo el mundo os trata mal y la culpa nunca es vuestra. La culpa es vuestra, y siempre lo ha sido: de lo que decís, de cómo lo decís y de que no haya nadie dispuesto a defenderos. Llorad todo lo que queráis, pero llorad fuera, que aquí nadie os va a pasar un pañuelo.',
+  },
+  {
+    uno: '%M, eres caradura de nivel profesional, comemierda. Exiges un respeto que no te has ganado, reclamas un sitio que nadie te ha dado y encima pones condiciones. Lo que te sobra de jeta te falta de todo lo demás: de gracia, de cabeza y de vergüenza. Con ese descaro vete buscando otro grupo que te aguante, porque este se ha cansado de verte la cara.',
+    varios: '%M, sois caraduras de nivel profesional, comemierdas. Exigís un respeto que no os habéis ganado, reclamáis un sitio que nadie os ha dado y encima ponéis condiciones. Lo que os sobra de jeta os falta de todo lo demás: de gracia, de cabeza y de vergüenza. Con ese descaro id buscando otro grupo que os aguante, porque este se ha cansado de veros la cara.',
+  },
+  {
+    uno: '%M, te quejas de todo, imbécil, y nadie te ha preguntado nunca. De lo que se dice, de lo que se calla, de quien escribe y de quien no. Tanta queja en alguien que no ha aportado nada en su vida tiene delito. Ya tienes un motivo de verdad para quejarte, el primero de todos: te vas a la calle. Quéjate allí, que aquí ya no te escucha nadie.',
+    varios: '%M, os quejáis de todo, imbéciles, y nadie os ha preguntado nunca. De lo que se dice, de lo que se calla, de quien escribe y de quien no. Tanta queja en gente que no ha aportado nada en su vida tiene delito. Ya tenéis un motivo de verdad para quejaros, el primero de todos: os vais a la calle. Quejaos allí, que aquí ya no os escucha nadie.',
+  },
+  {
+    uno: '%M, hablas de más y piensas de menos, gilipoyas, y la mezcla no perdona. Sueltas lo primero que se te pasa por la cabeza, que nunca es mucho, y luego te sorprende que nadie te tome en serio. Nadie te toma en serio. Ni aquí ni en ningún sitio donde hayas abierto la boca. Ciérrala de una vez, y ciérrala lejos de este grupo.',
+    varios: '%M, habláis de más y pensáis de menos, gilipoyas, y la mezcla no perdona. Soltáis lo primero que se os pasa por la cabeza, que nunca es mucho, y luego os sorprende que nadie os tome en serio. Nadie os toma en serio. Ni aquí ni en ningún sitio donde hayáis abierto la boca. Cerradla de una vez, y cerradla lejos de este grupo.',
+  },
+  {
+    uno: '%M, tienes la madurez de un crío castigado, subnormal, y el berrinche siempre a mano. Te enfadas por nada, te picas por menos y respondes con pataletas que dan vergüenza ajena. A estas alturas ya deberías saber estar entre gente adulta, y no sabes. Pues a la calle, que aquí no se cambian pañales.',
+    varios: '%M, tenéis la madurez de críos castigados, subnormales, y el berrinche siempre a mano. Os enfadáis por nada, os picáis por menos y respondéis con pataletas que dan vergüenza ajena. A estas alturas ya deberíais saber estar entre gente adulta, y no sabéis. Pues a la calle, que aquí no se cambian pañales.',
+  },
+  {
+    uno: '%M, eres cutre en todo, pedazo de mierda: en lo que dices, en cómo lo dices y en lo poco que te esfuerzas por disimularlo. No hay nada en ti hecho con ganas: ni una frase, ni una idea, ni una broma que no dé pena. Ni con esfuerzo llegarías a mediocre, y esfuerzo no has puesto nunca. El grupo no pierde nada contigo fuera, y gana no tener que leerte más.',
+    varios: '%M, sois cutres en todo, pedazos de mierda: en lo que decís, en cómo lo decís y en lo poco que os esforzáis por disimularlo. No hay nada en vosotros hecho con ganas: ni una frase, ni una idea, ni una broma que no dé pena. Ni con esfuerzo llegaríais a mediocres, y esfuerzo no habéis puesto nunca. El grupo no pierde nada con vosotros fuera, y gana no tener que leeros más.',
+  },
+  {
+    uno: '%M, apestas a desesperación, pringado. Quieres caer bien con tantas ganas que espantas a quien tienes delante, y cuanto más lo intentas, peor te sale. Nadie aquí te debe cariño, y nadie te lo va a dar por pena. Deja de suplicar, que da grima, o suplica fuera del grupo, donde nadie tenga que verlo.',
+    varios: '%M, apestáis a desesperación, pringados. Queréis caer bien con tantas ganas que espantáis a quien tenéis delante, y cuanto más lo intentáis, peor os sale. Nadie aquí os debe cariño, y nadie os lo va a dar por pena. Dejad de suplicar, que da grima, o suplicad fuera del grupo, donde nadie tenga que verlo.',
+  },
+  {
+    uno: '%M, mientes más que hablas, hijo de puta, y hablas mucho. Cada historia tuya cambia según quién la escuche, cada promesa se queda en nada y cada excusa es peor que la anterior. Ya nadie se cree una palabra de lo que dices, y una persona en la que nadie confía no pinta nada en un grupo. Ahí va una verdad, para variar: no vuelves.',
+    varios: '%M, mentís más que habláis, hijos de puta, y habláis mucho. Cada historia vuestra cambia según quién la escuche, cada promesa se queda en nada y cada excusa es peor que la anterior. Ya nadie se cree una palabra de lo que decís, y gente en la que nadie confía no pinta nada en un grupo. Ahí va una verdad, para variar: no volvéis.',
+  },
+  {
+    uno: '%M, si esto se votara, saldrías por unanimidad, mamarracho, y sin una sola abstención. No hace falta votarlo: basta con ver cómo se apaga el chat cuando escribes y cómo se anima en cuanto desapareces. Has conseguido poner de acuerdo a un grupo entero, que no es poco, aunque sea contra ti. Enhorabuena: es lo único que has logrado aquí.',
+    varios: '%M, si esto se votara, saldríais por unanimidad, mamarrachos, y sin una sola abstención. No hace falta votarlo: basta con ver cómo se apaga el chat cuando escribís y cómo se anima en cuanto desaparecéis. Habéis conseguido poner de acuerdo a un grupo entero, que no es poco, aunque sea contra vosotros. Enhorabuena: es lo único que habéis logrado aquí.',
   },
 ];
 

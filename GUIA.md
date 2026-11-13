@@ -787,7 +787,7 @@ el que describe la sección 5 bis: cien versiones de la misma tesis. Se
 recortaron los 55 pools donde el eco pasaba de la mitad y se repusieron hasta
 30 con ideas nuevas. Hay dos excepciones con suelo propio en el check:
 `MAL_ESCRITO` (50, porque sale a cada comando mal escrito) y los avisos de
-`!kick` (50).
+`!kick` (60).
 
 | Cuándo sale ese pool | Tope | Hoy |
 |---|---|---|
