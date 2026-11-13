@@ -32,7 +32,7 @@ const HUMOR_NEGRO = [
   'La foto de perfil también se juzga. Si la tuya da asco, que la gracia lo compense, porque compasión aquí no hay ni de puta coña.',
   'Humor que duele y se dice a la cara. El audio de «eso no tiene gracia» es de pringado, y aquí se nota al segundo.',
   'Se ríe rápido y se piensa rápido. Quien tarde tres mensajes en pillar una ironía sobra, y el grupo lo va a dejar en ridículo sin avisar.',
-  'Ni dios, ni la muerte, ni la comunidad de nadie se salva del chiste. Si venías a que te cuidaran el escudo, te han pasado un enlace de mierda.',
+  'Ni dios, ni la muerte, ni la comunidad de nadie se salva del chiste. Si buscabas un sitio donde no te tocaran tu tema, te has equivocado de grupo.',
   'Gente seria, de la que explica un chiste en un audio: basura de chat. Se busca quien devuelva otro peor, no quien llore por privado.',
   'Si alguien hace un chiste de tu madre en la UCI, se contesta preguntando la hora del entierro. Quien pida que lo borren, a la puta calle.',
   'Entra quien aguanta que le digan a la cara lo que el espejo ya dijo. Quien solo sepa ofenderse, que se ofenda en otro sitio: aquí estorba.',

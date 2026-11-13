@@ -94,7 +94,7 @@ const VEREDICTOS = {
   ],
   pobre: [
     'Su cuenta da pena hasta al bot, y el resto del grupo lo sabe.',
-    'Pobre de solemnidad. Pide comandos con la mirada.',
+    'Pobre de solemnidad. Mira el precio de cada comando y se va sin pedir nada.',
     'No le llega ni para lo más barato de la tienda, y aun así entra a mirar.',
   ],
   normal: [

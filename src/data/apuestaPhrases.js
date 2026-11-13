@@ -42,7 +42,7 @@ const APUESTA_GANA = [
   'Coño, ha salido. Ahora a aguantar la chapa de su método infalible.',
   'Cobra sin hacer nada más que darle a un botón. %S, hostia.',
   'Ha cobrado %A. Mañana lo pierde, pero hoy os lo va a restregar.',
-  'El aura afloja, la muy cabrona, poco y tarde. %S.',
+  'El aura suelta el premio de mala gana y %A lo coge con las dos manos. %S.',
   '%A acierta. Aplaudid, gilipoyas, que hoy no toca reírse de %A.',
   '%A cobra y de golpe se le pone cara de estratega. Payaso.',
   'Ha acertado. Con el saldo que le queda ya puede volver a hacer el ridículo, que es lo suyo.',

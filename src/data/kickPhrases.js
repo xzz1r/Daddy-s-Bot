@@ -97,8 +97,8 @@ const AVISOS_KICK = [
     varios: '%M sois veneno, hijos de puta, y el veneno no se guarda en casa. Todo lo que os rodea se pudre un poco: el ambiente, las ganas y hasta la paciencia de la gente más tranquila. No aportáis nada bueno y encima restáis lo que traen los demás. Os echan y el grupo deja de envenenarse, y va a notar el alivio en cuanto salgáis.',
   },
   {
-    uno: '%M no tienes nada, subnormal: ni gracia, ni luces, ni dignidad, ni una sola cualidad que justifique que alguien te aguante. Eres el vacío con nombre y número de teléfono. Ninguna lista necesita tanto vacío, y hoy empieza a vaciarla por ti. Nadie va a pedir que vuelvas, y si lo pides tú, la respuesta ya la sabes.',
-    varios: '%M no tenéis nada, subnormales: ni gracia, ni luces, ni dignidad, ni una sola cualidad que justifique que alguien os aguante. Sois el vacío con nombre y número de teléfono. Ninguna lista necesita tanto vacío, y hoy empieza a vaciarla por vosotros. Nadie va a pedir que volváis, y si lo pedís vosotros, la respuesta ya la sabéis.',
+    uno: '%M no tienes nada, subnormal: ni gracia, ni luces, ni dignidad, ni una sola cualidad que justifique que alguien te aguante. Eres el vacío con nombre y número de teléfono. Ninguna lista necesita tanto vacío, así que hoy se vacía por ti. Nadie va a pedir que vuelvas, y si lo pides tú, la respuesta ya la sabes.',
+    varios: '%M no tenéis nada, subnormales: ni gracia, ni luces, ni dignidad, ni una sola cualidad que justifique que alguien os aguante. Sois el vacío con nombre y número de teléfono. Ninguna lista necesita tanto vacío, así que hoy se vacía por vosotros. Nadie va a pedir que volváis, y si lo pedís vosotros, la respuesta ya la sabéis.',
   },
   {
     uno: '%M eres un lastre, gilipoyas, un peso muerto que el grupo arrastra sin ningún motivo. No empujas, no ayudas, no sumas: solo pesas. Y cuando algo solo pesa, se suelta. Hoy el grupo te suelta, y lo único que va a pasar es que todo va a ir más ligero sin ti colgando.',
@@ -161,8 +161,8 @@ const AVISOS_KICK = [
     varios: '%M no tenéis sangre, cabrones, ni carácter, ni opinión propia, ni nada que os haga ser alguien. Sois el eco de lo que dicen los demás, y un eco no hace falta en ningún grupo. Dais pena de lo poco que sois. Os echan porque aquí se queda la gente que es algo, y vosotros no sois nada.',
   },
   {
-    uno: '%M no tienes vida, imbécil, y se nota en todo lo que eres. Ni una chispa, ni una idea, ni un gramo de interés por nada que no seas tú. Eres un vacío que respira, y nadie aquí quiere seguir respirando a tu lado. Hoy te saca para que entre un poco de aire.',
-    varios: '%M no tenéis vida, imbéciles, y se nota en todo lo que sois. Ni una chispa, ni una idea, ni un gramo de interés por nada que no seáis vosotros. Sois un vacío que respira, y nadie aquí quiere seguir respirando a vuestro lado. Hoy os saca para que entre un poco de aire.',
+    uno: '%M no tienes vida, imbécil, y se nota en todo lo que eres. Ni una chispa, ni una idea, ni un gramo de interés por nada que no seas tú. Eres un vacío que respira, y nadie aquí quiere seguir respirando a tu lado. Hoy el grupo te saca para que entre un poco de aire.',
+    varios: '%M no tenéis vida, imbéciles, y se nota en todo lo que sois. Ni una chispa, ni una idea, ni un gramo de interés por nada que no seáis vosotros. Sois un vacío que respira, y nadie aquí quiere seguir respirando a vuestro lado. Hoy el grupo os saca para que entre un poco de aire.',
   },
   {
     uno: '%M eres el peor miembro que ha tenido este grupo, retrasado, y no es una exageración. No hay nadie que aporte menos, que valga menos ni que dé más asco que tú. Lo has conseguido sin intentarlo, que es lo más patético. Hoy se acaba el récord, y se acaba contigo en la calle.',

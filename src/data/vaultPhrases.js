@@ -16,7 +16,7 @@ const GUARDADO = [
   'Guardadito. Que nadie diga que no sabes cuidar tus cuatro duros.',
   'Guardado, y la cerradura ya ha cobrado su parte. Tu miedo empieza a salir caro.',
   'Al banco. El grupo entero sabe que hay algo ahí, eso sí.',
-  'Con dos vueltas de llave. Ya no es tuyo del todo, pero es tuyo.',
+  'Con dos vueltas de llave. El candado ya ha cobrado, y tú ya puedes dejar de temblar.',
   'Guardado. Un golpe redondo se lleva una parte de dentro. Tú, de momento, aguantas el resto.',
   'Cerrado. Lo que queda fuera sigue siendo carne, por si acaso.',
   'Al banco. Que se joda el que venía a por ello.',
@@ -47,7 +47,7 @@ const SACADO = [
   'Fuera. Pagaste por guardarlo y ahora por sacarlo: doble peaje por tu propio miedo.',
   'Abierto con tu propia llave. La cerradura también cobra.',
   'En la mano. Ese pellizco de menos es lo que vale la tranquilidad.',
-  'Abierto. Y ahora a gastarlo rápido, no vaya a ser.',
+  'Abierto. Y ahora a gastarlo rápido, antes de que te lo levante alguien del grupo.',
   'Abierto. Cada vez que lo mueves, algo se queda por el camino.',
   'En la mano. Ya no está a salvo, pero al menos sirve para algo.',
   'Fuera. Lo que has pagado por salir va al bote, y el bote se lo lleva otro.',
@@ -62,7 +62,7 @@ const SACADO = [
 // Quiere guardar y aún no le toca.
 const ENFRIAMIENTO = [
   'Acabas de cerrarlo. Deja la llave un rato.',
-  'Ni de coña. Si ves venir el robo, ya es tarde.',
+  'Ni de coña. La llave no gira tan seguido por mucho miedo que tengas.',
   'Todavía no toca. La cerradura sigue caliente.',
   'Aún no. Tanto ir y venir del banco es de rata asustada.',
   'Suelta la llave un rato, que se nota.',

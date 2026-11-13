@@ -18,13 +18,13 @@ const ROBO_FALLO_REMATE = [
   'y la víctima se enteró por el descojone del grupo',
   'y volvió con las manos vacías y el bolsillo más ligero',
   'y lo único que tocó fue fondo',
-  'y la jugada le cabía en un mensaje, pero la vergüenza no le cabe en el chat',
+  'y la vergüenza no le cabe ni en el chat',
   'y falló con la seguridad de quien lleva toda la vida fallando',
   'y le salió tan mal que ni da para chiste, solo para captura',
   'y se le vio la mano antes que la intención',
   'y el grupo lo vio en directo. No hay repetición que lo arregle',
   'y se estampó con todo el equipo puesto',
-  'y terminó pidiendo perdón con su propia aura',
+  'y la víctima tuvo que contárselo para que se enterara de que había fallado',
   'y le costó más caro que no haber abierto la puta boca',
   'y llenó el chat de «es que» con la multa ya cobrada',
   'y acabó mirando su saldo con cara de gilipoyas',
@@ -71,7 +71,7 @@ const ROB_WIN = [
 const ROB_FAIL = [
   '%A falló y pagó. %V ni levantó la vista del teléfono.',
   '%A quiso jugar a ladrón y el juego le cobró la entrada. Cara, para lo poco que duró.',
-  '%V respira sin prisa. %A respira multas.',
+  '%V sigue a lo suyo sin enterarse. %A sigue pagando multas como quien paga el alquiler.',
   '%A, si robar fuera un examen, %V sería el aprobado y tú la hoja en blanco.',
   '%A ha intentado robar a %V y se lleva una multa y un apodo nuevo.',
   'Robaste tan mal, %A, que %V debería cobrarte por el espectáculo.',
@@ -91,7 +91,7 @@ const ROB_FAIL = [
   'El intento de %A ha durado un mensaje. La multa se le va a quedar en el saldo bastante más.',
   'A %V le han intentado robar y ha seguido a lo suyo. A %A le han cobrado y sigue sin entender qué ha pasado.',
   'Robar a %V era lo más fácil que tenía que hacer %A hoy. Imagínate el resto del día.',
-  'Ni la cifra que ha pedido %A se la cree nadie. Iba a por un botín y ha dejado propina.',
+  '%A pidió una cifra enorme para quedar de profesional. Se ha llevado una multa y la etiqueta de payaso.',
   'El fallo de %A queda en el chat, multa incluida. Eso no se lo roba nadie.',
   '%V sigue con su aura. %A sigue con su historial, que hoy tiene un fracaso más y la misma puta cara.',
   'Si %A no le puede robar a %V, la lista de gente a la que sí le puede robar está vacía.',
@@ -164,7 +164,7 @@ const ROB_PARCIAL = [
   '%A ha hecho media faena, y a %V le ha costado igual.',
   '%A ha pillado lo que ha podido. %V ha pillado una lección y se va a quedar sin aprenderla.',
   '%V va a contar que le robaron poco. Nadie se lo va a creer y a nadie le importa una mierda.',
-  '%A ha cobrado a %V de una vez, y no entera. Hoy no hay segunda cuota.',
+  '%A ha cobrado una parte de %V y se ha ido sin el resto. %V se queda con las sobras y la cara de pasmo.',
 ];
 
 const ROB_DESASTRE = [

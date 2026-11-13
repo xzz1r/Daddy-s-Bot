@@ -251,7 +251,7 @@ const AURA_LINES = [
   'Las cifras de hoy ya están puestas. Interpretarlas a tu favor es lo único que se te da bien.',
   'El marcador no tiene memoria para excusas, solo para números. Los tuyos dan vergüenza.',
   'Escribe hoy, cobra hoy. Mañana es otra racha, si la aguantas, y no la aguantas.',
-  'El aura es lo único de este grupo que no se puede fingir. Tu sonrisa en las fotos, sí.',
+  'El aura es lo único de este grupo que no se puede fingir. Tu felicidad en las historias, sí.',
   'Si quieres subir rápido, escribe, y si quieres bajar rápido, apuesta. Ya sabemos qué vas a hacer.',
   'El banco te cobra al meter y al sacar. Ni escondiendo tus cuatro duros te libras de pagar.',
 ];

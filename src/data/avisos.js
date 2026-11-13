@@ -413,12 +413,12 @@ const PURGA_ADMIN = [
 // deslizando otra vez hacia describir.
 const MAL_ESCRITO = [
   'Retraso de nacimiento, y cada vez que escribes algo lo confirmas.',
-  'No tienes cabeza ni para escribirlo bien. No es una forma de hablar.',
+  'No tienes cabeza ni para escribirlo bien, y el grupo lo ha leído con las faltas.',
   'Tu cerebro es una puta piedra y se te nota en cada palabra que escribes.',
   'No tienes ni media neurona, y lo que acabas de poner lo demuestra.',
   'Ahí dentro no hay nada, y eso que has puesto es la firma.',
   'Tu techo es escribir algo corto sin romperlo. Qué puta pena das.',
-  'Hasta aquí razonas, y mira cómo ha quedado. Mañana, el mismo retraso.',
+  'Has razonado hasta donde te llega, y mira cómo ha quedado. Mañana, el mismo destrozo.',
   'Acabas de tocar tu límite, y era escribir un comando. Qué puta miseria.',
   'Ni lo escribes bien, cabrón. Ese es el suelo y ahí vives.',
   'Lo mínimo del mundo era escribirlo bien, comemierda, y ni a eso llegas.',
@@ -461,7 +461,7 @@ const MAL_ESCRITO = [
   'Llevas la cabeza de puto adorno y en cuanto escribes se ve.',
   'Lo que acabas de poner es el máximo de esa mente, y el máximo es esto.',
   'Escribiste con el dedo y pensaste con el codo, que es con lo que piensas siempre.',
-  'Eres la prueba de que esto se puede fallar: un cerebro bajo mínimos.',
+  'Ese comando lo escribe bien hasta el corrector, y tu cabeza ha conseguido estropearlo.',
   'Esa cabeza de mierda da para mucho menos de lo que has intentado escribir.',
 ];
 
@@ -486,7 +486,7 @@ const SIN_ACCESO = [
   'De puntillas tampoco llegas al comando.',
   'Con ese rango, el comando ni te mira.',
   'Para ese comando te falta rango y cara.',
-  'Vuelve con rango. El comando te espera.',
+  'Sin rango, ese comando ni lo hueles.',
   'El comando se ríe de ti, y con motivo.',
   'Tú, sin rango, ni rozas ese comando.',
   'Tú y el comando no os conocéis de nada.',

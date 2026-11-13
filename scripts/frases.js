@@ -150,7 +150,9 @@ const POOLS_MODO = args.includes('--pools');
 // Coletilla 7. Quedan aura, el roast del dueño, «Borrado, gilipoyas.» y los piropos.
 // Y el 1 nov, al reescribir lo soso (el cartel de la diana, «esto es de
 // grupo», el cierre de «no tienes acceso» y el «habla más» del aura): nadie 232.
-const TECHO = { nadie: 232, analogia: 6, coletilla: 7, eco: 0, molde: 66, enlatado: 127, roto: 0 };
+// Y el 13 nov, en el barrido de lo cursi y lo que no se entendía (222
+// frases reescritas en el sitio): nadie 228, molde 65, enlatado 122.
+const TECHO = { nadie: 228, analogia: 6, coletilla: 7, eco: 0, molde: 65, enlatado: 122, roto: 0 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();

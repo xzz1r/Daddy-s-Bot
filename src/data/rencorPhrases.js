@@ -198,7 +198,7 @@ const ROBO_VENGANZA = [
   '%V se llevó %C de %A %D y se creyó a salvo. %A tiene buena memoria.',
   'Devuelta la de %D. %V aprende hoy que robar a %A tenía letra pequeña.',
   '%D robó %V, hoy roba %A. %V ya puede ir contando lo que le queda, que no es mucho.',
-  '%A saca del bolsillo de %V el aura que el bot tenía apuntada desde %D.',
+  '%A le saca a %V del bolsillo lo de %D, y le cobra hasta el susto.',
   '%V creía que lo de %D estaba olvidado. %A estaba esperando el momento, y el momento es hoy.',
   '%A le ha devuelto a %V el robo de %D. Con la misma mano y con más ganas.',
   'A %V lo de %D le ha salido caro. %A no ha olvidado ni una cifra.',
@@ -242,7 +242,7 @@ const ROBO_NI_VENGARSE = [
 // Hoy sale bastante mas alto que la vez anterior.
 const SHIP_SUBE = [
   '%D les salió %C a %A y %V. Hoy salen bastante mejor, y el grupo ya empieza a hacer preguntas.',
-  '%A y %V venían de un %C %D. Hoy el número sube, y eso no lo ha decidido nadie más que el bot.',
+  '%A y %V venían de un %C %D. Hoy el número sube, y el grupo ya pregunta qué ha pasado entre medias.',
   'De %C %D a esto. Entre %A y %V algo se está moviendo, y no es el bot.',
   '%D, %C para %A y %V, y hoy bastante más. El bot solo apunta, el cotilleo ya es cosa del grupo.',
   '%A y %V suben desde el %C de %D. A este paso, la próxima vez hay que buscar padrinos.',

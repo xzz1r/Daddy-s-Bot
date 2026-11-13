@@ -132,12 +132,12 @@ const INFIEL_MID = [
 // ═══════════════════════════════════════════════════════════════════════════
 
 const INFIEL_LOW = [
-  '[nombre] no engaña ni en los sueños. Sueña que le ponen los cuernos y se despierta pidiendo explicaciones. Fiel hasta con los ojos cerrados.',
+  '[nombre] no engaña ni en sueños. Sueña que le ponen los cuernos y se despierta pidiéndole explicaciones a la almohada.',
   'Eres tan fiel que podrían mandarte a una despedida en Benidorm y volverías sin nada más que quemaduras de sol.',
   '[nombre] deja el móvil desbloqueado encima de la mesa y nadie se pone nervioso. Qué vida más tranquila, y qué aburrida.',
   'Te sientan al lado de alguien guapísimo en la barra y no pasas de la conversación. A la media hora, se cambia de taburete.',
   'Te dejan las llaves del coche, la tarjeta y la pareja, y no tocas nada. Bueno, el coche quizá.',
-  'Entre tanta gente con el móvil lleno de fotos en pelotas, [nombre] no ha mandado ni una. La evolución a veces acierta.',
+  'Entre tanta gente con el móvil lleno de fotos en pelotas, [nombre] no ha mandado ni una. Tampoco se las ha pedido nadie.',
   'Tus colegas te usan de coartada cuando sus parejas sospechan: contigo nunca pasa nada.',
   'Si un día te pillaran siendo infiel, saldría en las noticias. Mientras tanto no sale nada, y tu vida tampoco da para más.',
   'Eres tan fiel que das asco. Del asco bueno, el que da ver algo tan limpio en este grupo de mierda.',

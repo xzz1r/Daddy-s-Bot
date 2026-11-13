@@ -1461,7 +1461,7 @@ const REMATES = [
   'Foto sin edad, o edad sin foto, no cuenta. Las dos cosas.',
   '«no me gusta exponerme», dice quien entró en un grupo por su cuenta. Da la cara.',
   '«espero la foto buena». No existe. Manda una de la galería y la edad, y deja de rebuscar.',
-  'No hace falta esperar a que se presente otro para copiarle el tono, que no hay tono. Sal tú.',
+  'Esperar a que se presente otro para copiarle la presentación no cuela. Foto, edad y deja de esconderte.',
   'Un «hola» no es una presentación. Foto y edad, o vuelve a tu agujero.',
 ];
 

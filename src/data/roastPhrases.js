@@ -16,7 +16,7 @@ const HEADERS = [
   '*ES QUE NO HAY OTRA*',
   '*OTRA VEZ TÚ*',
   '*TÚ LO HAS QUERIDO*',
-  '*LO SIENTO POR TI*',
+  '*QUÉ PENA DAS*',
   '*ESTO ES RÁPIDO*',
   '*NO DA PARA MÁS*',
   '*POCO HAY QUE DECIR*',
@@ -31,8 +31,8 @@ const HEADERS = [
   '*NADA NUEVO*',
   '*SE VEÍA VENIR*',
   '*NI SORPRENDE*',
-  '*ALGUIEN LO HA PEDIDO*',
-  '*SI TÚ LO DICES*',
+  '*TOMA YA*',
+  '*CÁLLATE Y LEE*',
 ];
 
 const CLOSERS = [
@@ -188,7 +188,7 @@ const BIO_EMPTY = [
   'La descripción en blanco te va a juego: nadie la lee porque no hay nada y a ti igual.',
   'Ni bio. El mínimo de WhatsApp es poner una frase, y no llegas ni al mínimo.',
   'Sin bio. No te has molestado ni en copiar una frase de otro, que es lo que hace todo el mundo.',
-  'Tu perfil no tiene nada que contar y ni lo disimula. Honestidad de pobre.',
+  'Tu perfil no tiene nada que contar y ni lo disimula. Igualito que tú cuando abres la boca.',
   'Ni para presumir de algo que no tienes te ha dado la cabeza: la bio, vacía.',
   'Sin descripción. Si alguien quiere saber de ti, que te pregunte, aunque nadie lo va a hacer.',
   'Tu bio no dice nada. Como tú en el grupo.',
