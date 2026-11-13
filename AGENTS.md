@@ -131,9 +131,16 @@ otra forma (@lid o teléfono) y con los otros grupos para los que la repartió
 por `status@broadcast`, y una historia marcada (`group_status` en la
 cabecera) se castiga sin abrirla, en su grupo y una vez. `isGroupStatus` sin
 cita es la marca, no una pista. El borrado sale dos veces: el de siempre y con
-`<meta is_group_status>`. Lo que el bot no abre se lo pide Baileys al teléfono
-del número del bot: `npm run estado` dice cuántos devolvió, y si son cero el
-teléfono no contesta. Capa 159. Ver `MOTOR.md`.
+`<meta is_group_status>`. Capa 159.
+
+**Nada depende del teléfono del número** (dueño, 13 nov: «utilizo la VPS
+precisamente para no depender de mi móvil»). Para que los demás le repartan
+su clave de grupo al bot hace falta un canal de uno a uno con él, y para
+abrirlo, una clave de un solo uso suya en el servidor: el bot las mantiene
+por encima de 200 y repone hasta 812 (`src/utils/clavesUnUso.js`; Baileys
+solo repone 5). Y el primer reintento a quien escribe ya lleva las claves del
+bot (`scripts/parche-baileys-reintento.js`, lo aplica `npm run update`). No se
+le dice al dueño que encienda el teléfono. Capa 161. Ver `MOTOR.md`.
 
 ## Spam de texto: aviso 1 de 2 y ban
 

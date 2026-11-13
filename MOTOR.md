@@ -629,14 +629,24 @@ peña que sube estados al grupo ni borrando los estados»). Lo que no se abre:
   preguntar a WhatsApp) y los grupos para los que esa persona repartió clave.
   Una clave equivocada no pasa la firma y Baileys solo guarda tras abrir, así
   que probar no cambia nada; si ninguna abre, sale el error de siempre;
-- **la clave no está.** Pasa tras volver a vincular un número: los teléfonos
-  de los demás no le reparten su clave al dispositivo nuevo y no contestan a
-  los reintentos (Baileys #2884, sin arreglo). Lo que queda es el teléfono del
-  número del bot, que sí lo tiene todo: Baileys se lo pide (petición de
-  reenvío al primario) y la respuesta llega a `messages.upsert` con
-  `requestId`. Se marca en la bitácora, y `npm run estado` dice «el teléfono
-  del bot devolvió N de M». Con cero, el teléfono no contesta: apagado, sin
-  datos o con la app dormida.
+- **la clave no está.** Pasa tras volver a vincular un número: nadie le ha
+  repartido todavía su clave al dispositivo nuevo, y casi nadie contesta a
+  los reintentos (Baileys #2884). Cada persona reparte su clave por un canal
+  de uno a uno, y para abrirlo con el bot coge del servidor una clave de un
+  solo uso del bot. WhatsApp sube 812; Baileys solo repone 5 cuando el
+  servidor avisa, y con cientos de personas en los grupos se acaban en
+  nada. `utils/clavesUnUso.js` cuenta las que quedan al conectar, cada tres
+  horas y cuando el servidor avisa, y si bajan de 200 sube hasta 812 (como
+  mucho una subida por hora). Y `scripts/parche-baileys-reintento.js` hace
+  que el primer reintento ya lleve las claves del bot, como whatsmeow en este
+  mismo caso (`skmsg` sin nada dirigido al dispositivo); Baileys solo las
+  metía desde el segundo, al que casi nunca se llega. Lo aplica `npm run
+  update`, y `npm run estado` avisa si falta.
+
+**Nada de esto depende del teléfono del número** (dueño, 13 nov: «utilizo la
+VPS precisamente para no depender de mi móvil»). Baileys sigue pidiéndole al
+teléfono lo que no abre, como siempre, pero el bot no cuenta con ello ni le
+dice al dueño que lo encienda. Capa 161.
 
 La cabecera se lee también por `status@broadcast`, y con todos los atributos
 de cada nodo (un `<unavailable type="…">` dice por qué no se manda). Marca de

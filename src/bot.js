@@ -186,6 +186,8 @@ const { ponerRitmo, estadoCola } = require('./utils/ritmo');
 const bitacoraEstados = require('./utils/bitacoraEstados');
 const cabeceras = require('./utils/cabeceras');
 const rescateClaves = require('./utils/rescateClaves');
+const clavesUnUso = require('./utils/clavesUnUso');
+let pararClavesUnUso = null;
 
 const AUTH_DIR = path.join(__dirname, '../data/auth');
 
@@ -1259,6 +1261,12 @@ async function connectToWhatsApp() {
     } else if (connection === 'open') {
       // Y el guardian sabe que vuelve a estar el bot (ver arrancarLatidoGuardian).
       arrancarLatidoGuardian();
+      // LAS CLAVES DE UN SOLO USO, LLENAS (13 nov). Ver utils/clavesUnUso.js:
+      // sin ellas, quien escribe no le puede repartir su clave de grupo al bot
+      // y sus mensajes —historias incluidas— le llegan cerrados. Una vez por
+      // socket: la del anterior se para.
+      if (pararClavesUnUso) pararClavesUnUso();
+      pararClavesUnUso = clavesUnUso.arrancar(sock);
       // Los contadores NO se reinician aquí, y esto es lo importante.
       //
       // Antes sí, y con el tope de diez intentos daba igual. Al quitar el tope
@@ -2555,13 +2563,7 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
     ingestarHistorial(data);
   });
 
-  sock.ev.on('messages.upsert', ({ messages, type, requestId }) => {
-    // LO QUE DEVUELVE EL TELÉFONO DEL BOT (13 nov). Lo que este dispositivo no
-    // pudo abrir, Baileys se lo pide al teléfono del número, y la respuesta
-    // llega por aquí con `requestId`. Se marca en la bitácora para que `npm
-    // run estado` diga si el teléfono contesta; el mensaje sigue su camino y
-    // se modera como cualquier otro.
-    if (requestId) for (const msg of messages) bitacoraEstados.marcarRecuperado(msg?.key?.id);
+  sock.ev.on('messages.upsert', ({ messages, type }) => {
     for (const msg of messages) {
       // Lo que manda el bot se guarda por si hay que reenviarlo (getMessage).
       if (msg?.key?.fromMe && msg.message) recordarMensaje(msg.key, msg.message);

@@ -24,8 +24,8 @@
 // en el disco, sin preguntar a WhatsApp) y los grupos para los que esa
 // persona le repartió clave. Probar no cambia nada: una clave equivocada no
 // pasa la firma y Baileys solo guarda tras abrir. Si ninguna abre, el error de
-// siempre sigue su camino, y Baileys le pide el mensaje al teléfono del bot
-// como hasta ahora.
+// siempre sigue su camino: de su texto depende que Baileys pida el reenvío a
+// quien lo mandó (con las claves del bot, ver scripts/parche-baileys-reintento.js).
 //
 // Lo que se rescata se cuenta (bitacoraEstados.apuntarRescate) para que `npm
 // run estado` diga si esto está abriendo mensajes o si el fallo es otro.

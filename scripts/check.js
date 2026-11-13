@@ -24510,19 +24510,15 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
   //     grupos del bot y una vez;
   //   · `isGroupStatus` sin cita es la marca, no una pista;
   //   · el borrado de una historia sale también con su marca de historia;
-  //   · lo que no se abre se apunta con su porqué, y lo que devuelve el
-  //     teléfono del bot se marca. En sandbox.
+  //   · lo que no se abre se apunta con su porqué. En sandbox.
   {
     console.log('\n159. LAS HISTORIAS DE GRUPO: ABRIRLAS, RECONOCERLAS Y QUITARLAS');
     const antes159 = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
     const bot159 = soloCodigo('src/bot.js');
     exige(/rescateClaves\.instalar\(sock/.test(bot159), 'bot.js ya no engancha el rescate de claves al socket: las claves guardadas con otro nombre vuelven a no abrir nada');
-    exige(/if \(requestId\) for \(const msg of messages\) bitacoraEstados\.marcarRecuperado/.test(bot159),
-      'bot.js ya no marca lo que devuelve el teléfono del bot: npm run estado no puede decir si contesta');
     exige(/const grupo = cabeceras\.destino\(r\);/.test(bot159), 'una historia reconocida por su cabecera ya no va al grupo que nombra');
     exige(/relayMessage: \{ hueco: \d+/.test(soloCodigo('src/utils/ritmo.js')), 'el borrado en crudo de una historia sale sin ritmo');
-    exige(/devolvió \$\{devueltos\} de \$\{conId\}/.test(soloCodigo('scripts/estado.js')), 'npm run estado ya no dice cuántos mensajes devolvió el teléfono del bot');
     const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'historia159-'));
     try {
       fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
@@ -24587,9 +24583,8 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
         "  const bot = require('./src/bot');",
         "  const n1 = nodo(G, [{ tag: 'unavailable', attrs: { type: 'hosted_unavailable_fanout' } }]); CAB.anotar(n1);",
         "  bot._avisarSinDescifrar({ key: { remoteJid: G, participant: M, id: n1.attrs.id }, messageStubType: 2, messageStubParameters: ['Message absent from node'] });",
-        "  r.devuelto = [B.marcarRecuperado(n1.attrs.id), B.marcarRecuperado(n1.attrs.id), B.marcarRecuperado('NOEXISTE')];",
         "  const e = B.sinDescifrar(24).find((x) => x.id === n1.attrs.id) || {};",
-        "  r.apunte = { motivo: e.motivo, noEnviado: e.noEnviado, recuperado: Boolean(e.recuperado) };",
+        "  r.apunte = { motivo: e.motivo, noEnviado: e.noEnviado };",
         "  B.apuntarRescate({ via: 'otra forma' }); r.rescates = B.rescates(24);",
         "  console.log('R159' + JSON.stringify(r)); process.exit(0);",
         "})().catch((e) => { console.log('R159' + JSON.stringify({ error: e.stack })); process.exit(0); });",
@@ -24603,7 +24598,7 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
         exige(r.instala[0] && r.instala[1], 'el rescate de claves no se engancha, o se engancha dos veces al mismo socket');
         exige(r.forma === 'ok', 'una clave guardada con el teléfono no abre lo que llega con el @lid');
         exige(r.reparto === 'repartida' && r.grupo === 'ok', 'una clave repartida para otro grupo no se prueba, o el reparto deja de llegar a Baileys');
-        exige(r.nada === 'No session found to decrypt message', `si ninguna clave abre, el error de Baileys tiene que salir intacto (sale «${r.nada}»): de su texto depende que pida el mensaje al teléfono`);
+        exige(r.nada === 'No session found to decrypt message', `si ninguna clave abre, el error de Baileys tiene que salir intacto (sale «${r.nada}»): de su texto depende que Baileys pida el reenvío a quien lo mandó`);
         exige(r.cuantos === 2, `se cuentan ${r.cuantos} rescates de 2`);
         exige(r.vo[0] === false && r.vo[1] === 'view_once', 'un «ver una vez» no enviado cuenta como historia, o no se apunta el porqué');
         exige(r.meta === 'G' || r.meta === '120363000000159001@g.us', 'la cabecera is_group_status ya no reconoce la historia');
@@ -24620,8 +24615,7 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
           `una historia por status@broadcast reconocida por su cabecera no se castiga en su grupo: ${JSON.stringify(r.porDifusion)}`);
         exige(r.otraVez === 'ya atendida', 'la misma historia se castiga dos veces');
         exige(r.ajena === 'grupo ajeno', `una historia que nombra un grupo que no es del bot se toca (${r.ajena})`);
-        exige(r.devuelto[0] === true && r.devuelto[1] === false && r.devuelto[2] === false, `lo que devuelve el teléfono se marca mal: ${JSON.stringify(r.devuelto)}`);
-        exige(r.apunte.motivo === 'Message absent from node' && r.apunte.noEnviado === 'hosted_unavailable_fanout' && r.apunte.recuperado,
+        exige(r.apunte.motivo === 'Message absent from node' && r.apunte.noEnviado === 'hosted_unavailable_fanout',
           `lo que no se abre se apunta sin su porqué: ${JSON.stringify(r.apunte)}`);
         exige(r.rescates['otra forma'] === 1, 'los rescates de claves no se cuentan para npm run estado');
       }
@@ -24718,6 +24712,97 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
       }
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     if (fallos === antes160) console.log(verde('   ✓ un «no contesta» no es un «no es Business», el @lid se mira, y lo que no se abre delata igual'));
+  }
+
+  // ── 161. SIN DEPENDER DEL TELÉFONO: CLAVES DE UN SOLO USO Y REINTENTO (13 nov) ─
+  // El dueño: «utilizo la VPS precisamente para no depender de mi móvil».
+  // Para que los demás le repartan su clave de grupo al bot hace falta un
+  // canal de uno a uno, y para abrirlo, una clave de un solo uso del bot en el
+  // servidor. Baileys solo repone 5: el bot las cuenta y repone hasta 812
+  // cuando bajan de 200 (una subida por hora como mucho). Y el primer
+  // reintento a quien escribe lleva las claves del bot (parche que aplica
+  // npm run update). Nada le pide al dueño que encienda el teléfono. En sandbox.
+  {
+    console.log('\n161. SIN DEPENDER DEL TELÉFONO: CLAVES DE UN SOLO USO Y REINTENTO');
+    const antes161 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const bot161 = soloCodigo('src/bot.js');
+    exige(/connection === 'open'[\s\S]{0,1500}pararClavesUnUso = clavesUnUso\.arrancar\(sock\)/.test(bot161),
+      'el bot ya no repone sus claves de un solo uso al conectar: quien escribe no puede darle su clave de grupo');
+    exige(/node scripts\/parche-baileys-reintento\.js/.test(fs.readFileSync(path.join(R, 'scripts/actualizar.sh'), 'utf8')),
+      'npm run update ya no aplica el parche del reintento con claves');
+    const est161 = soloCodigo('scripts/estado.js');
+    exige(/claves de un solo uso del bot en el servidor/.test(est161) && /await sendRetryRequest\(node, !encNode\);/.test(est161),
+      'npm run estado ya no dice cuántas claves de un solo uso quedan ni si falta el parche del reintento');
+    exige(!/enciende ese teléfono|que esté encendido|devolvió \$\{devueltos\}/.test(est161) && !/marcarRecuperado/.test(bot161),
+      'vuelve a haber algo que depende del teléfono del número: el dueño no quiere depender de su móvil');
+    const CU = require(path.join(R, 'src/utils/clavesUnUso'));
+    exige(CU.UMBRAL <= 300 && CU.OBJETIVO === 812, `las claves de un solo uso se reponen con otras cifras (${CU.UMBRAL}/${CU.OBJETIVO}): 812 es lo que sube WhatsApp`);
+    // El parche, sobre una copia del fichero de Baileys.
+    const tmp161 = fs.mkdtempSync(path.join(os.tmpdir(), 'reintento161-'));
+    try {
+      const orig = path.join(R, 'node_modules/@whiskeysockets/baileys/lib/Socket/messages-recv.js');
+      const copia = path.join(tmp161, 'messages-recv.js');
+      fs.copyFileSync(orig, copia);
+      const antesTxt = fs.readFileSync(copia, 'utf8');
+      const sinParche = antesTxt.includes('await sendRetryRequest(node, !encNode);');
+      const ya = antesTxt.includes("await sendRetryRequest(node, !encNode || encNode.attrs?.type === 'skmsg');");
+      exige(sinParche || ya, 'Baileys cambió la línea del reintento: el parche ya no la encuentra, revísalo');
+      spawnSync('node', [path.join(R, 'scripts/parche-baileys-reintento.js'), copia], { encoding: 'utf8', timeout: 20000 });
+      const una = fs.readFileSync(copia, 'utf8');
+      spawnSync('node', [path.join(R, 'scripts/parche-baileys-reintento.js'), copia], { encoding: 'utf8', timeout: 20000 });
+      const dos = fs.readFileSync(copia, 'utf8');
+      exige(una.includes("await sendRetryRequest(node, !encNode || encNode.attrs?.type === 'skmsg');") && !una.includes('await sendRetryRequest(node, !encNode);'),
+        'el parche no hace que el primer reintento de una clave de grupo lleve las claves del bot');
+      exige(una === dos && una.length - antesTxt.length < 80, 'el parche no es idempotente o toca más de una línea');
+      const raro = path.join(tmp161, 'otro.js');
+      fs.writeFileSync(raro, 'const x = 1;\n');
+      const out = spawnSync('node', [path.join(R, 'scripts/parche-baileys-reintento.js'), raro], { encoding: 'utf8', timeout: 20000 });
+      exige(fs.readFileSync(raro, 'utf8') === 'const x = 1;\n' && out.status === 0, 'con otra versión de Baileys el parche toca lo que no debe o tumba el despliegue');
+    } finally { fs.rmSync(tmp161, { recursive: true, force: true }); }
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'claves161-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const CU = require('./src/utils/clavesUnUso'); const fs = require('fs'); const path = require('path');",
+        "const F = path.join(process.cwd(), 'data', 'clavesUnUso.json');",
+        "(async () => { const r = {};",
+        "  CU._prueba({ fichero: F });",
+        "  let quedan = 7; const subidas = []; let falla = false; const oyentes = [];",
+        "  const sock = { generateMessageTag: () => 't1',",
+        "    query: async (n) => { if (falla) throw new Error('timed out'); if (n.attrs.xmlns !== 'encrypt' || n.attrs.type !== 'get' || n.content[0].tag !== 'count') throw new Error('consulta rara'); return { tag: 'iq', attrs: { type: 'result' }, content: [{ tag: 'count', attrs: { value: String(quedan) } }] }; },",
+        "    uploadPreKeys: async (n) => { subidas.push(n); },",
+        "    ws: { on: (e, f) => oyentes.push(['on', e]), off: (e, f) => oyentes.push(['off', e]) } };",
+        "  r.primera = await CU.reponer(sock);",
+        "  r.seguida = await CU.reponer(sock);",
+        "  quedan = 500; r.llena = await CU.reponer(sock);",
+        "  CU._prueba({ fichero: F }); quedan = 0; r.cero = await CU.reponer(sock);",
+        "  CU._prueba({ fichero: F }); falla = true; r.fallo = await CU.reponer(sock); falla = false;",
+        "  r.sinSock = await CU.reponer({});",
+        "  r.subidas = subidas; r.fichero = JSON.parse(fs.readFileSync(F, 'utf8'));",
+        "  const parar = CU.arrancar(sock); parar(); r.oyentes = oyentes;",
+        "  console.log('R161' + JSON.stringify(r)); process.exit(0);",
+        "})().catch((e) => { console.log('R161' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 60000, env: { ...process.env, LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R161'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(r.primera.estado === 'subidas' && r.primera.sube === 805, `con 7 en el servidor no se repone hasta 812: ${JSON.stringify(r.primera)}`);
+        exige(r.seguida.estado === 'espera', 'se sube otra vez en la misma hora: una subida por hora como mucho');
+        exige(r.llena.estado === 'bien', 'con 500 en el servidor se sube igual');
+        exige(r.cero.estado === 'subidas' && r.cero.sube === 812, `con 0 en el servidor no se suben 812: ${JSON.stringify(r.cero)}`);
+        exige(r.fallo.estado === 'error' && r.sinSock.estado === 'sin socket', 'un fallo de red o un socket a medias tumba la reposición');
+        exige(JSON.stringify(r.subidas) === '[805,812]', `se suben claves de más: ${JSON.stringify(r.subidas)}`);
+        exige(r.fichero.subidas === 2 && r.fichero.enServidor === 812, `npm run estado no sabrá cuántas quedan: ${JSON.stringify(r.fichero)}`);
+        exige(JSON.stringify(r.oyentes) === '[["on","CB:notification,type:encrypt"],["off","CB:notification,type:encrypt"]]',
+          `el aviso de pocas claves del servidor no se escucha, o no se suelta al cambiar de socket: ${JSON.stringify(r.oyentes)}`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes161) console.log(verde('   ✓ el bot repone sus claves de un solo uso, el primer reintento lleva sus claves, y nada depende del teléfono'));
   }
 
 

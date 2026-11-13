@@ -1887,8 +1887,8 @@ function motivoEstado(message, msg = null) {
         const ctx = m[k]?.contextInfo;
         // `isGroupStatus` A SECAS ES LA MARCA, NO UNA PISTA (13 nov). Es un
         // booleano propio (ContextInfo 66) que pone quien sube la historia en
-        // el mensaje de dentro, y lo que devuelve el teléfono del bot cuando
-        // se la pide puede venir ya desenvuelto, con solo esto. Sin cita: si
+        // el mensaje de dentro, y una historia reenviada tras un reintento
+        // puede llegar ya desenvuelta, con solo esto. Sin cita: si
         // el mensaje responde a otro (stanzaId, quotedMessage), la marca puede
         // ser de lo citado, y eso sigue siendo una pista.
         if (ctx && ctx.isGroupStatus === true && !ctx.stanzaId && !ctx.quotedMessage) {

@@ -575,32 +575,44 @@ if (!bot) {
   // historia en 24 h» con historias subidas quiere decir que no llegan.
   //
   // Con el porqué (13 nov): qué error dio, si la cabecera traía la marca de
-  // historia, si WhatsApp avisó de que a este dispositivo no se lo manda, y
-  // cuántos devolvió el teléfono del bot. Eso dice qué falla sin abrir el log.
+  // historia y si WhatsApp avisó de que a este dispositivo no se lo manda.
+  // Eso dice qué falla sin abrir el log. Nada de esto depende del teléfono del
+  // número: el bot se arregla solo desde la VPS (claves de un solo uso y
+  // reintento con claves, ver más abajo).
   const cifrados = sinDescifrar ? sinDescifrar(24) : [];
   if (cifrados.length) {
     const quienes = [...new Set(cifrados.map((x) => `+${x.quien}`))].slice(0, 5).join(', ');
-    const devueltos = cifrados.filter((x) => x.recuperado).length;
-    const conId = cifrados.filter((x) => x.id).length;
     const historias = cifrados.filter((x) => x.historia).length;
     const noEnviados = cifrados.filter((x) => x.noEnviado);
     const motivos = {};
     for (const x of cifrados) if (x.motivo) motivos[x.motivo] = (motivos[x.motivo] || 0) + 1;
     const top = Object.entries(motivos).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([m, n]) => `${n}× «${m}»`).join(', ');
-    aviso(`${cifrados.length} mensaje(s) de grupo en 24 h que el bot no pudo descifrar (${quienes})`
-      + (top ? `: ${top}` : '') + (conId ? ` · el teléfono del bot devolvió ${devueltos} de ${conId}` : ''),
-      'pm2 logs bot --lines 3000 --nostream | grep "sin descifrar"   ← grupo, número y el error');
+    aviso(`${cifrados.length} mensaje(s) de grupo en 24 h que el bot no pudo descifrar (${quienes})` + (top ? `: ${top}` : ''),
+      'pm2 logs bot --lines 3000 --nostream | grep "sin descifrar"   ← grupo, número, el error y la cabecera');
     if (historias) bien(`${historias} de ellos traían la marca de historia en la cabecera: se castigan sin abrirlos`, true);
     if (noEnviados.length) {
       const tipos = [...new Set(noEnviados.map((x) => x.noEnviado))].slice(0, 3).join(', ');
       aviso(`${noEnviados.length} llegaron con aviso de WhatsApp de que a este dispositivo no se lo manda (${tipos})`,
-        'el contenido solo lo tiene el teléfono del número del bot: que esté encendido, con datos y con WhatsApp abierto');
-    }
-    if (conId >= 5 && devueltos === 0) {
-      mal('el teléfono del número del bot no devuelve NADA de lo que el bot no puede abrir: esas historias no las ve',
-        'enciende ese teléfono, dale datos o wifi, abre WhatsApp y quítale el ahorro de batería a la app');
+        'pásale esa línea a quien mantenga el bot: es WhatsApp quien no se lo entrega');
     }
   }
+  // Las claves de un solo uso del bot en el servidor (utils/clavesUnUso.js) y
+  // el parche del reintento con claves (scripts/parche-baileys-reintento.js):
+  // de las dos depende que los demás le repartan su clave de grupo al bot.
+  try {
+    const cu = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data/clavesUnUso.json'), 'utf8'));
+    if (Number.isFinite(cu.enServidor)) {
+      const linea = `claves de un solo uso del bot en el servidor: ${cu.enServidor}` + (cu.subidas ? ` · repuestas ${cu.subidas} vez/veces` : '');
+      if (cu.enServidor < 50) aviso(linea, 'el bot las repone solo cada tres horas; si siguen bajas, mira el log: grep "claves de un solo uso"');
+      else bien(linea, true);
+    }
+  } catch { /* aún no se ha mirado */ }
+  try {
+    const mr = fs.readFileSync(path.join(RAIZ, 'node_modules/@whiskeysockets/baileys/lib/Socket/messages-recv.js'), 'utf8');
+    if (mr.includes('await sendRetryRequest(node, !encNode);')) {
+      aviso('el reintento de Baileys no lleva las claves del bot en el primer intento', 'npm run update   ← lo parchea solo');
+    }
+  } catch { /* sin baileys instalado */ }
   const resc = rescates ? rescates(24) : {};
   const nResc = Object.values(resc).reduce((a, b) => a + b, 0);
   if (nResc) bien(`${nResc} mensaje(s) de grupo abiertos en 24 h con la clave guardada con otro nombre (${Object.entries(resc).map(([k, v]) => `${v} ${k}`).join(', ')})`, true);

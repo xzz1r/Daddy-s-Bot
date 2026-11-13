@@ -161,6 +161,7 @@ npm install --omit=dev --ignore-scripts --no-fund --no-audit --loglevel=error
 paso "npm install"
 node scripts/parche-baileys-historial.js || true
 node scripts/parche-baileys-verunavez.js || true
+node scripts/parche-baileys-reintento.js || true
 
 # sharp y SUS BINARIOS. Se borraba la carpeta sharp pero no @img, que es donde
 # viven los binarios de verdad: 27 MB de libvips y un fallback WebAssembly que

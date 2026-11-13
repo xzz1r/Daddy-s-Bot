@@ -104,11 +104,10 @@ function guardarCifrados(v) {
   fs.mkdirSync(path.dirname(FICHERO_CIFRADOS), { recursive: true });
   fs.writeFileSync(FICHERO_CIFRADOS, JSON.stringify(v));
 }
-// Con el PORQUÉ (13 nov): el error de Baileys (`motivo`, recortado), lo que
+// Con el PORQUÉ (13 nov): el error de Baileys (`motivo`, recortado) y lo que
 // dice la cabecera —si WhatsApp avisó de que no se lo manda a este
-// dispositivo (`noEnviado`) o si traía la marca de historia (`historia`)— y el
-// id, para saber después si el teléfono del bot lo devolvió. Nada de
-// contenido: no lo hay.
+// dispositivo (`noEnviado`) o si traía la marca de historia (`historia`)—.
+// Nada de contenido: no lo hay.
 function apuntarSinDescifrar({ grupo, quien, id = '', motivo = '', noEnviado = '', historia = '' }) {
   try {
     const v = leerCifrados();
@@ -120,22 +119,6 @@ function apuntarSinDescifrar({ grupo, quien, id = '', motivo = '', noEnviado = '
     v.push(x);
     guardarCifrados(v);
   } catch { /* la bitácora no puede tirar el bot */ }
-}
-// EL TELÉFONO DEL BOT LO DEVOLVIÓ (13 nov). Lo que este dispositivo no puede
-// abrir, Baileys se lo pide al teléfono del número del bot, que sí lo tiene.
-// Si contesta, el mensaje llega entero y se modera como cualquier otro. Se
-// marca aquí para que `npm run estado` diga cuántos volvieron: si son cero, el
-// teléfono no está contestando (apagado, sin datos, o la app cerrada).
-function marcarRecuperado(id) {
-  if (!id) return false;
-  try {
-    const v = leerCifrados();
-    const x = v.find((e) => e.id === String(id).slice(0, 40));
-    if (!x || x.recuperado) return false;
-    x.recuperado = Date.now();
-    guardarCifrados(v);
-    return true;
-  } catch { return false; }
 }
 function sinDescifrar(horas = 24) {
   const desde = Date.now() - horas * 3600000;
@@ -174,6 +157,6 @@ function rescates(horas = 24) {
 }
 
 module.exports = {
-  apuntar, resumen, RESULTADOS, apuntarSinDescifrar, marcarRecuperado, sinDescifrar, apuntarRescate, rescates,
+  apuntar, resumen, RESULTADOS, apuntarSinDescifrar, sinDescifrar, apuntarRescate, rescates,
   _FICHERO: FICHERO, _FICHERO_CIFRADOS: FICHERO_CIFRADOS, _FICHERO_RESCATES: FICHERO_RESCATES,
 };
