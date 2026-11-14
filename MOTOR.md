@@ -648,6 +648,12 @@ VPS precisamente para no depender de mi móvil»). Baileys sigue pidiéndole al
 teléfono lo que no abre, como siempre, pero el bot no cuenta con ello ni le
 dice al dueño que lo encienda. Capa 161.
 
+`npm run update` corre la versión de `actualizar.sh` de antes de bajar la
+nueva (ver `main()`), así que un parche nombrado a mano no entraba hasta la
+actualización siguiente: el del reintento se quedó fuera la primera vez. Desde
+el 14 nov se aplican con comodín (`scripts/parche-baileys-*.js`), y un parche
+nuevo entra a la primera.
+
 La cabecera se lee también por `status@broadcast`, y con todos los atributos
 de cada nodo (un `<unavailable type="…">` dice por qué no se manda). Marca de
 historia es `group_status` en la cabecera, nada más; por `status@broadcast`
@@ -786,6 +792,14 @@ Capas 9 (la regla, caso a caso) y 137 (el camino entero en una copia).
 
 Al entrar, la expulsión sale `URGENTE` (sin cola, dentro del tope) y se lleva
 lo que soltó con `borrarSpamReciente`. Capa 160.
+
+**Y la respuesta con el @lid** (14 nov). `npm run estado`: «43 revisados en
+262 consultas, 43 Business». Se pregunta por el teléfono y WhatsApp contesta a
+las cuentas normales con el @lid en `jid` y el teléfono en `pn_jid`; Baileys
+solo guarda `jid`. Solo casaban las Business, y el resto se iba a mirar el
+perfil (1.109 topes en un día). El lote guarda ahora las formas de cada
+usuario (`parseUSyncQueryResult` de la consulta, sobrescrito), casa por
+cualquiera y apunta el par en `lid-mapping`.
 ## Las acciones por dentro
 
 Dos cosas del motor que conviene saber aunque no se toquen: el gif se prepara

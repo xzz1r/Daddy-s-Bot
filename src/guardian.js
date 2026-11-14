@@ -312,8 +312,26 @@ function esperaAntesDeInsistir() {
   } catch { return 0; }
 }
 
+// LA PISTA DE UNA MUERTE MUDA (14 nov). `npm run estado`: «el guardián murió
+// 17 veces sin poder decir nada», con el montón en 41 MB de 102. No es V8: lo
+// que mata así a un proceso es una señal que no se puede atender (el sistema
+// sin RAM, un SIGKILL). Al arrancar, si la vida anterior no se despidió, se
+// apunta la última medida de memoria que dejó: con eso y el registro del
+// sistema se sabe quién lo mató.
+function pistaMuerteMuda() {
+  try {
+    const v = JSON.parse(fs.readFileSync(VIDAS, 'utf8'));
+    if (!Array.isArray(v) || !v.length || v[v.length - 1].que !== 'arranca') return '';
+    const med = JSON.parse(fs.readFileSync(MEMORIA, 'utf8'));
+    const m = Array.isArray(med) ? med[med.length - 1] : null;
+    if (!m || m.ts < v[v.length - 1].ts) return 'la vida anterior no se despidió (sin medidas de memoria)';
+    const hace = Math.round((Date.now() - m.ts) / 1000);
+    return `la vida anterior no se despidió; su última medida, ${hace} s antes: rss ${m.rss} MB, montón ${m.monton} de ${m.limite} MB`;
+  } catch { return ''; }
+}
+
 if (require.main === module) {
-  apuntarVida('arranca');
+  apuntarVida('arranca', pistaMuerteMuda());
   process.on('uncaughtException', (e) => {
     apuntarVida('excepción sin capturar', `${e && e.message} · ${String((e && e.stack) || '').split('\n')[1] || ''}`.trim());
     console.error('guardián: excepción sin capturar:', e);
@@ -1244,4 +1262,4 @@ if (require.main === module) {
   } else arrancar();
 }
 
-module.exports = { esDueno, lineaDuenos, _ficheroDueno: (f, g) => { FICHERO_DUENO = f; if (g) FICHERO_LIDS_DUENOS = g; _lidsDueno = { mtime: -1, lids: [] }; }, alDegradar, alCambioDeAdmin, alExpulsar, _olvidarPurgas: () => purgas.clear(), _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, _latidoBot: (f) => { LATIDO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _vigilarMemoria: vigilarMemoria, _MEMORIA: MEMORIA, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };
+module.exports = { esDueno, lineaDuenos, _ficheroDueno: (f, g) => { FICHERO_DUENO = f; if (g) FICHERO_LIDS_DUENOS = g; _lidsDueno = { mtime: -1, lids: [] }; }, alDegradar, alCambioDeAdmin, alExpulsar, _olvidarPurgas: () => purgas.clear(), _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, _latidoBot: (f) => { LATIDO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _vigilarMemoria: vigilarMemoria, _pistaMuerteMuda: pistaMuerteMuda, _MEMORIA: MEMORIA, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };

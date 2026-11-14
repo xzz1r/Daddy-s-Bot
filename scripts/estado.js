@@ -532,8 +532,20 @@ if (!bot) {
       for (let i = 1; i < vidas.length; i++) if (vidas[i].que === 'arranca' && vidas[i - 1].que === 'arranca') mudas++;
       const porMemoria = finales.filter((v) => v.que === 'memoria al límite').length;
       if (mudas) {
-        aviso(`el guardián murió ${mudas} vez/veces sin poder decir nada (de las últimas ${vidas.length} entradas)`,
-          'suele ser el montón de V8 lleno; desde el 8 nov se reinicia él antes y lo apunta como «memoria al límite». Si sigue saliendo: dmesg | grep -i kill');
+        // QUIÉN LO MATÓ (14 nov). Con el montón lejos del tope no es V8: es
+        // algo que no le deja despedirse. El registro del núcleo lo dice si el
+        // sistema se quedó sin RAM; se intenta leer sin pedir contraseña.
+        const oom = (sh('journalctl -k --since "-2 days" --no-pager 2>/dev/null | grep -i -E "killed process|out of memory" | tail -3', 15000)
+          || sh('dmesg 2>/dev/null | grep -i -E "killed process|out of memory" | tail -3', 15000) || '').trim();
+        const pista = [...vidas].reverse().find((v) => v.que === 'arranca' && /no se despidió/.test(v.detalle || ''));
+        if (oom) {
+          mal(`el guardián murió ${mudas} vez/veces sin despedirse, y el sistema dice que se quedó sin RAM: ${oom.split('\n').pop().slice(0, 140)}`,
+            'la VPS va justa de memoria: mira qué más corre (free -m, pm2 monit) o añade swap: sudo fallocate -l 1G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile');
+        } else {
+          aviso(`el guardián murió ${mudas} vez/veces sin poder decir nada (de las últimas ${vidas.length} entradas)`
+            + (pista ? ` · ${pista.detalle}` : ''),
+            'no es el montón de V8 (se despediría con «memoria al límite»). Pásale a quien mantenga el bot: sudo dmesg -T | grep -i -E "killed|memory" | tail -5');
+        }
       }
       if (porMemoria) {
         aviso(`el guardián se ha reiniciado ${porMemoria} vez/veces por memoria al límite (limpio, sin perder la sesión)`,

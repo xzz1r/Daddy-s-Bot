@@ -24668,6 +24668,13 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
         "  r.cifras = L.cifras();",
         "  r.lid = await Promise.race([L.revisarEnLote(sockU, X), new Promise((res) => setTimeout(() => res({ estado: 'tarde' }), 8000))]);",
         "  r.pedidosLid = pedidos;",
+        "  const BB = require('@whiskeysockets/baileys'); const det = BB.proto.VerifiedNameCertificate.Details.encode({ serial: 1, issuer: 'smb:wa', verifiedName: 'Tienda' }).finish(); const CERT = BB.proto.VerifiedNameCertificate.encode({ details: det, signature: Buffer.alloc(64) }).finish();",
+        "  const pares = []; const sockR = { signalRepository: { lidMapping: { storeLIDPNMappings: async (p) => { pares.push(...p); }, getPNForLID: async () => null } },",
+        "    executeUSyncQuery: async (q) => q.parseUSyncQueryResult({ tag: 'iq', attrs: { type: 'result' }, content: [{ tag: 'usync', attrs: {}, content: [{ tag: 'list', attrs: {}, content: [",
+        "      { tag: 'user', attrs: { jid: '91600000555@lid', pn_jid: '34655000160@s.whatsapp.net' }, content: [{ tag: 'business', attrs: {} }] },",
+        "      { tag: 'user', attrs: { jid: '91600000666@lid', pn_jid: '34666000160@s.whatsapp.net' }, content: [{ tag: 'business', attrs: {}, content: [{ tag: 'verified_name', attrs: {}, content: CERT }] }] } ] }] }] }) };",
+        "  const m2 = await L._consultar(sockR, ['34655000160@s.whatsapp.net', '34666000160@s.whatsapp.net']);",
+        "  r.porLid = Object.fromEntries([...m2].map(([k, v]) => [k.split('@')[0], v.estado])); r.pares = pares;",
         "  // la cuenta Business que no se puede abrir",
         "  st.initState && st.initState(); st.toggleAntiBusiness(G, true);",
         "  const mh = require('./src/handlers/messageHandler'); const ban = require('./src/utils/banlist');",
@@ -24706,6 +24713,13 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
           `quien WhatsApp no contesta (sin apartado o con error) vuelve a salir «sin nombre» y entra sin mirarse: ${JSON.stringify(r.lote)}`);
         exige(r.cifras.revisados === 2 && r.cifras.sinRespuesta === 2, `las cifras del lote cuentan como revisados a los que no contestaron: ${JSON.stringify(r.cifras)}`);
         exige(r.lid.estado === 'biz' && r.pedidosLid.includes('91600000999@lid'), `el lote no mira a quien solo trae @lid: ${JSON.stringify(r.lid)}`);
+        // 14 nov: WhatsApp contesta con el @lid en `jid` y el teléfono en
+        // `pn_jid`. Sin casar por las dos, una cuenta normal se quedaba sin
+        // respuesta y la entrada gastaba el cupo de perfiles.
+        exige(r.porLid['34655000160'] === 'sin-nombre' && r.porLid['34666000160'] === 'biz',
+          `una respuesta con el @lid no casa con el teléfono preguntado: ${JSON.stringify(r.porLid)}`);
+        exige(r.pares.length === 2 && r.pares.some((x) => x.lid === '91600000555@lid' && x.pn === '34655000160@s.whatsapp.net'),
+          `el par @lid ↔ teléfono que da WhatsApp en el lote no se apunta: ${JSON.stringify(r.pares)}`);
         exige(r.sinAbrir.salen.includes('remove 34611000160') && r.sinAbrir.salen.includes('borra S160A') && r.sinAbrir.vetado && /Anti-empresa/.test(r.sinAbrir.aviso),
           `una cuenta Business con un mensaje que no se puede abrir no se echa, no se veta o su mensaje no se borra: ${JSON.stringify(r.sinAbrir)}`);
         exige(r.sinAbrir.urgentes.includes('remove'), 'la expulsión de una cuenta Business no sale urgente');
@@ -24731,8 +24745,8 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     const bot161 = soloCodigo('src/bot.js');
     exige(/connection === 'open'[\s\S]{0,1500}pararClavesUnUso = clavesUnUso\.arrancar\(sock\)/.test(bot161),
       'el bot ya no repone sus claves de un solo uso al conectar: quien escribe no puede darle su clave de grupo');
-    exige(/node scripts\/parche-baileys-reintento\.js/.test(fs.readFileSync(path.join(R, 'scripts/actualizar.sh'), 'utf8')),
-      'npm run update ya no aplica el parche del reintento con claves');
+    exige(/for parche in scripts\/parche-baileys-\*\.js; do node "\$parche"/.test(fs.readFileSync(path.join(R, 'scripts/actualizar.sh'), 'utf8')),
+      'npm run update ya no aplica todos los parches de Baileys a la primera (el del reintento con claves incluido)');
     const est161 = soloCodigo('scripts/estado.js');
     exige(/claves de un solo uso del bot en el servidor/.test(est161) && /await sendRetryRequest\(node, !encNode\);/.test(est161),
       'npm run estado ya no dice cuántas claves de un solo uso quedan ni si falta el parche del reintento');
@@ -24805,6 +24819,43 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
       }
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     if (fallos === antes161) console.log(verde('   ✓ el bot repone sus claves de un solo uso, el primer reintento lleva sus claves, y nada depende del teléfono'));
+  }
+
+  // ── 162. UNA MUERTE MUDA DEL GUARDIÁN DEJA PISTA (14 nov) ─────────────────
+  // `npm run estado`: «el guardián murió 17 veces sin poder decir nada», con
+  // el montón en 41 MB de 102. No es V8. Al arrancar tras una muerte sin
+  // despedida, el guardián apunta su última medida de memoria, y estado mira
+  // si el sistema lo mató por falta de RAM. En sandbox.
+  {
+    console.log('\n162. UNA MUERTE MUDA DEL GUARDIÁN DEJA PISTA');
+    const antes162 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    exige(/apuntarVida\('arranca', pistaMuerteMuda\(\)\)/.test(soloCodigo('src/guardian.js')), 'el guardián ya no apunta la pista al arrancar tras una muerte muda');
+    exige(/journalctl -k[\s\S]{0,120}killed process/.test(soloCodigo('scripts/estado.js')), 'npm run estado ya no mira si el sistema mató al guardián por falta de RAM');
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'guardian162-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const ahora = Date.now();
+      const escribe = (vidas, med) => {
+        fs.writeFileSync(path.join(caja, 'data/guardianVidas.json'), JSON.stringify(vidas));
+        fs.writeFileSync(path.join(caja, 'data/guardianMemoria.json'), JSON.stringify(med));
+      };
+      const pista = () => {
+        const out = spawnSync('node', ['-e', "const g = require('./src/guardian'); console.log('R162' + JSON.stringify(g._pistaMuerteMuda())); process.exit(0);"],
+          { cwd: caja, encoding: 'utf8', timeout: 30000, env: { ...process.env, OWNER_NUMBER: '33600000162', LOG_LEVEL: 'error' } });
+        const l = (out.stdout || '').split('\n').find((x) => x.startsWith('R162'));
+        return l ? JSON.parse(l.slice(4)) : `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 3).join(' ')}`;
+      };
+      escribe([{ ts: ahora - 60000, que: 'arranca' }], [{ ts: ahora - 30000, rss: 180, monton: 40, limite: 102 }]);
+      const muda = pista();
+      escribe([{ ts: ahora - 60000, que: 'arranca' }, { ts: ahora - 50000, que: 'SIGTERM' }], [{ ts: ahora - 30000, rss: 90, monton: 40, limite: 102 }]);
+      const limpia = pista();
+      exige(/no se despidió/.test(muda) && /rss 180 MB/.test(muda) && /montón 40 de 102 MB/.test(muda), `tras una muerte muda no queda la última medida: «${muda}»`);
+      exige(limpia === '', `tras un final normal se apunta una pista de muerte muda: «${limpia}»`);
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes162) console.log(verde('   ✓ una muerte muda del guardián deja su última medida, y estado busca si fue el sistema sin RAM'));
   }
 
 

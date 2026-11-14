@@ -129,10 +129,32 @@ async function consultar(sock, telefonos) {
     return salida;
   }
   await esperar(turno());
-  const { USyncQuery, USyncUser } = require('@whiskeysockets/baileys');
+  const { USyncQuery, USyncUser, getBinaryNodeChild } = require('@whiskeysockets/baileys');
   const q = new USyncQuery().withMode('full').withContext('background');
   q.protocols.push(protocoloEmpresa());
   for (const t of telefonos) q.withUser(new USyncUser().withId(t));
+  // TODAS LAS FORMAS DE CADA UNO (14 nov). `npm run estado` en la VPS: «43
+  // revisados en 262 consultas, 43 Business». Se pregunta por el teléfono, y
+  // WhatsApp contesta a las cuentas normales con su @lid en `jid` y el
+  // teléfono aparte (`pn_jid`). Baileys solo guarda `jid`, así que la
+  // respuesta de una cuenta normal no casaba con nada, se quedaba
+  // 'desconocido' y la entrada se iba a mirar el perfil: los 1.109 topes del
+  // día. Aquí se guardan las formas que trae cada usuario.
+  const leer = q.parseUSyncQueryResult.bind(q);
+  q.parseUSyncQueryResult = (result) => {
+    const r = leer(result);
+    try {
+      const usync = getBinaryNodeChild(result, 'usync');
+      const lista = usync && getBinaryNodeChild(usync, 'list');
+      const formas = new Map();
+      for (const n of Array.isArray(lista?.content) ? lista.content : []) {
+        const a = n?.attrs || {};
+        if (a.jid) formas.set(a.jid, [a.jid, a.pn_jid, a.lid, a.phone_number].filter(Boolean));
+      }
+      for (const u of r?.list || []) u.formas = formas.get(u.id) || [u.id];
+    } catch { /* sin formas, se casa por `jid` como antes */ }
+    return r;
+  };
   let r = null;
   try { r = await withTimeout(sock.executeUSyncQuery(q), 20000); } catch (e) {
     logger.info(`empresa en lote: la consulta falló (${e?.message || e}); se sigue por el camino de siempre`);
@@ -147,15 +169,32 @@ async function consultar(sock, telefonos) {
   // es 'sin-nombre' lo que WhatsApp dice de verdad; lo demás, 'desconocido', y
   // quien llama sigue por el perfil.
   let sinApartado = 0;
+  const pares = [];
   for (const u of r?.list || []) {
-    const tel = bare(u.id);
-    if (!salida.has(tel)) continue;
+    const formas = [...new Set([u.id, ...(u.formas || [])].map(bare))];
+    let tel = formas.find((f) => salida.has(f));
+    // Y si solo vino el @lid, el teléfono que ya sabe Baileys (sin preguntar).
+    if (!tel) {
+      for (const f of formas.filter((x) => x.endsWith('@lid'))) {
+        const pn = await sock.signalRepository?.lidMapping?.getPNForLID?.(f).catch(() => null);
+        if (pn && salida.has(bare(pn))) { tel = bare(pn); break; }
+      }
+    }
+    if (!tel) continue;
+    const lid = formas.find((f) => f.endsWith('@lid'));
+    const pn = formas.find((f) => f.endsWith('@s.whatsapp.net'));
+    if (lid && pn) pares.push({ lid, pn });
     if (!u.business || u.business.error) { sinApartado++; continue; }
     const res = u.business.empresa ? { estado: 'biz', nombre: u.business.nombre || '' } : { estado: 'sin-nombre' };
     salida.set(tel, res);
     d.cifras.revisados++;
     if (res.estado === 'biz') d.cifras.empresas++;
     d.vistos[tel] = { e: res.estado, ts: Date.now() };
+  }
+  // El par @lid ↔ teléfono que acaba de dar WhatsApp se apunta donde lo busca
+  // Baileys: la misma persona, sabida para todo lo demás (claves, menciones).
+  if (pares.length) {
+    try { await sock.signalRepository?.lidMapping?.storeLIDPNMappings?.(pares); } catch { /* solo apunta */ }
   }
   if (sinApartado) {
     d.cifras.sinRespuesta = (d.cifras.sinRespuesta || 0) + sinApartado;

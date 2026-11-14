@@ -159,9 +159,11 @@ CUANTOS="$(git rev-list --count "${ANTES}..${DESPUES}" 2>/dev/null || echo 0)"
 # con esta máquina y su postinstall es de lo poco que puede tumbar un despliegue.
 npm install --omit=dev --ignore-scripts --no-fund --no-audit --loglevel=error
 paso "npm install"
-node scripts/parche-baileys-historial.js || true
-node scripts/parche-baileys-verunavez.js || true
-node scripts/parche-baileys-reintento.js || true
+# TODOS LOS PARCHES, POR SU NOMBRE (14 nov). Iban uno a uno, y este script
+# corre la versión de ANTES de bajar la nueva (ver main() arriba): un parche
+# nuevo no se aplicaba hasta la actualización siguiente. Con el comodín, el
+# fichero nuevo ya está en disco cuando se busca, y entra a la primera.
+for parche in scripts/parche-baileys-*.js; do node "$parche" || true; done
 
 # sharp y SUS BINARIOS. Se borraba la carpeta sharp pero no @img, que es donde
 # viven los binarios de verdad: 27 MB de libvips y un fallback WebAssembly que
