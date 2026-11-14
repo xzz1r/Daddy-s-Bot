@@ -24830,7 +24830,13 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     console.log('\n162. UNA MUERTE MUDA DEL GUARDIÁN DEJA PISTA');
     const antes162 = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
-    exige(/apuntarVida\('arranca', pistaMuerteMuda\(\)\)/.test(soloCodigo('src/guardian.js')), 'el guardián ya no apunta la pista al arrancar tras una muerte muda');
+    const g162 = soloCodigo('src/guardian.js');
+    exige(/apuntarVida\('arranca', pistaMuerteMuda\(\)\)/.test(g162), 'el guardián ya no apunta la pista al arrancar tras una muerte muda');
+    // La causa de las muertes mudas: la reconexión con unref dejaba al proceso
+    // sin nada pendiente y Node salía solo al caerse la conexión.
+    const prog162 = (g162.match(/function programarReconexion[\s\S]*?\n\}/) || [''])[0];
+    exige(prog162 && !/unref/.test(prog162), 'la reconexión del guardián vuelve a llevar unref: al caerse la conexión, el proceso sale solo sin despedirse');
+    exige(/process\.on\('exit'[\s\S]{0,120}finalApuntado/.test(g162), 'una salida del guardián sin motivo apuntado ya no deja rastro');
     exige(/journalctl -k[\s\S]{0,120}killed process/.test(soloCodigo('scripts/estado.js')), 'npm run estado ya no mira si el sistema mató al guardián por falta de RAM');
     const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'guardian162-'));
     try {

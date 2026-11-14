@@ -654,6 +654,17 @@ actualización siguiente: el del reintento se quedó fuera la primera vez. Desde
 el 14 nov se aplican con comodín (`scripts/parche-baileys-*.js`), y un parche
 nuevo entra a la primera.
 
+## Las muertes mudas del guardián (14 nov)
+
+`npm run estado`: «el guardián murió 16 veces sin poder decir nada», con el
+montón en 36 MB de 102 y `dmesg` limpio (el sistema no mató nada). La causa:
+al caerse la conexión con WhatsApp, la reconexión se programaba con un reloj
+con `unref`, el socket ya estaba cerrado y el resto de relojes también
+llevaban `unref`. Sin nada pendiente, Node salía solo con código 0, sin pasar
+por ningún manejador, y pm2 lo levantaba a los cinco segundos. La reconexión
+ya no lleva `unref`, y cualquier salida sin motivo apuntado deja «salida sin
+aviso» en el cuaderno. Capa 162.
+
 La cabecera se lee también por `status@broadcast`, y con todos los atributos
 de cada nodo (un `<unavailable type="…">` dice por qué no se manda). Marca de
 historia es `group_status` en la cabecera, nada más; por `status@broadcast`

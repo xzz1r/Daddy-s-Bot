@@ -218,7 +218,9 @@ const SALIDA_SESION_MUERTA = 78;
 const VIDAS = path.join(__dirname, '../data/guardianVidas.json');
 const VIDAS_QUE_CABEN = 20;
 
+let finalApuntado = false;
 function apuntarVida(que, detalle) {
+  if (que !== 'arranca') finalApuntado = true;
   try {
     let v = [];
     try { v = JSON.parse(fs.readFileSync(VIDAS, 'utf8')); } catch { /* aún no hay */ }
@@ -352,6 +354,11 @@ if (require.main === module) {
   for (const señal of ['SIGTERM', 'SIGINT']) {
     process.on(señal, () => { apuntarVida(señal, 'de fuera: despliegue, pm2 restart, o el tope de RAM'); process.exit(0); });
   }
+  // Y CUALQUIER OTRA SALIDA, TAMBIÉN (14 nov): si el proceso se va sin haber
+  // apuntado por qué —p. ej. porque se quedó sin nada pendiente—, se dice.
+  process.on('exit', (codigo) => {
+    if (!finalApuntado) apuntarVida('salida sin aviso', `código ${codigo}: el proceso se quedó sin nada pendiente o salió sin decirlo`);
+  });
   // La memoria, cada minuto (ver vigilarMemoria).
   let despidiendo = false;
   setInterval(() => {
@@ -1017,7 +1024,12 @@ function programarReconexion(ms) {
     reconexionPendiente = null;
     conectar().catch((e) => logger.error(`guardián: ${e.message}`));
   }, ms);
-  reconexionPendiente.unref?.();
+  // SIN unref (14 nov). Con él, al caerse la conexión no quedaba nada que
+  // mantuviera vivo el proceso —el socket ya cerrado, el resto de relojes con
+  // unref— y Node salía solo, con código 0 y sin despedirse, antes de que
+  // saltara la reconexión. pm2 lo levantaba a los cinco segundos: las
+  // «muertes mudas» de `npm run estado` (16 de 20). Esta espera es lo que
+  // mantiene al guardián en pie hasta volver a conectar.
 }
 
 async function conectar() {
