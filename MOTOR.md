@@ -1239,3 +1239,15 @@ caducado o lo que sobra se barre. Cada fallo al bajar deja su motivo en
 `data/fallosMedios.json` («sin clave», «enlace muerto y sin copia», «no se
 guardó al llegar»), y `npm run estado` lo resume. Capa 166.
 
+**Y si no llega la foto** (15 nov). Con la copia en disco, `!toimg` siguió
+fallando con una foto mandada el mismo minuto: al bot no le llegaba. WhatsApp
+no le manda el contenido de ver una vez a los dispositivos vinculados que se
+presentan como navegador, y el bot lo es por defecto (Baileys:
+`Browsers.macOS('Chrome')`). Baileys rc14 deja presentarse como Android
+(`Browsers.android`, PR «add android browser (can receive viewonce)»,
+experimental), y así sí llega. Está detrás de `WA_DISPOSITIVO=android` en el
+`.env`, apagado: cambia la huella del número y hay que volver a vincular (la
+sesión vieja se aparta con `mv`), y tras vincular, durante unas horas o días,
+muchos mensajes de grupo no se podrán abrir hasta que la gente le reparta su
+clave al dispositivo nuevo. Lo decide el dueño. Capa 167.
+

@@ -25135,6 +25135,25 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes166) console.log(verde('   ✓ las fotos de ver una vez se guardan en disco: salen tras un reinicio y aunque haya muchas, y lo caducado se borra'));
   }
 
+  // ── 167. EL BOT COMO ANDROID, SOLO CON WA_DISPOSITIVO=android (15 nov) ─────
+  // A un dispositivo vinculado que se presenta como navegador WhatsApp no le
+  // manda lo de ver una vez. Presentarse como Android (Baileys rc14) cambia la
+  // huella del número y obliga a vincular de nuevo: lo decide el dueño, y sin
+  // la variable el bot se presenta como siempre.
+  {
+    console.log('\n167. EL BOT COMO ANDROID, SOLO CON WA_DISPOSITIVO=android');
+    const antes167 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const b167 = soloCodigo('src/bot.js');
+    exige(/\.\.\.\(dispositivoAndroid\(\) \? \{ browser: Browsers\.android\('\d+'\) \} : \{\}\)/.test(b167),
+      'el bot ya no puede presentarse como Android con WA_DISPOSITIVO=android, o se presenta así siempre');
+    exige(!/^\s*browser:/m.test(b167), 'el bot fija su identidad de dispositivo a mano: cambiarla obliga a vincular de nuevo y es decisión del dueño');
+    const { Browsers } = require('@whiskeysockets/baileys');
+    exige(typeof Browsers.android === 'function' && Browsers.android('14')[1] === 'Android', 'la versión de Baileys ya no trae Browsers.android');
+    exige(/WA_DISPOSITIVO=\s*$/m.test(fs.readFileSync(path.join(R, '.env.example'), 'utf8')), '.env.example no explica WA_DISPOSITIVO, o lo trae encendido');
+    if (fallos === antes167) console.log(verde('   ✓ el bot solo se presenta como Android si el dueño pone WA_DISPOSITIVO=android'));
+  }
+
 
 
 

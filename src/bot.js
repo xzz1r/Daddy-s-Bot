@@ -6,6 +6,7 @@ const {
   getBinaryNodeChild,
   getHistoryMsg,
   downloadAndProcessHistorySyncNotification,
+  Browsers,
 } = require('@whiskeysockets/baileys');
 const pino = require('pino');
 const path = require('path');
@@ -188,6 +189,7 @@ const cabeceras = require('./utils/cabeceras');
 const rescateClaves = require('./utils/rescateClaves');
 const clavesUnUso = require('./utils/clavesUnUso');
 let pararClavesUnUso = null;
+const dispositivoAndroid = () => String(process.env.WA_DISPOSITIVO || '').trim().toLowerCase() === 'android';
 
 const AUTH_DIR = path.join(__dirname, '../data/auth');
 
@@ -871,6 +873,14 @@ async function connectToWhatsApp() {
 
   sock = makeWASocket({
     version,
+    // EL BOT COMO ANDROID, SOLO SI EL DUEÑO LO PIDE (15 nov). WhatsApp no le
+    // manda las fotos y vídeos de ver una vez a los dispositivos vinculados que
+    // se presentan como navegador (lo que es el bot por defecto), y sin la foto
+    // !s, !toimg y !tovid no tienen nada que convertir. Baileys rc14 deja
+    // presentarse como Android (`Browsers.android`, marcado experimental).
+    // Cambia la huella del número ante WhatsApp y obliga a volver a vincular,
+    // así que va apagado: WA_DISPOSITIVO=android en el .env y vincular de nuevo.
+    ...(dispositivoAndroid() ? { browser: Browsers.android('14') } : {}),
     logger: pino({ level: 'silent' }),
     auth: {
       creds: state.creds,
