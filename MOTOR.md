@@ -1225,3 +1225,17 @@ Si ni el suelo cabe, los fps tampoco se tocan (es requisito): se recorta la
 duración a lo que quepa y se codifica una vez más. Ese GIF sale a 384 px, q35,
 7,7 s y 961 KB. Dos pasadas de recorte, medio segundo como mínimo. La capa
 142 lo prueba.
+
+## Las fotos de ver una vez, en disco (15 nov)
+
+En el grupo del dueño todas las fotos van en ver una vez (es la regla, y el bot
+borra las que no). El bot guarda cada una al llegar, antes de mandar el
+acuse `played` que la marca «Abierta» y con el que muere el enlace, y `!s` y
+`!toimg` la sacan de esa copia. La copia vivía solo en memoria, con sitio para
+las ocho últimas, y cada reinicio la tiraba: responder a una foto de hace un
+rato fallaba siempre. Ahora va también a `data/verUnaVez/` (fuera del
+respaldo), con seis horas de vida, 400 ficheros y 300 MB como mucho; lo
+caducado o lo que sobra se barre. Cada fallo al bajar deja su motivo en
+`data/fallosMedios.json` («sin clave», «enlace muerto y sin copia», «no se
+guardó al llegar»), y `npm run estado` lo resume. Capa 166.
+

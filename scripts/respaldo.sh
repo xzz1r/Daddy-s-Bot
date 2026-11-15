@@ -48,6 +48,7 @@ set +e
 SALIDA_TAR="$(tar -czf "$FICHERO" \
   --exclude="$ORIGEN/music_cache" \
   --exclude="$ORIGEN/pfpcache" \
+  --exclude="$ORIGEN/verUnaVez" \
   --exclude="*.tmp" \
   "$ORIGEN" 2>&1)"
 CODIGO_TAR=$?

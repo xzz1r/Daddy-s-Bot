@@ -24,6 +24,93 @@ const ESPERA_ACUSE_MS = 45000;
 const TOPE_ENTRADAS = 8;
 const TOPE_BYTES = 36 * 1024 * 1024;
 const TTL_MS = 6 * 60 * 60 * 1000;
+
+// ─── Y EN DISCO, NO SOLO EN MEMORIA (15 nov) ────────────────────────────────
+//
+// El dueño, con el grupo riéndose del bot: «!s y !toimg no sacan nada». En
+// ese grupo TODAS las fotos van en ver una vez (es la regla, y el bot borra
+// las que no), y la copia de cada una vivía solo en memoria, con sitio para
+// las OCHO últimas. Responder a una foto de hace un rato ya no la encontraba,
+// y como el enlace de WhatsApp muere al marcarla «Abierta», no había de dónde
+// sacarla. Y cada reinicio del bot las tiraba todas.
+//
+// Ahora cada copia se escribe también en data/verUnaVez/ (fuera del
+// respaldo: se regenera sola y no salva nada). Con las mismas seis horas de
+// vida y un tope de ficheros y de megas; lo que caduca o sobra se borra.
+const path = require('path');
+const fsp = require('fs').promises;
+const fsSync = require('fs');
+let DIR_DISCO = path.join(__dirname, '../../data/verUnaVez');
+const TOPE_DISCO_FICHEROS = 400;
+const TOPE_DISCO_BYTES = 300 * 1024 * 1024;
+const BARRER_CADA_MS = 10 * 60 * 1000;
+let ultimoBarrido = 0;
+
+const nombreDisco = (id) => String(id || '').split('|').pop().replace(/[^A-Za-z0-9_-]/g, '').slice(0, 80);
+const rutaDisco = (id) => {
+  const n = nombreDisco(id);
+  return n ? path.join(DIR_DISCO, `${n}.bin`) : null;
+};
+
+async function escribirDisco(id, buf) {
+  const ruta = rutaDisco(id);
+  if (!ruta) return;
+  try {
+    await fsp.mkdir(DIR_DISCO, { recursive: true });
+    const tmp = `${ruta}.${process.pid}.tmp`;
+    await fsp.writeFile(tmp, buf);
+    await fsp.rename(tmp, ruta);
+  } catch (e) {
+    logger.info(`ver una vez: no pude guardar la copia en disco (${e?.message || e})`);
+  }
+  if (Date.now() - ultimoBarrido > BARRER_CADA_MS) barrerDisco().catch(() => {});
+}
+
+function hayEnDisco(id) {
+  const ruta = rutaDisco(id);
+  if (!ruta) return false;
+  try { return Date.now() - fsSync.statSync(ruta).mtimeMs <= TTL_MS; } catch { return false; }
+}
+
+async function leerDisco(ids) {
+  for (const id of ids) {
+    const ruta = rutaDisco(id);
+    if (!ruta) continue;
+    try {
+      const st = await fsp.stat(ruta);
+      if (Date.now() - st.mtimeMs > TTL_MS) { await fsp.unlink(ruta).catch(() => {}); continue; }
+      const buf = await fsp.readFile(ruta);
+      if (buf.length >= 100) return { id: nombreDisco(id), buf };
+    } catch { /* no está */ }
+  }
+  return null;
+}
+
+// Fuera lo caducado, y si aun así se pasa del tope, lo más viejo.
+async function barrerDisco() {
+  ultimoBarrido = Date.now();
+  let nombres = [];
+  try { nombres = await fsp.readdir(DIR_DISCO); } catch { return 0; }
+  const vivos = [];
+  let borrados = 0;
+  for (const n of nombres) {
+    const ruta = path.join(DIR_DISCO, n);
+    try {
+      const st = await fsp.stat(ruta);
+      const viejoTmp = n.endsWith('.tmp') && Date.now() - st.mtimeMs > 60 * 1000;
+      if (viejoTmp || Date.now() - st.mtimeMs > TTL_MS) { await fsp.unlink(ruta); borrados++; continue; }
+      if (n.endsWith('.bin')) vivos.push({ ruta, ts: st.mtimeMs, tam: st.size });
+    } catch { /* ya no está */ }
+  }
+  vivos.sort((a, b) => a.ts - b.ts);
+  let total = vivos.reduce((a, v) => a + v.tam, 0);
+  while (vivos.length && (vivos.length > TOPE_DISCO_FICHEROS || total > TOPE_DISCO_BYTES)) {
+    const v = vivos.shift();
+    total -= v.tam;
+    await fsp.unlink(v.ruta).then(() => { borrados++; }, () => {});
+  }
+  return borrados;
+}
 const MAX_CAPAS = 6;
 
 let pedir = (nodo, tipo) => downloadContentFromMessage(nodo, tipo);
@@ -45,6 +132,8 @@ function _vaciar() {
   bytes = 0;
   cola = Promise.resolve();
   pedir = (nodo, tipo) => downloadContentFromMessage(nodo, tipo);
+  // Y las copias en disco: una prueba que vacía empieza de cero.
+  try { for (const n of fsSync.readdirSync(DIR_DISCO)) fsSync.unlinkSync(path.join(DIR_DISCO, n)); } catch { /* no hay */ }
 }
 
 function clavesDe(remoteJid, id) {
@@ -62,6 +151,7 @@ function soltar(id) {
 
 function guardar(remoteJid, id, buf) {
   if (!id || !buf || buf.length < 100 || buf.length > MAX_MEDIA_BYTES) return;
+  escribirDisco(id, buf).catch(() => {});
   soltar(id);
   porId.set(id, { buf, ts: Date.now() });
   bytes += buf.length;
@@ -247,7 +337,41 @@ function mensajeDelMedio(sock, msg, origen) {
   };
 }
 
+// POR QUÉ FALLÓ, PARA `npm run estado` (15 nov). El dueño no tiene por qué
+// buscar en el log: cada fallo de /s o /toimg al bajar deja aquí su motivo, sin
+// contenido ni números, y estado lo resume.
+let FICHERO_FALLOS = path.join(__dirname, '../../data/fallosMedios.json');
+function apuntarFallo(motivo) {
+  try {
+    let v = [];
+    try { v = JSON.parse(fsSync.readFileSync(FICHERO_FALLOS, 'utf8')); } catch { v = []; }
+    if (!Array.isArray(v)) v = [];
+    v.push({ ts: Date.now(), motivo });
+    fsSync.mkdirSync(path.dirname(FICHERO_FALLOS), { recursive: true });
+    fsSync.writeFileSync(FICHERO_FALLOS, JSON.stringify(v.slice(-100)));
+  } catch { /* contar no tumba nada */ }
+}
+function fallos(horas = 24) {
+  try {
+    const desde = Date.now() - horas * 3600000;
+    const v = JSON.parse(fsSync.readFileSync(FICHERO_FALLOS, 'utf8'));
+    return (Array.isArray(v) ? v : []).filter((x) => x.ts >= desde);
+  } catch { return []; }
+}
+
 async function bajar(sock, msg, found, origen, opts = {}) {
+  try {
+    return await bajarSinApuntar(sock, msg, found, origen, opts);
+  } catch (e) {
+    if (opts.unirse !== false) {
+      const nodo = found?.msg || found?.data;
+      apuntarFallo(!nodo?.mediaKey ? 'sin clave' : e?.resubida ? 'enlace muerto y sin copia' : 'descarga');
+    }
+    throw e;
+  }
+}
+
+async function bajarSinApuntar(sock, msg, found, origen, opts = {}) {
   const unirse = opts.unirse !== false;
   const ids = idsRelacionados(msg, origen);
   if (unirse) {
@@ -262,6 +386,13 @@ async function bajar(sock, msg, found, origen, opts = {}) {
       await Promise.all(pendientes.map((p) => Promise.resolve(p).catch(() => null)));
       const tras = tomar(ids);
       if (tras) return tras;
+    }
+    // La copia en disco: la de hace un rato, o la de antes de un reinicio.
+    const delDisco = await leerDisco(ids);
+    if (delDisco) {
+      porId.set(delDisco.id, { buf: delDisco.buf, ts: Date.now() });
+      bytes += delDisco.buf.length;
+      return delDisco.buf;
     }
   }
 
@@ -280,7 +411,7 @@ async function bajar(sock, msg, found, origen, opts = {}) {
       espera = setTimeout(() => no(new Error('el móvil no contestó a la resubida')), ESPERA_RESUBIDA_MS);
     });
     try {
-      const nuevo = await Promise.race([sock.updateMediaMessage(original), tope]);
+      const nuevo = await Promise.race([sock.updateMediaMessage(original), tope]).catch((e) => { if (e) e.resubida = true; throw e; });
       const otra = clasificar(nuevo?.message) || found;
       const nodo2 = otra.msg || otra.data || nodo;
       // El tipo es el del nodo renovado. Pedirlo con el de antes deriva otra
@@ -297,7 +428,7 @@ async function bajar(sock, msg, found, origen, opts = {}) {
 
 function archivarVerUnaVez(sock, msg) {
   const id = msg?.key?.id;
-  if (!id || vuelos.has(id) || tomar([id])) return;
+  if (!id || vuelos.has(id) || tomar([id]) || hayEnDisco(id)) return;
   const found = clasificar(msg.message);
   // Un webp llega con type sticker y dl image/document: también es una foto.
   // El sticker de bandeja (dl sticker) no: /s no lo convierte, lo reestampa.
@@ -309,6 +440,7 @@ function archivarVerUnaVez(sock, msg) {
   found.verUnaVez = true;
   const p = encolar(() => bajar(sock, msg, found, 'propio', { unirse: false }).catch((e) => {
     logger.info(`ver una vez: no se pudo guardar al llegar (${e?.message || e})`);
+    apuntarFallo('no se guardó al llegar');
     return null;
   }));
   vuelos.set(id, p);
@@ -328,6 +460,9 @@ function esperaArchivo(id) {
 }
 
 module.exports = {
-  clasificar, bajar, archivarVerUnaVez, esperaArchivo, citaDe,
+  clasificar, bajar, archivarVerUnaVez, esperaArchivo, citaDe, barrerDisco, fallos,
   _usarDescarga, _vaciar, _guardar,
+  _usarDisco: (dir) => { DIR_DISCO = dir; ultimoBarrido = 0; FICHERO_FALLOS = path.join(dir, '..', 'fallosMedios.json'); },
+  _olvidarMemoria: () => { porId.clear(); alias.clear(); vuelos.clear(); bytes = 0; },
+  _rutaDisco: rutaDisco,
 };

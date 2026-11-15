@@ -25050,6 +25050,91 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes165) console.log(verde('   ✓ el límite por segundo se espera, el cupo del mes se dice como cupo y una key sin acceso no se confunde'));
   }
 
+  // ── 166. LAS FOTOS DE VER UNA VEZ, GUARDADAS EN DISCO (15 nov) ──────────────
+  // El dueño: «!s y !toimg no sacan nada». En su grupo todas las fotos van en
+  // ver una vez (es la regla), y la copia de cada una vivía solo en memoria,
+  // con sitio para las ocho últimas: responder a una de hace un rato, o tras un
+  // reinicio, no la encontraba, y el enlace de WhatsApp ya estaba muerto. Ahora
+  // van también a data/verUnaVez/ (fuera del respaldo), con seis horas de vida
+  // y su tope. En sandbox: doce fotos, reinicio, enlace muerto, y la primera
+  // sale igual; lo caducado no se sirve y se barre.
+  {
+    console.log('\n166. LAS FOTOS DE VER UNA VEZ, GUARDADAS EN DISCO');
+    const antes166 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    exige(/--exclude="\$ORIGEN\/verUnaVez"/.test(fs.readFileSync(path.join(R, 'scripts/respaldo.sh'), 'utf8')),
+      'el respaldo vuelve a meter las copias de ver una vez: hasta 300 MB que el bot regenera solo');
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'vu166-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data')); fs.mkdirSync(path.join(caja, 'temp'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const fs = require('fs'); const path = require('path'); const { Readable } = require('stream'); const { execFileSync } = require('child_process');",
+        "const { ffmpegPath } = require('./src/utils/ffmpeg');",
+        "const VU = require('./src/utils/verUnaVez');",
+        "const DISCO = path.join(process.cwd(), 'data', 'verUnaVez');",
+        "VU._usarDisco(DISCO); VU._vaciar(); VU._usarDisco(DISCO);",
+        "const D = path.join(process.cwd(), 'medios'); fs.mkdirSync(D, { recursive: true });",
+        "const fotos = [];",
+        "for (let i = 0; i < 12; i++) {",
+        "  const f = path.join(D, `f${i}.jpg`);",
+        "  execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi', '-i', `color=c=0x${(i * 20).toString(16).padStart(2, '0')}4080:s=320x240`, '-frames:v', '1', f]);",
+        "  fotos.push(fs.readFileSync(f));",
+        "}",
+        "let muerto = false; let porDescargar = null;",
+        "VU._usarDescarga(async () => { if (muerto) throw new Error('403 el enlace ya no vale'); return Readable.from([porDescargar]); });",
+        "const G = '120363000000166001@g.us', A = '34611000166@s.whatsapp.net', B = '34622000166@s.whatsapp.net', BOT = '34600000166@s.whatsapp.net';",
+        "const nodo = () => ({ url: 'https://mmg.whatsapp.net/x', directPath: '/x', mediaKey: Buffer.alloc(32, 1), mimetype: 'image/jpeg', viewOnce: true });",
+        "const llega = (i) => ({ key: { remoteJid: G, id: 'VU166' + i, participant: A }, message: { viewOnceMessageV2: { message: { imageMessage: nodo() } } } });",
+        "const responde = (i, texto) => ({ key: { remoteJid: G, id: 'R166' + i, participant: B }, message: { extendedTextMessage: { text: texto, contextInfo: { stanzaId: 'VU166' + i, participant: A, quotedMessage: { viewOnceMessageV2: { message: { imageMessage: nodo() } } } } } } });",
+        "(async () => {",
+        "  const r = {};",
+        "  const sock = { user: { id: BOT } };",
+        "  for (let i = 0; i < 12; i++) { porDescargar = fotos[i]; VU.archivarVerUnaVez(sock, llega(i)); await VU.esperaArchivo('VU166' + i); }",
+        "  await new Promise((res) => setTimeout(res, 300));",
+        "  r.enDisco = fs.readdirSync(DISCO).filter((n) => n.endsWith('.bin')).length;",
+        "  // Reinicio del bot y enlace muerto: solo queda el disco.",
+        "  VU._olvidarMemoria(); muerto = true;",
+        "  const f = VU.clasificar(responde(0).message.extendedTextMessage.contextInfo.quotedMessage);",
+        "  r.primera = await VU.bajar(sock, responde(0, '!toimg'), f, 'cita').then((b) => b.equals(fotos[0]), (e) => 'falla: ' + e.message);",
+        "  r.ultima = await VU.bajar(sock, responde(11, '!s'), f, 'cita').then((b) => b.equals(fotos[11]), (e) => 'falla: ' + e.message);",
+        "  // Y con el comando de verdad.",
+        "  const { cmdToImg } = require('./src/commands/toimg');",
+        "  let salida = null;",
+        "  const sockT = { user: { id: BOT }, sendMessage: async (j, c) => { salida = c; return { key: { id: 'x' } }; } };",
+        "  const meta = { id: G, participants: [{ id: BOT, admin: 'admin' }, { id: B, admin: 'superadmin' }, { id: A }] };",
+        "  await cmdToImg(sockT, responde(3, '!toimg'), meta);",
+        "  r.toimg = salida ? Object.keys(salida).filter((k) => k !== 'mentions') : null; r.toimgTxt = salida && salida.text;",
+        "  // Caducada: no se sirve y el barrido la quita.",
+        "  const ruta = VU._rutaDisco('VU1665');",
+        "  const viejo = (Date.now() - 7 * 3600 * 1000) / 1000; fs.utimesSync(ruta, viejo, viejo);",
+        "  r.caducada = await VU.bajar(sock, responde(5, '!s'), f, 'cita').then(() => 'la sirvió', () => 'no');",
+        "  await VU.barrerDisco();",
+        "  r.barrida = !fs.existsSync(ruta);",
+        "  const sinClave = { key: { remoteJid: G, id: 'R166x', participant: B }, message: { extendedTextMessage: { text: '!toimg', contextInfo: { stanzaId: 'VU166nada', participant: A, quotedMessage: { viewOnceMessageV2: { message: { imageMessage: { mimetype: 'image/jpeg', viewOnce: true } } } } } } } };",
+        "  await VU.bajar(sock, sinClave, VU.clasificar(sinClave.message.extendedTextMessage.contextInfo.quotedMessage), 'cita').catch(() => null);",
+        "  r.fallos = VU.fallos(24).map((x) => x.motivo);",
+        "  console.log('R166' + JSON.stringify(r)); process.exit(0);",
+        "})().catch((e) => { console.log('R166' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 90000,
+        env: { ...process.env, OWNER_NUMBER: '34622000166', CO_OWNERS: '', LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R166'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(r.enDisco === 12, `de doce fotos de ver una vez se guardan ${r.enDisco} en disco`);
+        exige(r.primera === true, `tras un reinicio y con el enlace muerto, la foto de hace doce no sale: ${r.primera}`);
+        exige(r.ultima === true, `la última foto no sale de la copia: ${r.ultima}`);
+        exige(Array.isArray(r.toimg) && r.toimg.includes('image'), `!toimg respondiendo a una foto de ver una vez guardada no la devuelve: ${r.toimgTxt || JSON.stringify(r.toimg)}`);
+        exige(r.caducada === 'no' && r.barrida, 'una copia de más de seis horas se sigue sirviendo, o el barrido no la quita');
+        exige(Array.isArray(r.fallos) && r.fallos.includes('sin clave'), `un !toimg sobre una foto que llegó sin clave no queda apuntado con su motivo para npm run estado: ${JSON.stringify(r.fallos)}`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes166) console.log(verde('   ✓ las fotos de ver una vez se guardan en disco: salen tras un reinicio y aunque haya muchas, y lo caducado se borra'));
+  }
+
 
 
 
