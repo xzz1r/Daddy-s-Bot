@@ -392,20 +392,6 @@ async function bajarSinApuntar(sock, msg, found, origen, opts = {}) {
       const tras = tomar(ids);
       if (tras) return tras;
     }
-    // Si WhatsApp no se la mandó y se le pidió al teléfono hace nada, se
-    // espera a que la devuelva (entra por messages.upsert y se archiva).
-    const ne = noEntregadaDe(ids);
-    if (ne && ne.pedida) {
-      const hasta = ne.ts + ESPERA_TELEFONO_MS;
-      while (Date.now() < hasta) {
-        const vuelo = ids.map((id) => vuelos.get(id)).find(Boolean);
-        if (vuelo) { await Promise.resolve(vuelo).catch(() => null); break; }
-        if (tomar(ids)) break;
-        await new Promise((r) => setTimeout(r, 250));
-      }
-      const tras = tomar(ids);
-      if (tras) return tras;
-    }
     // La copia en disco: la de hace un rato, o la de antes de un reinicio.
     const delDisco = await leerDisco(ids);
     if (delDisco) {
@@ -468,16 +454,23 @@ async function bajarSinApuntar(sock, msg, found, origen, opts = {}) {
 // que debe pasar. Nada cambia para ningún otro mensaje.
 //
 // Si de una foto SOLO llega el aviso (WhatsApp no mandó la de verdad, o no se
-// pudo abrir), se dice en el log como WARN, se apunta para `npm run estado`,
-// se le pide al teléfono del número por si está encendido (placeholder
-// resend, como WhatsApp Web) y /s y /toimg contestan NO_ENTREGADA.
+// pudo abrir), se dice en el log como WARN, se apunta para `npm run estado` y
+// /s y /toimg contestan NO_ENTREGADA. En la VPS del dueño es lo que pasa: a
+// este bot WhatsApp no le manda la foto (15 nov, «la foto no llegó»). Al
+// teléfono del número no se le pide: se probó (placeholder resend, como
+// WhatsApp Web) y no la devuelve, y el dueño no quiere depender de él.
+//
+// LA FOTO DENTRO DE UNA RESPUESTA (15 nov). Es como la sacan los otros bots:
+// quien responde a una foto de ver una vez lleva la foto citada en su
+// mensaje, con su clave, si su móvil la tiene (sin abrirla, y si no es suya).
+// `guardarDeCita` la guarda bajo el id de la foto venga en la respuesta que
+// venga, sea un comando o un «jaja»; así el /toimg de después la encuentra
+// aunque la cita de quien lo escribe venga sin clave.
 const NO_ENTREGADA_MS = 6 * 60 * 60 * 1000;
-const ESPERA_TELEFONO_MS = 10000;
-const MAX_EDAD_PEDIR_S = 14 * 24 * 60 * 60;
 const VIDA_IDS_MS = 30 * 60 * 1000;
 const TOPE_IDS = 2000;
 let ESPERA_SOLO_AVISO_MS = 8000;
-const noEntregadas = new Map(); // id -> { ts, pedida }
+const noEntregadas = new Map(); // id -> { ts }
 const conContenido = new Map(); // id -> { ts }: llegó la foto de verdad
 const crudas = new Map(); // id -> { enc, aviso, ts }: lo que trajo el socket
 // Lo que contestan /s y /toimg cuando es eso: no es un fallo de descarga.
@@ -563,6 +556,36 @@ function anotarStanza(node) {
   } catch { /* mirar no tumba nada */ }
 }
 
+// La foto de ver una vez citada en una respuesta, si trae con qué bajarla
+// (ver arriba). Se mira también dentro de un mensaje temporal.
+function citaCruda(m) {
+  const msg = m?.message;
+  if (!msg) return null;
+  return citaDe({ message: msg })
+    || citaDe({ message: msg.ephemeralMessage?.message })
+    || citaDe({ message: msg.documentWithCaptionMessage?.message });
+}
+function guardarDeCita(sock, m) {
+  try {
+    const ctx = citaCruda(m);
+    if (!ctx?.stanzaId || !ctx.quotedMessage) return false;
+    const id = String(ctx.stanzaId);
+    if (vuelos.has(id) || tomar([id]) || hayEnDisco(id)) return false;
+    const found = clasificar(ctx.quotedMessage);
+    if (!found || !esVista(found)) return false;
+    const nodo = found.msg || found.data;
+    if (!nodo?.mediaKey || !(nodo.directPath || nodo.url)) return false;
+    recordarId(conContenido, id, { ts: Date.now() });
+    noEntregadas.delete(id);
+    apuntarEvento('foto desde una respuesta');
+    archivarVerUnaVez(sock, {
+      key: { remoteJid: m.key?.remoteJid, id, participant: ctx.participant, fromMe: false },
+      message: ctx.quotedMessage,
+    });
+    return true;
+  } catch { return false; }
+}
+
 // Envuelve `sock.ev.emit` (ver arriba). Una vez por socket.
 function instalarFiltro(sock, { noEnviado = () => '' } = {}) {
   const ev = sock && sock.ev;
@@ -588,6 +611,7 @@ function instalarFiltro(sock, { noEnviado = () => '' } = {}) {
             apuntarEvento('aviso vacío apartado');
             continue;
           }
+          if (m?.message) guardarDeCita(sock, m);
           quedan.push(m);
         }
         if (!quedan.length) return true;
@@ -608,18 +632,7 @@ function apuntarLlegada(msg, tipo, sock = null, noEnviado = '') {
       const id = msg.key?.id ? String(msg.key.id) : '';
       if (!id || noEntregadas.has(id) || conContenido.has(id)) return;
       for (const [k, v] of noEntregadas) if (Date.now() - v.ts > NO_ENTREGADA_MS) noEntregadas.delete(k);
-      const info = { ts: Date.now(), pedida: false };
-      noEntregadas.set(id, info);
-      const ts = Number(typeof msg.messageTimestamp?.toNumber === 'function' ? msg.messageTimestamp.toNumber() : msg.messageTimestamp) || 0;
-      const reciente = !ts || Date.now() / 1000 - ts < MAX_EDAD_PEDIR_S;
-      if (reciente && sock && typeof sock.requestPlaceholderResend === 'function') {
-        info.pedida = true;
-        const k = msg.key;
-        Promise.resolve(sock.requestPlaceholderResend(
-          { remoteJid: k.remoteJid, fromMe: Boolean(k.fromMe), id: k.id, participant: k.participant },
-          { key: k, messageTimestamp: msg.messageTimestamp, pushName: msg.pushName, participant: msg.participant },
-        )).catch((e) => logger.info(`ver una vez: no pude pedirle la foto al teléfono (${e?.message || e})`));
-      }
+      noEntregadas.set(id, { ts: Date.now() });
       // Si la foto llega detrás, no hay nada que decir. Si no, se dice.
       const t = setTimeout(() => {
         try {
@@ -628,8 +641,7 @@ function apuntarLlegada(msg, tipo, sock = null, noEnviado = '') {
           apuntarFallo('WhatsApp no se la mandó al bot');
           apuntarEvento('solo el aviso vacío');
           logger.warn(`ver una vez: de ${id} al bot solo le llegó el aviso vacío (${noEnviado || 'view_once'}, ${tipo || '?'}); `
-            + (cruda?.enc ? 'la foto llegó cifrada y no se pudo abrir' : 'la foto no llegó')
-            + (info.pedida ? '; se le pidió al teléfono del número' : ''));
+            + (cruda?.enc ? 'la foto llegó cifrada y no se pudo abrir' : 'la foto no llegó'));
         } catch { /* contar no tumba nada */ }
       }, ESPERA_SOLO_AVISO_MS);
       t.unref?.();

@@ -143,8 +143,11 @@ segundo sustituye al primero, y el bot solo veía el aviso. `instalarFiltro`
 (`src/utils/verUnaVez.js`) envuelve `sock.ev.emit` nada más crear el socket:
 la foto se guarda al aparecer y el aviso de una foto que ya llegó no entra.
 No se quita ni se pone detrás de un `await`. **No se pasa el bot a Android
-para esto** (dueño, 15 nov). Las fotos de ver una vez tampoco reciben el
-visto (capa 115). Capas 169 y 170; ver `MOTOR.md`.
+para esto** (dueño, 15 nov), y al teléfono del número no se le piden (no las
+devuelve). En la VPS del dueño a este bot solo le llega el aviso: la vía es
+la foto citada en una respuesta, que se guarda venga en la respuesta que
+venga (`guardarDeCita`). Las fotos de ver una vez tampoco reciben el visto
+(capa 115). Capas 169 y 170; ver `MOTOR.md`.
 
 ## Historias de grupo: se abren, se reconocen y se quitan
 

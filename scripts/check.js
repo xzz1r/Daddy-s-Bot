@@ -25285,21 +25285,24 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes168) console.log(verde('   ✓ !wipe interlude 30 borra en ese grupo desde el privado del dueño o desde otro grupo, y el !limpiar de siempre sigue igual'));
   }
 
-  // ── 169. LA FOTO DE VER UNA VEZ QUE WHATSAPP NO LE MANDA AL BOT (15 nov) ────
+  // ── 169. LA FOTO DE VER UNA VEZ QUE NO LLEGA, Y LA QUE VIENE EN UNA RESPUESTA ─
   // Alerta roja del dueño: /toimg y /s no sacan nada de una foto de ver una
-  // vez mandada el mismo minuto. A un dispositivo vinculado como navegador
-  // WhatsApp le manda el mensaje vacío con `<unavailable type="view_once">`;
-  // Baileys marca key.isViewOnce, no lo da por mensaje sin abrir y no pide
-  // nada, y handleMessage lo tiraba sin dejar rastro. Ahora se reconoce (también
-  // como `view_once_unavailable_fanout` en la cabecera), se apunta, se le pide
-  // la foto al teléfono del número y, si la devuelve en unos segundos, /toimg
-  // la saca; si no, /s y /toimg dicen lo que pasa. En sandbox.
+  // vez. En su VPS, a este bot WhatsApp solo le manda el aviso vacío
+  // (`<unavailable type="view_once">`): la foto no llega. Se reconoce (también
+  // como `view_once_unavailable_fanout` en la cabecera), se apunta y /s y
+  // /toimg lo dicen; al teléfono no se le pide nada (no la devuelve y el dueño
+  // no quiere depender de él). La vía que queda es la de los otros bots: la
+  // foto citada en una respuesta, con su clave. Se guarda de cualquier
+  // respuesta que la traiga, y /toimg la saca aunque su propia cita no la
+  // lleve. En sandbox.
   {
-    console.log('\n169. LA FOTO DE VER UNA VEZ QUE WHATSAPP NO LE MANDA AL BOT');
+    console.log('\n169. LA FOTO DE VER UNA VEZ QUE NO LLEGA, Y LA QUE VIENE EN UNA RESPUESTA');
     const antes169 = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
     exige(/verUnaVez\.apuntarLlegada\(msg, type, sock, cabeceras\.noEnviado\(cabeceras\.de\(msg\?\.key\?\.id\)\)\)/.test(soloCodigo('src/bot.js')),
       'el socket ya no le pasa al detector de ver una vez el aviso vacío y su cabecera');
+    exige(!/requestPlaceholderResend/.test(soloCodigo('src/utils/verUnaVez.js')),
+      'el bot vuelve a pedirle las fotos de ver una vez al teléfono del número: no las devuelve y el dueño no quiere depender de él');
     const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'vu169-'));
     try {
       fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
@@ -25315,42 +25318,48 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
         "execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi', '-i', 'color=c=0x804020:s=320x240', '-frames:v', '1', f]);",
         "const foto = fs.readFileSync(f);",
         "VU._usarDescarga(async (n) => { if (!n || (!n.directPath && !n.url) || !n.mediaKey) throw new Error('No valid media URL or directPath present in message'); return Readable.from([foto]); });",
-        "const G = '120363000000169001@g.us', A = '34611000169@s.whatsapp.net', B = '34622000169@s.whatsapp.net', BOT = '34600000169@s.whatsapp.net';",
+        "const G = '120363000000169001@g.us', A = '34611000169@s.whatsapp.net', B = '34622000169@s.whatsapp.net', C = '34633000169@s.whatsapp.net', BOT = '34600000169@s.whatsapp.net';",
         "const ahora = () => Math.floor(Date.now() / 1000);",
+        "const dormir = (ms) => new Promise((res) => setTimeout(res, ms));",
         "const vacia = (id) => ({ key: { remoteJid: G, id, participant: A, isViewOnce: true }, messageTimestamp: ahora() });",
         "const stub = (id) => ({ key: { remoteJid: G, id, participant: A }, messageTimestamp: ahora(), messageStubType: 2, messageStubParameters: ['Message absent from node'] });",
-        "const llena = (id) => ({ key: { remoteJid: G, id, participant: A }, message: { viewOnceMessageV2: { message: { imageMessage: { url: 'https://mmg.whatsapp.net/x', directPath: '/x', mediaKey: Buffer.alloc(32, 1), mimetype: 'image/jpeg', viewOnce: true } } } } });",
-        "const responde = (id, texto) => ({ key: { remoteJid: G, id: 'R' + id + texto.length, participant: B }, messageTimestamp: ahora(), message: { extendedTextMessage: { text: texto, contextInfo: { stanzaId: id, participant: A, quotedMessage: { viewOnceMessageV2: { message: { imageMessage: { mimetype: 'image/jpeg', viewOnce: true } } } } } } } });",
-        "const meta = { id: G, participants: [{ id: BOT, admin: 'admin' }, { id: B, admin: 'superadmin' }, { id: A }] };",
+        "const conClave = () => ({ viewOnceMessageV2: { message: { imageMessage: { url: 'https://mmg.whatsapp.net/x', directPath: '/x', mediaKey: Buffer.alloc(32, 1), mimetype: 'image/jpeg', viewOnce: true } } } });",
+        "const sinClave = () => ({ viewOnceMessageV2: { message: { imageMessage: { mimetype: 'image/jpeg', viewOnce: true } } } });",
+        "let n = 0;",
+        "const responde = (id, texto, quien, cita) => ({ key: { remoteJid: G, id: 'R' + (++n), participant: quien }, messageTimestamp: ahora(), message: { extendedTextMessage: { text: texto, contextInfo: { stanzaId: id, participant: A, quotedMessage: cita } } } });",
+        "const meta = { id: G, participants: [{ id: BOT, admin: 'admin' }, { id: B, admin: 'superadmin' }, { id: A }, { id: C }] };",
         "const { cmdToImg } = require('./src/commands/toimg');",
         "const { cmdSticker } = require('./src/commands/sticker');",
-        "const salidas = (pedidos) => { const out = []; return { out, sock: { user: { id: BOT }, sendMessage: async (j, c) => { out.push(c); return { key: { id: 'x' } }; }, ...(pedidos ? { requestPlaceholderResend: async (k) => { pedidos.push(k); } } : {}) } }; };",
+        "const salidas = () => { const out = []; const pedidos = []; return { out, pedidos, sock: { user: { id: BOT }, requestPlaceholderResend: async (k) => { pedidos.push(k.id); }, sendMessage: async (j, c) => { out.push(c); return { key: { id: 'x' } }; } } }; };",
+        "const resumen = (out) => out.map((c) => Object.keys(c).filter((k) => k !== 'mentions').join('+') + (c.text ? ':' + c.text : ''));",
         "(async () => {",
         "  const r = {};",
-        "  // 1. Sin teléfono que conteste: /toimg y /s lo dicen tal cual.",
-        "  const s1 = salidas(null);",
+        "  // 1. Solo llegó el aviso vacío y nadie trae la foto: /toimg y /s lo dicen.",
+        "  const s1 = salidas();",
         "  VU.apuntarLlegada(vacia('VO1'), 'notify', s1.sock, '');",
-        "  await cmdToImg(s1.sock, responde('VO1', '!toimg'), meta);",
-        "  await cmdSticker(s1.sock, responde('VO1', '!s'), meta);",
+        "  await cmdToImg(s1.sock, responde('VO1', '!toimg', B, sinClave()), meta);",
+        "  await cmdSticker(s1.sock, responde('VO1', '!s', B, sinClave()), meta);",
         "  r.textos = s1.out.map((c) => c.text || Object.keys(c).join('+'));",
         "  r.esperado = VU.NO_ENTREGADA;",
-        "  // 2. El aviso por la cabecera (fanout) también cuenta, y se pide al teléfono.",
-        "  const pedidos = [];",
-        "  const s2 = salidas(pedidos);",
-        "  VU.apuntarLlegada(stub('VO2'), 'notify', s2.sock, 'view_once_unavailable_fanout');",
-        "  VU.apuntarLlegada(stub('VO2'), 'notify', s2.sock, 'view_once_unavailable_fanout');",
-        "  VU.apuntarLlegada(stub('OTRO'), 'notify', s2.sock, '');",
-        "  r.pedidos = pedidos.map((k) => [k.remoteJid === G, k.id, k.participant === A]);",
-        "  // 3. El teléfono la devuelve a los dos segundos y /toimg, escrito ya, la saca.",
-        "  const pedidos3 = [];",
-        "  const s3 = salidas(pedidos3);",
-        "  s3.sock.requestPlaceholderResend = async (k) => { pedidos3.push(k); setTimeout(() => VU.archivarVerUnaVez(s3.sock, llena(k.id)), 2000); };",
-        "  VU.apuntarLlegada(vacia('VO3'), 'notify', s3.sock, '');",
-        "  const t0 = Date.now();",
-        "  await cmdToImg(s3.sock, responde('VO3', '!toimg'), meta);",
-        "  r.devuelta = s3.out.map((c) => Object.keys(c).filter((k) => k !== 'mentions').join('+') + (c.text ? ':' + c.text : ''));",
-        "  r.tardo = Date.now() - t0;",
-        "  await new Promise((res) => setTimeout(res, 700));",
+        "  // 2. El aviso por la cabecera (fanout) también cuenta, y no se le pide nada al teléfono.",
+        "  VU.apuntarLlegada(stub('VO2'), 'notify', s1.sock, 'view_once_unavailable_fanout');",
+        "  VU.apuntarLlegada(stub('OTRO'), 'notify', s1.sock, '');",
+        "  r.pedidos = s1.pedidos;",
+        "  // 3. Alguien responde «jaja» a la foto con ella citada y su clave: se guarda, y el /toimg de otro sin clave la saca.",
+        "  const evs = []; const sockF = { user: { id: BOT }, ev: { emit: (e, d) => { evs.push(e); return true; } } };",
+        "  VU.instalarFiltro(sockF);",
+        "  VU.apuntarLlegada(vacia('VO3'), 'notify', s1.sock, '');",
+        "  sockF.ev.emit('messages.upsert', { messages: [responde('VO3', 'jaja', C, conClave())], type: 'notify' });",
+        "  await VU.esperaArchivo('VO3');",
+        "  const s3 = salidas();",
+        "  await cmdToImg(s3.sock, responde('VO3', '!toimg', B, sinClave()), meta);",
+        "  r.desdeRespuesta = resumen(s3.out);",
+        "  r.pasoLaRespuesta = evs.length === 1;",
+        "  // 4. El propio /toimg trae la foto citada con su clave: sale sin más.",
+        "  const s4 = salidas();",
+        "  await cmdToImg(s4.sock, responde('VO4', '!toimg', C, conClave()), meta);",
+        "  r.citaConClave = resumen(s4.out);",
+        "  await dormir(700);",
         "  r.fallos = VU.fallos(24).map((x) => x.motivo);",
         "  console.log('R169' + JSON.stringify(r)); process.exit(0);",
         "})().catch((e) => { console.log('R169' + JSON.stringify({ fallo: e.stack })); process.exit(0); });",
@@ -25362,17 +25371,22 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
       if (r.fallo) exige(false, `no pude probarlo: ${String(r.fallo).split('\n').slice(0, 3).join(' ')}`);
       else {
         exige(r.textos.length === 2 && r.textos.every((t) => t === r.esperado),
-          `con una foto de ver una vez que WhatsApp no le mandó al bot, /toimg y /s no lo dicen: ${JSON.stringify(r.textos)}`);
-        exige(JSON.stringify(r.pedidos) === '[[true,"VO2",true]]',
-          `el aviso vacío no se le pide al teléfono una vez y solo una, o se pide lo que no es de ver una vez: ${JSON.stringify(r.pedidos)}`);
-        exige(r.devuelta.length === 1 && r.devuelta[0].startsWith('image'),
-          `cuando el teléfono devuelve la foto, /toimg no espera a que llegue: ${JSON.stringify(r.devuelta)}`);
+          `con una foto de ver una vez que no le llegó al bot, /toimg y /s no lo dicen: ${JSON.stringify(r.textos)}`);
+        exige(JSON.stringify(r.pedidos) === '[]', `se le piden fotos al teléfono del número: ${JSON.stringify(r.pedidos)}`);
+        exige(r.pasoLaRespuesta, 'el filtro se come la respuesta que trae la foto citada: tiene que seguir su camino');
+        exige(r.desdeRespuesta.length === 1 && r.desdeRespuesta[0].startsWith('image'),
+          `la foto que vino citada con su clave en otra respuesta no la saca un /toimg posterior: ${JSON.stringify(r.desdeRespuesta)}`);
+        exige(r.citaConClave.length === 1 && r.citaConClave[0].startsWith('image'),
+          `/toimg con la foto citada y su clave no la saca: ${JSON.stringify(r.citaConClave)}`);
         exige(r.fallos.includes('WhatsApp no se la mandó al bot') && r.fallos.includes('no le llegó al bot'),
-          `npm run estado no sabrá que fue WhatsApp quien no la mandó: ${JSON.stringify(r.fallos)}`);
+          `npm run estado no sabrá que la foto no le llegó al bot: ${JSON.stringify(r.fallos)}`);
+        exige(r.fallos.filter((x) => x === 'WhatsApp no se la mandó al bot').length === 2,
+          `una foto que luego vino en una respuesta se cuenta como no llegada: ${JSON.stringify(r.fallos)}`);
       }
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
-    if (fallos === antes169) console.log(verde('   ✓ la foto de ver una vez que WhatsApp no manda se reconoce, se le pide al teléfono y, si no vuelve, /s y /toimg lo dicen'));
+    if (fallos === antes169) console.log(verde('   ✓ la foto que no llega se dice tal cual, sin pedírsela al teléfono, y la que viene citada en una respuesta se guarda y /toimg la saca'));
   }
+
 
   // ── 170. EL AVISO VACÍO YA NO PISA A LA FOTO DE VER UNA VEZ (15 nov) ────────
   // La causa de verdad de «/toimg no saca nada»: a un dispositivo vinculado le

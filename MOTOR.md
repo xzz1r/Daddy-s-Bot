@@ -1272,9 +1272,18 @@ sustituye en el búfer, como debe. Ningún otro mensaje se toca. `/s` y
 Si de una foto solo llega el aviso, sale un WARN en el log («solo le llegó
 el aviso vacío», y si la foto llegó cifrada y no se pudo abrir), se apunta
 para `npm run estado` (fotos recibidas, avisos apartados y fotos de las que
-solo llegó el aviso), se le pide al teléfono del número por si está
-encendido y `/s` y `/toimg` contestan «Esa foto de ver una vez no me llegó:
-WhatsApp no se la pasa al bot.». Capas 169 y 170.
+solo llegó el aviso) y `/s` y `/toimg` contestan «Esa foto de ver una vez no
+me llegó: WhatsApp no se la pasa al bot.». **En la VPS del dueño es lo que
+pasa** (15 nov: dos de dos, «la foto no llegó»): a este bot WhatsApp no le
+manda la foto. Al teléfono del número no se le pide: se probó y no la
+devuelve, y el dueño no quiere depender de él.
+
+**La vía que queda es la de los otros bots: la foto citada en una
+respuesta.** Quien responde a una foto de ver una vez lleva la foto citada
+en su mensaje, con su clave, si su móvil la tiene (no es suya y no la ha
+abierto). `guardarDeCita` la guarda bajo el id de la foto venga en la
+respuesta que venga, comando o no, así que el `/toimg` de después la saca
+aunque su propia cita venga sin clave. Capas 169 y 170.
 
 **La identidad Android no hace falta y el dueño no la quiere** (15 nov: «no
 cambies el bot a Android»). Baileys rc14 deja presentarse como Android
