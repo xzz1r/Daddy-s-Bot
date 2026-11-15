@@ -20614,14 +20614,61 @@ const manda = async (quien, tipo, opciones) => {
       // bloque de vistoActivo, asi que *!visto off* apaga las dos cosas.
       {
         const mhSrc = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
-        const iBloque = mhSrc.indexOf('if (vistoActivo(config.autoRead) && !msg.key.fromMe) {');
+        const iBloque = mhSrc.indexOf('if (vistoActivo(config.autoRead) && !msg.key.fromMe && !fotoVerUnaVez) {');
         const llamada = 'marcarVisto(sock, msg, { verUnaVez: eraViewOnce });';
         const iLlamada = mhSrc.indexOf(llamada);
         exige(iBloque > 0 && iLlamada > iBloque && iLlamada - iBloque < 1500 && mhSrc.split(llamada).length === 2,
           'el escuchado y el abierto ya no van con el interruptor de !visto');
       }
     }
-    if (fallos === antes115) console.log(verde('   ✓ fotos y videos en visto; audios, notas de video y «ver una vez» ademas abiertos'));
+    // LAS FOTOS DE «VER UNA VEZ», NI VISTAS NI ABIERTAS (dueño, 15 nov: «quita
+    // del visto lo de las fotos… solo las fotos»). El abierto hace que WhatsApp
+    // tire la foto, y /s y /toimg la necesitan. Los vídeos siguen igual. Por
+    // handleMessage entero, en sandbox.
+    {
+      const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'visto115-'));
+      try {
+        fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+        fs.mkdirSync(path.join(caja, 'data')); fs.mkdirSync(path.join(caja, 'temp'));
+        fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+        const guion = [
+          "const { handleMessage } = require('./src/handlers/messageHandler');",
+          "const G = '1203630000' + '1150@g.us';",
+          "const BOT = '34600000115@s.whatsapp.net', QUIEN = '34611000115@s.whatsapp.net';",
+          "let n = 0;",
+          "const prueba = async (message) => {",
+          "  const hechos = [];",
+          "  const sock = { user: { id: BOT }, sendPresenceUpdate: async () => {},",
+          "    readMessages: async () => { hechos.push('read'); }, sendReceipts: async (k, t) => { hechos.push(t); },",
+          "    fetchPrivacySettings: async () => ({ readreceipts: 'all' }),",
+          "    sendMessage: async () => ({ key: { id: 'K' + (++n) } }), groupMetadata: async () => ({ id: G, subject: 'G', participants: [{ id: BOT, admin: 'admin' }, { id: QUIEN }] }),",
+          "    profilePictureUrl: async () => { throw new Error('sin foto'); } };",
+          "  await handleMessage(sock, { key: { remoteJid: G, fromMe: false, id: 'V115' + (++n), participant: QUIEN }, messageTimestamp: Math.floor(Date.now() / 1000), message });",
+          "  await new Promise((r) => setTimeout(r, 400));",
+          "  return hechos.join(',');",
+          "};",
+          "(async () => {",
+          "  const r = {};",
+          "  r.foto = await prueba({ viewOnceMessageV2: { message: { imageMessage: { mimetype: 'image/jpeg', viewOnce: true } } } });",
+          "  r.fotoBandera = await prueba({ imageMessage: { mimetype: 'image/jpeg', viewOnce: true } });",
+          "  r.video = await prueba({ viewOnceMessageV2: { message: { videoMessage: { mimetype: 'video/mp4', viewOnce: true } } } });",
+          "  r.texto = await prueba({ conversation: 'hola' });",
+          "  console.log('R115' + JSON.stringify(r)); process.exit(0);",
+          "})().catch((e) => { console.log('R115' + JSON.stringify({ fallo: e.stack })); process.exit(0); });",
+        ].join('\n');
+        const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 60000,
+          env: { ...process.env, OWNER_NUMBER: '33600000115', CO_OWNERS: '', LOG_LEVEL: 'error' } });
+        const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R115'));
+        const r = linea ? JSON.parse(linea.slice(4)) : { fallo: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+        if (r.fallo) exige(false, `no pude probar el visto por handleMessage: ${String(r.fallo).split('\n').slice(0, 3).join(' ')}`);
+        else {
+          exige(r.foto === '' && r.fotoBandera === '', `una foto de «ver una vez» recibe visto o abierto: ${r.foto} / ${r.fotoBandera}`);
+          exige(r.video === 'read,played', `un vídeo de «ver una vez» ya no se marca como antes: ${r.video}`);
+          exige(r.texto === 'read', `un texto normal ya no recibe el visto: ${r.texto}`);
+        }
+      } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    }
+    if (fallos === antes115) console.log(verde('   ✓ fotos y videos en visto; audios, notas de video y videos de «ver una vez» ademas abiertos; las fotos de «ver una vez», sin tocar'));
   }
 
   // ── 116. EL BOT NO SE INSULTA A SI MISMO, Y EL RESET LIMPIA EL TOP ──────

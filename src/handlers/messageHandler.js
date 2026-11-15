@@ -2246,8 +2246,14 @@ async function handleMessage(sock, msg, opciones = {}) {
   // fabrica. Ver !visto en group.js: se apaga sin tocar ficheros ni reiniciar.
   // La foto se guarda ANTES del acuse. El `played` va dentro de marcarVisto y
   // espera a este intento; si se mandara ya, el enlace moriría antes de /s.
+  //
+  // LAS FOTOS DE «VER UNA VEZ» NO SE MARCAN, NI VISTAS NI ABIERTAS (dueño, 15
+  // nov: «quita del visto lo de las fotos… solo las fotos»). El «abierto» hace
+  // que WhatsApp la dé por vista y tire su enlace, y /s y /toimg la necesitan.
+  // Los vídeos de ver una vez siguen como estaban.
+  const fotoVerUnaVez = eraViewOnce && Boolean(msg.message?.imageMessage);
   if (eraViewOnce) archivarVerUnaVez(sock, msg);
-  if (vistoActivo(config.autoRead) && !msg.key.fromMe) {
+  if (vistoActivo(config.autoRead) && !msg.key.fromMe && !fotoVerUnaVez) {
     setImmediate(() => {
       // EL FALLO SE DICE UNA VEZ, no se traga.
       //

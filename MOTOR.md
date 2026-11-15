@@ -1229,23 +1229,35 @@ duración a lo que quepa y se codifica una vez más. Ese GIF sale a 384 px, q35,
 ## Las fotos de ver una vez, en disco (15 nov)
 
 En el grupo del dueño todas las fotos van en ver una vez (es la regla, y el bot
-borra las que no). El bot guarda cada una al llegar, antes de mandar el
-acuse `played` que la marca «Abierta» y con el que muere el enlace, y `!s` y
-`!toimg` la sacan de esa copia. La copia vivía solo en memoria, con sitio para
+borra las que no). El bot guarda cada una al llegar, y `!s` y `!toimg` la
+sacan de esa copia. **Las fotos de ver una vez no reciben ni el visto ni el
+«abierto»** (dueño, 15 nov: «quita del visto lo de las fotos… solo las
+fotos»): el `played` la marca «Abierta» y con él muere el enlace. Los vídeos
+de ver una vez siguen con su visto y su abierto. Capa 115.
+
+Cada foto o vídeo de ver una vez que llega deja una línea en el log, antes de
+cualquier puerta: `ver una vez: llega image (notify) · clave sí · ruta sí`.
+Si `/toimg` falla, `pm2 logs bot | grep "ver una vez"` dice si al bot le llegó
+la foto (sin línea, no llegó; «clave no», llegó vacía; «clave sí», el fallo es
+del bot). La copia vivía solo en memoria, con sitio para
 las ocho últimas, y cada reinicio la tiraba: responder a una foto de hace un
 rato fallaba siempre. Ahora va también a `data/verUnaVez/` (fuera del
 respaldo), con seis horas de vida, 400 ficheros y 300 MB como mucho; lo
 caducado o lo que sobra se barre. Cada fallo al bajar deja su motivo en
 `data/fallosMedios.json` («sin clave», «enlace muerto y sin copia», «no se
-guardó al llegar»), y `npm run estado` lo resume. Capa 166.
+guardó al llegar», «llegó sin clave»), y `npm run estado` lo resume. Capa 166.
+«Llegó sin clave» es que a la foto, al llegar al bot, ya le faltaba con qué
+bajarla: eso no lo arregla el código del bot.
 
-**Y si no llega la foto** (15 nov). Con la copia en disco, `!toimg` siguió
-fallando con una foto mandada el mismo minuto: al bot no le llegaba. WhatsApp
-no le manda el contenido de ver una vez a los dispositivos vinculados que se
-presentan como navegador, y el bot lo es por defecto (Baileys:
-`Browsers.macOS('Chrome')`). Baileys rc14 deja presentarse como Android
+**Si no llega la foto** (15 nov). Con la copia en disco, `!toimg` siguió
+fallando con una foto mandada el mismo minuto: en la VPS, cinco «sin clave»
+por la cita y ninguna copia guardada al llegar. **No está demostrado por
+qué.** Hay informes de que WhatsApp no le manda lo de ver una vez a los
+dispositivos vinculados que se presentan como navegador, pero en octubre el
+bot sí las recibía así (el arreglo del `played` del 23 oct lo prueba), así que
+no se da por hecho. Baileys rc14 deja presentarse como Android
 (`Browsers.android`, PR «add android browser (can receive viewonce)»,
-experimental), y así sí llega. Está detrás de `WA_DISPOSITIVO=android` en el
+experimental). Está detrás de `WA_DISPOSITIVO=android` en el
 `.env`, apagado: cambia la huella del número y hay que volver a vincular (la
 sesión vieja se aparta con `mv`), y tras vincular, durante unas horas o días,
 muchos mensajes de grupo no se podrán abrir hasta que la gente le reparta su

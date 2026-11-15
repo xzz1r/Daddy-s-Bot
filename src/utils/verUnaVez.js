@@ -426,6 +426,20 @@ async function bajarSinApuntar(sock, msg, found, origen, opts = {}) {
   }
 }
 
+// CADA FOTO O VÍDEO DE VER UNA VEZ QUE LLEGA, AL LOG (15 nov). Si /toimg
+// falla con «sin clave», esto dice si al bot le llegó la foto y con qué: sin
+// línea, no le llegó; con «clave no», llegó vacía; con «clave sí», el fallo es
+// del bot. Se mira en el socket, antes de cualquier puerta, y sin contenido.
+function apuntarLlegada(msg, tipo) {
+  try {
+    if (!msg?.message) return;
+    const found = clasificar(msg.message);
+    if (!found || !esVista(found)) return;
+    const nodo = found.msg || found.data;
+    logger.info(`ver una vez: llega ${found.type} (${tipo || '?'}) · clave ${nodo?.mediaKey ? 'sí' : 'no'} · ruta ${nodo?.directPath || nodo?.url ? 'sí' : 'no'}`);
+  } catch { /* mirar no tumba nada */ }
+}
+
 function archivarVerUnaVez(sock, msg) {
   const id = msg?.key?.id;
   if (!id || vuelos.has(id) || tomar([id]) || hayEnDisco(id)) return;
@@ -436,7 +450,13 @@ function archivarVerUnaVez(sock, msg) {
     || (found.type === 'sticker' && found.dl !== 'sticker'));
   if (!sirve) return;
   const nodo = found.msg;
-  if (!nodo?.url && !nodo?.directPath && !nodo?.mediaKey) return;
+  // Que llegue sin nada con qué bajarla lo dice WhatsApp, no el bot: se apunta
+  // para que `npm run estado` lo distinga de un fallo de descarga.
+  if (!nodo?.url && !nodo?.directPath && !nodo?.mediaKey) {
+    logger.info('ver una vez: llegó sin clave ni enlace; no hay nada que guardar');
+    apuntarFallo('llegó sin clave');
+    return;
+  }
   found.verUnaVez = true;
   const p = encolar(() => bajar(sock, msg, found, 'propio', { unirse: false }).catch((e) => {
     logger.info(`ver una vez: no se pudo guardar al llegar (${e?.message || e})`);
@@ -460,7 +480,7 @@ function esperaArchivo(id) {
 }
 
 module.exports = {
-  clasificar, bajar, archivarVerUnaVez, esperaArchivo, citaDe, barrerDisco, fallos,
+  clasificar, bajar, archivarVerUnaVez, apuntarLlegada, esperaArchivo, citaDe, barrerDisco, fallos,
   _usarDescarga, _vaciar, _guardar,
   _usarDisco: (dir) => { DIR_DISCO = dir; ultimoBarrido = 0; FICHERO_FALLOS = path.join(dir, '..', 'fallosMedios.json'); },
   _olvidarMemoria: () => { porId.clear(); alias.clear(); vuelos.clear(); bytes = 0; },
