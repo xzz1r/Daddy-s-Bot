@@ -615,8 +615,11 @@ if (!bot) {
       const c = {};
       for (const x of fm) c[x.motivo] = (c[x.motivo] || 0) + 1;
       const parte = Object.entries(c).map(([k, v]) => `${v} ${k}`).join(', ');
-      aviso(`!s / !toimg: ${fm.length} foto(s) en 24 h que no se pudieron bajar (${parte})`,
-        c['sin clave'] ? '«sin clave»: WhatsApp no le pasó al bot la foto; pásale esta línea a quien mantenga el bot' : 'pásale esta línea a quien mantenga el bot');
+      const noMandadas = c['WhatsApp no se la mandó al bot'] || 0;
+      aviso(`!s / !toimg: ${fm.length} aviso(s) de fotos de ver una vez en 24 h (${parte})`,
+        noMandadas
+          ? `${noMandadas} foto(s) de ver una vez que WhatsApp no le mandó al bot (le llega vacía, como a WhatsApp Web). El bot se la pide al teléfono del número; la salida sin teléfono es WA_DISPOSITIVO=android y volver a vincular (ver MOTOR.md)`
+          : c['sin clave'] ? '«sin clave»: WhatsApp no le pasó al bot la foto; pásale esta línea a quien mantenga el bot' : 'pásale esta línea a quien mantenga el bot');
     }
   } catch { /* sin datos */ }
   // Las claves de un solo uso del bot en el servidor (utils/clavesUnUso.js) y

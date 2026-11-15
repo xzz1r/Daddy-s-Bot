@@ -4,7 +4,7 @@ const { tempFile, cleanTemp } = require('../utils/helpers');
 const { getSender, isOwner } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { incrementStat } = require('../utils/state');
-const { clasificar, bajar } = require('../utils/verUnaVez');
+const { clasificar, bajar, NO_ENTREGADA } = require('../utils/verUnaVez');
 const logger = require('../utils/logger');
 
 // Identify what kind of media is in a message object.
@@ -82,6 +82,7 @@ async function cmdSticker(sock, msg, groupMeta) {
   } catch (err) {
     logger.error(`Sticker download error${eraVerUnaVez ? ' (ver una vez)' : ''} [${origen}, ${pistaClave(found.msg)}]: ${err.message}`);
     await reembolsar();
+    if (err?.noEntregada) return sock.sendMessage(jid, { text: NO_ENTREGADA }, { quoted: msg });
     return sock.sendMessage(jid, { text: 'No pude descargar eso. Prueba otra vez.' }, { quoted: msg });
   }
 

@@ -129,6 +129,7 @@ function _vaciar() {
   porId.clear();
   alias.clear();
   vuelos.clear();
+  noEntregadas.clear();
   bytes = 0;
   cola = Promise.resolve();
   pedir = (nodo, tipo) => downloadContentFromMessage(nodo, tipo);
@@ -365,7 +366,9 @@ async function bajar(sock, msg, found, origen, opts = {}) {
   } catch (e) {
     if (opts.unirse !== false) {
       const nodo = found?.msg || found?.data;
-      apuntarFallo(!nodo?.mediaKey ? 'sin clave' : e?.resubida ? 'enlace muerto y sin copia' : 'descarga');
+      const ne = noEntregadaDe(idsRelacionados(msg, origen));
+      if (ne && e && typeof e === 'object') e.noEntregada = true;
+      apuntarFallo(ne ? 'no le llegó al bot' : !nodo?.mediaKey ? 'sin clave' : e?.resubida ? 'enlace muerto y sin copia' : 'descarga');
     }
     throw e;
   }
@@ -384,6 +387,20 @@ async function bajarSinApuntar(sock, msg, found, origen, opts = {}) {
     }
     if (pendientes.length) {
       await Promise.all(pendientes.map((p) => Promise.resolve(p).catch(() => null)));
+      const tras = tomar(ids);
+      if (tras) return tras;
+    }
+    // Si WhatsApp no se la mandó y se le pidió al teléfono hace nada, se
+    // espera a que la devuelva (entra por messages.upsert y se archiva).
+    const ne = noEntregadaDe(ids);
+    if (ne && ne.pedida) {
+      const hasta = ne.ts + ESPERA_TELEFONO_MS;
+      while (Date.now() < hasta) {
+        const vuelo = ids.map((id) => vuelos.get(id)).find(Boolean);
+        if (vuelo) { await Promise.resolve(vuelo).catch(() => null); break; }
+        if (tomar(ids)) break;
+        await new Promise((r) => setTimeout(r, 250));
+      }
       const tras = tomar(ids);
       if (tras) return tras;
     }
@@ -427,17 +444,72 @@ async function bajarSinApuntar(sock, msg, found, origen, opts = {}) {
 }
 
 // CADA FOTO O VÍDEO DE VER UNA VEZ QUE LLEGA, AL LOG (15 nov). Si /toimg
-// falla con «sin clave», esto dice si al bot le llegó la foto y con qué: sin
-// línea, no le llegó; con «clave no», llegó vacía; con «clave sí», el fallo es
-// del bot. Se mira en el socket, antes de cualquier puerta, y sin contenido.
-function apuntarLlegada(msg, tipo) {
+// falla, esto dice si al bot le llegó la foto y con qué. Se mira en el
+// socket, antes de cualquier puerta, y sin contenido.
+//
+// LA FOTO QUE WHATSAPP NO LE MANDA AL BOT (15 nov, alerta roja del dueño).
+// A un dispositivo vinculado que se presenta como navegador, WhatsApp no le
+// manda lo de ver una vez: le manda el mensaje sin nada dentro y un
+// `<unavailable type="view_once">` (o `view_once_unavailable_fanout`).
+// Baileys rc14 marca `key.isViewOnce`, NO lo trata como mensaje sin abrir y
+// por tanto no pide nada a nadie: el mensaje sale vacío por messages.upsert y
+// handleMessage lo tira en silencio (`if (!msg.message) return`). Por eso no
+// había ni rastro: ni «sin descifrar», ni copia, ni error al guardar.
+//
+// Aquí se reconoce, se apunta (log y fallosMedios) y se le pide la foto al
+// teléfono del número del bot (placeholder resend, lo mismo que hace
+// WhatsApp Web con lo que no le llega). Si ese teléfono está encendido y la
+// devuelve, entra por messages.upsert como un mensaje normal, con su clave,
+// y archivarVerUnaVez la guarda. Si no, /s y /toimg lo dicen tal cual.
+const NO_ENTREGADA_MS = 6 * 60 * 60 * 1000;
+const ESPERA_TELEFONO_MS = 10000;
+const MAX_EDAD_PEDIR_S = 14 * 24 * 60 * 60;
+const noEntregadas = new Map(); // id -> { ts, pedida }
+// Lo que contestan /s y /toimg cuando es eso: no es un fallo de descarga.
+const NO_ENTREGADA = 'Esa foto de ver una vez no me llegó: WhatsApp no se la pasa al bot.';
+
+function esAvisoVacio(msg, noEnviado) {
+  if (msg?.message) return false;
+  return msg?.key?.isViewOnce === true || /view_once/i.test(String(noEnviado || ''));
+}
+
+function apuntarLlegada(msg, tipo, sock = null, noEnviado = '') {
   try {
+    if (esAvisoVacio(msg, noEnviado)) {
+      const id = msg.key?.id;
+      if (!id || noEntregadas.has(id)) return;
+      for (const [k, v] of noEntregadas) if (Date.now() - v.ts > NO_ENTREGADA_MS) noEntregadas.delete(k);
+      const info = { ts: Date.now(), pedida: false };
+      noEntregadas.set(id, info);
+      apuntarFallo('WhatsApp no se la mandó al bot');
+      const ts = Number(typeof msg.messageTimestamp?.toNumber === 'function' ? msg.messageTimestamp.toNumber() : msg.messageTimestamp) || 0;
+      const reciente = !ts || Date.now() / 1000 - ts < MAX_EDAD_PEDIR_S;
+      if (reciente && sock && typeof sock.requestPlaceholderResend === 'function') {
+        info.pedida = true;
+        const k = msg.key;
+        Promise.resolve(sock.requestPlaceholderResend(
+          { remoteJid: k.remoteJid, fromMe: Boolean(k.fromMe), id: k.id, participant: k.participant },
+          { key: k, messageTimestamp: msg.messageTimestamp, pushName: msg.pushName, participant: msg.participant },
+        )).catch((e) => logger.info(`ver una vez: no pude pedirle la foto al teléfono (${e?.message || e})`));
+      }
+      logger.info(`ver una vez: WhatsApp no le manda la foto a este dispositivo (${noEnviado || 'unavailable view_once'}, ${tipo || '?'})${info.pedida ? '; se la pido al teléfono del número' : ''}`);
+      return;
+    }
     if (!msg?.message) return;
     const found = clasificar(msg.message);
     if (!found || !esVista(found)) return;
     const nodo = found.msg || found.data;
-    logger.info(`ver una vez: llega ${found.type} (${tipo || '?'}) · clave ${nodo?.mediaKey ? 'sí' : 'no'} · ruta ${nodo?.directPath || nodo?.url ? 'sí' : 'no'}`);
+    logger.info(`ver una vez: llega ${found.type} (${tipo || '?'}) · clave ${nodo?.mediaKey ? 'sí' : 'no'} · ruta ${nodo?.directPath || nodo?.url ? 'sí' : 'no'}${noEntregadas.has(msg.key?.id) ? ' · la devolvió el teléfono' : ''}`);
   } catch { /* mirar no tumba nada */ }
+}
+
+// ¿Alguno de estos ids es una foto que WhatsApp no le mandó al bot?
+function noEntregadaDe(ids) {
+  for (const id of ids || []) {
+    const v = noEntregadas.get(String(id).split('|').pop());
+    if (v) return v;
+  }
+  return null;
 }
 
 function archivarVerUnaVez(sock, msg) {
@@ -480,9 +552,9 @@ function esperaArchivo(id) {
 }
 
 module.exports = {
-  clasificar, bajar, archivarVerUnaVez, apuntarLlegada, esperaArchivo, citaDe, barrerDisco, fallos,
+  clasificar, bajar, archivarVerUnaVez, apuntarLlegada, noEntregadaDe, NO_ENTREGADA, esperaArchivo, citaDe, barrerDisco, fallos,
   _usarDescarga, _vaciar, _guardar,
   _usarDisco: (dir) => { DIR_DISCO = dir; ultimoBarrido = 0; FICHERO_FALLOS = path.join(dir, '..', 'fallosMedios.json'); },
-  _olvidarMemoria: () => { porId.clear(); alias.clear(); vuelos.clear(); bytes = 0; },
+  _olvidarMemoria: () => { porId.clear(); alias.clear(); vuelos.clear(); noEntregadas.clear(); bytes = 0; },
   _rutaDisco: rutaDisco,
 };

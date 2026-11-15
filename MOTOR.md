@@ -1249,15 +1249,32 @@ guardó al llegar», «llegó sin clave»), y `npm run estado` lo resume. Capa 1
 «Llegó sin clave» es que a la foto, al llegar al bot, ya le faltaba con qué
 bajarla: eso no lo arregla el código del bot.
 
-**Si no llega la foto** (15 nov). Con la copia en disco, `!toimg` siguió
-fallando con una foto mandada el mismo minuto: en la VPS, cinco «sin clave»
-por la cita y ninguna copia guardada al llegar. **No está demostrado por
-qué.** Hay informes de que WhatsApp no le manda lo de ver una vez a los
-dispositivos vinculados que se presentan como navegador, pero en octubre el
-bot sí las recibía así (el arreglo del `played` del 23 oct lo prueba), así que
-no se da por hecho. Baileys rc14 deja presentarse como Android
+**Si no llega la foto** (15 nov, alerta roja). Con la copia en disco,
+`!toimg` siguió fallando con una foto mandada el mismo minuto: en la VPS,
+cinco «sin clave» por la cita, ninguna copia guardada al llegar y ni un
+«sin descifrar». El porqué está en Baileys rc14: a un dispositivo vinculado
+como navegador, WhatsApp le manda el mensaje vacío con `<unavailable
+type="view_once">`; `decode-wa-message.js` marca `key.isViewOnce` y no lo da
+por mensaje sin abrir, así que `messages-recv.js` no pide nada a nadie y el
+mensaje sale vacío por `messages.upsert`, donde `handleMessage` lo tiraba en
+silencio (`if (!msg.message) return`). El parche de Grok del 23 oct
+(`parche-baileys-verunavez.js`) solo cubre la otra forma del aviso
+(`view_once_unavailable_fanout`, que sí pasa por ese bloque).
+
+Ahora `utils/verUnaVez.js` (`apuntarLlegada`, desde el socket y con la
+cabecera) reconoce las dos formas, lo apunta («WhatsApp no se la mandó al
+bot», en el log y en `npm run estado`) y le pide la foto al teléfono del
+número (placeholder resend, como WhatsApp Web). Si la devuelve, entra como un
+mensaje normal y se guarda; `/s` y `/toimg` la esperan hasta diez segundos.
+Si no, contestan «Esa foto de ver una vez no me llegó: WhatsApp no se la pasa
+al bot.» en vez de «prueba con otro archivo». Capa 169.
+
+Eso depende de que el teléfono del número esté encendido, y el dueño no
+quiere depender de él. Sin teléfono, la única vía es que WhatsApp se la mande
+al bot directamente: Baileys rc14 deja presentarse como Android
 (`Browsers.android`, PR «add android browser (can receive viewonce)»,
-experimental). Está detrás de `WA_DISPOSITIVO=android` en el
+experimental). En octubre sí le llegaban al bot como navegador (el arreglo
+del `played` del 23 oct lo prueba); qué cambió en WhatsApp no se sabe. Está detrás de `WA_DISPOSITIVO=android` en el
 `.env`, apagado: cambia la huella del número y hay que volver a vincular (la
 sesión vieja se aparta con `mv`), y tras vincular, durante unas horas o días,
 muchos mensajes de grupo no se podrán abrir hasta que la gente le reparta su

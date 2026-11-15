@@ -25285,6 +25285,94 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes168) console.log(verde('   ✓ !wipe interlude 30 borra en ese grupo desde el privado del dueño o desde otro grupo, y el !limpiar de siempre sigue igual'));
   }
 
+  // ── 169. LA FOTO DE VER UNA VEZ QUE WHATSAPP NO LE MANDA AL BOT (15 nov) ────
+  // Alerta roja del dueño: /toimg y /s no sacan nada de una foto de ver una
+  // vez mandada el mismo minuto. A un dispositivo vinculado como navegador
+  // WhatsApp le manda el mensaje vacío con `<unavailable type="view_once">`;
+  // Baileys marca key.isViewOnce, no lo da por mensaje sin abrir y no pide
+  // nada, y handleMessage lo tiraba sin dejar rastro. Ahora se reconoce (también
+  // como `view_once_unavailable_fanout` en la cabecera), se apunta, se le pide
+  // la foto al teléfono del número y, si la devuelve en unos segundos, /toimg
+  // la saca; si no, /s y /toimg dicen lo que pasa. En sandbox.
+  {
+    console.log('\n169. LA FOTO DE VER UNA VEZ QUE WHATSAPP NO LE MANDA AL BOT');
+    const antes169 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    exige(/verUnaVez\.apuntarLlegada\(msg, type, sock, cabeceras\.noEnviado\(cabeceras\.de\(msg\?\.key\?\.id\)\)\)/.test(soloCodigo('src/bot.js')),
+      'el socket ya no le pasa al detector de ver una vez el aviso vacío y su cabecera');
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'vu169-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data')); fs.mkdirSync(path.join(caja, 'temp'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const fs = require('fs'); const path = require('path'); const { Readable } = require('stream'); const { execFileSync } = require('child_process');",
+        "const { ffmpegPath } = require('./src/utils/ffmpeg');",
+        "const VU = require('./src/utils/verUnaVez');",
+        "const DISCO = path.join(process.cwd(), 'data', 'verUnaVez');",
+        "VU._usarDisco(DISCO); VU._vaciar(); VU._usarDisco(DISCO);",
+        "const f = path.join(process.cwd(), 'temp', 'f.jpg');",
+        "execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi', '-i', 'color=c=0x804020:s=320x240', '-frames:v', '1', f]);",
+        "const foto = fs.readFileSync(f);",
+        "VU._usarDescarga(async (n) => { if (!n || (!n.directPath && !n.url) || !n.mediaKey) throw new Error('No valid media URL or directPath present in message'); return Readable.from([foto]); });",
+        "const G = '120363000000169001@g.us', A = '34611000169@s.whatsapp.net', B = '34622000169@s.whatsapp.net', BOT = '34600000169@s.whatsapp.net';",
+        "const ahora = () => Math.floor(Date.now() / 1000);",
+        "const vacia = (id) => ({ key: { remoteJid: G, id, participant: A, isViewOnce: true }, messageTimestamp: ahora() });",
+        "const stub = (id) => ({ key: { remoteJid: G, id, participant: A }, messageTimestamp: ahora(), messageStubType: 2, messageStubParameters: ['Message absent from node'] });",
+        "const llena = (id) => ({ key: { remoteJid: G, id, participant: A }, message: { viewOnceMessageV2: { message: { imageMessage: { url: 'https://mmg.whatsapp.net/x', directPath: '/x', mediaKey: Buffer.alloc(32, 1), mimetype: 'image/jpeg', viewOnce: true } } } } });",
+        "const responde = (id, texto) => ({ key: { remoteJid: G, id: 'R' + id + texto.length, participant: B }, messageTimestamp: ahora(), message: { extendedTextMessage: { text: texto, contextInfo: { stanzaId: id, participant: A, quotedMessage: { viewOnceMessageV2: { message: { imageMessage: { mimetype: 'image/jpeg', viewOnce: true } } } } } } } });",
+        "const meta = { id: G, participants: [{ id: BOT, admin: 'admin' }, { id: B, admin: 'superadmin' }, { id: A }] };",
+        "const { cmdToImg } = require('./src/commands/toimg');",
+        "const { cmdSticker } = require('./src/commands/sticker');",
+        "const salidas = (pedidos) => { const out = []; return { out, sock: { user: { id: BOT }, sendMessage: async (j, c) => { out.push(c); return { key: { id: 'x' } }; }, ...(pedidos ? { requestPlaceholderResend: async (k) => { pedidos.push(k); } } : {}) } }; };",
+        "(async () => {",
+        "  const r = {};",
+        "  // 1. Sin teléfono que conteste: /toimg y /s lo dicen tal cual.",
+        "  const s1 = salidas(null);",
+        "  VU.apuntarLlegada(vacia('VO1'), 'notify', s1.sock, '');",
+        "  await cmdToImg(s1.sock, responde('VO1', '!toimg'), meta);",
+        "  await cmdSticker(s1.sock, responde('VO1', '!s'), meta);",
+        "  r.textos = s1.out.map((c) => c.text || Object.keys(c).join('+'));",
+        "  r.esperado = VU.NO_ENTREGADA;",
+        "  // 2. El aviso por la cabecera (fanout) también cuenta, y se pide al teléfono.",
+        "  const pedidos = [];",
+        "  const s2 = salidas(pedidos);",
+        "  VU.apuntarLlegada(stub('VO2'), 'notify', s2.sock, 'view_once_unavailable_fanout');",
+        "  VU.apuntarLlegada(stub('VO2'), 'notify', s2.sock, 'view_once_unavailable_fanout');",
+        "  VU.apuntarLlegada(stub('OTRO'), 'notify', s2.sock, '');",
+        "  r.pedidos = pedidos.map((k) => [k.remoteJid === G, k.id, k.participant === A]);",
+        "  // 3. El teléfono la devuelve a los dos segundos y /toimg, escrito ya, la saca.",
+        "  const pedidos3 = [];",
+        "  const s3 = salidas(pedidos3);",
+        "  s3.sock.requestPlaceholderResend = async (k) => { pedidos3.push(k); setTimeout(() => VU.archivarVerUnaVez(s3.sock, llena(k.id)), 2000); };",
+        "  VU.apuntarLlegada(vacia('VO3'), 'notify', s3.sock, '');",
+        "  const t0 = Date.now();",
+        "  await cmdToImg(s3.sock, responde('VO3', '!toimg'), meta);",
+        "  r.devuelta = s3.out.map((c) => Object.keys(c).filter((k) => k !== 'mentions').join('+') + (c.text ? ':' + c.text : ''));",
+        "  r.tardo = Date.now() - t0;",
+        "  r.fallos = VU.fallos(24).map((x) => x.motivo);",
+        "  console.log('R169' + JSON.stringify(r)); process.exit(0);",
+        "})().catch((e) => { console.log('R169' + JSON.stringify({ fallo: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 90000,
+        env: { ...process.env, OWNER_NUMBER: '34622000169', CO_OWNERS: '', LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R169'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { fallo: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.fallo) exige(false, `no pude probarlo: ${String(r.fallo).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(r.textos.length === 2 && r.textos.every((t) => t === r.esperado),
+          `con una foto de ver una vez que WhatsApp no le mandó al bot, /toimg y /s no lo dicen: ${JSON.stringify(r.textos)}`);
+        exige(JSON.stringify(r.pedidos) === '[[true,"VO2",true]]',
+          `el aviso vacío no se le pide al teléfono una vez y solo una, o se pide lo que no es de ver una vez: ${JSON.stringify(r.pedidos)}`);
+        exige(r.devuelta.length === 1 && r.devuelta[0].startsWith('image'),
+          `cuando el teléfono devuelve la foto, /toimg no espera a que llegue: ${JSON.stringify(r.devuelta)}`);
+        exige(r.fallos.includes('WhatsApp no se la mandó al bot') && r.fallos.includes('no le llegó al bot'),
+          `npm run estado no sabrá que fue WhatsApp quien no la mandó: ${JSON.stringify(r.fallos)}`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes169) console.log(verde('   ✓ la foto de ver una vez que WhatsApp no manda se reconoce, se le pide al teléfono y, si no vuelve, /s y /toimg lo dicen'));
+  }
+
 
 
 

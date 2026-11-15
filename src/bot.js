@@ -2577,7 +2577,7 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
   sock.ev.on('messages.upsert', ({ messages, type }) => {
     for (const msg of messages) {
       // Lo de ver una vez que llega, al log, venga como venga (utils/verUnaVez.js).
-      verUnaVez.apuntarLlegada(msg, type);
+      verUnaVez.apuntarLlegada(msg, type, sock, cabeceras.noEnviado(cabeceras.de(msg?.key?.id)));
       // Lo que manda el bot se guarda por si hay que reenviarlo (getMessage).
       if (msg?.key?.fromMe && msg.message) recordarMensaje(msg.key, msg.message);
       // Claves (no contenido) para !limpiar: el borrado de admin necesita el
