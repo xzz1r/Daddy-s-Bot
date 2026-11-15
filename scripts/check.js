@@ -25000,6 +25000,56 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes164) console.log(verde('   ✓ los números de SPAM_INMUNES repiten sin aviso ni ban, con su teléfono, sin el 9 o por su @lid, y al resto le salta igual'));
   }
 
+  // ── 165. !play: «SIN CUPO» SOLO CUANDO ES EL CUPO (15 nov) ─────────────────
+  // El dueño: «Me he quedado sin cupo de descargas», y la canción siguiente
+  // salió normal. RapidAPI contesta 429 también por ir demasiado deprisa, y el
+  // bot pregunta varias veces mientras se convierte. Ahora: el límite por
+  // segundo se espera y se sigue; solo es cupo si la respuesta habla de cuota
+  // o queda cero; un 403 sin cuota es una key sin acceso. En sandbox.
+  {
+    console.log('\n165. !play: «SIN CUPO» SOLO CUANDO ES EL CUPO');
+    const antes165 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    exige(/'ocupado':/.test(soloCodigo('src/commands/music.js')), '!play ya no tiene mensaje para el servicio saturado: vuelve a decir «sin cupo»');
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'play165-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data')); fs.mkdirSync(path.join(caja, 'temp'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const axios = require('axios');",
+        "const DL = require('./src/utils/downloader');",
+        "const P = { host: 'api.ejemplo.test', key: 'k' };",
+        "const fallo = (status, message, headers = {}) => { const e = new Error('HTTP ' + status); e.response = { status, data: { message }, headers }; return e; };",
+        "(async () => {",
+        "  const r = {};",
+        "  let cola = [fallo(429, 'You have exceeded the rate limit per second for your plan, BASIC, by the API provider', { 'retry-after': '1' }), { data: { status: 'ok', link: 'L', title: 'T' } }];",
+        "  axios.get = async () => { const x = cola.shift(); if (x instanceof Error) throw x; return x; };",
+        "  const t = Date.now();",
+        "  r.porSegundo = await DL._rapidConvert('abcdefghijk', P).then((x) => x.link, (e) => 'falla: ' + e.message);",
+        "  r.espero = Date.now() - t >= 900;",
+        "  cola = [fallo(429, 'You have exceeded the MONTHLY quota for Requests on your current plan, BASIC.')];",
+        "  r.mes = await DL._rapidConvert('abcdefghijk', P).then(() => 'abrió', (e) => (e.quota ? 'cuota' : 'otro'));",
+        "  cola = [fallo(429, '', { 'x-ratelimit-requests-remaining': '0' })];",
+        "  r.cero = await DL._rapidConvert('abcdefghijk', P).then(() => 'abrió', (e) => (e.quota ? 'cuota' : 'otro'));",
+        "  cola = [fallo(403, 'You are not subscribed to this API.')];",
+        "  r.sinSuscripcion = await DL._rapidConvert('abcdefghijk', P).then(() => 'abrió', (e) => (e.sinAcceso ? 'sin acceso' : e.quota ? 'cuota' : 'otro'));",
+        "  console.log('R165' + JSON.stringify(r)); process.exit(0);",
+        "})().catch((e) => { console.log('R165' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 60000, env: { ...process.env, LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R165'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(r.porSegundo === 'L' && r.espero, `un 429 por ir deprisa corta la descarga en vez de esperar y seguir: ${r.porSegundo}`);
+        exige(r.mes === 'cuota' && r.cero === 'cuota', `el cupo del mes de verdad ya no se reconoce como cupo: ${r.mes}/${r.cero}`);
+        exige(r.sinSuscripcion === 'sin acceso', `una key sin suscripción sale como «sin cupo»: ${r.sinSuscripcion}`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes165) console.log(verde('   ✓ el límite por segundo se espera, el cupo del mes se dice como cupo y una key sin acceso no se confunde'));
+  }
+
 
 
 

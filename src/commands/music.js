@@ -92,6 +92,9 @@ async function cmdPlay(sock, msg, args, groupMeta) {
       // y la gente reescribia el nombre contra un cupo inexistente.
       const text = {
         'sin-cuota':     'Me he quedado sin cupo de descargas por ahora. Prueba más tarde.',
+        // El servicio pide ir más despacio (15 nov): no es el cupo, y en un
+        // minuto suele ir. Antes salía como «sin cupo».
+        'ocupado':       'El servicio de descargas va saturado ahora mismo. Prueba en un minuto.',
         'red':           'No pude descargar la canción: fallo de red. Intenta de nuevo.',
         'no-encontrada': 'No encontré esa canción. Prueba con otro nombre o añade el artista.',
         // Encontrada, pero WhatsApp no la deja pasar. Decir «no la encontré»

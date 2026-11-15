@@ -319,7 +319,28 @@ async function rapidConvert(videoId, provider) {
       ({ data } = await axios.get(url, { headers, timeout: 15000 }));
     } catch (e) {
       const code = e.response?.status;
-      if (code === 429 || code === 403) { const err = new Error('cuota de la key agotada'); err.quota = true; throw err; }
+      // UN 429 NO SIEMPRE ES EL CUPO DEL MES (15 nov). El dueño: «me he
+      // quedado sin cupo de descargas», y la canción siguiente salió normal.
+      // RapidAPI contesta 429 tanto con el cupo agotado como con demasiadas
+      // peticiones en un segundo, y aquí se pregunta varias veces seguidas
+      // mientras se convierte. Lo dice el texto de la respuesta y la cabecera
+      // de lo que queda: solo es cupo si habla de cuota o queda cero. Si es el
+      // límite por segundo, se espera y se sigue preguntando.
+      const dice = String(e.response?.data?.message || e.response?.data?.error || '');
+      const quedan = Number(e.response?.headers?.['x-ratelimit-requests-remaining']);
+      const delMes = /month|daily|quota|cuota/i.test(dice) || quedan === 0;
+      if (code === 429 && !delMes) {
+        if (Date.now() < deadline - 3000) {
+          const ra = Number(e.response?.headers?.['retry-after']);
+          await sleep(Number.isFinite(ra) && ra > 0 ? Math.min(ra * 1000, 5000) : 2000);
+          continue;
+        }
+        const err = new Error('el servicio de descargas pide ir más despacio'); err.ocupado = true; throw err;
+      }
+      if (code === 429 || (code === 403 && delMes)) { const err = new Error('cuota de la key agotada'); err.quota = true; throw err; }
+      // 403 sin hablar de cuota: la key no vale para esta API (sin suscripción,
+      // bloqueada). No es el cupo, y el grupo no debe leer que lo es.
+      if (code === 403) { const err = new Error(`la key no tiene acceso a ${provider.host}: ${dice.slice(0, 80)}`); err.sinAcceso = true; throw err; }
       throw new Error(e.message);
     }
     const status = String(data.status || '').toLowerCase();
@@ -446,6 +467,8 @@ async function tryRapidApi(query) {
   // dos keys seca y una tercera que falla por otra cosa daba un error sin
   // marca de cuota y el grupo leia "no encontré esa canción".
   let huboCuota = false;
+  let huboOcupado = false;
+  let huboSinAcceso = false;
   for (const i of ordenDeKeys()) {
     try {
       const r = await fetchFromProvider(videoId, PROVIDERS[i]);
@@ -454,6 +477,8 @@ async function tryRapidApi(query) {
     } catch (err) {
       lastErr = err;
       if (err.quota) huboCuota = true;
+      if (err.ocupado) huboOcupado = true;
+      if (err.sinAcceso) huboSinAcceso = true;
       // "preview" es propiedad del vídeo (mismo videoId en todas las keys):
       // rotar repetiría la conversión para el mismo id y volvería a dar preview,
       // gastando tiempo en todas las keys. Es terminal para RapidAPI → que el
@@ -468,6 +493,8 @@ async function tryRapidApi(query) {
   }
   const fin = lastErr || new Error('la API de terceros falló');
   if (huboCuota) fin.quota = true;
+  if (huboOcupado) fin.ocupado = true;
+  if (huboSinAcceso && !huboCuota && !huboOcupado) fin.sinAcceso = true;
   throw fin;
 }
 
@@ -541,6 +568,8 @@ async function intentar(query) {
     // Por la MARCA, no por el texto. Ver la nota de arriba: adivinar la causa
     // con una expresion regular sobre el mensaje daba siempre la misma rama.
     err.causa = e.quota ? 'sin-cuota'
+      : e.ocupado ? 'ocupado'
+      : e.sinAcceso ? 'sin-via'
       : e.demasiadoGrande ? 'grande'
       // SIN KEY NO ES «NO LA ENCONTRE». Es que no hay por donde buscarla, y con
       // el respaldo quitado eso deja de ser una rareza: si la key caduca o se
@@ -652,7 +681,7 @@ module.exports = {
   anunciarFuente,
   _audioDuration: audioDuration, _duracionPorFfmpeg: duracionPorFfmpeg,
   _idPorYtDlp: idPorYtDlp, _searchYouTubeId: searchYouTubeId,
-  downloadAudio, ordenDeKeys, sinCuota, PROVIDERS,
+  downloadAudio, ordenDeKeys, sinCuota, PROVIDERS, _rapidConvert: rapidConvert,
   _repartoDe: repartoDe,
   _conBajador: (f) => { const antes = bajarUna; bajarUna = f; return () => { bajarUna = antes; }; },
   acquireDownloadSlot, releaseDownloadSlot, ytdlp, downloadUrlToFile, hayYtDlp, esYtDlpAutonomo,
