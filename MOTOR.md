@@ -1249,34 +1249,39 @@ guardó al llegar», «llegó sin clave»), y `npm run estado` lo resume. Capa 1
 «Llegó sin clave» es que a la foto, al llegar al bot, ya le faltaba con qué
 bajarla: eso no lo arregla el código del bot.
 
-**Si no llega la foto** (15 nov, alerta roja). Con la copia en disco,
-`!toimg` siguió fallando con una foto mandada el mismo minuto: en la VPS,
-cinco «sin clave» por la cita, ninguna copia guardada al llegar y ni un
-«sin descifrar». El porqué está en Baileys rc14: a un dispositivo vinculado
-como navegador, WhatsApp le manda el mensaje vacío con `<unavailable
-type="view_once">`; `decode-wa-message.js` marca `key.isViewOnce` y no lo da
-por mensaje sin abrir, así que `messages-recv.js` no pide nada a nadie y el
-mensaje sale vacío por `messages.upsert`, donde `handleMessage` lo tiraba en
-silencio (`if (!msg.message) return`). El parche de Grok del 23 oct
-(`parche-baileys-verunavez.js`) solo cubre la otra forma del aviso
-(`view_once_unavailable_fanout`, que sí pasa por ese bloque).
+**El aviso vacío pisaba a la foto** (15 nov, alerta roja). Con la copia en
+disco, `!toimg` siguió fallando con una foto mandada el mismo minuto: en la
+VPS, todo «sin clave» por la cita y ninguna copia guardada al llegar. La
+causa: a un dispositivo vinculado, WhatsApp le manda cada foto de ver una vez
+dos veces con el mismo id, la de verdad (cifrada, con su clave) y un aviso
+vacío (`<unavailable type="view_once">`; Baileys PR #2435, capturado en
+WhatsApp Desktop). Baileys procesa cada mensaje con su búfer de eventos
+encendido, y ahí un `messages.upsert` con el mismo id sustituye entero al
+anterior (`Utils/event-buffer.js`). El aviso llegaba detrás y el bot solo
+veía un mensaje vacío con `key.isViewOnce`, que `handleMessage` tira. Por
+eso en octubre funcionaba «a veces». Reproducido con el búfer real de
+Baileys rc14 en la capa 170.
 
-Ahora `utils/verUnaVez.js` (`apuntarLlegada`, desde el socket y con la
-cabecera) reconoce las dos formas, lo apunta («WhatsApp no se la mandó al
-bot», en el log y en `npm run estado`) y le pide la foto al teléfono del
-número (placeholder resend, como WhatsApp Web). Si la devuelve, entra como un
-mensaje normal y se guarda; `/s` y `/toimg` la esperan hasta diez segundos.
-Si no, contestan «Esa foto de ver una vez no me llegó: WhatsApp no se la pasa
-al bot.» en vez de «prueba con otro archivo». Capa 169.
+El arreglo va delante del búfer: `utils/verUnaVez.js` (`instalarFiltro`, que
+`bot.js` pone nada más crear el socket, sin un `await` en medio) envuelve
+`sock.ev.emit`. La foto de verdad se guarda en cuanto aparece, y el aviso
+vacío de una foto que ya llegó no entra. Si llega antes el aviso, la foto lo
+sustituye en el búfer, como debe. Ningún otro mensaje se toca. `/s` y
+`/toimg` sacan la foto de la copia aunque la cita venga sin clave.
 
-Eso depende de que el teléfono del número esté encendido, y el dueño no
-quiere depender de él. Sin teléfono, la única vía es que WhatsApp se la mande
-al bot directamente: Baileys rc14 deja presentarse como Android
-(`Browsers.android`, PR «add android browser (can receive viewonce)»,
-experimental). En octubre sí le llegaban al bot como navegador (el arreglo
-del `played` del 23 oct lo prueba); qué cambió en WhatsApp no se sabe. Está detrás de `WA_DISPOSITIVO=android` en el
+Si de una foto solo llega el aviso, sale un WARN en el log («solo le llegó
+el aviso vacío», y si la foto llegó cifrada y no se pudo abrir), se apunta
+para `npm run estado` (fotos recibidas, avisos apartados y fotos de las que
+solo llegó el aviso), se le pide al teléfono del número por si está
+encendido y `/s` y `/toimg` contestan «Esa foto de ver una vez no me llegó:
+WhatsApp no se la pasa al bot.». Capas 169 y 170.
+
+**La identidad Android no hace falta y el dueño no la quiere** (15 nov: «no
+cambies el bot a Android»). Baileys rc14 deja presentarse como Android
+(`Browsers.android`, PR #2201, experimental), porque a ese tipo de
+dispositivo WhatsApp no le manda el aviso vacío. Está detrás de `WA_DISPOSITIVO=android` en el
 `.env`, apagado: cambia la huella del número y hay que volver a vincular (la
 sesión vieja se aparta con `mv`), y tras vincular, durante unas horas o días,
 muchos mensajes de grupo no se podrán abrir hasta que la gente le reparta su
-clave al dispositivo nuevo. Lo decide el dueño. Capa 167.
+clave al dispositivo nuevo. No se enciende sin que lo pida el dueño. Capa 167.
 

@@ -134,6 +134,18 @@ borra lo que el bot vio llegar: no le pide historial al teléfono. Con solo un
 número, dentro del grupo, es el `!limpiar` de siempre (`src/commands/limpiar.js`).
 Capa 168.
 
+## Ver una vez: el filtro va delante del búfer de Baileys
+
+Alerta roja del dueño (15 nov): «/toimg y /s no sacan nada». A un dispositivo
+vinculado, WhatsApp le manda cada foto de ver una vez dos veces con el mismo
+id: la de verdad y un aviso vacío. En el búfer de eventos de Baileys el
+segundo sustituye al primero, y el bot solo veía el aviso. `instalarFiltro`
+(`src/utils/verUnaVez.js`) envuelve `sock.ev.emit` nada más crear el socket:
+la foto se guarda al aparecer y el aviso de una foto que ya llegó no entra.
+No se quita ni se pone detrás de un `await`. **No se pasa el bot a Android
+para esto** (dueño, 15 nov). Las fotos de ver una vez tampoco reciben el
+visto (capa 115). Capas 169 y 170; ver `MOTOR.md`.
+
 ## Historias de grupo: se abren, se reconocen y se quitan
 
 Lo pidió el dueño (13 nov): «el bot no está baneando la peña que sube

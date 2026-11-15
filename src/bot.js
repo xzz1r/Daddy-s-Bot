@@ -980,11 +980,17 @@ async function connectToWhatsApp() {
   // aqui, en cada socket nuevo, para que ningun comando se lo salte.
   ponerRitmo(sock);
 
+  // LA FOTO DE VER UNA VEZ, ANTES DEL BÚFER DE BAILEYS (15 nov). Ver
+  // utils/verUnaVez.js: el aviso vacío que WhatsApp manda detrás de cada foto
+  // de ver una vez la pisaba dentro del búfer, y el bot nunca la veía.
+  verUnaVez.instalarFiltro(sock, { noEnviado: (id) => cabeceras.noEnviado(cabeceras.de(id)) });
+
   // LA CABECERA DE CADA MENSAJE DE GRUPO, ANTES DE DESCIFRARLO (9 nov). Ver
   // utils/cabeceras.js: las historias de grupo llegan cifradas y a menudo no
   // se pueden abrir, pero su cabecera sí se lee. Solo se mira; lo que se hace
   // con una historia lo decide la misma función que con una abierta.
   sock.ws.on('CB:message', (node) => {
+    try { verUnaVez.anotarStanza(node); } catch { /* solo mira */ }
     try {
       const r = cabeceras.anotar(node);
       if (r && cabeceras.esHistoria(r)) programarHistoriaCruda(node, r);

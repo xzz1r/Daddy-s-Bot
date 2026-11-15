@@ -608,6 +608,21 @@ if (!bot) {
         'pásale esa línea a quien mantenga el bot: es WhatsApp quien no se lo entrega');
     }
   }
+  // LO DE VER UNA VEZ QUE LLEGA (15 nov): cuántas fotos llegaron de verdad,
+  // cuántos avisos vacíos se apartaron para que no las pisaran, y de cuántas
+  // solo llegó el aviso. Ver utils/verUnaVez.js (instalarFiltro).
+  try {
+    const ll = require(path.join(RAIZ, 'src/utils/verUnaVez')).llegadas(24);
+    if (ll.length) {
+      const c = {};
+      for (const x of ll) c[x.que] = (c[x.que] || 0) + 1;
+      const linea = `ver una vez en 24 h: ${c.foto || 0} foto(s) recibidas, ${c['aviso vacío apartado'] || 0} aviso(s) vacío(s) apartados`;
+      if (c['solo el aviso vacío']) {
+        aviso(`${linea}, y ${c['solo el aviso vacío']} de las que solo llegó el aviso vacío`,
+          'pm2 logs bot --lines 3000 --nostream | grep "solo le llegó el aviso"   ← cuál y si llegó cifrada');
+      } else bien(linea, true);
+    }
+  } catch { /* sin datos */ }
   // !s y !toimg QUE NO PUDIERON BAJAR LA FOTO (15 nov), con el porqué.
   try {
     const fm = require(path.join(RAIZ, 'src/utils/verUnaVez')).fallos(24);
@@ -618,7 +633,7 @@ if (!bot) {
       const noMandadas = c['WhatsApp no se la mandó al bot'] || 0;
       aviso(`!s / !toimg: ${fm.length} aviso(s) de fotos de ver una vez en 24 h (${parte})`,
         noMandadas
-          ? `${noMandadas} foto(s) de ver una vez que WhatsApp no le mandó al bot (le llega vacía, como a WhatsApp Web). El bot se la pide al teléfono del número; la salida sin teléfono es WA_DISPOSITIVO=android y volver a vincular (ver MOTOR.md)`
+          ? `${noMandadas} foto(s) de ver una vez de las que al bot solo le llegó el aviso vacío; pásale esta línea a quien mantenga el bot`
           : c['sin clave'] ? '«sin clave»: WhatsApp no le pasó al bot la foto; pásale esta línea a quien mantenga el bot' : 'pásale esta línea a quien mantenga el bot');
     }
   } catch { /* sin datos */ }

@@ -130,6 +130,8 @@ function _vaciar() {
   alias.clear();
   vuelos.clear();
   noEntregadas.clear();
+  conContenido.clear();
+  crudas.clear();
   bytes = 0;
   cola = Promise.resolve();
   pedir = (nodo, tipo) => downloadContentFromMessage(nodo, tipo);
@@ -443,45 +445,171 @@ async function bajarSinApuntar(sock, msg, found, origen, opts = {}) {
   }
 }
 
-// CADA FOTO O VÍDEO DE VER UNA VEZ QUE LLEGA, AL LOG (15 nov). Si /toimg
-// falla, esto dice si al bot le llegó la foto y con qué. Se mira en el
-// socket, antes de cualquier puerta, y sin contenido.
+// ─── EL AVISO VACÍO PISABA A LA FOTO (15 nov, alerta roja del dueño) ───────
 //
-// LA FOTO QUE WHATSAPP NO LE MANDA AL BOT (15 nov, alerta roja del dueño).
-// A un dispositivo vinculado que se presenta como navegador, WhatsApp no le
-// manda lo de ver una vez: le manda el mensaje sin nada dentro y un
-// `<unavailable type="view_once">` (o `view_once_unavailable_fanout`).
-// Baileys rc14 marca `key.isViewOnce`, NO lo trata como mensaje sin abrir y
-// por tanto no pide nada a nadie: el mensaje sale vacío por messages.upsert y
-// handleMessage lo tira en silencio (`if (!msg.message) return`). Por eso no
-// había ni rastro: ni «sin descifrar», ni copia, ni error al guardar.
+// A un dispositivo vinculado, WhatsApp le manda cada foto o vídeo de ver una
+// vez DOS veces con el mismo id: la de verdad, cifrada y con su clave, y un
+// aviso vacío (`<unavailable type="view_once">`, a veces
+// `view_once_unavailable_fanout`) para los vinculados que no la pueden
+// enseñar (Baileys PR #2435, capturado en WhatsApp Desktop y en Android).
+// Baileys procesa cada mensaje con su búfer de eventos encendido, y en ese
+// búfer un `messages.upsert` con el mismo id SUSTITUYE entero al anterior
+// (Utils/event-buffer.js: `data.messageUpserts[key] = { message }`). Si el
+// aviso llega detrás de la foto, el bot solo recibe el aviso: un mensaje con
+// `key.isViewOnce` y nada dentro, que handleMessage tira. Comprobado con el
+// búfer real de Baileys rc14 (capa 170). Por eso «a veces» funcionaba en
+// octubre, y por eso la cita de /toimg no tenía clave y el bot no tenía copia.
 //
-// Aquí se reconoce, se apunta (log y fallosMedios) y se le pide la foto al
-// teléfono del número del bot (placeholder resend, lo mismo que hace
-// WhatsApp Web con lo que no le llega). Si ese teléfono está encendido y la
-// devuelve, entra por messages.upsert como un mensaje normal, con su clave,
-// y archivarVerUnaVez la guarda. Si no, /s y /toimg lo dicen tal cual.
+// El arreglo va ANTES del búfer: `instalarFiltro` envuelve `sock.ev.emit`,
+// por donde Baileys mete cada mensaje en el búfer. La foto de verdad se guarda
+// en cuanto aparece (archivarVerUnaVez) y el aviso vacío de una foto que ya
+// llegó no entra: así ni pisa a la foto ni llega a handleMessage. Si llega
+// primero el aviso y luego la foto, la foto ya lo sustituye a él, que es lo
+// que debe pasar. Nada cambia para ningún otro mensaje.
+//
+// Si de una foto SOLO llega el aviso (WhatsApp no mandó la de verdad, o no se
+// pudo abrir), se dice en el log como WARN, se apunta para `npm run estado`,
+// se le pide al teléfono del número por si está encendido (placeholder
+// resend, como WhatsApp Web) y /s y /toimg contestan NO_ENTREGADA.
 const NO_ENTREGADA_MS = 6 * 60 * 60 * 1000;
 const ESPERA_TELEFONO_MS = 10000;
 const MAX_EDAD_PEDIR_S = 14 * 24 * 60 * 60;
+const VIDA_IDS_MS = 30 * 60 * 1000;
+const TOPE_IDS = 2000;
+let ESPERA_SOLO_AVISO_MS = 8000;
 const noEntregadas = new Map(); // id -> { ts, pedida }
+const conContenido = new Map(); // id -> { ts }: llegó la foto de verdad
+const crudas = new Map(); // id -> { enc, aviso, ts }: lo que trajo el socket
 // Lo que contestan /s y /toimg cuando es eso: no es un fallo de descarga.
 const NO_ENTREGADA = 'Esa foto de ver una vez no me llegó: WhatsApp no se la pasa al bot.';
+const MARCA_FILTRO = Symbol.for('daddy.verUnaVez.filtro');
+
+function podar(mapa) {
+  const ahora = Date.now();
+  for (const [k, v] of mapa) {
+    if (ahora - (v?.ts || 0) > VIDA_IDS_MS) mapa.delete(k);
+    else break;
+  }
+  while (mapa.size > TOPE_IDS) mapa.delete(mapa.keys().next().value);
+}
+function recordarId(mapa, id, valor) {
+  mapa.delete(id);
+  mapa.set(id, valor);
+  podar(mapa);
+}
+
+// Lo que pasó con cada foto de ver una vez, para `npm run estado`: sin
+// contenido ni números, solo qué llegó.
+// Se escribe junto, como mucho cada cinco segundos: en el grupo del dueño
+// todas las fotos son de ver una vez y esto va en el camino de cada mensaje.
+let FICHERO_LLEGADAS = path.join(__dirname, '../../data/verUnaVezLlegadas.json');
+let porEscribir = [];
+let relojEscritura = null;
+function escribirEventos() {
+  relojEscritura = null;
+  if (!porEscribir.length) return;
+  const nuevos = porEscribir;
+  porEscribir = [];
+  try {
+    let v = [];
+    try { v = JSON.parse(fsSync.readFileSync(FICHERO_LLEGADAS, 'utf8')); } catch { v = []; }
+    if (!Array.isArray(v)) v = [];
+    v.push(...nuevos);
+    fsSync.mkdirSync(path.dirname(FICHERO_LLEGADAS), { recursive: true });
+    fsSync.writeFileSync(FICHERO_LLEGADAS, JSON.stringify(v.slice(-300)));
+  } catch { /* contar no tumba nada */ }
+}
+function apuntarEvento(que) {
+  porEscribir.push({ ts: Date.now(), que });
+  if (!relojEscritura) {
+    relojEscritura = setTimeout(escribirEventos, 5000);
+    relojEscritura.unref?.();
+  }
+}
+function llegadas(horas = 24) {
+  const desde = Date.now() - horas * 3600000;
+  let v = [];
+  try { v = JSON.parse(fsSync.readFileSync(FICHERO_LLEGADAS, 'utf8')); } catch { v = []; }
+  return [...(Array.isArray(v) ? v : []), ...porEscribir].filter((x) => x.ts >= desde);
+}
 
 function esAvisoVacio(msg, noEnviado) {
   if (msg?.message) return false;
   return msg?.key?.isViewOnce === true || /view_once/i.test(String(noEnviado || ''));
 }
 
+function traeVerUnaVez(msg) {
+  if (!msg?.message) return false;
+  const found = clasificar(msg.message);
+  return Boolean(found && esVista(found));
+}
+
+// Lo que trae el socket, antes de descifrar: si hubo foto cifrada para este
+// id (enc con mediatype) y si hubo aviso vacío. Solo para decir en el log qué
+// pasó cuando falta la foto.
+function anotarStanza(node) {
+  try {
+    if (!node || node.tag !== 'message' || !node.attrs?.id) return;
+    let enc = false;
+    let aviso = '';
+    for (const h of Array.isArray(node.content) ? node.content : []) {
+      if (h?.tag === 'enc' && h.attrs?.mediatype) enc = true;
+      if (h?.tag === 'unavailable') aviso = String(h.attrs?.type || 'sin tipo');
+    }
+    if (!enc && !aviso) return;
+    const id = String(node.attrs.id);
+    const antes = crudas.get(id);
+    recordarId(crudas, id, { enc: Boolean(antes?.enc || enc), aviso: antes?.aviso || aviso, ts: antes?.ts || Date.now() });
+  } catch { /* mirar no tumba nada */ }
+}
+
+// Envuelve `sock.ev.emit` (ver arriba). Una vez por socket.
+function instalarFiltro(sock, { noEnviado = () => '' } = {}) {
+  const ev = sock && sock.ev;
+  if (!ev || typeof ev.emit !== 'function') return false;
+  if (ev[MARCA_FILTRO]) return true;
+  const emitir = ev.emit.bind(ev);
+  ev.emit = (evento, datos, ...resto) => {
+    if (evento === 'messages.upsert' && datos && Array.isArray(datos.messages)) {
+      try {
+        const quedan = [];
+        for (const m of datos.messages) {
+          const id = m?.key?.id ? String(m.key.id) : '';
+          if (id && traeVerUnaVez(m)) {
+            const nueva = !conContenido.has(id);
+            recordarId(conContenido, id, { ts: Date.now() });
+            noEntregadas.delete(id);
+            if (nueva) apuntarEvento('foto');
+            archivarVerUnaVez(sock, m);
+            quedan.push(m);
+            continue;
+          }
+          if (id && conContenido.has(id) && esAvisoVacio(m, noEnviado(id))) {
+            apuntarEvento('aviso vacío apartado');
+            continue;
+          }
+          quedan.push(m);
+        }
+        if (!quedan.length) return true;
+        if (quedan.length !== datos.messages.length) datos = { ...datos, messages: quedan };
+      } catch { /* filtrar nunca se come un mensaje */ }
+    }
+    return emitir(evento, datos, ...resto);
+  };
+  ev[MARCA_FILTRO] = true;
+  return true;
+}
+
+// Lo que sale ya del búfer (bot.js, messages.upsert). Aquí solo llega el
+// aviso vacío de una foto que no ha llegado (todavía).
 function apuntarLlegada(msg, tipo, sock = null, noEnviado = '') {
   try {
     if (esAvisoVacio(msg, noEnviado)) {
-      const id = msg.key?.id;
-      if (!id || noEntregadas.has(id)) return;
+      const id = msg.key?.id ? String(msg.key.id) : '';
+      if (!id || noEntregadas.has(id) || conContenido.has(id)) return;
       for (const [k, v] of noEntregadas) if (Date.now() - v.ts > NO_ENTREGADA_MS) noEntregadas.delete(k);
       const info = { ts: Date.now(), pedida: false };
       noEntregadas.set(id, info);
-      apuntarFallo('WhatsApp no se la mandó al bot');
       const ts = Number(typeof msg.messageTimestamp?.toNumber === 'function' ? msg.messageTimestamp.toNumber() : msg.messageTimestamp) || 0;
       const reciente = !ts || Date.now() / 1000 - ts < MAX_EDAD_PEDIR_S;
       if (reciente && sock && typeof sock.requestPlaceholderResend === 'function') {
@@ -492,14 +620,26 @@ function apuntarLlegada(msg, tipo, sock = null, noEnviado = '') {
           { key: k, messageTimestamp: msg.messageTimestamp, pushName: msg.pushName, participant: msg.participant },
         )).catch((e) => logger.info(`ver una vez: no pude pedirle la foto al teléfono (${e?.message || e})`));
       }
-      logger.info(`ver una vez: WhatsApp no le manda la foto a este dispositivo (${noEnviado || 'unavailable view_once'}, ${tipo || '?'})${info.pedida ? '; se la pido al teléfono del número' : ''}`);
+      // Si la foto llega detrás, no hay nada que decir. Si no, se dice.
+      const t = setTimeout(() => {
+        try {
+          if (conContenido.has(id) || vuelos.has(id) || tomar([id])) return;
+          const cruda = crudas.get(id);
+          apuntarFallo('WhatsApp no se la mandó al bot');
+          apuntarEvento('solo el aviso vacío');
+          logger.warn(`ver una vez: de ${id} al bot solo le llegó el aviso vacío (${noEnviado || 'view_once'}, ${tipo || '?'}); `
+            + (cruda?.enc ? 'la foto llegó cifrada y no se pudo abrir' : 'la foto no llegó')
+            + (info.pedida ? '; se le pidió al teléfono del número' : ''));
+        } catch { /* contar no tumba nada */ }
+      }, ESPERA_SOLO_AVISO_MS);
+      t.unref?.();
       return;
     }
     if (!msg?.message) return;
     const found = clasificar(msg.message);
     if (!found || !esVista(found)) return;
     const nodo = found.msg || found.data;
-    logger.info(`ver una vez: llega ${found.type} (${tipo || '?'}) · clave ${nodo?.mediaKey ? 'sí' : 'no'} · ruta ${nodo?.directPath || nodo?.url ? 'sí' : 'no'}${noEntregadas.has(msg.key?.id) ? ' · la devolvió el teléfono' : ''}`);
+    logger.info(`ver una vez: llega ${found.type} (${tipo || '?'}) · clave ${nodo?.mediaKey ? 'sí' : 'no'} · ruta ${nodo?.directPath || nodo?.url ? 'sí' : 'no'}`);
   } catch { /* mirar no tumba nada */ }
 }
 
@@ -552,9 +692,11 @@ function esperaArchivo(id) {
 }
 
 module.exports = {
-  clasificar, bajar, archivarVerUnaVez, apuntarLlegada, noEntregadaDe, NO_ENTREGADA, esperaArchivo, citaDe, barrerDisco, fallos,
+  clasificar, bajar, archivarVerUnaVez, apuntarLlegada, instalarFiltro, anotarStanza, llegadas, noEntregadaDe, NO_ENTREGADA, esperaArchivo, citaDe, barrerDisco, fallos,
   _usarDescarga, _vaciar, _guardar,
-  _usarDisco: (dir) => { DIR_DISCO = dir; ultimoBarrido = 0; FICHERO_FALLOS = path.join(dir, '..', 'fallosMedios.json'); },
-  _olvidarMemoria: () => { porId.clear(); alias.clear(); vuelos.clear(); noEntregadas.clear(); bytes = 0; },
+  _usarDisco: (dir) => { DIR_DISCO = dir; ultimoBarrido = 0; FICHERO_FALLOS = path.join(dir, '..', 'fallosMedios.json'); FICHERO_LLEGADAS = path.join(dir, '..', 'verUnaVezLlegadas.json'); porEscribir = []; },
+  _escribirEventos: escribirEventos,
+  _olvidarMemoria: () => { porId.clear(); alias.clear(); vuelos.clear(); noEntregadas.clear(); conContenido.clear(); crudas.clear(); bytes = 0; },
+  _usarEsperaSoloAviso: (ms) => { ESPERA_SOLO_AVISO_MS = ms; },
   _rutaDisco: rutaDisco,
 };

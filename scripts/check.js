@@ -25310,7 +25310,7 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
         "const { ffmpegPath } = require('./src/utils/ffmpeg');",
         "const VU = require('./src/utils/verUnaVez');",
         "const DISCO = path.join(process.cwd(), 'data', 'verUnaVez');",
-        "VU._usarDisco(DISCO); VU._vaciar(); VU._usarDisco(DISCO);",
+        "VU._usarDisco(DISCO); VU._vaciar(); VU._usarDisco(DISCO); VU._usarEsperaSoloAviso(300);",
         "const f = path.join(process.cwd(), 'temp', 'f.jpg');",
         "execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi', '-i', 'color=c=0x804020:s=320x240', '-frames:v', '1', f]);",
         "const foto = fs.readFileSync(f);",
@@ -25350,6 +25350,7 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
         "  await cmdToImg(s3.sock, responde('VO3', '!toimg'), meta);",
         "  r.devuelta = s3.out.map((c) => Object.keys(c).filter((k) => k !== 'mentions').join('+') + (c.text ? ':' + c.text : ''));",
         "  r.tardo = Date.now() - t0;",
+        "  await new Promise((res) => setTimeout(res, 700));",
         "  r.fallos = VU.fallos(24).map((x) => x.motivo);",
         "  console.log('R169' + JSON.stringify(r)); process.exit(0);",
         "})().catch((e) => { console.log('R169' + JSON.stringify({ fallo: e.stack })); process.exit(0); });",
@@ -25371,6 +25372,107 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
       }
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     if (fallos === antes169) console.log(verde('   ✓ la foto de ver una vez que WhatsApp no manda se reconoce, se le pide al teléfono y, si no vuelve, /s y /toimg lo dicen'));
+  }
+
+  // ── 170. EL AVISO VACÍO YA NO PISA A LA FOTO DE VER UNA VEZ (15 nov) ────────
+  // La causa de verdad de «/toimg no saca nada»: a un dispositivo vinculado le
+  // llegan la foto de ver una vez Y un aviso vacío con el mismo id, y en el
+  // búfer de eventos de Baileys el segundo sustituye entero al primero. El bot
+  // solo veía el aviso. Se prueba con el búfer REAL de Baileys: sin filtro el
+  // aviso pisa a la foto; con el filtro de utils/verUnaVez.js la foto llega,
+  // en cualquier orden, se guarda al instante y /toimg la saca respondiendo con
+  // una cita sin clave. Si solo llega el aviso, se apunta. En sandbox.
+  {
+    console.log('\n170. EL AVISO VACÍO YA NO PISA A LA FOTO DE VER UNA VEZ');
+    const antes170 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const b170 = soloCodigo('src/bot.js');
+    exige(/verUnaVez\.instalarFiltro\(sock, \{ noEnviado: \(id\) => cabeceras\.noEnviado\(cabeceras\.de\(id\)\) \}\)/.test(b170),
+      'el bot ya no pone el filtro de ver una vez delante del búfer de Baileys: el aviso vacío vuelve a pisar la foto');
+    {
+      const iSock = b170.indexOf('sock = makeWASocket(');
+      const iFiltro = b170.indexOf('verUnaVez.instalarFiltro(sock');
+      const entre = iSock >= 0 && iFiltro > iSock ? b170.slice(iSock, iFiltro) : '';
+      exige(entre && !/\bawait\b/.test(entre), 'entre crear el socket y poner el filtro de ver una vez hay un await: pueden colarse mensajes sin filtrar');
+    }
+    exige(/verUnaVez\.anotarStanza\(node\)/.test(b170), 'el socket ya no apunta qué stanzas trae cada foto de ver una vez');
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'vu170-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data')); fs.mkdirSync(path.join(caja, 'temp'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const fs = require('fs'); const path = require('path'); const { Readable } = require('stream'); const { execFileSync } = require('child_process');",
+        "const Bai = require('@whiskeysockets/baileys'); const pino = require('pino');",
+        "const { ffmpegPath } = require('./src/utils/ffmpeg');",
+        "const VU = require('./src/utils/verUnaVez');",
+        "const DISCO = path.join(process.cwd(), 'data', 'verUnaVez');",
+        "VU._usarDisco(DISCO); VU._vaciar(); VU._usarDisco(DISCO); VU._usarEsperaSoloAviso(300);",
+        "const f = path.join(process.cwd(), 'temp', 'f.jpg');",
+        "execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi', '-i', 'color=c=0x206040:s=320x240', '-frames:v', '1', f]);",
+        "const imagen = fs.readFileSync(f);",
+        "VU._usarDescarga(async (n) => { if (!n || (!n.directPath && !n.url) || !n.mediaKey) throw new Error('No valid media URL or directPath present in message'); return Readable.from([imagen]); });",
+        "const G = '120363000000170001@g.us', A = '34611000170@s.whatsapp.net', B = '34622000170@s.whatsapp.net', BOT = '34600000170@s.whatsapp.net';",
+        "const ahora = () => Math.floor(Date.now() / 1000);",
+        "const dormir = (ms) => new Promise((res) => setTimeout(res, ms));",
+        "const foto = (id) => ({ key: { remoteJid: G, id, fromMe: false, participant: A }, messageTimestamp: ahora(), message: { viewOnceMessageV2: { message: { imageMessage: { url: 'https://mmg.whatsapp.net/x', directPath: '/x', mediaKey: Buffer.alloc(32, 1), mimetype: 'image/jpeg', viewOnce: true } } } } });",
+        "const aviso = (id) => ({ key: { remoteJid: G, id, fromMe: false, participant: A, isViewOnce: true }, messageTimestamp: ahora() });",
+        "const nuevo = (conFiltro) => {",
+        "  const ev = Bai.makeEventBuffer(pino({ level: 'silent' }));",
+        "  const sock = { user: { id: BOT }, ev };",
+        "  if (conFiltro) VU.instalarFiltro(sock);",
+        "  const vistos = [];",
+        "  ev.on('messages.upsert', (e) => { for (const m of e.messages) vistos.push(m.key.id + (m.message ? ':foto' : ':vacío')); });",
+        "  return { sock, ev, vistos };",
+        "};",
+        "const ronda = async (s, mensajes) => { s.ev.buffer(); for (const m of mensajes) s.ev.emit('messages.upsert', { messages: [m], type: 'notify' }); s.ev.flush(); await dormir(60); };",
+        "(async () => {",
+        "  const r = {};",
+        "  const s0 = nuevo(false); await ronda(s0, [foto('P0'), aviso('P0')]); r.sinFiltro = s0.vistos;",
+        "  const s1 = nuevo(true); await ronda(s1, [foto('P1'), aviso('P1')]); r.conFiltro = s1.vistos;",
+        "  const s2 = nuevo(true); await ronda(s2, [aviso('P2'), foto('P2')]); r.alReves = s2.vistos;",
+        "  const s3 = nuevo(true); s3.ev.emit('messages.upsert', { messages: [foto('P3')], type: 'notify' }); s3.ev.emit('messages.upsert', { messages: [aviso('P3')], type: 'notify' }); await dormir(60); r.sinBufer = s3.vistos;",
+        "  const s4 = nuevo(true); await ronda(s4, [{ key: { remoteJid: G, id: 'T4', fromMe: false, participant: A }, message: { conversation: 'hola' } }, { key: { remoteJid: G, id: 'T5', fromMe: false, participant: A }, messageStubType: 2, messageStubParameters: ['No session found to decrypt message'] }]); r.otros = s4.vistos;",
+        "  await VU.esperaArchivo('P1');",
+        "  const { cmdToImg } = require('./src/commands/toimg');",
+        "  const out = [];",
+        "  const sockT = { user: { id: BOT }, sendMessage: async (j, c) => { out.push(c); return { key: { id: 'x' } }; } };",
+        "  const cita = { key: { remoteJid: G, id: 'C1', participant: B }, messageTimestamp: ahora(), message: { extendedTextMessage: { text: '/toimg', contextInfo: { stanzaId: 'P1', participant: A, quotedMessage: { viewOnceMessageV2: { message: { imageMessage: { mimetype: 'image/jpeg', viewOnce: true } } } } } } } };",
+        "  const meta = { id: G, participants: [{ id: BOT, admin: 'admin' }, { id: B, admin: 'superadmin' }, { id: A }] };",
+        "  await cmdToImg(sockT, cita, meta);",
+        "  r.toimg = out.map((c) => Object.keys(c).filter((k) => k !== 'mentions').join('+') + (c.text ? ':' + c.text : ''));",
+        "  const s5 = nuevo(true); await ronda(s5, [aviso('P5')]); r.soloAviso = s5.vistos;",
+        "  VU.apuntarLlegada(aviso('P5'), 'notify', s5.sock, '');",
+        "  VU.apuntarLlegada(aviso('P2'), 'notify', s2.sock, '');",
+        "  await dormir(700);",
+        "  r.llegadas = VU.llegadas(24).map((x) => x.que);",
+        "  r.fallos = VU.fallos(24).map((x) => x.motivo);",
+        "  VU._escribirEventos();",
+        "  r.enDisco = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'verUnaVezLlegadas.json'), 'utf8')).length;",
+        "  console.log('R170' + JSON.stringify(r)); process.exit(0);",
+        "})().catch((e) => { console.log('R170' + JSON.stringify({ fallo: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 90000,
+        env: { ...process.env, OWNER_NUMBER: '34622000170', CO_OWNERS: '', LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R170'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { fallo: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.fallo) exige(false, `no pude probarlo: ${String(r.fallo).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        if (JSON.stringify(r.sinFiltro) !== '["P0:vacío"]') console.log(`   · nota: el búfer de esta versión de Baileys ya no deja que el aviso pise a la foto (${JSON.stringify(r.sinFiltro)}); el filtro sigue sin estorbar`);
+        exige(JSON.stringify(r.conFiltro) === '["P1:foto"]', `foto y luego aviso vacío en el búfer: al bot no le llega la foto (${JSON.stringify(r.conFiltro)})`);
+        exige(JSON.stringify(r.alReves) === '["P2:foto"]', `aviso vacío y luego foto en el búfer: al bot no le llega la foto (${JSON.stringify(r.alReves)})`);
+        exige(JSON.stringify(r.sinBufer) === '["P3:foto"]', `fuera del búfer, el aviso vacío de una foto que ya llegó pasa igual: ${JSON.stringify(r.sinBufer)}`);
+        exige(JSON.stringify(r.otros) === '["T4:foto","T5:vacío"]', `el filtro toca mensajes que no son de ver una vez: ${JSON.stringify(r.otros)}`);
+        exige(r.toimg.length === 1 && r.toimg[0].startsWith('image'), `/toimg respondiendo a la foto (con la cita sin clave) no la saca de la copia guardada al llegar: ${JSON.stringify(r.toimg)}`);
+        exige(JSON.stringify(r.soloAviso) === '["P5:vacío"]', `si solo llega el aviso vacío, el filtro se lo come: ${JSON.stringify(r.soloAviso)}`);
+        exige(r.llegadas.filter((x) => x === 'solo el aviso vacío').length === 1,
+          `de las fotos de las que solo llegó el aviso no queda constancia, o se apunta también la que llegó detrás: ${JSON.stringify(r.llegadas)}`);
+        exige(r.llegadas.includes('foto') && r.llegadas.includes('aviso vacío apartado'), `npm run estado no sabrá cuántas fotos llegaron ni cuántos avisos se apartaron: ${JSON.stringify(r.llegadas)}`);
+        exige(r.fallos.filter((x) => x === 'WhatsApp no se la mandó al bot').length === 1, `el fallo de «no se la mandó» no se apunta una sola vez: ${JSON.stringify(r.fallos)}`);
+        exige(r.enDisco === r.llegadas.length, `lo apuntado de ver una vez no llega al disco para npm run estado: ${r.enDisco} de ${r.llegadas.length}`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes170) console.log(verde('   ✓ con el búfer real de Baileys, el aviso vacío ya no pisa a la foto de ver una vez: llega, se guarda y /toimg la saca'));
   }
 
 
