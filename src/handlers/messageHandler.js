@@ -2708,6 +2708,9 @@ async function handleMessage(sock, msg, opciones = {}) {
         anotarTropiezo(`Spam de mensajes en ${jid} de +${numR}: sin metadata del grupo, no hago nada.`);
       } else if (esOwnerDelMensaje(msg, sender, senderPn, meta)) {
         logger.info(`spam de mensajes en ${jid} del tier dueño: no se toca`);
+      } else if (spamTexto.esInmune([sender, senderPn, msg.key.participantAlt, ...allForms(sender, meta)])) {
+        // SPAM_INMUNES (dueño, 15 nov): sin aviso, sin cerrar y sin ban.
+        logger.info(`spam de mensajes en ${jid} de +${numR}: está en SPAM_INMUNES, no se toca`);
       } else if (!isBotAdmin(sock, meta)) {
         anotarTropiezo(`Spam de mensajes en ${jid} de +${numR} y NO soy admin: no puedo cerrar el grupo ni echar a nadie. Dame admin.`);
       } else {

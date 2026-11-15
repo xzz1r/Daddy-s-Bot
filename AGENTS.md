@@ -149,7 +149,8 @@ Lo pidió el dueño (17 oct): 5 mensajes iguales del mismo número en menos de 1
 segundos cierran el grupo con un *Aviso 1 de 2*; a la segunda, ban. Eran más de
 10 y no saltaba nunca (18 oct).
 Los admins no se libran (18 oct): a la segunda se les quita el admin en vez del
-ban. Solo se libra el tier dueño. El aviso caduca a las 12 horas y el grupo se
+ban. Solo se libra el tier dueño, y los números de `SPAM_INMUNES` del `.env`
+(dueño, 15 nov; capa 164). El aviso caduca a las 12 horas y el grupo se
 abre solo a los 20 segundos, si nadie lo ha abierto antes (18 oct).
 
 «Iguales» son las mismas letras y números (18 oct): un emoji, un signo, una

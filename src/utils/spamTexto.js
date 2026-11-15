@@ -303,7 +303,29 @@ function _usarFichero(f) { FILE = f; store = null; loadPromise = null; }
 function _reset() { recientes.clear(); store = null; loadPromise = null; }
 function _usarEsperas({ reabrir } = {}) { esperaReabrir = reabrir ?? REABRIR_MS; }
 
+// ¿Es una de las cuentas de SPAM_INMUNES? (dueño, 15 nov). Se mira cada forma
+// que se conozca de la persona (@lid, teléfono, canónica) y con el 9 de los
+// móviles argentinos y sin él: WhatsApp a veces lo quita del JID (ver
+// esShipAlto en commands/ship.js, el mismo caso).
+function esInmune(formas, lista = null) {
+  const inmunes = lista || require('../config').spamInmunes || [];
+  if (!inmunes.length) return false;
+  const { canonicalJid } = require('./wa');
+  const digitos = (x) => String(x || '').split('@')[0].split(':')[0].replace(/\D/g, '');
+  const sinNueveAR = (d) => (/^549\d{8,}$/.test(d) ? '54' + d.slice(3) : d);
+  const propios = new Set();
+  for (const f of (formas || []).filter(Boolean)) {
+    for (const x of [f, canonicalJid(f)]) {
+      if (!x || !/@s\.whatsapp\.net$|^\d+$/.test(String(x))) continue;
+      const d = digitos(x);
+      if (d) propios.add(sinNueveAR(d));
+    }
+  }
+  return inmunes.some((n) => propios.has(sinNueveAR(n)));
+}
+
 module.exports = {
+  esInmune,
   anotar, sancion, avisosDe, olvidarAvisos, textoAviso, textoBan, textoSinAdmin,
   apuntarReapertura, olvidarReapertura, reaperturasPendientes, esperaReapertura,
   IGUALES, VENTANA_S, GRACIA_MS, AVISO_DURA_MS, REABRIR_MS,

@@ -24938,6 +24938,68 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes163) console.log(verde('   ✓ !s y !toimg convierten medios de verdad, y la mitad del cupo de fotos queda para quien pide !pfp'));
   }
 
+  // ── 164. LOS NÚMEROS DE SPAM_INMUNES NO SE LLEVAN EL AVISO NI EL BAN (15 nov) ─
+  // El dueño: «haz que estos dos números sean inmunes al ban del spam de
+  // mensajes». Van en el .env (SPAM_INMUNES), nunca en el código. Valen con
+  // su teléfono, con el móvil argentino sin el 9 y llegando por su @lid; a
+  // cualquier otro la regla le sigue saltando. En sandbox.
+  {
+    console.log('\n164. LOS NÚMEROS DE SPAM_INMUNES NO SE LLEVAN EL AVISO NI EL BAN');
+    const antes164 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    exige(/SPAM_INMUNES/.test(fs.readFileSync(path.join(R, '.env.example'), 'utf8')), '.env.example no explica SPAM_INMUNES');
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'inmunes164-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data')); fs.mkdirSync(path.join(caja, 'temp'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const { handleMessage } = require('./src/handlers/messageHandler');",
+        "const ST = require('./src/utils/spamTexto');",
+        "const BOT = '34600000164@s.whatsapp.net';",
+        "let n = 0, gr = 0;",
+        "const nuevoGrupo = () => '1203630000' + String(++gr + 640).padStart(4, '0') + '@g.us';",
+        "const manda = async (G, quien, partes) => {",
+        "  const ev = [];",
+        "  const sock = { user: { id: BOT }, readMessages: async () => {}, sendPresenceUpdate: async () => {},",
+        "    sendMessage: async (j, c) => { if (c.text && /Aviso \\d de 2/.test(c.text)) ev.push('aviso'); return { key: { id: 'K' + (++n) } }; },",
+        "    groupMetadata: async () => ({ id: G, subject: 'G', participants: [...partes, { id: BOT, admin: 'admin' }] }),",
+        "    groupParticipantsUpdate: async (g, ids, a) => { ev.push(a); return ids.map((j) => ({ jid: j, status: '200' })); },",
+        "    groupSettingUpdate: async (g, v) => { ev.push(v); },",
+        "    profilePictureUrl: async () => { throw new Error('sin foto'); } };",
+        "  const t0 = Math.floor(Date.now() / 1000);",
+        "  for (let i = 0; i < ST.IGUALES; i++) {",
+        "    await handleMessage(sock, { key: { remoteJid: G, fromMe: false, id: 'S164' + (++n), participant: quien }, messageTimestamp: t0, message: { conversation: 'el copy de siempre' } });",
+        "  }",
+        "  return ev;",
+        "};",
+        "(async () => {",
+        "  const r = {};",
+        "  ST._usarEsperas({ reabrir: 60000 });",
+        "  r.unidad = [ST.esInmune(['50200000164@s.whatsapp.net']), ST.esInmune(['543510000164@s.whatsapp.net']), ST.esInmune(['5493510000164@s.whatsapp.net']), ST.esInmune(['34611000164@s.whatsapp.net']), ST.esInmune(['5493510000164@lid'])];",
+        "  r.gt = await manda(nuevoGrupo(), '50200000164@s.whatsapp.net', [{ id: '50200000164@s.whatsapp.net' }]);",
+        "  r.arSinNueve = await manda(nuevoGrupo(), '543510000164@s.whatsapp.net', [{ id: '543510000164@s.whatsapp.net' }]);",
+        "  r.porLid = await manda(nuevoGrupo(), '91640000001@lid', [{ id: '91640000001@lid', phoneNumber: '5493510000164@s.whatsapp.net' }]);",
+        "  r.otro = await manda(nuevoGrupo(), '34611000164@s.whatsapp.net', [{ id: '34611000164@s.whatsapp.net' }]);",
+        "  console.log('R164' + JSON.stringify(r)); process.exit(0);",
+        "})().catch((e) => { console.log('R164' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 60000,
+        env: { ...process.env, OWNER_NUMBER: '33600000164', CO_OWNERS: '', SPAM_INMUNES: '50200000164,5493510000164', LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R164'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(JSON.stringify(r.unidad) === '[true,true,true,false,false]', `la lista de inmunes no reconoce bien los números: ${JSON.stringify(r.unidad)}`);
+        exige(!r.gt.length, `un número de SPAM_INMUNES se lleva el castigo del spam: ${JSON.stringify(r.gt)}`);
+        exige(!r.arSinNueve.length, `un móvil argentino de SPAM_INMUNES, sin el 9 en el JID, se lleva el castigo: ${JSON.stringify(r.arSinNueve)}`);
+        exige(!r.porLid.length, `un número de SPAM_INMUNES que llega por su @lid se lleva el castigo: ${JSON.stringify(r.porLid)}`);
+        exige(r.otro.includes('announcement') && r.otro.includes('aviso'), `a quien no está en SPAM_INMUNES ya no le salta el spam: ${JSON.stringify(r.otro)}`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes164) console.log(verde('   ✓ los números de SPAM_INMUNES repiten sin aviso ni ban, con su teléfono, sin el 9 o por su @lid, y al resto le salta igual'));
+  }
+
 
 
 

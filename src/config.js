@@ -94,6 +94,16 @@ const config = {
     .map(n => n.replace(/\D/g, ''))
     .filter(Boolean),
 
+  // INMUNES AL SPAM DE TEXTO (dueño, 15 nov). Estos números pueden repetir el
+  // mismo mensaje sin aviso, sin grupo cerrado y sin ban. En .env como
+  // SPAM_INMUNES=numero1,numero2, por lo mismo que CO_OWNERS: ni un número
+  // real escrito en el código. Solo esa regla: el resto de la moderación
+  // (enlaces, historias, anti-empresa) les sigue tocando.
+  spamInmunes: (process.env.SPAM_INMUNES || '')
+    .split(',')
+    .map(n => n.replace(/\D/g, ''))
+    .filter(Boolean),
+
   // EL VISTO, Y CON EL LA PRESENCIA. Encenderlo hace dos cosas a la vez y hay
   // que saberlo: el bot marca como leido todo lo que le llega en los grupos, y
   // para que eso se VEA tiene que anunciarse en linea (WhatsApp no pinta el
