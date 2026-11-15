@@ -17,7 +17,7 @@
 // no se puede: mal número, no soy admin, no hay nada reciente.
 
 const config = require('../config');
-const { isOwner, isBotAdmin, getSender, bareJid } = require('../utils/wa');
+const { isOwner, isBotAdmin, getSender, bareJid, dueñoEnPrivado } = require('../utils/wa');
 const { SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
 const logger = require('../utils/logger');
@@ -99,11 +99,95 @@ async function dispararBorrados(sock, jid, items, sinContar) {
 let trabajo = Promise.resolve();
 function _esperar() { return trabajo; }
 
+// ─── !wipe interlude 30, DESDE FUERA DEL GRUPO (dueño, 15 nov) ───────────────
+//
+// «Haz que lo pueda hacer de forma remota: !wipe interlude». Con el nombre del
+// grupo delante o detrás de la cantidad, borra en ese grupo y contesta donde
+// se escribió. Por privado, solo el dueño principal (como el resto de lo que
+// funciona por privado); desde otro grupo, el tier dueño, como !limpiar.
+//
+// El nombre se compara sin mayúsculas, tildes, espacios ni letras de
+// adorno: «𝐈 𝐍 𝐓 𝐄 𝐑 𝐋 𝐔 𝐃 𝐄» es «interlude». Si casan varios, se dice cuáles
+// y no se borra nada. Solo se borra lo que el bot vio llegar (no se le pide
+// nada al teléfono).
+const normalizarNombre = (s) => String(s || '').normalize('NFKC').toLowerCase()
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+
+async function buscarGrupo(sock, nombre) {
+  const { censoDeGrupos } = require('../handlers/messageHandler');
+  const todos = (await censoDeGrupos(sock).catch(() => null)) || {};
+  const q = normalizarNombre(nombre);
+  if (!q) return [];
+  const lista = Object.entries(todos).map(([jid, m]) => ({ jid, subject: m?.subject || jid, meta: m, n: normalizarNombre(m?.subject) }));
+  const exactos = lista.filter((g) => g.n === q);
+  if (exactos.length) return exactos;
+  return lista.filter((g) => g.n.includes(q));
+}
+
+async function limpiarRemoto(sock, msg, args, groupMeta) {
+  const aqui = msg.key.remoteJid;
+  const enGrupo = aqui.endsWith('@g.us');
+  const sender = getSender(msg);
+  const puede = enGrupo ? isOwner(sender, msg.key.fromMe, groupMeta) : dueñoEnPrivado(msg);
+  if (!puede) {
+    if (!enGrupo) return sock.sendMessage(aqui, { text: aviso(SOLO_GRUPOS, aqui, 'grupos') }, { quoted: msg });
+    return;
+  }
+  // La cantidad, al final o al principio: «!wipe club 2024 30» es el grupo
+  // «club 2024» y 30 mensajes.
+  // Una mención (@…) no es el nombre de un grupo.
+  const trozos = (args || []).map((a) => String(a).trim()).filter((t) => t && !t.startsWith('@'));
+  const esNum = (t) => /^\d+$/.test(t || '');
+  const iNum = esNum(trozos[trozos.length - 1]) ? trozos.length - 1 : (esNum(trozos[0]) ? 0 : -1);
+  const nombre = trozos.filter((_, i) => i !== iNum).join(' ');
+  if (!nombre) {
+    return sock.sendMessage(aqui, { text: `Di de qué grupo: *${config.prefix}wipe interlude 20*` }, { quoted: msg });
+  }
+  const n = iNum >= 0 ? Number.parseInt(trozos[iNum], 10) : 0;
+  if (!n) {
+    return sock.sendMessage(aqui, { text: `Cuántos. *${config.prefix}wipe ${nombre} 20*` }, { quoted: msg });
+  }
+  if (n > MAX) return sock.sendMessage(aqui, { text: `El tope es ${MAX}.` }, { quoted: msg });
+
+  const hallados = await buscarGrupo(sock, nombre);
+  if (!hallados.length) {
+    return sock.sendMessage(aqui, { text: `No encuentro ningún grupo del bot que se llame «${nombre}».` }, { quoted: msg });
+  }
+  if (hallados.length > 1) {
+    return sock.sendMessage(aqui, {
+      text: `Hay ${hallados.length} grupos con ese nombre: ${hallados.slice(0, 6).map((g) => `*${g.subject}*`).join(', ')}. Escríbelo más entero.`,
+    }, { quoted: msg });
+  }
+  const destino = hallados[0];
+  // Escrito dentro del mismo grupo: es un !limpiar de los de siempre.
+  if (enGrupo && destino.jid === aqui) return cmdLimpiar(sock, msg, [String(n)], groupMeta);
+  const { getGroupMeta } = require('../handlers/messageHandler');
+  const meta = (await getGroupMeta(sock, destino.jid).catch(() => null)) || destino.meta;
+  if (!isBotAdmin(sock, meta)) {
+    return sock.sendMessage(aqui, { text: `En *${destino.subject}* no soy admin. Así no puedo borrar nada.` }, { quoted: msg });
+  }
+  if (enCurso.has(destino.jid)) {
+    return sock.sendMessage(aqui, { text: `Ya estoy limpiando *${destino.subject}*.` }, { quoted: msg });
+  }
+  const items = hist.tomar(destino.jid, n, []).slice().reverse();
+  enCurso.add(destino.jid);
+  let hechos = 0;
+  try {
+    hechos = await dispararBorrados(sock, destino.jid, items, new Set());
+  } finally {
+    enCurso.delete(destino.jid);
+  }
+  const texto = hechos >= n
+    ? `Borrados *${hechos}* mensaje${hechos === 1 ? '' : 's'} en *${destino.subject}*.`
+    : `Borrados *${hechos}* de ${n} en *${destino.subject}*. El resto no lo vi llegar o WhatsApp no me dejó.`;
+  return sock.sendMessage(aqui, { text: texto }, { quoted: msg });
+}
+
 async function cmdLimpiar(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
-  if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
-  }
+  // Por privado, o con un nombre en vez de solo un número: es el remoto.
+  const conNombre = (args || []).some((a) => { const t = String(a).trim(); return t && !t.startsWith('@') && !/^\d+$/.test(t); });
+  if (!jid.endsWith('@g.us') || conNombre) return limpiarRemoto(sock, msg, args, groupMeta);
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) return;
   if (!isBotAdmin(sock, groupMeta)) {
@@ -206,6 +290,6 @@ async function cmdLimpiar(sock, msg, args, groupMeta) {
 }
 
 module.exports = {
-  cmdLimpiar, claveBorrado, MAX,
+  cmdLimpiar, claveBorrado, MAX, _normalizarNombre: normalizarNombre,
   _enCurso: enCurso, _esperar,
 };

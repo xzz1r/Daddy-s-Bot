@@ -3189,7 +3189,7 @@ async function handleMessage(sock, msg, opciones = {}) {
 
 }
 
-module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGroupMeta, reabrirPendientes, PERMISO_ENLACE,
+module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGroupMeta, censoDeGrupos, reabrirPendientes, PERMISO_ENLACE,
   // Para que la capa pueda conducir el corrector sin montar un grupo entero.
   _sugerirComando: sugerirComando,
   _sugerenciasComando: sugerenciasComando,

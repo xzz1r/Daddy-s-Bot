@@ -25154,6 +25154,90 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes167) console.log(verde('   ✓ el bot solo se presenta como Android si el dueño pone WA_DISPOSITIVO=android'));
   }
 
+  // ── 168. !wipe DESDE FUERA: POR PRIVADO O DESDE OTRO GRUPO (15 nov) ────────
+  // El dueño: «haz que lo pueda hacer de forma remota, !wipe interlude». El
+  // grupo se busca por su nombre sin letras de adorno, el nombre exacto gana a
+  // uno que lo contiene, si casan varios no se borra nada, y la respuesta va
+  // donde se escribió. Por privado solo el dueño principal. El !limpiar de
+  // siempre sigue igual. En sandbox.
+  {
+    console.log('\n168. !wipe DESDE FUERA: POR PRIVADO O DESDE OTRO GRUPO');
+    const antes168 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'wipe168-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data')); fs.mkdirSync(path.join(caja, 'temp'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const { handleMessage } = require('./src/handlers/messageHandler');",
+        "const L = require('./src/commands/limpiar');",
+        "const hist = require('./src/utils/historialGrupo');",
+        "const config = require('./src/config');",
+        "const BOT = '34600000168@s.whatsapp.net';",
+        "const DUENO = '33600000168@s.whatsapp.net';",
+        "const OTRO = '34611000168@s.whatsapp.net';",
+        "const G = (i) => '1203630000' + String(680 + i).padStart(4, '0') + '@g.us';",
+        "const yo = { id: BOT, admin: 'admin' };",
+        "const grupos = {",
+        "  [G(1)]: { id: G(1), subject: '𝐈 𝐍 𝐓 𝐄 𝐑 𝐋 𝐔 𝐃 𝐄', participants: [yo, { id: OTRO }] },",
+        "  [G(2)]: { id: G(2), subject: 'Charla', participants: [yo, { id: DUENO }, { id: OTRO }] },",
+        "  [G(3)]: { id: G(3), subject: 'Interlude Backup', participants: [yo] },",
+        "  [G(4)]: { id: G(4), subject: 'Sin Poder', participants: [{ id: BOT }] },",
+        "};",
+        "let n = 0;",
+        "const borrados = [], textos = [];",
+        "const sock = { user: { id: BOT }, readMessages: async () => {}, sendPresenceUpdate: async () => {},",
+        "  sendMessage: async (j, c) => { if (c.delete) borrados.push(j + '|' + c.delete.id); else if (c.text) textos.push(j + '|' + c.text); return { key: { id: 'K' + (++n) } }; },",
+        "  groupMetadata: async (j) => grupos[j], groupFetchAllParticipating: async () => grupos,",
+        "  profilePictureUrl: async () => { throw new Error('sin foto'); } };",
+        "const siembra = (g, k) => { for (let i = 1; i <= k; i++) hist.recordar({ key: { remoteJid: g, fromMe: false, id: g.slice(10, 14) + 'M' + i, participant: OTRO }, messageTimestamp: 1000 + i, message: { conversation: 'hola ' + i } }); };",
+        "const priv = (de, texto) => handleMessage(sock, { key: { remoteJid: de, fromMe: false, id: 'P' + (++n) }, messageTimestamp: Math.floor(Date.now() / 1000), message: { conversation: texto } });",
+        "const enGrupo = (g, de, texto) => handleMessage(sock, { key: { remoteJid: g, fromMe: false, id: 'C' + (++n), participant: de }, messageTimestamp: Math.floor(Date.now() / 1000), message: { conversation: texto } });",
+        "const corte = () => { const b = borrados.splice(0), t = textos.splice(0); return { b, t }; };",
+        "(async () => {",
+        "  const r = {}; const p = config.prefix;",
+        "  siembra(G(1), 6); siembra(G(2), 4); siembra(G(3), 3); siembra(G(4), 3);",
+        "  r.nombre = [L._normalizarNombre('𝐈 𝐍 𝐓 𝐄 𝐑 𝐋 𝐔 𝐃 𝐄'), L._normalizarNombre('Árbol  Club ✨')];",
+        "  await priv(DUENO, p + 'wipe interlude 3'); r.dm = corte();",
+        "  await priv(OTRO, p + 'wipe interlude 2'); r.ajeno = corte();",
+        "  await priv(DUENO, p + 'wipe inter 2'); r.varios = corte();",
+        "  await priv(DUENO, p + 'wipe nadaparecido 2'); r.ninguno = corte();",
+        "  await priv(DUENO, p + 'wipe sin poder 2'); r.sinAdmin = corte();",
+        "  await priv(DUENO, p + 'wipe interlude'); r.sinCuantos = corte();",
+        "  await enGrupo(G(2), DUENO, p + 'wipe interlude 1'); await L._esperar(); r.desdeOtro = corte();",
+        "  await enGrupo(G(2), OTRO, p + 'wipe interlude 1'); await L._esperar(); r.otroEnGrupo = corte();",
+        "  await enGrupo(G(2), DUENO, p + 'limpiar 2'); await L._esperar(); r.local = corte();",
+        "  console.log('R168' + JSON.stringify(r)); process.exit(0);",
+        "})().catch((e) => { console.log('R168' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 60000,
+        env: { ...process.env, OWNER_NUMBER: '33600000168', CO_OWNERS: '', LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R168'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        const g1 = '1203630000' + '0681@g.us';
+        const ids = (x) => x.b.map((s) => s.split('|')[1]).sort().join(',');
+        const dondeG = (x) => [...new Set(x.b.map((s) => s.split('|')[0]))];
+        exige(JSON.stringify(r.nombre) === '["interlude","arbolclub"]', `el nombre del grupo no se limpia de adornos: ${JSON.stringify(r.nombre)}`);
+        exige(r.dm.b.length === 3 && dondeG(r.dm).join() === g1 && ids(r.dm) === '0681M4,0681M5,0681M6',
+          `!wipe interlude 3 por privado no borra los tres últimos de «𝐈 𝐍 𝐓 𝐄 𝐑 𝐋 𝐔 𝐃 𝐄»: ${JSON.stringify(r.dm.b)}`);
+        exige(r.dm.t.some((t) => t.startsWith('33600000168@') && /Borrados \*3\*/.test(t)), `el dueño no recibe por privado cuántos se borraron: ${JSON.stringify(r.dm.t)}`);
+        exige(!r.ajeno.b.length, `por privado, alguien que no es el dueño borra mensajes de un grupo: ${JSON.stringify(r.ajeno.b)}`);
+        exige(!r.varios.b.length && r.varios.t.some((t) => /2 grupos/.test(t)), `con un nombre que casa con dos grupos se borra algo o no se dice cuáles: ${JSON.stringify(r.varios)}`);
+        exige(!r.ninguno.b.length && r.ninguno.t.some((t) => /No encuentro/.test(t)), `con un grupo que no existe no se dice: ${JSON.stringify(r.ninguno)}`);
+        exige(!r.sinAdmin.b.length && r.sinAdmin.t.some((t) => /no soy admin/.test(t)), `en un grupo donde el bot no es admin se intenta borrar o no se dice: ${JSON.stringify(r.sinAdmin)}`);
+        exige(!r.sinCuantos.b.length && r.sinCuantos.t.some((t) => /Cuántos/.test(t)), `sin cantidad no se pide: ${JSON.stringify(r.sinCuantos)}`);
+        exige(r.desdeOtro.b.length === 1 && dondeG(r.desdeOtro).join() === g1 && r.desdeOtro.t.some((t) => t.startsWith('1203630000' + '0682@') && /Borrados \*1\*/.test(t)),
+          `!wipe interlude 1 desde otro grupo no borra en «𝐈 𝐍 𝐓 𝐄 𝐑 𝐋 𝐔 𝐃 𝐄» o no contesta donde se escribió: ${JSON.stringify(r.desdeOtro)}`);
+        exige(!r.otroEnGrupo.b.length, `desde otro grupo, alguien que no es del tier dueño borra en un grupo ajeno: ${JSON.stringify(r.otroEnGrupo.b)}`);
+        exige(r.local.b.length === 3 && dondeG(r.local).join() === '1203630000' + '0682@g.us', `el !limpiar 2 de siempre ya no borra la orden y dos más en su grupo: ${JSON.stringify(r.local.b)}`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes168) console.log(verde('   ✓ !wipe interlude 30 borra en ese grupo desde el privado del dueño o desde otro grupo, y el !limpiar de siempre sigue igual'));
+  }
+
 
 
 

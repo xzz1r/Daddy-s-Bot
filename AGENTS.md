@@ -121,6 +121,19 @@ top, robo y asalto, butrón, objeto de ventaja y banco (`sinEsperaAura` en
 `src/utils/wa.js`). Lo que protege a otro (su escudo, su caja blindada) sigue
 valiendo contra él, y a los co-dueños les quedan sus esperas. Capa 158.
 
+## !wipe a distancia
+
+Lo pidió el dueño (15 nov): «haz que lo pueda hacer de forma remota, !wipe
+interlude». `!wipe <grupo> <cantidad>` (o `!limpiar`) desde el privado del
+bot o desde otro grupo borra en el grupo que se llame así, buscado sin
+mayúsculas, tildes, espacios ni letras de adorno; el nombre exacto gana a uno
+que lo contiene y, si casan varios, no se borra nada y se dice cuáles. La
+respuesta va donde se escribió. Por privado, solo el dueño principal
+(`dueñoEnPrivado`); desde otro grupo, el tier dueño, como `!limpiar`. Solo
+borra lo que el bot vio llegar: no le pide historial al teléfono. Con solo un
+número, dentro del grupo, es el `!limpiar` de siempre (`src/commands/limpiar.js`).
+Capa 168.
+
 ## Historias de grupo: se abren, se reconocen y se quitan
 
 Lo pidió el dueño (13 nov): «el bot no está baneando la peña que sube
