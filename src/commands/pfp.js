@@ -157,6 +157,7 @@ async function cmdPfp(sock, msg, args, groupMeta) {
   let imageBuffer = null;
   let falloPasajero = false;
   let restringida = false;
+  let tope = null;
   try {
     const url = await fetchPfpUrl(sock, target, 'image');
     if (url) {
@@ -170,6 +171,7 @@ async function cmdPfp(sock, msg, args, groupMeta) {
     // decirle a alguien que reintente contra una restricción de privacidad es
     // mandarlo a chocar contra la misma pared cada rato.
     if (err?.restringida) restringida = true;
+    else if (err?.code === 'TOPE_HORA' || err?.code === 'TOPE_DIARIO') { falloPasajero = true; tope = err.code; }
     else {
       falloPasajero = true;
       // Se deja el código en el log. Cuando esto vuelva a fallar con una cuenta
@@ -223,8 +225,12 @@ async function cmdPfp(sock, msg, args, groupMeta) {
   return sock.sendMessage(jid, {
     text: restringida
       ? `${tag} tiene la foto limitada a sus contactos. No es que no tenga: es que a este número no se la enseña. Reintentar no cambia nada.`
+      : tope === 'TOPE_DIARIO'
+      ? `Hoy ya he mirado todas las fotos que me deja el tope (es lo que evita que WhatsApp bloquee el número). La de ${tag}, mañana.`
+      : tope
+      ? `Esta hora ya he mirado todas las fotos que me deja el tope (es lo que evita que WhatsApp bloquee el número). Prueba con ${tag} dentro de un rato.`
       : falloPasajero
-      ? `No pude comprobar la foto de ${tag} ahora mismo (fallo de red o límite de peticiones). Prueba otra vez en un rato.`
+      ? `No pude comprobar la foto de ${tag} ahora mismo (fallo de red). Prueba otra vez en un rato.`
       : `${tag} no tiene foto de perfil visible, y el bot nunca la vio antes para guardarla.`,
     mentions: [target],
   }, { quoted: msg });

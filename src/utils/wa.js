@@ -792,14 +792,17 @@ function variantesMx(jid) {
   return [m[1] ? `52${m[2]}@s.whatsapp.net` : `521${m[2]}@s.whatsapp.net`];
 }
 
-async function fetchPfpUrl(sock, jid, tipo = 'image', intentos = 2) {
+// `fondo`: lo que nadie ha pedido (índice de huellas, barridos). Va con la
+// marca FONDO del ritmo y solo puede gastar la mitad del cupo de fotos.
+async function fetchPfpUrl(sock, jid, tipo = 'image', intentos = 2, { fondo = false } = {}) {
+  const extra = fondo && sock?.__conRitmo ? [require('./ritmo').FONDO] : [];
   const canon = canonicalJid(jid);
   const base = canon && canon !== bareJid(jid) ? [canon, jid] : [jid];
   const formas = [...base, ...base.flatMap(variantesMx).filter((f) => !base.includes(f))];
   let restringidaEnTodas = null;
   for (const forma of formas) {
     try {
-      return await intentarPfp(sock, forma, tipo, intentos);
+      return await intentarPfp(sock, forma, tipo, intentos, extra);
     } catch (err) {
       if (!err?.restringida) throw err;   // fallo de red: no lo tapa otra forma
       restringidaEnTodas = err;
@@ -808,7 +811,7 @@ async function fetchPfpUrl(sock, jid, tipo = 'image', intentos = 2) {
   if (tipo === 'image') {
     for (const forma of formas) {
       try {
-        const url = await intentarPfp(sock, forma, 'preview', 0);
+        const url = await intentarPfp(sock, forma, 'preview', 0, extra);
         if (url) return url;
       } catch (err) {
         if (!err?.restringida) break;
@@ -818,11 +821,11 @@ async function fetchPfpUrl(sock, jid, tipo = 'image', intentos = 2) {
   throw restringidaEnTodas;
 }
 
-async function intentarPfp(sock, jid, tipo, intentos) {
+async function intentarPfp(sock, jid, tipo, intentos, extra = []) {
   let ultimoError = null;
   for (let i = 0; i <= intentos; i++) {
     try {
-      return await withTimeout(sock.profilePictureUrl(jid, tipo), TOPE_CONSULTA);
+      return await withTimeout(sock.profilePictureUrl(jid, tipo, ...extra), TOPE_CONSULTA);
     } catch (err) {
       if (esFalloDeSinFoto(err)) return null;
       // Restringida: NO se reintenta. Reintentar un permiso denegado es gastar

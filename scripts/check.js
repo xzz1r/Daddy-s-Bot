@@ -24864,6 +24864,80 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes162) console.log(verde('   ✓ una muerte muda del guardián deja su última medida, y estado busca si fue el sistema sin RAM'));
   }
 
+  // ── 163. /pfp, /s y /toimg FUNCIONAN DE VERDAD (15 nov) ────────────────────
+  // El dueño, con el grupo riéndose del bot: «no tiene una simple capacidad de
+  // pasar comandos simples como /pfp /toimg /s». El índice de huellas se comía
+  // el cupo entero de fotos de perfil y a quien pedía *!pfp* no le quedaba
+  // nada: lo de fondo va con FONDO y gasta como mucho la mitad. Y *!s* y
+  // *!toimg* se prueban con medios de verdad hechos con el ffmpeg del bot:
+  // foto y vídeo a sticker, y esos stickers de vuelta a foto y a vídeo.
+  {
+    console.log('\n163. /pfp, /s y /toimg FUNCIONAN DE VERDAD');
+    const antes163 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    exige(/fetchPfpUrl\(sock, pfpJid, 'image', 0, \{ fondo: true \}\)/.test(soloCodigo('src/utils/pfpIndexer.js')),
+      'el índice de huellas vuelve a gastar el cupo de fotos como si alguien lo hubiera pedido: !pfp se queda sin cupo');
+    exige(/tope === 'TOPE_DIARIO'/.test(soloCodigo('src/commands/pfp.js')), '!pfp ya no dice que es el tope cuando lo es: el grupo lo lee como un fallo del bot');
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'medios163-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const fs = require('fs'); const path = require('path'); const { execFileSync } = require('child_process');",
+        "const { ffmpegPath } = require('./src/utils/ffmpeg');",
+        "const D = path.join(process.cwd(), 'medios'); fs.mkdirSync(D, { recursive: true });",
+        "const hacer = (args) => execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', ...args], { timeout: 60000 });",
+        "hacer(['-f', 'lavfi', '-i', 'testsrc=size=640x480:rate=1', '-frames:v', '1', path.join(D, 'foto.jpg')]);",
+        "hacer(['-f', 'lavfi', '-i', 'testsrc=size=480x480:rate=15', '-t', '2', '-pix_fmt', 'yuv420p', path.join(D, 'video.mp4')]);",
+        "const VU = require('./src/utils/verUnaVez');",
+        "let siguiente = null;",
+        "VU.bajar = async () => (Buffer.isBuffer(siguiente) ? siguiente : fs.readFileSync(path.join(D, siguiente)));",
+        "const { cmdSticker } = require('./src/commands/sticker');",
+        "const { cmdToImg } = require('./src/commands/toimg');",
+        "const RT = require('./src/utils/ritmo');",
+        "const G = '120363000000163001@g.us', DUENO = '33600000163@s.whatsapp.net', BOT = '34600000163@s.whatsapp.net';",
+        "const meta = { id: G, participants: [{ id: BOT, admin: 'admin' }, { id: DUENO, admin: 'superadmin' }] };",
+        "(async () => {",
+        "  const r = {}; let ultimo = null;",
+        "  const sock = { user: { id: BOT }, sendMessage: async (j, c) => { if (!c.text) ultimo = c; else if (!/Haciendo/.test(c.text)) ultimo = c; return { key: { id: 'x' } }; } };",
+        "  const k = (id, message) => ({ key: { remoteJid: G, participant: DUENO, fromMe: false, id }, message, pushName: 'Dueño' });",
+        "  const cita = (q) => ({ extendedTextMessage: { text: '!x', contextInfo: { stanzaId: 'Q' + Math.random(), participant: DUENO, quotedMessage: q } } });",
+        "  const nodo = (m) => ({ mimetype: m, mediaKey: Buffer.alloc(32), directPath: '/x' });",
+        "  const corre = async (nombre, entrada, f) => { siguiente = entrada; ultimo = null; try { await f(); } catch (e) { ultimo = { text: 'EXCEPCIÓN ' + e.message }; } r[nombre] = ultimo ? Object.keys(ultimo).filter((x) => x !== 'mentions') : []; r[nombre + 'Txt'] = ultimo && ultimo.text; return ultimo; };",
+        "  const st = await corre('sFoto', 'foto.jpg', () => cmdSticker(sock, k('a', { imageMessage: { ...nodo('image/jpeg'), caption: '!s' } }), meta));",
+        "  await corre('sCita', 'foto.jpg', () => cmdSticker(sock, k('b', cita({ imageMessage: nodo('image/jpeg') })), meta));",
+        "  const an = await corre('sVideo', 'video.mp4', () => cmdSticker(sock, k('c', cita({ videoMessage: { ...nodo('video/mp4'), seconds: 2 } })), meta));",
+        "  if (st && st.sticker) await corre('toimg', st.sticker, () => cmdToImg(sock, k('d', cita({ stickerMessage: nodo('image/webp') })), meta));",
+        "  if (an && an.sticker) await corre('toimgAnimado', an.sticker, () => cmdToImg(sock, k('e', cita({ stickerMessage: { ...nodo('image/webp'), isAnimated: true } })), meta));",
+        "  // El cupo de fotos: lo de fondo no pasa de la mitad, y quien pide sigue teniendo.",
+        "  const fs2 = { profilePictureUrl: async () => 'https://x' };",
+        "  RT.ponerRitmo(fs2, { profilePictureUrl: { ...RT.RITMOS.profilePictureUrl, hueco: 0, azar: 0 } }, { enRodaje: () => false });",
+        "  let fondo = 0, pide = 0;",
+        "  for (let i = 0; i < 15; i++) { try { await fs2.profilePictureUrl('a@s.whatsapp.net', 'image', RT.FONDO); fondo++; } catch {} }",
+        "  for (let i = 0; i < 15; i++) { try { await fs2.profilePictureUrl('a@s.whatsapp.net', 'image'); pide++; } catch {} }",
+        "  r.fondo = fondo; r.pide = pide;",
+        "  console.log('R163' + JSON.stringify(r)); process.exit(0);",
+        "})().catch((e) => { console.log('R163' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 170000,
+        env: { ...process.env, OWNER_NUMBER: '33600000163', CO_OWNERS: '', LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R163'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(r.sFoto.includes('sticker'), `!s con una foto no da sticker: ${r.sFotoTxt || JSON.stringify(r.sFoto)}`);
+        exige(r.sCita.includes('sticker'), `!s respondiendo a una foto no da sticker: ${r.sCitaTxt || JSON.stringify(r.sCita)}`);
+        exige(r.sVideo.includes('sticker') && r.sVideo.includes('isAnimated'), `!s con un vídeo no da sticker animado: ${r.sVideoTxt || JSON.stringify(r.sVideo)}`);
+        exige((r.toimg || []).includes('image'), `!toimg con un sticker no da la foto: ${r.toimgTxt || JSON.stringify(r.toimg)}`);
+        exige((r.toimgAnimado || []).includes('video'), `!toimg con un sticker animado no da el vídeo: ${r.toimgAnimadoTxt || JSON.stringify(r.toimgAnimado)}`);
+        exige(r.fondo <= 8 && r.fondo >= 5, `lo de fondo gasta ${r.fondo} de 15 fotos por hora: tiene que quedarse en la mitad`);
+        exige(r.pide >= 7 && r.fondo + r.pide === 15, `con el fondo gastado, a quien pide le quedan ${r.pide} fotos: tiene que quedarle la otra mitad`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes163) console.log(verde('   ✓ !s y !toimg convierten medios de verdad, y la mitad del cupo de fotos queda para quien pide !pfp'));
+  }
+
 
 
 

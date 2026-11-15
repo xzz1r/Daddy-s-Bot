@@ -18,7 +18,7 @@ const PFP_TIMEOUT_MS  = 3500;
 // IQ como Boom y ahí err.output.statusCode es siempre 500.
 async function pfpEstado(sock, jid) {
   try {
-    const url = await fetchPfpUrl(sock, jid, 'image', 1);
+    const url = await fetchPfpUrl(sock, jid, 'image', 1, { fondo: true });
     return (typeof url === 'string' && url) ? 'si' : 'no';
   } catch (err) {
     if (err?.restringida || esFotoRestringida(err)) return 'privacidad';

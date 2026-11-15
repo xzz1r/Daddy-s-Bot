@@ -131,7 +131,7 @@ function maybeIndex(sock, pfpJid, groupJid) {
 
   queue.push(async () => {
     try {
-      const url = await fetchPfpUrl(sock, pfpJid, 'image', 0);
+      const url = await fetchPfpUrl(sock, pfpJid, 'image', 0, { fondo: true });
       if (!url) { markTracked(account, Date.now()); return; }
       const res = await axios.get(url, {
         responseType: 'arraybuffer', timeout: 10000,

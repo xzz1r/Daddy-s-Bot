@@ -54,6 +54,9 @@ async function ensureTemp() {
 let barridoPeriodico = null;
 
 function tempFile(ext) {
+  // La carpeta, siempre (15 nov): si alguien la borra con el bot en marcha,
+  // cada sticker, foto y vídeo falla con ENOENT hasta el siguiente reinicio.
+  try { fs.ensureDirSync(TEMP_DIR); } catch { /* el fallo saldrá al escribir */ }
   const name = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
   return path.join(TEMP_DIR, name);
 }

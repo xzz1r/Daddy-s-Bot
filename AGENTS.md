@@ -196,7 +196,10 @@ lo de fondo lleva la marca `FONDO`. Quien escribió sin poder comprobarse se
 repesca después, y al echar a una cuenta Business se borra su spam reciente
 (dueño, 8 nov). Desde el 9 nov los topes de mirar perfiles son los que eran
 de rodaje (empresa 10/h y 60/día) y el rodaje la mitad: el 321 cayó el día
-después de que se multiplicaran por cuatro. Capa 150.
+después de que se multiplicaran por cuatro. Capa 150. Con las fotos de
+perfil igual (15 nov): el índice de huellas, `!scan` y la limpieza van con
+`FONDO` y gastan la mitad como mucho; la otra mitad es para quien pide
+`!pfp` o `!fk`, que si llega al tope lo dice como tope. Capa 163.
 
 **Al entrar se mira en lote** (dueño, 9 nov: «no mola que ya no banee antes
 de que escriban»). `src/utils/empresaLote.js` pregunta con una consulta usync

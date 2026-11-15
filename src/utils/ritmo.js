@@ -55,7 +55,13 @@ const RITMOS = {
   // con fechas, y apunta a lo mismo que la regla de siempre: mirar perfiles en
   // serie es lo que hace un raspador. Las cifras que aguantaron pasan a ser las
   // normales, y las de un número recién vinculado, la mitad.
-  profilePictureUrl: { hueco: 1500, azar: 1000, porHora: 15, porDia: 100, rodaje: { porHora: 8, porDia: 50 } },
+  // LA FOTO QUE PIDE ALGUIEN VA PRIMERO (15 nov). El dueño, con captura del
+  // grupo riéndose: «no tiene una simple capacidad de pasar comandos simples
+  // como /pfp». El índice de huellas mira la foto de todo el que escribe o
+  // entra y se comía el cupo entero (1.184 topes en un día): a quien escribía
+  // *!pfp* no le quedaba ni una. Lo de fondo (índice, !scan, limpieza) va con
+  // FONDO y solo puede gastar la mitad; la otra mitad queda para quien pide.
+  profilePictureUrl: { hueco: 1500, azar: 1000, porHora: 15, porDia: 100, rodaje: { porHora: 8, porDia: 50 }, reservaUrgente: 0.5 },
   fetchStatus: { hueco: 1500, azar: 1000, porHora: 8, porDia: 40, rodaje: { porHora: 4, porDia: 20 } },
   // QUIEN ESCRIBE VA PRIMERO (8 nov). El dueño: «tarda en detectar cuentas
   // Business; muchas llegan a hacer spam y a veces ni las detecta después».

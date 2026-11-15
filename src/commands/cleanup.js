@@ -44,7 +44,7 @@ async function detectNoPfp(sock, members) {
   // Un intento. Devuelve 'has' | 'none' | 'privacidad' | 'reintentable'.
   const attempt = async (target) => {
     try {
-      const url = await fetchPfpUrl(sock, target, 'image', 0);
+      const url = await fetchPfpUrl(sock, target, 'image', 0, { fondo: true });
       return (typeof url === 'string' && url) ? 'has' : 'none';
     } catch (err) {
       if (err?.restringida || esFotoRestringida(err)) return 'privacidad';
