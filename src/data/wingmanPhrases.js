@@ -6,12 +6,12 @@ const RIZZ = {
   high: [
     '%N mandó un audio de siete segundos diciendo "eh, hola" y hay alguien que lo tiene guardado como recuerdo desde entonces.',
     'La última persona que salió con %N cambió de número, de ciudad y de nombre en redes, y aun así no se lo quita de la cabeza.',
-    '%N escribió "buenas noches" sin ningún emoji y alguien durmió con el teléfono sobre el pecho como si fuera un órgano vital.',
+    '%N escribió «buenas noches» sin ningún emoji, y a la mañana siguiente alguien tuvo que cambiar las sábanas.', // ROCKSTAR
     'La última vez que %N ignoró a alguien, esa persona contrató a un detective, no para vigilar a %N, sino para entender qué había hecho mal.',
-    '%N escribió "ja", sin la segunda a ni nada más, y tres grupos de amigos se pasaron la tarde analizándolo.',
-    'Si %N quisiera, podría vaciar un pueblo entero de parejas estables solo pasando por la plaza principal un domingo cualquiera.',
+    '%N escribió «ja», sin la segunda a, y hubo quien se tuvo que dar una ducha fría para poder analizarlo.', // ROCKSTAR
+    'Si %N quisiera, podría vaciar un pueblo entero de parejas estables y llenar el motel de la carretera en una sola tarde.', // ROCKSTAR
     'Una expareja de %N se casó, tuvo hijos, se divorció y sigue revisando si %N vio su última historia.',
-    '%N le puso «jaja» a un mensaje y la otra persona canceló una boda para pensárselo mejor.',
+    '%N le puso «jaja» a un mensaje y la otra persona se cambió de ropa interior por si acaso.', // ROCKSTAR
     'Hay gente pagando terapia a ciento cincuenta la sesión para superar dos semanas con %N. El terapeuta también se ha enamorado.',
     'Hay quien sigue pagando el gimnasio del barrio de %N por si se cruzan.',
   ],
@@ -19,13 +19,13 @@ const RIZZ = {
     '%N liga bien hasta que decide sincerarse y saca a su ex, a su terapeuta y la lista de la compra. Tres golpes, fuera.',
     '%N tiene rizz para el segundo café y ni un gramo más: ahí se le acaba el guion y empieza la vergüenza.',
     '%N consigue el número a la primera y lo quema a la segunda con un audio de cuatro minutos.',
-    '%N necesita tres copas para arrancar y dos más para estropearlo. En medio hay veinte minutos de brillo.',
+    '%N necesita tres copas para arrancar y dos más para estropearlo. En medio hay veinte minutos de brillo y, con suerte, un portal.', // ROCKSTAR
     '%N liga bien en persona y fatal por escrito. Cuando llega el primer mensaje, ya se ha acabado todo.',
     '%N se sabe las frases, el tono y el momento, y cuando llega el momento se le olvida el tono.',
-    '%N pide tiempo para contestar y contesta peor. El tiempo no era el problema.',
+    '%N pide tiempo para contestar y contesta peor. Con los preliminares le pasa exactamente lo mismo.', // ROCKSTAR
     '%N tiene instinto y lo discute con sus amigos por audio. Cuando acaba la reunión, la otra persona ya se ha ido.',
-    '%N triunfa de noche y se estrella por la mañana, que es cuando se leen los mensajes de la noche.',
-    '%N es un siete con la luz del bar y un tres cuando encienden las luces para cerrar.',
+    '%N triunfa de noche y se estrella por la mañana, cuando toca decir algo con la ropa ya puesta.', // ROCKSTAR
+    '%N es un siete con la luz del bar y un tres cuando encienden las luces para cerrar. Por eso siempre propone seguir en su casa, a oscuras.', // ROCKSTAR
   ],
   low: [
     'Tu técnica de ligue dura lo mismo que tú en la cama, %N: dos minutos y un perdón.', // ROCKSTAR

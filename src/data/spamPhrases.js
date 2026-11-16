@@ -20,14 +20,14 @@
 
 const AVISO_SPAM = [
   'No tienes ni puta gracia, y no la vas a tener nunca por mucho spam que metas.',
-  'Nunca has hecho reír a nadie en tu vida, y por eso te dedicas a spamear chistes de otros.',
+  'Nunca has hecho reír a nadie en tu vida, ni gemir, y por eso te dedicas a spamear chistes de otros.', // ROCKSTAR
   'Te ríes tú de tu propio spam de mierda porque nadie más te lo ríe.',
-  'Si alguien se ha reído con tu spam, se reía de ti, y ni te has enterado.',
+  'Si alguien se ha reído con tu spam, se reía de ti, como en tu última cita.', // ROCKSTAR
   'Naciste sin una puta gota de gracia y te vas a morir igual, spameando copys de otros.',
-  'Tu sentido del humor no existe, joder. Lo que tienes es un portapapeles para spamear y unas ganas desesperadas de que te miren.',
+  'Tu sentido del humor no existe, joder. Lo que tienes es un portapapeles para el spam y unas ganas desesperadas de que te toquen. De que te miren, quería decir.', // ROCKSTAR
   'Hacer gracia no es lo tuyo y no lo va a ser nunca. Tú spameas y das vergüenza ajena, que es otra cosa.',
   'Ni spameando mil copys vas a tener la gracia que te crees que tienes.',
-  'Lo más gracioso que has hecho hoy es creer que este spam tenía gracia.',
+  'Spamear lo mismo cinco veces seguidas solo funciona en la cama, y contigo ni ahí.', // ROCKSTAR
   'No eres la puta persona graciosa del grupo: eres la que lo llena de spam hasta que la gente lo silencia.',
 ];
 
@@ -35,24 +35,24 @@ const BAN_SPAM = [
   'Que os sirva de ejemplo: esta escoria, %M, ha sido baneada por spam de mensajes.',
   'Este pedazo de mierda, %M, ha sido baneado por spam. Pegó lo mismo en bucle y se va sin un solo chiste propio.',
   'Mirad bien a %M, que es lo último que vais a ver de su puto humor: ban por spam y a la calle.',
-  'A %M el spam le ha costado el grupo, y no vuelve a entrar. Quien tenga guardado el mismo copy, que lo borre ya.',
+  'A %M el spam le ha costado el grupo. Entraba y salía tanto que al final se ha quedado fuera.', // ROCKSTAR
   'Esta rata de %M ha llenado el chat de spam con la misma basura, y se va de cabeza a la lista negra.',
-  'Ban a %M por spam de mensajes. Su gran número de humor era repetir la misma gilipoyez, y ahora lo va a repetir fuera.',
-  'Se acabó el bucle de %M: ban por spam. Todo su puto repertorio era una sola frase, y ya la ha gastado.',
+  'Ban a %M por spam. Su gran número era repetir lo mismo en bucle, como en la cama, y ahora lo repite fuera.', // ROCKSTAR
+  'Se acabó el bucle de %M: ban por spam. Todo su repertorio era una sola postura, digo, una sola frase, y ya la ha gastado.', // ROCKSTAR
   '%M creía que spamear era gracioso. El ban también tiene su gracia, pero solo para quienes se quedan.',
-  'Que nadie copie a %M, que ha acabado con ban por spamear lo mismo hasta dar asco. Quien quiera seguirle, ya sabe el camino.',
+  'Que nadie copie a %M, que lo ha metido tantas veces seguidas que al final le han sacado. Ban por spam.', // ROCKSTAR
   'Así acaba el spam: %M, fuera del grupo y en la lista negra. Haced captura, que este aviso es lo único con gracia que va a dejar aquí.',
 ];
 
 const ADMIN_SPAM = [
   'Que os sirva de ejemplo: %M se queda sin admin por spam. El cargo le venía grande, y el copia y pega también.',
-  '%M era admin y ha spameado como si el puto grupo fuera suyo. Ya no es suyo: se queda sin admin.',
+  '%M era admin y se ha desahogado a base de spam, sin control y sin preguntar. Se queda sin admin, y que alguien pase la fregona.', // ROCKSTAR
   'Fuera el admin de %M por spam. Tenía las llaves del grupo y las ha usado para llenarlo de mierda.',
-  '%M ha confundido ser admin con tener permiso para spamear mierda. Ahora no tiene ni lo uno ni lo otro.',
+  '%M ha confundido tener las llaves del grupo con poder meter spam en todas las habitaciones. Sin admin.', // ROCKSTAR
   'Ser admin no te salva del spam, y %M lo acaba de aprender sin admin y delante de todos.',
-  'A %M se le acaba el admin por spam. Mandaba en el grupo y ahora no manda ni en su puto portapapeles.',
+  'A %M se le acaba el admin por spam. Mandaba en el grupo, y ahora no manda ni en su propia cama.', // ROCKSTAR
   'Un admin no hace spam, y %M lo ha hecho en bucle. Así que ya no es admin: ahora solo es quien hacía el gilipoyas.',
-  'Mirad a %M: tenía que cuidar el grupo y lo ha llenado de spam. Sin admin, que es lo que le toca a una basura así.',
+  'Mirad a %M: tenía que cuidar el grupo y lo ha dejado pringado de spam. Sin admin, y con el grupo pidiendo una ducha.', // ROCKSTAR
   '%M pierde el admin por spam. Quien tenía que frenarlo lo ha mandado en bucle, y eso no se perdona con el cargo puesto.',
   'Se acabó el admin de %M: spam en bucle y cero vergüenza. La vergüenza se la pone el grupo, que lo está viendo.',
 ];

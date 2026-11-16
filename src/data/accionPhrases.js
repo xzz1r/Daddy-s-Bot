@@ -73,67 +73,67 @@ const HUG = [
 ];
 
 const KISS = [
-  '%A besa a %V y %V abre la boca sin que se lo pidan.',
-  '%A besa a %V a media frase. La frase no se termina nunca.',
+  '%A besa a %V y %V abre la boca sin que se lo pidan.', // ROCKSTAR
+  '%A besa a %V a media frase, y a %V se le olvida la frase y se le ocurren otras cosas que hacer con la boca.', // ROCKSTAR
   '%A besa a %V y le muerde el labio al salir. %V se lo toca toda la noche.',
   '%A besa a %V del cuello a la boca, sin prisa, y a %V se le olvida hasta respirar. Se lo ha tenido que recordar %A.',
-  '%V dice que ya está y sigue con la boca donde estaba.',
+  '%V dice que ya está y sigue con la boca donde estaba.', // ROCKSTAR
   '%A besa a %V con una mano en la nuca. %V no podría apartarse aunque quisiera, y no quiere.',
   '%A besa a %V y para de golpe. %V se queda con la boca abierta, esperando más, a la vista de todo el grupo.',
-  '%V cierra los ojos antes de tiempo y se queda un rato con los morros puestos esperando el beso de %A.',
+  '%V cierra los ojos antes de que llegue el beso de %A, como quien ya sabe dónde acaba esto.', // ROCKSTAR
   '%A le come la boca a %V hasta dejarle el labio marcado. %V lo enseña.',
-  '%A besa a %V en mitad de una discusión. %V pierde la discusión ahí mismo.',
+  '%A besa a %V en mitad de una discusión. %V pierde la discusión ahí mismo, y la ropa diez minutos después.', // ROCKSTAR
   '%V se limpia el labio después y se queda mirando a %A. Quiere otro.',
   '%A le mete la lengua a %V a la vista de todo el chat. %V no se separa ni para disimular.',
   '%V dice que el beso de %A no ha sido para tanto. Lleva diez minutos sin contestar a nadie.',
-  '%A besa a %V y %V suelta un ruido bajito. El grupo lo oye.',
+  '%A besa a %V y %V suelta un ruido bajito. El grupo lo oye.', // ROCKSTAR
   '%A se acerca a %V y se para a un dedo de la boca. El último dedo lo pone %V.',
   '%V jura que fue un beso de nada. Lo jura sin convencer a nadie.',
-  '%A le come la boca a %V hasta que a %V se le doblan las rodillas.',
+  '%A le come la boca a %V hasta que a %V se le doblan las rodillas.', // ROCKSTAR
   '%A le come la boca a %V contra la pared y a %V se le cae el móvil de la mano. Ni lo recoge.',
   '%V dice que no delante de todos. %A le da un beso y %V ya no se acuerda de lo que había dicho.',
   '%A le sujeta la cara a %V y le da un beso despacio. A %V se le olvida qué hacer con las manos.',
   '%A besa a %V con lengua y %V responde con toda la torpeza del mundo.',
   '%A hace esperar a %V un segundo antes del beso. %V se inclina tanto que casi se cae.',
-  '%A besa a %V delante del grupo y %V se ríe de los nervios a mitad del beso.',
+  '%A besa a %V delante del grupo y a %V se le escapa la risa de los nervios. Luego, otra cosa que no es risa.', // ROCKSTAR
   '%A besa a %V y %V se queda con los labios entreabiertos un buen rato. El grupo pregunta si sigue con vida.',
-  '%A besa a %V y a %V se le escapa un «mmm» que el grupo citará durante semanas.',
-  '%A besa a %V en la mejilla, y %V había puesto los morros para otra cosa.',
-  '%A besa a %V y %V abre los ojos a mitad para ver si alguien mira. Miran todos.',
+  '%A besa a %V y a %V se le escapa un «mmm» que el grupo citará durante semanas.', // ROCKSTAR
+  '%A besa a %V en la mejilla, y %V había puesto los morros para otra cosa.', // ROCKSTAR
+  '%A besa a %V y %V abre los ojos a mitad para ver si alguien mira. Miran todos, y alguno toma apuntes para esta noche.', // ROCKSTAR
   '%A besa a %V y %V vuelve al grupo como si nada. Se le nota en cada falta de ortografía.',
   '%A besa a %V y chocan los dientes. %V se ríe con la boca pegada.',
-  '%A le da un beso a %V y se va sin decir nada. %V se queda con la frase a medias.',
+  '%A le da un beso a %V y se va sin decir nada. %V se queda a medias, y no con la frase.', // ROCKSTAR
 ];
 
 const CUDDLE = [
   '%A se acurruca contra %V y %V le hace sitio sin decir nada.',
-  '%A se mete en el hueco de %V y ahí se queda. %V no reclama su lado del sofá.',
-  '%A se pega a %V por detrás, cucharita, y a %V le toca la parte de dentro.',
+  '%A se mete en el hueco de %V y ahí se queda. %V no reclama su lado del sofá, ni nada de lo que %A le está rozando.', // ROCKSTAR
+  '%A se pega a %V por detrás, cucharita, y a %V le toca la parte de dentro.', // ROCKSTAR
   '%A pone una pierna encima de %V y llama a eso estar a gusto. %V no discute el nombre.',
   '%A se acurruca en el pecho de %V y %V le acaricia el pelo sin darse cuenta. Lleva diez minutos haciéndolo.',
-  '%A usa a %V de almohada. A %V se le duerme el brazo y no avisa.',
+  '%A usa a %V de almohada. A %V se le duerme el brazo, y otras partes se le despiertan.', // ROCKSTAR
   '%A se enreda con %V en el sofá y ya no hay quien los separe. %V tampoco lo intenta.',
-  '%A respira en el cuello de %V y %V deja de contestar en el grupo a mitad de una frase.',
+  '%A respira en el cuello de %V y %V deja de contestar en el grupo a mitad de una frase.', // ROCKSTAR
   '%A se acurruca con %V y le pone la mano en la tripa. %V no la quita.',
-  '%A se le tumba encima a %V. %V mira la puerta un segundo y decide quedarse.',
-  '%A se pega a %V como si el sofá fuera suyo, y %V le hace sitio.',
+  '%A se le tumba encima a %V. %V mira la puerta un segundo y decide quedarse.', // ROCKSTAR
+  '%A se pega a %V como si el sofá fuera suyo, y %V le hace sitio, y luego le hace otras cosas.', // ROCKSTAR
   '%A se acurruca en el regazo de %V. %V deja el móvil y se rinde.',
   '%A busca el calor de %V y %V le tapa con la manta. La manta era la de %V, y ahora %V tiene frío.',
   '%A se arrima a %V y %V deja el móvil boca abajo. El grupo se queda sin %V el resto de la tarde.',
   '%V se queja del peso de %A encima. Se queja bajito y sin apartarse.',
   '%A pone la cabeza en las piernas de %V, y %V le acaricia el pelo con la mano con la que estaba comiendo.',
-  '%A se pega a %V y %V finge que sigue leyendo. Lleva diez minutos en la misma línea.',
+  '%A se pega a %V y %V finge que sigue leyendo. Lleva diez minutos en la misma línea, y la mano ya no está en el libro.', // ROCKSTAR
   '%A se mete debajo del brazo de %V. %V levanta el brazo antes de pensarlo.',
-  '%A rodea a %V por la cintura desde atrás y %V le sujeta el brazo, no vaya a ser que se escape.',
+  '%A rodea a %V por la cintura desde atrás y %V le sujeta el brazo, no vaya a ser que se escape.', // ROCKSTAR
   '%A se duerme encima de %V y %V cancela lo que tuviera.',
   '%A se acurruca contra %V con los pies helados y se los pone en las piernas. %V grita bajito.',
   '%A se acurruca con %V y le roba la mitad de la manta en diez segundos. %V tirita en su propio sofá.',
-  '%A se acurruca contra %V y a %V se le acelera el pulso. %A lo nota en la oreja y no dice nada.',
-  '%V dice que solo cinco minutos de mimos. Llevan cuarenta y la serie ya se ha acabado.',
+  '%A se acurruca contra %V y a %V se le acelera el pulso. %A lo nota en la oreja y no dice nada.', // ROCKSTAR
+  '%V dice que solo cinco minutos de mimos. Llevan cuarenta, la serie se ha acabado y la ropa también.', // ROCKSTAR
   '%A se acurruca con %V y le pide que no se mueva. A %V le pica la nariz desde entonces.',
-  '%A se pega a %V bajo la manta y a %V le entra un calor que no es del radiador.',
+  '%A se pega a %V bajo la manta y a %V le entra un calor que no es del radiador.', // ROCKSTAR
   '%V dice que no es de mimos con la cabeza de %A en el pecho y sin intención de moverse.',
-  '%A se acurruca con %V delante del grupo y a %V le llegan quince mensajes privados en un minuto.',
+  '%A se acurruca con %V delante del grupo y a %V le llegan quince privados preguntando si aún llevan ropa.', // ROCKSTAR
   '%A se pega a %V y a %V se le olvida cómo se respira. Se acuerda cuando %A se despega.',
   '%A se levanta un segundo para ir al baño y %V ya le ha ocupado el hueco del sofá.',
 ];
@@ -240,33 +240,33 @@ const SLAP = [
 
 const BITE = [
   '%A le hinca el diente a %V. Con ganas, con saliva y con testigos.',
-  '%A muerde a %V donde va a tener que dar explicaciones.',
-  '%A le pega un bocado a %V y la marca sale antes que la queja. La queja llega sin fuerza.',
+  '%A muerde a %V donde va a tener que dar explicaciones.', // ROCKSTAR
+  '%A le pega un bocado a %V y la marca sale antes que la queja. La queja llega sin fuerza y suena más a «otra vez».', // ROCKSTAR
   '%A le pega un bocado a %V en el brazo y la marca se queda dibujada con todo detalle. Se le cuentan los colmillos.',
   'El bocado de %A va directo a la clavícula de %V, a la vista de cualquier camiseta.',
   '%A le muerde a %V hasta hacerle sangre, y no precisamente un poquito.',
   '%A le muerde el brazo a %V y no suelta hasta dejarle los dientes marcados.',
   '%A le muerde la oreja a %V, aunque se nota que iba a por el cuello.',
-  '%V suelta un quejido y %A no suelta. Le ha sonado a que siga.',
+  '%V suelta un quejido y %A no suelta. Le ha sonado a que siga.', // ROCKSTAR
   '%A le muerde a %V por encima de la camiseta y le deja la camiseta con agujeros.',
-  '%A le deja a %V el cuello morado para la cena. Ningún jersey lo tapa.',
-  '%A le muerde a %V el hombro izquierdo. El derecho, por ahora, se libra.',
+  '%A le deja a %V el cuello morado para la cena. Ningún jersey lo tapa.', // ROCKSTAR
+  '%A le muerde a %V el hombro izquierdo. El derecho se libra por ahora, y lo que hay más abajo, también.', // ROCKSTAR
   '%A le arranca a %V un trozo de piel de un bocado. %V se mira la marca sin creérselo.',
   '%A muerde a %V de broma y acaba apretando de verdad. %V tira y le duele más.',
   '%A muerde a %V junto a la clavícula. Hoy se oye el grito y mañana se ve la marca.',
-  '%A le muerde a %V en la mandíbula, a un centímetro de la boca. Más morbo que si fuera en la boca.',
+  '%A le muerde a %V en la mandíbula, a un centímetro de la boca. Más morbo que si fuera en la boca.', // ROCKSTAR
   '%V va a tener que ir con cuello alto unos días. Cortesía de %A.',
-  '%A le deja a %V un mordisco con babas y ni pide perdón. %V tampoco se queja.',
-  '%A muerde a %V y %V se agarra a lo primero que pilla hasta que %A suelta.',
+  '%A le deja a %V un mordisco con babas y ni pide perdón. %V no se queja: se baja el cuello de la camiseta para el siguiente.', // ROCKSTAR
+  '%A muerde a %V y %V se agarra a las sábanas hasta que %A suelta.', // ROCKSTAR
   '%A le rompe la piel a %V a propósito. %V ya está pensando qué excusa poner mañana.',
-  '%A le muerde a %V justo donde se nota el pulso. Sabe lo que hace.',
+  '%A le muerde a %V justo donde se nota el pulso. Sabe lo que hace.', // ROCKSTAR
   '%A le pega un bocado a %V en el brazo y %V suelta un grito que se oye en todo el grupo.',
-  '%A muerde a %V en el hombro con tanta hambre que %V pregunta si ha comido hoy.',
+  '%A muerde a %V en el hombro con tanta hambre que %V pregunta si ha cenado, y %A contesta que está en ello.', // ROCKSTAR
   '%A muerde a %V en la pantorrilla, como los perros a los carteros. %V cojea hasta el sofá.',
   '%A le da un mordisco a %V en la mejilla y %V se queda con la cara llena de babas.',
-  '%A muerde a %V en el culo, a traición. %V se gira con una cara que el grupo va a recordar.',
+  '%A muerde a %V en el culo, a traición. %V se gira con una cara que no es de enfado, y el grupo toma nota.', // ROCKSTAR
   '%A le hinca el diente a %V en el antebrazo y %V cuenta hasta diez para no devolverlo.',
-  '%A muerde a %V y %V mira la marca con más ilusión de la que debería.',
+  '%A muerde a %V y %V mira la marca con más ilusión de la que debería.', // ROCKSTAR
   '%A le muerde la oreja a %V y %V manda al grupo un mensaje sin terminar.',
   '%A muerde a %V para cortarle la bronca. A %V se le va la bronca y le queda la marca.',
 ];
@@ -480,34 +480,34 @@ const ANAL = [
 // es lo más cerca que has estado. Lo estás haciendo con testigos.
 const ROAST_USUARIO = [
   '%A ha pagado un gif para hacer lo que no tiene huevos de escribir. El grupo lo ha pillado.',
-  '%A se queda mirando si llegan los dos ticks. Un gif, y ya está esperando respuesta.',
+  '%A manda un gif y se queda mirando los dos ticks, como quien espera una foto de vuelta.', // ROCKSTAR
   '%A, una mención y un gif. En persona te cagas encima antes de abrir la boca.',
   '%A, pagas aura por un puto gif porque lo que querías decir no te sale ni borracho.',
-  'El gif lo ha hecho todo, %A. Tú solo has puesto el aura.',
+  'El gif lo ha hecho todo, %A. Tú solo has puesto el aura, como en la cama: mirar y pagar.', // ROCKSTAR
   '%A, un dibujito hace lo que tú no te atreves y encima lo pagas tú. Cobardía con recargo.',
   '%A se gasta el aura en un dibujito que tiene más contacto humano que %A.',
-  '%A ha tenido que pagar para relacionarse. Como los puteros, pero con gifs.',
-  'Qué bonito, %A, un gif. En persona no lo harías ni con tres copas.',
-  '%A, mandar un gif de anime no es hablar con alguien. Es lo que hace quien no se atreve a hablar.',
+  '%A ha tenido que pagar para relacionarse. Como los puteros, pero con gifs.', // ROCKSTAR
+  'Qué bonito, %A, un gif. En persona no lo harías ni con tres copas y la luz apagada.', // ROCKSTAR
+  '%A, un gif de anime no es tocar a nadie: es lo que hace quien no tiene a quién tocar.', // ROCKSTAR
   'El aura de %A se escapa a golpe de gif. La dignidad va detrás.',
   '%A, te fundes el aura en gifs y luego te extraña verte a la cola del puto ranking.',
-  'A %A le sale más barato un gif que una conversación. Y se nota por qué.',
+  'A %A un gif le sale barato, y una cita, imposible.', // ROCKSTAR
   '%A ha pagado un gif para tener algo que contar. Es lo más interesante de su puta semana.',
   '%A, mandas gifs porque tu cara en persona no hay aura que la pague.',
   'Los gifs de %A tienen más vida que %A. Por lo menos se mueven.',
-  '%A, te gastas el aura en gifs de cosas que en tu puta vida te van a pasar.',
+  '%A, te gastas el aura en gifs de cosas que en tu puta vida te van a pasar.', // ROCKSTAR
   '%A ha pagado aura por un gif. Con eso se compraba algo útil en la tienda.',
   '%A, el comando no te va a contestar. La persona tampoco.',
-  '%A, un gif no cuenta como haberlo hecho. Lo sabes y pagas igual.',
+  '%A, un gif no cuenta como haberlo hecho, igual que el porno no cuenta como sexo. Lo sabes y pagas igual.', // ROCKSTAR
   'Lo más valiente que ha hecho %A hoy lo ha dibujado otro y lo ha cobrado el bot.',
-  '%A, ese gif ha costado aura. La cara que pones al mandarlo, más.',
+  '%A, ese gif ha costado aura. La cara que pones al mandarlo es la misma que pones a solas.', // ROCKSTAR
   '%A va a acabar sin un puto duro de aura, y todo en gifs que no ha mirado ni Dios.',
-  '%A, cambiar aura por escenas de mentira es el peor negocio del grupo.',
+  '%A, pagar por escenas de mentira lo hace mucha gente por las noches, pero por lo menos con la puerta cerrada.', // ROCKSTAR
   'El bot cobra y %A paga. Es la relación más estable que tiene %A.',
-  '%A manda el gif y se queda mirando la pantalla, como si fuera a pasar algo. No pasa.',
+  '%A manda el gif y se queda mirando la pantalla, como si fuera a pasar algo. No pasa nada, como en sus citas.', // ROCKSTAR
   '%A, el gif es mono y tú no, por eso mandas el gif.',
   '%A paga cada escena como quien paga una ronda para que le hablen. La ronda la cobra el bot.',
-  '%A, llevas más abrazos en gif que en persona.',
+  '%A, llevas más abrazos en gif que en persona, y de lo otro, ni en gif te atreves.', // ROCKSTAR
   '%A se esconde detrás del gif, pero se le ve igual.',
 ];
 
@@ -516,22 +516,22 @@ const ROAST_USUARIO = [
 // Nadie sale digno de esto, y menos quien la recibe.
 const TICKLE = [
   '%A le mete cosquillas a %V por debajo del brazo y %V baja el brazo demasiado tarde.',
-  '%A repite las cosquillas en el mismo punto. %V ya sabe cuál es y eso lo hace peor.',
-  '%V acaba en el suelo de la risa. %A sigue desde arriba.',
+  '%A vuelve al mismo punto una y otra vez. %V ya sabe cuál es, y lo que le preocupa es que le guste.', // ROCKSTAR
+  '%V acaba en el suelo de la risa. %A sigue desde arriba.', // ROCKSTAR
   '%A encuentra el punto exacto de %V a la primera. %V no sabía ni que lo tenía.',
-  '%V grita que pare. El cuerpo dice otra cosa y %A le hace caso al cuerpo.',
-  '%A le hace cosquillas a %V hasta que suplica. %V suplica rápido.',
+  '%V grita que pare. El cuerpo dice otra cosa y %A le hace caso al cuerpo.', // ROCKSTAR
+  '%A le hace cosquillas a %V hasta que suplica. %V suplica rápido, y suplica cosas que no son que pare.', // ROCKSTAR
   '%V se dobla de la risa delante de %A y acaba sin poder ni hablar.',
-  'Diez segundos de cosquillas y %V ya está negociando. Desde el suelo se negocia peor.',
-  '%A le sujeta las muñecas a %V y le hace cosquillas con la otra mano. %V no forcejea mucho.',
-  '%V dice que odia las cosquillas y se queda donde %A llega.',
+  'Diez segundos de cosquillas y %V ya está negociando. Desde el suelo y con %A encima se negocia peor.', // ROCKSTAR
+  '%A le sujeta las muñecas a %V y le hace cosquillas con la otra mano. %V no forcejea mucho.', // ROCKSTAR
+  '%V dice que odia las cosquillas y se queda donde %A llega.', // ROCKSTAR
   '%V se queda sin aire de la risa. %A espera a que recupere y sigue.',
-  '%V intenta escaparse y se mueve justo hacia las manos de %A.',
-  '%V se ríe hasta que le duele. %A le pregunta si quiere que pare y %V tarda en contestar.',
-  '%A le hace cosquillas a %V con una sola mano y sin esfuerzo. %V ya está en el suelo.',
+  '%V intenta escaparse y se mueve justo hacia las manos de %A.', // ROCKSTAR
+  '%V se ríe hasta que le duele. %A le pregunta si quiere que pare y %V tarda en contestar.', // ROCKSTAR
+  '%A le hace cosquillas a %V con una sola mano y sin esfuerzo. Con la otra, el grupo prefiere no saber qué hace.', // ROCKSTAR
   '%V se tapa las costillas y %A le ataca las rodillas. Se la ha colado bien.',
   '%V dice que ya no le hacen gracia las cosquillas. Se ríe igual.',
-  '%A deja de hacerle cosquillas a %V. %V tarda un rato en dejar de reírse.',
+  '%A deja de hacerle cosquillas a %V. %V tarda un rato en dejar de reírse, y un rato más en recolocarse la ropa.', // ROCKSTAR
   'Cosquillas de %A en la axila y %V suelta un chillido que el grupo va a imitar un mes.',
   '%V aguanta tres segundos de cosquillas con cara de póker. Al cuarto se le escapa la risa por la nariz.',
   '%A encuentra las cosquillas de %V en la planta del pie y se lleva una patada sin querer. Queriendo un poco.',
@@ -539,7 +539,7 @@ const TICKLE = [
   '%A ataca las costillas de %V y a %V se le cae el móvil al suelo. El móvil también sufre.',
   'Las cosquillas de %A le pillan a %V escribiendo. Al grupo le llega un mensaje que solo dice «jsjsjajdkd».',
   '%V jura que no tiene cosquillas. %A le toca una vez el costado y se acaba el juramento.',
-  '%V se retuerce tanto con las cosquillas de %A que acaba con la camiseta del revés.',
+  '%V se retuerce tanto con las cosquillas de %A que acaba con la camiseta del revés y sin saber en qué momento se la quitó.', // ROCKSTAR
   '%A solo amaga con las cosquillas y %V ya se está riendo. A %V le basta con ver venir los dedos.',
   '%V pide tregua entre carcajadas. %A la concede, cuenta hasta dos y la rompe.',
   '%A usa las cosquillas para que %V confiese. %V confiesa cosas que nadie le había preguntado.',
@@ -553,31 +553,31 @@ const TICKLE = [
 const HANDHOLD = [
   '%A entrelaza los dedos con %V y %V aprieta de vuelta antes de pensarlo. Tanto ir de independiente para esto.',
   '%V ofrece la mano primero. %A la coge y ya no la devuelve.',
-  '%A le aprieta la mano a %V una vez y %V le sigue a donde sea. Ni pregunta adónde.',
-  '%V dice que le suda la mano y no la mueve.',
+  '%A le aprieta la mano a %V una vez y %V le sigue a donde sea. Ni pregunta adónde, aunque se lo imagina, y por eso va.', // ROCKSTAR
+  '%V dice que le suda la mano, y no es lo único que le suda con %A tan cerca.', // ROCKSTAR
   '%A tira de la mano de %V y %V se deja arrastrar por medio grupo sin soltarse.',
   '%V mira alrededor a ver quién los ha visto de la mano. Los han visto todos.',
-  '%A le agarra la muñeca a %V y baja hasta la mano. %V abre los dedos.',
-  '%V suelta la mano de %A para coger algo y la vuelve a buscar enseguida.',
+  '%A le agarra la muñeca a %V y baja hasta la mano. %V abre los dedos.', // ROCKSTAR
+  '%V suelta la mano de %A para coger algo y la vuelve a buscar enseguida, un poco más abajo.', // ROCKSTAR
   '%A le coge la mano a %V en mitad de una discusión. La discusión se acaba ahí.',
-  '%A le coge las dos manos a %V. %V se queda sin nada que hacer con ellas.',
-  '%A le suelta la mano a %V y %V se queda con la mano medio abierta.',
+  '%A le coge las dos manos a %V. %V se queda sin manos libres y con muchas ideas de qué haría con ellas.', // ROCKSTAR
+  '%A le suelta la mano a %V y %V se queda con la mano medio abierta, buscando qué más agarrar.', // ROCKSTAR
   '%V finge que se coloca el pelo para no coger la mano de %A. %A se la coge igual.',
-  'Con la mano de %A agarrada, %V pasa a contestar en el grupo con monosílabos. Con una sola no da para más.',
-  '%V lleva la mano de %A a su propia pierna. Eso no fue un accidente.',
+  'Con la mano de %A agarrada, %V contesta en el grupo con monosílabos. Con una mano no da para más, y la otra está ocupada.', // ROCKSTAR
+  '%V lleva la mano de %A a su propia pierna. Eso no fue un accidente.', // ROCKSTAR
   '%V dice que solo son manos. Lo dice sin soltar la de %A.',
-  '%V tiene la mano sudada y %A se la coge igual. Eso es amor o no tener tacto.',
+  '%V tiene la mano sudada y %A se la coge igual. Eso es amor, o ganas de que suden otras cosas.', // ROCKSTAR
   '%A busca la mano de %V sin mirar y la encuentra a la primera. %V sabía muy bien dónde dejarla.',
   '%V jura en el grupo que lo de las manos con %A no va en serio. %A le coge la mano y %V deja de jurar.',
   '%A entrelaza los dedos con %V y a %V le cruje un nudillo. Momento arruinado.',
   '%A le ofrece la mano a %V como si fuera un favor. %V la coge como si fuera un premio.',
-  '%V intenta escribir con la mano libre y manda «hosla». Todo el grupo sabe por qué.',
-  'La mano de %A está helada y %V se queja. Y se la mete en el bolsillo para calentarla.',
+  '%V intenta escribir con la mano libre y manda «hosla». Todo el grupo sabe por qué.', // ROCKSTAR
+  'La mano de %A está helada y %V se queja. Y se la mete en el bolsillo para calentarla.', // ROCKSTAR
   '%A y %V se cogen de la mano y no se sueltan ni para mirar el móvil. %V contesta tarde a todo el mundo.',
   '%V le aprieta la mano a %A tan fuerte que le deja las uñas marcadas. Dice que son nervios y no dice de qué.',
   '%A le roza los dedos a %V sin querer y %V se pasa una hora mirándose la mano. Ni que le hubieran dado un premio.',
   '%V se inventa una excusa para que %A le dé la mano. La excusa es malísima y funciona.',
-  '%A no le suelta la mano a %V en toda la conversación. %V hace rato que no sigue la conversación.',
+  '%A no le suelta la mano a %V en toda la conversación. %V hace rato que no la sigue: está pensando en dónde más le gustaría esa mano.', // ROCKSTAR
   '%A le da la mano a %V con el grupo delante. Alguien ya ha sacado el móvil.',
   '%V aprieta la mano de %A cada vez que pasa alguien que le cae mal. Hoy van nueve.',
   '%A y %V van de la mano hasta que alguien del grupo los ve. Ahí es %V quien suelta antes.',
@@ -702,32 +702,32 @@ const YEET = [
 const KILL = [
   '%A mata a %V sin levantar la voz. Ni se despeina.',
   '%V empieza a pedir perdón y %A le mata en la segunda palabra. El perdón se queda a medias.',
-  '%A acaba con %V en un segundo y medio. El medio segundo fue por educación.',
-  '%V ni se defendió. Tampoco es que le diera tiempo.',
+  '%A acaba con %V en un segundo y medio, que para %V es lo que dura siempre todo.', // ROCKSTAR
+  '%V ni se defendió. Tampoco le dio tiempo, como en sus mejores noches.', // ROCKSTAR
   '%V pensaba que %A iba de farol, y %A le mata en el sitio. Lo descubre a la vez que el suelo.',
   '%A remata a %V y el grupo tarda dos segundos en reaccionar. %V no reacciona.',
-  '%A liquida a %V con la tranquilidad de quien lo tenía pendiente desde hace días.',
+  '%A liquida a %V con la calma de quien se toma su tiempo, que es justo lo que %V nunca hace en la cama.', // ROCKSTAR
   '%A mata a %V a media palabra, y la palabra era «perdón».',
-  '%A termina con %V y se limpia las manos. Lo de limpiarse es por costumbre.',
-  '%V cae y el grupo mira a %A. %A se encoge de hombros.',
+  '%A termina con %V y se limpia las manos. Lo de limpiarse es por costumbre.', // ROCKSTAR
+  '%V cae de espaldas, la única postura que domina, y %A se encoge de hombros.', // ROCKSTAR
   '%A mata a %V por algo que solo %A recuerda. %V no tiene ni idea de qué.',
   '%A acaba con %V delante de todo el grupo. Delante de todo el grupo era la idea.',
   '%A se carga a %V y pide perdón al grupo. Al grupo, no a %V.',
-  '%A acaba con %V cuando se cansa, y se ha cansado rápido.',
+  '%A acaba con %V cuando se cansa, y se ha cansado rápido, que %V aburre hasta en la cama.', // ROCKSTAR
   '%V cierra los ojos esperando clemencia. %A le remata sin pestañear, que la clemencia no estaba en el menú.',
-  '%A mata a %V y vuelve a lo que estaba haciendo, que era más importante.',
+  '%A mata a %V y vuelve a lo que estaba haciendo, que era una peli guarra a medias.', // ROCKSTAR
   '%V se agarra a %A al caer, y %A se aparta para no mancharse la ropa.',
-  '%A le quita a %V las ganas de contestar. Y el resto también.',
-  '%A termina con %V y se queda de pie, mirando el móvil. %V, en el suelo, ya no lee nada.',
+  '%A le quita a %V las ganas de contestar, y las de todo lo demás, que según su ex tampoco eran muchas.', // ROCKSTAR
+  '%A termina con %V y vuelve a mirar el móvil. %V acaba en el suelo, que es donde suele acabar sus noches.', // ROCKSTAR
   '%A mata a %V a mitad de un audio. El audio se queda a medias para siempre.',
   '%A acaba con %V en el peor momento: justo cuando %V iba ganando una discusión.',
   '%V intentó negociar para que %A no acabara con todo. %A no negocia con gente que escribe «jajaj» con una sola j.',
   '%A mata a %V con el móvil en la mano y el mensaje sin enviar.',
-  '%A se carga a %V con una eficacia que asusta. Parece ensayado.',
+  '%A se carga a %V con una eficacia que asusta. Parece ensayado, como los gemidos de %V.', // ROCKSTAR
   '%V pidió clemencia en un audio de dos minutos. %A acabó con %V al minuto uno.',
-  'El último pensamiento de %V fue que tenía que haber salido del grupo antes.',
+  'El último pensamiento de %V fue para su historial de búsqueda: alguien lo va a ver.', // ROCKSTAR
   '%A acaba con %V y le deja el visto de recuerdo.',
-  'A %V le queda tiempo para un último «pero», y %A no le deja terminarlo.',
+  'A %V le queda tiempo para un último «pero», y %A no le deja terminarlo. A %V nunca le dejan terminar nada.', // ROCKSTAR
   '%V intentó esconderse detrás de otro miembro del grupo. El otro se apartó y %A remata.',
   '%A liquida a %V y el grupo manda stickers de condolencias en treinta segundos.',
 ];
@@ -735,31 +735,31 @@ const KILL = [
 // DAR DE COMER. Parece la mas tierna y es una de sumision: quien abre la boca
 // pierde. El chiste es que %V acepta, no que %A ofrezca.
 const FEED = [
-  '%A le da de comer a %V en la boca. %V abre la boca antes de que llegue la cuchara.',
+  '%A le da de comer a %V en la boca. %V abre la boca antes de que llegue la cuchara.', // ROCKSTAR
   '%V come de la mano de %A sin protestar. Para algo que le dan gratis, no iba a ponerse con dignidades.',
-  '%A le mete un bocado a %V en la boca y %V hasta da las gracias con la boca llena.',
+  '%A le mete un bocado a %V en la boca y %V hasta da las gracias con la boca llena.', // ROCKSTAR
   '%A le acerca la cuchara a %V haciendo el avioncito, y %V abre la boca con ruido de motor incluido.',
   '%V estira el cuello para llegar al bocado de %A. Nadie le acercó el plato y aun así llega.',
   '%A alimenta a %V delante del grupo, y el grupo ya ha sacado sus conclusiones sobre %V.',
-  '%V le dice a %A que no tiene hambre. Come igual.',
+  '%V le dice a %A que no tiene hambre. Come igual, y pide más, y no de comida.', // ROCKSTAR
   '%A prueba primero y luego le da a %V. %V come lo que %A ya decidió que estaba bueno.',
   'Cada cucharada que le mete %A a %V es un rato de silencio. Que no pare.',
   '%A le limpia la comisura a %V con el pulgar y %V se deja, como si no supiera usar una servilleta.',
-  '%V come lo que le pongan. %A se ha dado cuenta.',
-  '%A le mete la cuchara en la boca a %V y le sujeta la barbilla. La barbilla no hacía falta.',
+  '%V come lo que le pongan. %A se ha dado cuenta, y ya tiene planes.', // ROCKSTAR
+  '%A le mete la cuchara en la boca a %V y le sujeta la barbilla. La barbilla no hacía falta.', // ROCKSTAR
   '%A le va metiendo cucharadas a %V hasta acabar el plato, y %V no ha elegido ni un bocado.',
   '%A acerca la comida y la aparta un centímetro cuando %V se lanza. Solo una vez, para verlo.',
-  '%V mastica despacio, pensando en lo que le acaba de aceptar a %A.',
-  '%A le pone el bocado en la boca a %V y nadie dice nada. Todos lo están pensando.',
+  '%V mastica despacio, pensando en lo que le acaba de aceptar a %A.', // ROCKSTAR
+  '%A le pone el bocado en la boca a %V y nadie dice nada. Todos lo están pensando.', // ROCKSTAR
   '%A alimenta a %V con una paciencia que a %V le debería preocupar.',
-  '%V cierra los ojos mientras %A le da de comer. Eso es mucha confianza o muy poca cabeza.',
-  '%A le da un bocado a %V y se queda mirando cómo lo traga.',
+  '%V cierra los ojos mientras %A le da de comer. Eso es mucha confianza, o ganas de practicar otra cosa con los ojos cerrados.', // ROCKSTAR
+  '%A le da un bocado a %V y se queda mirando cómo lo traga.', // ROCKSTAR
   '%A retira la cuchara y %V se lleva la mano a la boca, tarde. Ya lo vieron.',
   '%A reparte comida: a los demás en el plato, a %V en la boca. %V no pidió el cambio y no lo rechaza.',
-  'Cucharada a cucharada, %V se va arrimando a %A. Al postre ya está comiendo de su plato.',
-  '%V come de %A rápido, como si alguien se lo fuera a quitar. Nadie se lo iba a quitar.',
+  'Cucharada a cucharada, %V se va arrimando a %A. Al postre ya no está comiendo del plato.', // ROCKSTAR
+  '%V come de la mano de %A con unas ansias que en el grupo ya llaman de otra forma.', // ROCKSTAR
   '%A sopla el bocado antes de dárselo a %V aunque no quema, y %V espera igual a que sople.',
-  '%V se relame. %A lo apunta mentalmente para otro día.',
+  '%V se relame. %A lo apunta mentalmente para otro día.', // ROCKSTAR
   '%A termina de darle de comer a %V y le da una palmada en la mejilla. %V acepta la palmada también.',
   '%A le da de comer a %V con la cuchara y le mancha la barbilla. %V lleva la mancha toda la cena.',
   '%A le pone a %V una patata frita en la boca y se queda con la mitad. %V se da cuenta tarde.',
@@ -810,34 +810,34 @@ const CUM = [
 // se cuenta no es el mordisco, es que %V NO SE APARTA — ladea la cabeza, ofrece
 // la mano, se acerca en vez de retirarse. La decision de %V es el chiste.
 const NOM = [
-  '%A le pega un mordisquito a %V y no acaba de soltar. %V deja de moverse, que es lo que se pedía.',
-  '%A muerde despacio la oreja de %V. %V ladea la cabeza sin que se lo pidan.',
-  '%A le muerde el dedo a %V sin apretar y sin pedir permiso.',
+  '%A le pega un mordisquito a %V y no acaba de soltar. %V deja de moverse, que es lo que se pedía.', // ROCKSTAR
+  '%A muerde despacio la oreja de %V. %V ladea la cabeza sin que se lo pidan.', // ROCKSTAR
+  '%A le muerde el dedo a %V y luego se lo chupa, por si quedaba algo.', // ROCKSTAR
   '%A pellizca con los dientes el cuello de %V. %V cierra los ojos como si eso ayudara.',
-  '%A le mordisquea la mejilla a %V y se aparta. %V se queda esperando el siguiente.',
-  '%V dice que pare con la boca de %A todavía encima. Suena a otra cosa.',
+  '%A le mordisquea la mejilla a %V y se aparta. %V se queda esperando el siguiente, y pensando en otros sitios.', // ROCKSTAR
+  '%V dice que pare con la boca de %A todavía encima. Suena a otra cosa.', // ROCKSTAR
   '%A le come el labio a %V un segundo. Un segundo de más para lo que era.',
   '%V se ríe al principio del mordisco de %A. Deja de reírse a mitad.',
   '%A le muerde la clavícula a %V. %V mira al techo y se queda con eso.',
   '%V no aparta el brazo mientras %A lo mordisquea. Podría y no le da la gana.',
-  '%A muerde y suelta, muerde y suelta, y %V ya le ha cogido el ritmo.',
+  '%A muerde y suelta, muerde y suelta, y %V ya le ha cogido el ritmo.', // ROCKSTAR
   'El mordisquito de %A no deja marca. %V se toca el sitio media hora buscando lo que no hay.',
   'Desde el primer mordisco de %A, %V respira de otra manera. Nadie se ha dado cuenta menos %A.',
-  '%A muerde a %V donde nadie muerde por accidente.',
-  '%V se deja mordisquear de arriba abajo y solo dice que le hace cosquillas. No era eso.',
+  '%A muerde a %V donde nadie muerde por accidente.', // ROCKSTAR
+  '%V se deja mordisquear de arriba abajo y solo dice que le hace cosquillas. No era eso.', // ROCKSTAR
   '%A le pasa los dientes por el cuello a %V sin apretar. Con eso ya basta.',
   'Un mordisco de %A en la nuca de %V. A %V se le olvida lo que estaba diciendo.',
   '%V le pone el cuello a tiro y %A no lo desaprovecha.',
-  '%A termina el mordisco con la lengua. %V ya no sabe dónde mirar.',
+  '%A termina el mordisco con la lengua. %V ya no sabe dónde mirar.', // ROCKSTAR
   '%A le muerde el hombro a %V y %V pide otro sin decirlo, solo girándose.',
-  '%A le da un mordisquito a %V en la oreja y %V suelta una risa de hiena.',
+  '%A le da un mordisquito a %V en la oreja y %V suelta un ruido que no es una risa.', // ROCKSTAR
   '%A le muerde el moflete a %V como quien prueba un bollo. %V lleva la marca de los dientes una hora.',
-  '%A le mordisquea el hombro a %V y le deja la camiseta mojada. %V finge asco.',
+  '%A le mordisquea el hombro a %V y le deja la camiseta mojada, y no es lo único que se moja.', // ROCKSTAR
   '%A le muerde la mano a %V para que deje de escribir. %V sigue escribiendo, pero con la otra.',
   '%V se queja del mordisquito de %A y luego pone la otra mejilla.',
   '%A le mordisquea la nariz a %V y %V pone cara de gato ofendido.',
   '%A le pega un mordisquito a %V en el brazo y %V lo enseña al grupo como si fuera un tatuaje.',
-  'Tras el mordisquito de %A, %V intenta devolverlo y solo pilla la manga de %A.',
+  'Tras el mordisquito de %A, %V intenta devolverlo y acaba mordiendo algo más abajo de lo que apuntaba.', // ROCKSTAR
   '%A le mordisquea el dedo a %V y %V se lo mira como si le hubieran puesto un anillo.',
   '%A le mordisquea la muñeca a %V a media frase. %V pierde el hilo a la segunda palabra.',
 ];
@@ -846,36 +846,36 @@ const NOM = [
 // contacto y %V se queda esperando el resto. El chiste esta en la ASIMETRIA —
 // %A ya esta en otra cosa y %V sigue ahi.
 const PECK = [
-  '%A besa a %V rápido y sigue andando. %V no ha seguido andando.',
+  '%A besa a %V rápido y sigue andando. %V se queda pensando en qué más hace rápido %A.', // ROCKSTAR
   'Medio segundo de beso de %A. %V lleva desde entonces esperando el otro medio.',
-  '%A le roba un beso a %V y ni mira la cara que pone. La cara valía la pena.',
+  '%A le roba un beso a %V y se va. %V pasa la tarde pensando en qué más le dejaría robar.', // ROCKSTAR
   '%V cierra los ojos tarde para el beso de %A. Se quedó con los ojos cerrados igual.',
-  '%A le planta un beso a %V como quien pone un sello. %V se deja.',
+  '%A le planta un beso a %V como quien pone un sello. %V se deja sellar, y donde haga falta.', // ROCKSTAR
   'Un piquito de %A y %V se queda tres segundos sin hablar. En este chat eso es una eternidad.',
   '%A besa a %V en la frente y le suelta la cara. Lo de la frente es peor que en la boca.',
   '%V se toca el labio después del beso de %A. %A ya está hablando de otra cosa.',
-  '%A le da un beso rápido a %V delante del grupo. Nadie ha vuelto a mirar el móvil.',
+  '%A le da un beso rápido a %V delante del grupo. Nadie ha vuelto a mirar el móvil, y alguno se ha tenido que ir al baño.', // ROCKSTAR
   '%V dice que ese beso no valía. %A no lo repite, y ahí %V aprende su sitio.',
   '%A le planta un beso a %V y se le descojona en la cara. Beso y vacile en el mismo viaje.',
   'Medio segundo de beso de %A y a %V se le pone la cara de tomate con todo el chat mirando.',
   '%A le da a %V un beso corto y un apretón en el brazo al irse. %V lleva toda la tarde tocándose el brazo.',
   '%A besa a %V en la nariz. %V no sabe qué hacer con eso en toda la tarde.',
-  '%A se acerca, besa a %V y vuelve a su sitio. %V sigue con la cara donde la dejó.',
+  '%A se acerca, besa a %V y vuelve a su sitio. %V sigue con la boca donde la dejó, por si vuelve con algo más.', // ROCKSTAR
   '%V responde tarde al beso de %A. Para cuando reacciona, %A ya no está.',
   'Sin avisar y a mitad de una frase, %A besa a %V. La frase ya no la termina nadie.',
   'Un beso corto entre %A y %V y el grupo haciendo como que no. Nadie hace como que no.',
-  '%A besa a %V y le deja el labio brillando. %V no se lo limpia.',
+  '%A besa a %V y le deja el labio brillando. %V se relame, y el grupo entiende por dónde va esto.', // ROCKSTAR
   '%A le da un piquito a %V en la sien. %V se paraliza más que con uno en la boca.',
-  '%A besa a %V y se va. %V pide otro en voz baja, para que no lo oiga nadie.',
+  '%A besa a %V y se va. %V pide otro en voz baja, y no precisamente en la boca.', // ROCKSTAR
   'Piquito de %A a %V y de vuelta a lo suyo. %V se queda escribiendo y borrando el mismo mensaje.',
   '%A le da a %V un beso rápido en la mejilla y se la deja brillando de cacao de labios.',
-  '%V pone la mejilla y %A le da el piquito en la comisura. La próxima vez %V ya pone la boca.',
+  '%V pone la mejilla y %A le da el piquito en la comisura. La próxima vez %V pone la boca, y lo que haga falta.', // ROCKSTAR
   '%A le da un piquito a %V y luego se limpia la boca con la mano, por si acaso. %V lo ha visto.',
-  '%A le da a %V un piquito y le pregunta qué tal. %V contesta «bien» con una voz que no es la suya.',
-  'Un piquito de %A y a %V se le cae lo que llevaba en las manos.',
+  '%A le da a %V un piquito y le pregunta qué tal. %V contesta «bien» con la voz de quien quiere bastante más que un piquito.', // ROCKSTAR
+  'Un piquito de %A y a %V se le cae lo que llevaba en las manos, y casi la ropa.', // ROCKSTAR
   'Beso rápido de %A a %V y media vuelta sin mirar atrás. %V sí mira atrás, varias veces.',
-  '%A le roza los labios a %V y ya está. %V pregunta en el grupo si eso cuenta como beso.',
-  '%A le planta un piquito a %V con el grupo mirando y %V finge indignación. La finge sonriendo.',
+  '%A le roza los labios a %V y ya está. %V pregunta en el grupo si eso cuenta como beso o como preliminares.', // ROCKSTAR
+  '%A le planta un piquito a %V con el grupo mirando y %V finge indignación. La finge sonriendo, como finge otras cosas.', // ROCKSTAR
 ];
 
 // ─── DORMIRSE ENCIMA ────────────────────────────────────────────────────────
@@ -1285,31 +1285,31 @@ const BAKA = [
   '%A le llama idiota a %V por lo que acaba de escribir. Nadie en el grupo le lleva la contraria.',
   '%A le grita «¡baka!» a %V. %V pregunta qué significa y se lo confirma con la pregunta.',
   '%A le suelta un «idiota» a %V y %V contesta «¿por?». Con eso ya tiene la respuesta.',
-  'Colleja de %A en la nuca de %V. A ver si así se le coloca algo ahí dentro.',
+  'Colleja de %A en la nuca de %V. A ver si así se le coloca algo ahí dentro.', // ROCKSTAR
   '%A le llama gilipoyas a %V a la cara. %V se lo piensa un segundo y no encuentra cómo desmentirlo.',
   '%A le grita «¡idiota!» a %V y medio grupo le da la razón con un pulgar.',
   '%V intenta contestarle a %A que el idiota es %A y escribe mal «idiota».',
   '%A le llama imbécil a %V. %V tarda tanto en contestar que le da la razón sin querer.',
-  '%A le pega un grito a %V: «¡idiota!». %V mira a los lados por si era para otra persona.',
-  '%A le dice idiota a %V con cariño. El cariño sobra, lo de idiota no.',
-  '«Idiota», le dice %A a %V. %V lo lee, lo relee y contesta con un audio. Peor.',
-  '%A le da una colleja a %V por lo que ha dicho. %V pregunta por qué y se gana la segunda.',
+  '%A le pega un grito a %V: «¡idiota!». %V mira a los lados, como en la cama cuando gritan un nombre que no es el suyo.', // ROCKSTAR
+  '%A le dice idiota a %V con cariño, como se dice en la cama. Lo de la cama sobra; lo de idiota, no.', // ROCKSTAR
+  '«Idiota», le dice %A a %V. %V lo lee, lo relee y contesta con un audio jadeando. Peor.', // ROCKSTAR
+  '%A le da una colleja a %V por lo que ha dicho. %V pregunta por qué, y por la cara que pone, quiere la segunda.', // ROCKSTAR
   '%A le suelta a %V que es idiota, con todo el grupo leyendo. %V se defiende tan mal que %A ya no tiene que añadir nada.',
-  '%A le suelta a %V un «baka» de anime. %V se cree que es un piropo y da las gracias.',
+  '%A le suelta a %V un «baka» de anime. %V se cree que es una guarrada en japonés y le sube el color hasta las orejas.', // ROCKSTAR
   '%A le grita «¡idiota!» a %V y %V contesta «tú más». Ahí acaba el debate, y gana %A.',
-  '%A le llama imbécil a %V y se queda corto. Lo sabe todo el grupo, %V incluido.',
+  '%A le llama imbécil a %V y se queda corto, como se quedan cortos los polvos de %V.', // ROCKSTAR
   '%V le pide a %A que le explique por qué le llama idiota. %A le reenvía su último mensaje.',
   'Colleja seca de %A a %V. El hueco de esa cabeza se oye en todo el grupo.',
   '%A le llama gilipoyas a %V y %V se defiende con tres faltas de ortografía. Caso cerrado.',
   '«Idiota», sin más, le escribe %A a %V. %V responde con un sticker, que es lo más listo que ha mandado hoy.',
-  '%A le llama NPC a %V y %V pregunta si eso es bueno. No, no es bueno.',
+  '%A le llama NPC a %V: el personaje de fondo que nunca sale en la escena de cama.', // ROCKSTAR
   'Sin levantar la vista del móvil, %A le suelta un «idiota» a %V. No le hace falta mirar para acertar.',
-  '%A le grita «¡baka!» a %V y %V se ríe. Se ríe porque no lo ha entendido.',
+  '%A le grita «¡baka!» a %V y %V se ríe porque no lo ha entendido, como cuando le mandan indirectas guarras.', // ROCKSTAR
   '%A le llama imbécil a %V y %V contesta «perdona?», con una sola interrogación. No le da para la otra.',
-  'Quinto «idiota» de %A a %V esta semana. %V sigue dándole motivos cada día.',
+  'Quinto «idiota» de %A a %V esta semana. Es lo único que %V recibe con regularidad.', // ROCKSTAR
   '%A le pega una colleja a %V. Ahí dentro algo hace ruido, y no son las ideas.',
-  '%A le llama idiota a %V y %V lo busca en Google para rebatirlo. Google le da la razón a %A.',
-  '%A le llama idiota a %V. %V lo niega con un audio de tres minutos que lo demuestra.',
+  '%A le llama idiota a %V y %V lo busca en Google para rebatirlo. Google le da la razón a %A, y de paso enseña su historial.', // ROCKSTAR
+  '%A le llama idiota a %V. %V lo niega con un audio de tres minutos que lo demuestra, y que dura más que sus polvos.', // ROCKSTAR
   '%A le llama gilipoyas a %V y %V pide pruebas. Las pruebas son todo el puto chat.',
   '%A le grita «¡idiota!» a %V y %V contesta «¿yo?». Sí, %V, tú.',
 ];
@@ -1319,67 +1319,67 @@ const BAKA = [
 const LICK = [
   '%A le pasa la lengua a %V por la mejilla, despacio. %V no se limpia.',
   '%A le lame la oreja a %V y a %V se le escapa un ruido que ha oído el grupo entero.',
-  '%A le lame el cuello a %V. %V dice «qué asco» y ladea la cabeza para dejarle más sitio.',
+  '%A le lame el cuello a %V. %V dice «qué asco» y ladea la cabeza para dejarle más sitio.', // ROCKSTAR
   'Lametazo de %A de la barbilla a la frente. %V acaba con la cara llena de babas y sin quejarse.',
-  '%A le chupa el dedo a %V. %V aparta la mano tarde, muy tarde.',
-  '%A le lame la cara a %V sin avisar. %V pone cara de asco y no se mueve ni un centímetro.',
+  '%A le chupa el dedo a %V. %V aparta la mano tarde, muy tarde.', // ROCKSTAR
+  '%A le lame la cara a %V sin avisar. %V pone cara de asco y le señala el otro lado, y luego más abajo.', // ROCKSTAR
   'Lametón de %A en la nuca de %V. A %V se le eriza todo y se le olvida lo que estaba escribiendo.',
   '%A le lame los labios a %V. %V cierra los ojos, que es lo contrario de quejarse.',
   '%A le chupa el lóbulo a %V. %V escribe algo en el grupo y no se le entiende nada.',
   '%V finge asco con la lengua de %A en el cuello. El asco le dura lo que tarda %A en parar.',
-  '%A le lame la mano a %V. %V la mira mojada y no sabe si limpiársela o pedir más.',
+  '%A le lame la mano a %V. %V la mira mojada y no sabe si limpiársela o pedir más.', // ROCKSTAR
   '%A le lame la cara entera a %V. %V se seca con la manga y luego huele la manga.',
   '%A le mete la lengua en la oreja a %V. %V se retuerce, se ríe y no se aparta.',
   '%A le lame la mejilla a %V con todo el grupo mirando. A %V le sube el color a la cara y pone la otra.',
   '%A le chupa el cuello a %V hasta dejarle marca. %V tendrá que explicarlo, y no va a querer.',
-  '%A le lame la oreja a %V y %V suelta un gemido. Ya no hay forma de disimularlo en el grupo.',
-  '%V le pide a %A que pare de lamerle. Lo pide sin apartarse ni un milímetro.',
+  '%A le lame la oreja a %V y %V suelta un gemido. Ya no hay forma de disimularlo en el grupo.', // ROCKSTAR
+  '%V le pide a %A que pare de lamerle. Lo pide sin apartarse ni un milímetro.', // ROCKSTAR
   '%A recorre el cuello de %V con la lengua. %V deja de escribir a mitad de palabra.',
-  'Lametón de %A en la cara de %V. %V protesta por las babas y se las deja puestas.',
-  '%A le lame los dedos a %V uno a uno. A %V se le hacen pocos dedos.',
-  '%A le chupa la oreja a %V. A partir de ahí %V contesta «sí» a todo.',
-  '%A le lame la frente a %V sin venir a cuento. %V se lo toma como una declaración de amor.',
+  'Lametón de %A en la cara de %V. %V protesta por las babas, y luego pide que se las deje en otro sitio.', // ROCKSTAR
+  '%A le lame los dedos a %V uno a uno. A %V se le hacen pocos dedos.', // ROCKSTAR
+  '%A le chupa la oreja a %V. A partir de ahí %V contesta «sí» a todo.', // ROCKSTAR
+  '%A le lame la frente a %V sin venir a cuento. %V se lo toma como una invitación y pregunta dónde más.', // ROCKSTAR
   '%V se queja del lametón de %A con la cara todavía llena de babas y una sonrisa que no se le va.',
   '%A le lame el cuello a %V y %V pone los ojos en blanco. Lo de quejarse, ya si eso luego.',
   '%A le deja a %V la oreja chorreando de saliva. %V no se la seca en un buen rato.',
   '%A le chupa el pulgar a %V. %V se queda mirando cómo lo hace y ya no mira nada más.',
-  '%A le lame la boca a %V. %V dice que eso no es un beso y abre la boca igual.',
+  '%A le lame la boca a %V. %V dice que eso no es un beso y abre la boca igual.', // ROCKSTAR
   'Lengua de %A en el cuello de %V. %V se encoge, se ríe y estira el cuello para que siga.',
   '%A le lame la cara a %V y %V se limpia con la mano. Luego %V se lame la mano. Qué guarrada.',
-  'La lengua de %A va por donde le da la gana y %V no protesta por ningún sitio.',
+  'La lengua de %A va por donde le da la gana y %V no protesta por ningún sitio.', // ROCKSTAR
 ];
 
 // ACORRALAR CONTRA LA PARED. Dominancia: %A manda y %V cede, se derrite o
 // intenta escaparse y no puede. Nunca forzado: o quiere o hace el ridiculo.
 const KABEDON = [
-  '%A acorrala a %V contra la pared y le pregunta adónde iba. %V ya no iba a ninguna parte.',
+  '%A acorrala a %V contra la pared y le pregunta adónde iba. %V ya no iba a ninguna parte, salvo a la cama de %A.', // ROCKSTAR
   '%A apoya el brazo en la pared junto a la cara de %V. %V intenta decir algo y se le quiebra la voz.',
   '%A deja a %V sin salida contra la pared. %V mira la puerta y no da ni un paso.',
   '%A planta la mano en la pared al lado de la cabeza de %V. A %V se le olvida respirar.',
-  '%V intenta escaparse por debajo del brazo de %A y se queda ahí debajo, oliéndole.',
+  '%V intenta escaparse por debajo del brazo de %A y se queda ahí debajo, oliéndole.', // ROCKSTAR
   '%A arrincona a %V en una esquina y se acerca despacio. %V cierra los ojos antes de tiempo.',
-  '%A acorrala a %V y le mira la boca. %V se muerde el labio sin darse cuenta.',
+  '%A acorrala a %V y le mira la boca. %V se muerde el labio sin darse cuenta.', // ROCKSTAR
   '%V dice que puede irse cuando quiera. Lleva un buen rato entre la pared y el brazo de %A.',
-  '%A da un golpe en la pared junto a la oreja de %V. %V pega un bote y no se despega de la pared.',
+  '%A da un golpe en la pared junto a la oreja de %V. %V pega un bote, y el vecino pregunta si van a seguir dando golpes.', // ROCKSTAR
   '%A le corta la salida a %V con un brazo. %V finge que le da igual y le tiembla la voz.',
-  '%A pega a %V a la pared y le susurra algo. %V dice «vale» sin haber oído nada.',
-  '%V levanta las manos contra la pared como en un atraco. Al rato las baja hasta la cintura de %A.',
+  '%A pega a %V a la pared y le susurra algo. %V dice «vale» sin haber oído nada.', // ROCKSTAR
+  '%V levanta las manos contra la pared como en un atraco. Al rato las baja hasta la cintura de %A.', // ROCKSTAR
   '%A encierra a %V entre sus brazos y la pared. %V hace como que busca la salida, sin buscarla.',
   '%A acorrala a %V y le levanta la barbilla con un dedo. A %V se le cae toda la chulería de golpe.',
   '%V le sostiene la mirada a %A con la espalda en la pared. Aguanta dos segundos. Al tercero, le mira la boca.',
-  '%A arrincona a %V y no dice nada. Con el brazo en la pared ya está todo dicho.',
+  '%A arrincona a %V y no dice nada. Con el brazo en la pared ya está todo dicho, y con la otra mano, lo que falta.', // ROCKSTAR
   '%V se ríe de los nervios contra la pared. %A no se ríe, y a %V se le corta la risa.',
   '%A apoya los dos brazos en la pared y deja a %V en medio. %V ya no busca por dónde salir.',
-  '%A acorrala a %V y le deja un palmo de aire. %V se pone de puntillas para quitárselo.',
+  '%A acorrala a %V y le deja un palmo de aire. %V se pone de puntillas para quitárselo.', // ROCKSTAR
   '%A apoya la mano en la pared y la cara a un palmo de %V. %V traga saliva tan fuerte que se oye.',
   '%V va de chulería contra la pared hasta que %A se acerca otro centímetro. Ahí se acaba la chulería.',
   '%A acorrala a %V y le pregunta si tiene algo que decir. %V confiesa cosas que nadie le había preguntado.',
-  '%A deja a %V con la espalda en la pared y se va sin hacer nada. %V se queda ahí, con cara de que le han robado algo.',
+  '%A deja a %V con la espalda en la pared y se va sin hacer nada. %V se queda ahí, a medio calentar y con cara de que le han robado algo.', // ROCKSTAR
   '%V pide un segundo con la espalda en la pared, se coloca el pelo y dice «ya». %A no ha movido el brazo.',
-  'Con la espalda de %V en la pared, %A le pregunta quién manda. %V contesta bajito, y contesta bien.',
+  'Con la espalda de %V en la pared, %A le pregunta quién manda. %V contesta bajito, y contesta bien.', // ROCKSTAR
   '%V decía que lo de la pared y el brazo no funciona. A %A le ha funcionado a la primera.',
-  '%A arrincona a %V y %V aprovecha para tocarle el brazo. Por comprobar, dice.',
-  '%A le cierra el paso a %V con el brazo en la pared. %V tenía prisa, y de repente ya no.',
+  '%A arrincona a %V y %V aprovecha para tocarle el brazo. Por comprobar, dice.', // ROCKSTAR
+  '%A le cierra el paso a %V con el brazo en la pared. %V tenía prisa por irse, y ahora la prisa es por otra cosa.', // ROCKSTAR
   '%A encierra a %V con un brazo a cada lado y le aparta el pelo de la cara. %V ya no sabe ni cómo se llama.',
   '%A acorrala a %V con medio grupo mirando. %V no protesta, bastante tiene con no mirarle la boca.',
 ];
@@ -1423,33 +1423,33 @@ const SMUG = [
 // para «esto esta muy bueno». Es un piropo bestia en forma de reaccion.
 const NOSEBLEED = [
   '%V pasa por delante y a %A le sale un chorro de sangre por la nariz. %V da la vuelta y vuelve a pasar.',
-  '%A ve la foto de perfil de %V y se le cae la baba encima del móvil.',
+  '%A ve la foto de perfil de %V, le sangra la nariz y tiene que darse una ducha fría antes de contestar.', // ROCKSTAR
   '%V manda una foto al grupo y a %A le sangra la nariz. %V no la borra, la fija.',
-  'A %A le chorrea la nariz cada vez que escribe %V. %V escribe más.',
+  'A %A le chorrea la nariz cada vez que escribe %V, y la nariz es lo único que se puede contar en el grupo.', // ROCKSTAR
   '%A babea mirando a %V y el grupo ya tiene la captura. %V es quien más la reenvía.',
-  '%A dice que lo de la nariz es por el calor. %V se acerca y la nariz sangra el doble.',
-  '%A se tapa la nariz con un pañuelo cada vez que %V entra en el chat. Lleva gastado el paquete entero.',
-  '%V le pregunta a %A por qué le sangra la nariz. Lo pregunta acercándose.',
-  '%A le pide a %V que se ponga algo encima, que le sangra la nariz. %V se quita algo.',
+  '%A dice que lo de la nariz es por el calor. %V se acerca y sube el calor, y no solo en la nariz.', // ROCKSTAR
+  '%A gasta pañuelos cada vez que %V entra en el chat. Dice que es por la nariz, y el grupo hace como que se lo cree.', // ROCKSTAR
+  '%V le pregunta a %A por qué le sangra la nariz. Lo pregunta acercándose y desabrochándose un botón, como quien no quiere la cosa.', // ROCKSTAR
+  '%A le pide a %V que se ponga algo encima, que le sangra la nariz. %V se quita algo.', // ROCKSTAR
   'A %A se le cae la baba mirando a %V. %V hace como que no lo ve y se recoloca el pelo.',
-  'A %A le revienta la nariz con el último audio de %V. Y era un audio normal, de los de «llego tarde».',
+  'A %A le revienta la nariz con el último audio de %V, y eso que era un «llego tarde». Imagínate con un «ven».', // ROCKSTAR
   '%V cambia la foto de perfil y a %A le empieza a sangrar la nariz. El grupo ya sabe por qué.',
   '%A babea tanto mirando a %V que se tiene que limpiar con la manga. %V se ríe y le da más motivos.',
   '%V le pasa a %A un pañuelo para la nariz. Se lo pasa acercándose más de lo necesario.',
   '%A sangra por la nariz mirando a %V. %V ni levanta la vista: le pasa con medio grupo.',
-  '%A se pone dos tapones en la nariz antes de abrir el chat de %V. No le duran ni un mensaje.',
+  '%A se pone dos tapones en la nariz antes de abrir el chat de %V. No le duran ni un mensaje, y los pañuelos tampoco.', // ROCKSTAR
   '%V se ríe de lo que le pasa a %A en la nariz, y a %A le vuelve a sangrar de oírle reír.',
   '%A se mete un pañuelo en cada agujero de la nariz. Aparece %V y salen disparados.',
   'A %A le gotea la baba en la pantalla mirando a %V. %V no dice nada, pero sonríe.',
-  '%V se arrima un centímetro a %A y a %A le gotea la nariz. %V se arrima otro, a ver qué pasa.',
+  '%V se arrima un centímetro a %A y a %A le gotea la nariz. %V se arrima otro, a ver qué pasa.', // ROCKSTAR
   '%A ha perdido tanta sangre por la nariz mirando a %V que ya no le dejan donar.',
-  '%V lleva la cuenta de los pañuelos que gasta %A por su culpa. Va por cuarenta y lo presume en el grupo.',
-  'A %A se le escapa la baba en cuanto %V dice hola. Imagínate con un audio.',
+  '%V lleva la cuenta de los pañuelos que gasta %A por su culpa. Va por cuarenta y lo presume en el grupo.', // ROCKSTAR
+  'A %A se le escapa la baba en cuanto %V dice hola. Imagínate con un audio jadeando.', // ROCKSTAR
   '%A sangra por la nariz y le echa la culpa a la alergia. La alergia se llama %V y está en el grupo.',
-  '%V le manda a %A un selfi y a %A le chorrea la nariz encima del móvil. Tiene que cambiar de funda.',
+  '%V le manda a %A un selfi y a %A le chorrea la nariz encima del móvil. El móvil, por suerte, es lo único que se mancha.', // ROCKSTAR
   '%A jura que no le pasa nada con %V, con la nariz chorreando sangre. Nadie se lo cree, %V menos que nadie.',
   'A %A le sangra la nariz con solo ver el nombre de %V en el chat. %V todavía no ha escrito nada.',
-  '%A babea mirando a %V con tanto descaro que %V le pasa una servilleta, sin dejar de posar.',
+  '%A babea mirando a %V con tanto descaro que %V le pasa una servilleta y se desabrocha otro botón, sin dejar de posar.', // ROCKSTAR
   '%V se recoge el pelo y a %A le estalla la nariz. %V se lo suelta y se lo vuelve a recoger, por si acaso.',
   '%A se limpia la sangre de la nariz y vuelve a mirar a %V. Vuelve a sangrar. %A no aprende y %V no ayuda.',
 ];

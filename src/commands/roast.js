@@ -33,18 +33,18 @@ function getActivityPhrases(count) {
   if (count === 0) {
     return [
       `Cero mensajes, %N. Ni un hola, ni un audio, ni una puta queja. El grupo no tiene ni una prueba de que respiras.`,
-      `%N, cero mensajes. Todavía no has empezado y ya se te da mal.`,
+      '%N, cero mensajes. Todavía no has empezado y ya se te da mal, como tu primera vez.', // ROCKSTAR
       `Cero, %N. Lo normal es entrar y saludar, y tú entraste y te sentaste.`,
-      `%N, contador a cero. Si te fueras ahora, se iría alguien de quien no queda ni una frase.`,
+      '%N, contador a cero. Si te fueras ahora, se iría alguien de quien no queda ni una frase, ni una mancha en las sábanas de nadie.', // ROCKSTAR
       `Cero mensajes, %N. Nadie en el grupo sabe cómo suenas.`,
-      `%N, ni uno. El grupo lleva hablando todo este tiempo y tú mirando como quien mira el tráfico.`,
+      '%N, ni uno. El grupo lleva todo este tiempo hablando y tú mirando, como quien mira la ventana del vecino con prismáticos.', // ROCKSTAR
       `Cero, %N. Entrar te costó un toque, y escribir por lo visto cuesta más.`,
-      `%N, cero mensajes. Parasitismo puro: todo lo que pasa aquí te lo llevas y no devuelves ni un emoji.`,
+      '%N, cero mensajes. Todo lo que pasa aquí te lo llevas y no devuelves ni un emoji, como en la cama: recibir sí, dar nunca.', // ROCKSTAR
       `Cero, %N. Hasta quien se equivoca de grupo escribe «perdón», y tú ni eso.`,
-      `%N, ni un mensaje. Tienes el grupo de adorno y el móvil de pisapapeles.`,
+      '%N, ni un mensaje. Tienes el grupo de adorno y el móvil solo para el porno.', // ROCKSTAR
       `Cero mensajes, %N. Si hubiera un censo del grupo, te contarían por error.`,
       `%N, cero. Cualquiera que entre mañana ya habrá dicho más que tú en toda tu estancia.`,
-      `%N, contador en cero y dignidad parecida.`,
+      '%N, contador en cero, como tu vida sexual de este año.', // ROCKSTAR
       `Cero mensajes, %N. Estás aquí para ver y no para que te vean, y enhorabuena: no te ve nadie.`,
       `%N, ni una letra. Tu silencio ya ni incomoda: se da por hecho.`,
     ];
@@ -52,36 +52,36 @@ function getActivityPhrases(count) {
   if (count < 20) {
     return [
       `${c} mensajes, %N. Todo lo que has dicho en este grupo cabe en el dorso de un ticket y sobra papel.`,
-      `%N, ${c} mensajes. De vez en cuando asomas la cabeza, compruebas que el grupo sigue y te vuelves al agujero.`,
+      `%N, ${c} mensajes. De vez en cuando asomas la cabeza, compruebas que el grupo sigue y vuelves a lo tuyo, con la puerta cerrada y el pestillo echado.`, // ROCKSTAR
       `${c} mensajes, %N. Asomas, sueltas una frase corta y el puto chat te pasa por encima sin frenar.`,
-      `%N, ${c} mensajes. Das señales de vida con la frecuencia justa para que nadie llame a la policía.`,
+      `%N, ${c} mensajes. Das señales de vida con la frecuencia justa, como quien folla una vez al año para comprobar que todo funciona.`, // ROCKSTAR
       `${c} mensajes, %N. Cada vez que escribes, el grupo tiene que mirar quién eres.`,
-      `%N, ${c} mensajes. Que sabes escribir está demostrado; que tengas algo que decir, no.`,
+      `%N, ${c} mensajes. Que sabes escribir está demostrado; que tengas algo que decir, no. Con los mensajes guarros, igual.`, // ROCKSTAR
       `${c} mensajes, %N. La cifra de quien entra al grupo como quien entra al baño: rápido, a lo suyo y sin hablar con nadie.`,
       `%N, ${c} mensajes. Ni fantasma del todo ni miembro del todo: visitante con carné.`,
-      `${c} mensajes, %N. Si cada mensaje tuyo fuera un euro, no tendrías ni para el pan.`,
+      `${c} mensajes, %N. Si cada mensaje tuyo fuera un polvo, seguirías pasando el año en blanco.`, // ROCKSTAR
       `%N, ${c}. Los de arriba escriben eso antes del desayuno.`,
-      `%N, ${c} mensajes. A este ritmo, para cuando digas algo interesante el grupo ya no existe.`,
+      `%N, ${c} mensajes. A este ritmo, para cuando calientes el grupo, ya se habrá dormido todo el mundo.`, // ROCKSTAR
       `${c} mensajes, %N. Lo que no dices tú lo dicen otros, y encima mejor.`,
       `%N, ${c} mensajes. Presencia de figurante: sales en la escena y nadie recuerda tu cara.`,
-      `%N, ${c} mensajes. Escribes como quien paga una multa: lo mínimo y de mala gana.`,
+      `%N, ${c} mensajes. Escribes como quien cumple en la cama por obligación: lo mínimo y mirando al techo.`, // ROCKSTAR
       `${c} mensajes, %N. Si te callas mañana, el grupo ni gira la puta cabeza.`,
     ];
   }
   if (count < 60) {
     return [
       `${c} mensajes, %N. Suficientes para que se sepa que existes y pocos para que importe.`,
-      `%N, ${c} mensajes. Apareces lo justo para demostrar que el móvil te sigue funcionando.`,
+      `%N, ${c} mensajes. Apareces lo justo para demostrar que el móvil te funciona, que el resto del tiempo lo usas para otra cosa.`, // ROCKSTAR
       `${c} mensajes, %N. El grupo sabe cómo te llamas, y de ahí no ha pasado.`,
-      `%N, ${c}. Hablas cuando se te pregunta y nadie te pregunta.`,
+      `%N, ${c}. Hablas cuando se te pregunta y nadie te pregunta, ni en el chat ni en la cama.`, // ROCKSTAR
       `${c} mensajes, %N. Tu aportación al grupo es de las que se olvidan antes de terminar de leerlas.`,
-      `%N, ${c} mensajes. Participas como quien firma el libro de visitas y se va.`,
+      `%N, ${c} mensajes. Participas como quien firma el libro de visitas de un motel y se va sin estrenar la cama.`, // ROCKSTAR
       `${c} mensajes, %N. A ti no se te echa de menos: se te descubre de vez en cuando.`,
-      `%N, ${c} mensajes. Das para una anécdota, y la anécdota es que casi nunca hablas.`,
+      `%N, ${c} mensajes. Das para una anécdota, y la anécdota no es de las que se cuentan con picante.`, // ROCKSTAR
       `${c} mensajes, %N. Si el grupo hiciera una lista de gente imprescindible, no estarías ni entre los suplentes.`,
-      `%N, ${c} mensajes. Más que un fantasma y menos que un vecino: saludas en el ascensor y ya.`,
+      `%N, ${c} mensajes. Ni fantasma ni presencia: eres ese ruido de la pared de al lado que se oye una vez al mes.`, // ROCKSTAR
       `${c} mensajes, %N. El grupo no te odia, que eso requiere conocerte.`,
-      `%N, ${c}. Cuando escribes, parece que pasabas por aquí de casualidad.`,
+      `%N, ${c}. Cuando escribes, parece que pasabas por aquí de casualidad, como quien se equivoca de habitación en un hotel.`, // ROCKSTAR
       `${c} mensajes, %N. Tu mejor aportación hasta ahora ha sido no molestar.`,
       `%N, ${c} mensajes. Todo lo tuyo se lee rápido porque hay muy poco.`,
       `${c} mensajes, %N. Con eso no te ganas un sitio: te ganas un hueco.`,
@@ -94,18 +94,18 @@ function getActivityPhrases(count) {
   if (count >= 150) {
     return [
       `${c} mensajes, %N. Sostienes tú este grupo de mierda y nadie te da ni las gracias.`,
-      `%N, ${c} mensajes. Empujas tú este grupo y los demás van montados encima sin dar un puto palo.`,
+      `%N, ${c} mensajes. Empujas tú este grupo y los demás van montados encima sin dar un puto palo.`, // ROCKSTAR
       `${c} mensajes, %N. Si mañana no apareces, el chat se queda en coma. Eso da poder, cabrón, y lo sabes.`,
-      `%N, ${c}. Tú escribes y los demás leen, así va la cadena alimenticia de este grupo.`,
+      `%N, ${c}. Tú das y los demás reciben, y por las caras, a nadie le molesta.`, // ROCKSTAR
       `${c} mensajes, %N. Para roastearte habría que buscar lo que no has dicho, y no queda mucho.`,
-      `%N, ${c} mensajes. Das la cara más que nadie, y con la cara que tienes, eso tiene mérito.`,
+      `%N, ${c} mensajes. Das la cara más que nadie, y por lo visto no solo la cara.`, // ROCKSTAR
       `${c} mensajes, %N. El marcador no miente, y el que se ría de ti que enseñe primero su número.`,
-      `%N, ${c} mensajes. Te has ganado el derecho a ser insoportable, y lo estás usando.`,
+      `%N, ${c} mensajes. Te has ganado el derecho a ser insoportable, y lo usas con la misma energía que en la cama.`, // ROCKSTAR
       `${c} mensajes, %N. El motor del grupo eres tú: mucho ruido, mucho gasto y ningún sitio al que ir.`,
       `%N, ${c}. Con ese número ya no se te roastea por callar: se te roastea por no saber callarte.`,
-      `${c} mensajes, %N. Si hablaras menos, el grupo lo notaría; si hablaran menos los demás, no lo notaría nadie.`,
+      `${c} mensajes, %N. Si hablaras menos, el grupo lo notaría. Si gimieras menos, tus vecinos también.`, // ROCKSTAR
       `%N, ${c} mensajes. Eres una puta máquina de conversación, y como toda máquina, no tienes vida.`,
-      `${c} mensajes, %N. Llevas tú el ritmo del grupo, y los demás, a aguantarlo.`,
+      `${c} mensajes, %N. Llevas tú el ritmo del grupo, y los demás, a aguantarlo, que contigo hace falta aguante.`, // ROCKSTAR
       `%N, ${c} mensajes. Roastearte es fácil: con ese número, se ve desde aquí que no sales de casa.`,
       `${c} mensajes, %N. Ya puedes presumir, que te lo has ganado a pulso, a pulgar y a costa de dormir.`,
     ];
@@ -113,18 +113,18 @@ function getActivityPhrases(count) {
   // 60-149
   return [
     `${c} mensajes, %N. No das ni para que te echen de menos ni para que te echen.`,
-    `%N, ${c} mensajes. Se te lee, pero no se te cita.`,
+    `%N, ${c} mensajes. Se te lee, pero no se te cita, ni para tomar algo ni para lo de después.`, // ROCKSTAR
     `${c} mensajes, %N. Das conversación como quien da el cambio: lo justo y contado.`,
-    `%N, ${c} mensajes. Das tu opinión, el grupo suelta un «ya» y sigue con el plan que ya tenía escrito.`,
+    `%N, ${c} mensajes. Das tu opinión y el grupo suelta un «ya», como quien finge que ha llegado.`, // ROCKSTAR
     `${c} mensajes, %N. Hablas, sí, y en cuanto sueltas el móvil nadie se acuerda de una puta palabra.`,
-    `${c} mensajes, %N. Das la cara a ratos y el resto del tiempo te la guardas.`,
+    `${c} mensajes, %N. Das la cara a ratos, y lo demás no lo enseñas ni pagando.`, // ROCKSTAR
     `%N, ${c} mensajes. Nadie te nombra cuando se habla de quién lleva el grupo.`,
-    `${c} mensajes, %N. Lo tuyo son apariciones estelares, sin estrella.`,
+    `${c} mensajes, %N. Lo tuyo son apariciones estelares, sin estrella y sin que nadie se quede a dormir.`, // ROCKSTAR
     `%N, ${c} mensajes. Te ven escribiendo, esperan el zasca y sueltas una mierda que no mueve nada.`,
-    `${c} mensajes, %N. Das para un «ah, sí, está», pero no para un «¿dónde está?».`,
+    `${c} mensajes, %N. Das para un «ah, sí, está», pero no para un «¿te quedas a dormir?».`, // ROCKSTAR
     `%N, ${c}. Sueltas el mensaje y te piras. Normal que ya no te conteste ni Dios.`,
     `${c} mensajes, %N. Has escrito lo justo para que el grupo te tenga calado.`,
-    `%N, ${c} mensajes. Si te vas, el grupo pierde un poco de ruido y nada más.`,
+    `%N, ${c} mensajes. Si te vas, el grupo pierde un poco de ruido, y tu cama, ni eso.`, // ROCKSTAR
     `${c} mensajes, %N. Estás, pero de paso.`,
     `%N, ${c} mensajes. Te has quedado a mitad de camino y te has sentado ahí.`,
   ];

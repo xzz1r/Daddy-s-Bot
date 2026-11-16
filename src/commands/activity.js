@@ -16,48 +16,48 @@ const logger = require('../utils/logger');
 // la mitad de los mensajes de %W; el resto es un duelo ajustado.
 let VS_ROASTS = [
   '%W gana y %L ni protesta, porque protestar también es hablar, y eso a %L lo supera. Derrota muda, la más patética de todas.',
-  '%W habla y %L mira. El marcador solo ha puesto números a lo que ya se veía.',
+  '%W habla y %L mira, como en todo lo que hace %L en la vida: desde la esquina y sin tocar.', // ROCKSTAR
   '%L ha perdido de calle. Para competir con %W hay que abrir la boca de vez en cuando.',
-  'Paliza. %W lleva el grupo a cuestas y %L lleva la mochila vacía.',
+  'Paliza. %W se pone encima del grupo y %L, como siempre, se queda debajo sin moverse.', // ROCKSTAR
   '%L, ponerte al lado de %W es una puta humillación, y te la has comido en público.',
-  '%W escribe por los dos, y %L encima se deja representar.',
+  '%W escribe por los dos, y %L se deja hacer, como en sus mejores noches.', // ROCKSTAR
   'Ni de lejos. A este ritmo, %L no alcanza a %W ni en otra vida.',
-  '%W gana por goleada. %L ha venido al partido a mirar.',
+  '%W gana por goleada. %L ha venido a mirar, que es lo más cerca que ha estado nunca de meter alguna.', // ROCKSTAR
   'Lo de %L contra %W ha sido un trámite. Y el trámite lo ha firmado %W.',
   '%L, te han comparado con %W y ya sabes por qué nadie lo hace nunca.',
-  'El grupo tiene voces y tiene público: %W es de las voces y %L, del público.',
+  'El grupo tiene quien lo hace y quien lo mira: %W lo hace, y %L mira con la mano debajo de la mesa.', // ROCKSTAR
   '%W aporta y %L cotillea. Los números lo dicen sin maquillaje.',
   'Paliza histórica. %L ha perdido sin enterarse de que había partido.',
   '%L, para ganarle a %W primero hay que aparecer, y eso no va contigo.',
-  '%W por delante y a mucha distancia. %L, en el retrovisor, haciéndose pequeño.',
+  '%W por delante y a mucha distancia. %L llega tarde, como a todo menos a acabar.', // ROCKSTAR
   '%W arranca las conversaciones y %L se las lee de gorra sin soltar ni un puto jaja.',
   '%W da la cara en cada tema. %L asoma, mira quién ha escrito y vuelve a esconderse como la rata que es.',
-  'Duelo sin rival. %W contra la sombra de %L.',
-  '%L ha perdido por tanto que el bot ha tenido que contar dos veces.',
+  'Duelo sin rival. %W lo da todo y %L finge, como finge otras cosas.', // ROCKSTAR
+  '%L ha perdido por tanto que ni con lubricante entraba en la pelea.', // ROCKSTAR
   'Si esto fuera boxeo, a %L le habrían tirado la toalla en el primer asalto. %W ni sudó.',
 ];
 
 let VS_AJUSTADO = [
   '%W gana por poco. %L ha perdido por un par de mensajes, y entre dos que sostienen el grupo eso es un empate con ganador.',
-  'Duelo apretado. %W gana y %L puede quejarse de todo menos de no haber estado.',
+  'Duelo apretado. %W gana, y %L ha estado tan cerca que esto ya parecía un roce.', // ROCKSTAR
   '%W se lleva el cara a cara por la mínima. %L, ni con un día flojo se ha descolgado.',
-  'Perder por tan poco jode, %L. Y a %W ganar por tan poco tampoco le deja presumir mucho.',
+  'Perder por tan poco jode, %L. Y a %W ganar por tan poco le deja con ganas de más, que es lo mejor que se le puede dejar a alguien.', // ROCKSTAR
   '%W por delante, con %L a un paso. Dos que sostienen el grupo, y uno un poco más.',
-  'Ajustado. %W gana, pero %L le ha hecho sudar cada mensaje.',
+  'Ajustado. %W gana, pero %L le ha hecho sudar cada mensaje, y no de la manera aburrida.', // ROCKSTAR
   '%L pierde de un pelo contra %W. Tanta guerra para un margen tan corto: esto pide revancha.',
-  'Foto finish. %W saca la nariz y %L se queda a nada. Así da gusto ver un duelo.',
+  'Foto finish. %W saca la nariz y %L se queda a nada. Así de pegados, alguien debería apagar la luz.', // ROCKSTAR
   '%W manda hoy por poco. %L tiene toda la noche para darle la vuelta, y ganas no le faltan.',
   'Por la mínima. %W gana, y %L le ha peleado cada puto mensaje hasta el final.',
-  '%L, tan cerca de %W que se le oye la respiración. Pero delante va %W.',
+  '%L, tan cerca de %W que se le oye la respiración en la nuca. Delante va %W, y no parece que le moleste.', // ROCKSTAR
   'Empate técnico con ganador. %W gana, y %L se queda con la revancha pendiente.',
-  'Los dos escriben como si el grupo dependiera de sus mensajes, y depende. Hoy %W un poco más que %L.',
+  'Entre %W y %L hay tanta tensión que el grupo ya no sabe si esto es un duelo o unos preliminares. Gana %W, por poco.', // ROCKSTAR
   '%W gana sin margen para presumir y %L pierde sin dar un solo mensaje por perdido.',
   '%L ha dado guerra y ha perdido igual. Ojo, que %W lo va a recordar toda la semana.',
-  'Cara a cara igualado. %W se lo lleva, y %L ya está escribiendo para darle la vuelta mañana.',
+  'Cara a cara igualado. %W se lo lleva, y %L ya quiere darle la vuelta mañana. Darle la vuelta a %W, se entiende.', // ROCKSTAR
   '%W por delante, por poco. Con un par de mensajes más de %L, esto era otra historia.',
   'Ajustado. %W gana, y %L se lo traga con lo poco que ha faltado. Partidazo.',
   'Duelo de los buenos. %W gana y %L no queda mal, que es más de lo que se puede decir del resto del grupo.',
-  '%W se lo lleva por un suspiro. Entre %W y %L han escrito más que medio grupo junto.',
+  '%W se lo lleva por un suspiro, y suspiros entre %W y %L ha habido muchos.', // ROCKSTAR
 ];
 
 function lookupCount(users, jid) {
@@ -148,34 +148,34 @@ async function cmdVs(sock, msg, args, groupMeta) {
 
 let GHOST_ROASTS = [
   'Se traga el chat entero y no escupe ni una puta coma. Lurker con doctorado y cero publicaciones.',
-  'Su móvil no sabe ni que tiene teclado. Lo único que hace es bajar y bajar el chat, stalkeando sin soltar ni un audio.',
+  'Su móvil no sabe ni que tiene teclado. Solo baja y baja el chat con una mano, y de la otra mejor no preguntar.', // ROCKSTAR
   'Aporta lo mismo que un "este mensaje fue eliminado": ves que pasó algo, pero nada que mereciera la pena leer. Fantasma sin sustancia.',
-  'Vive en visto. Dejar a todo el mundo esperando una respuesta que no llega es su único deporte.',
+  'Vive en visto. Deja a todo el mundo a medias, en el chat y en todo lo demás.', // ROCKSTAR
   'El grupo es su Netflix: lo abre, consume lo que otros se curran y nunca deja reseña. Parásito de entretenimiento ajeno, fantasma.',
-  'Ve los memes y jamás hace uno. Consume sin parar y no produce nada, y ahí tienes su cifra.',
+  'Ve los memes y jamás hace uno. Mira mucho y no participa: en el chat y en el porno, el mismo papel.', // ROCKSTAR
   'Lleva tanto en silencio que ya nadie le espera respuesta. Es un "te leo luego" con patas, y el "luego" no llega jamás.',
-  'Entra, lee, se ríe por dentro y se larga. El grupo le entretiene gratis y a cambio recibe silencio.',
+  'Entra, lee, se ríe por dentro y se larga. Ni un «buenas noches»: se corre la cortina y adiós.', // ROCKSTAR
   'Tiene la boca cosida desde que entró y los ojos pegados al chat. Cotilla de gorra, y sin dar ni las gracias.',
-  'Si mañana se le cae el móvil al váter, el grupo no se entera ni en un mes.',
+  'Si mañana se le cae el móvil al váter, el grupo no se entera ni en un mes, y su historial de búsqueda, por suerte, tampoco.', // ROCKSTAR
   'Su mayor aportación al grupo es subir el número de miembros. Un uno más, sin nada detrás.',
-  'Nadie recuerda su último mensaje. Normal: hay que subir mucho para encontrarlo.',
+  'Nadie recuerda su último mensaje, ni su último polvo. Hay que subir mucho para encontrar cualquiera de los dos.', // ROCKSTAR
   'Se ríe con lo que escriben los demás y no pone nada de su parte, la rata.',
-  'Aquí dentro no se le conoce ni la voz, ni la risa, ni una puta opinión.',
+  'Aquí dentro no se le conoce ni la voz, ni la risa, ni un gemido, ni una puta opinión.', // ROCKSTAR
   'Aparece en la lista de miembros y en ningún otro sitio. Ni en una broma, ni en una bronca.',
   'Su cuenta de mensajes da vergüenza hasta leerla en voz alta.',
-  'Viene al grupo como quien entra en una tienda solo a mirar. Nunca compra, nunca saluda.',
+  'Viene al grupo como quien entra en un sex shop solo a mirar. Nunca compra, nunca saluda y sale con la cabeza baja.', // ROCKSTAR
   'Nadie le pregunta nada porque ya se sabe la respuesta: no va a contestar.',
-  'Si dieran premio por no decir nada, ni subiría a recogerlo, por no tener que hablar.',
+  'Si dieran premio por no decir nada, ni subiría a recogerlo: lo suyo es mirar desde la última fila con la gabardina puesta.', // ROCKSTAR
   'Parásito de chat: vive de lo que escriben otros y no devuelve ni un «jaja».',
   'Mira todo desde la barrera y luego no sabe de qué va nada. Fantasma y encima sin enterarse.',
   'Si callarse fuera una estrategia, ya habría ganado algo. No ha ganado una mierda.',
-  'Cuando escribe, que es casi nunca, parece un error de envío.',
+  'Escribe tan de tarde en tarde como folla, y cuando pasa, se sorprende más que nadie.', // ROCKSTAR
   'Okupa de chat: tiene el culo en un hueco del grupo y la voz en ninguno.',
   'Ni un amigo ni un enemigo en todo el puto grupo. Ni para caer mal le da.',
-  'El grupo podría cambiar de nombre, de tema y de gente, y ni se enteraría.',
+  'El grupo podría montar una orgía en el chat y ni se enteraría. O se enteraría y no diría nada, que es peor.', // ROCKSTAR
   'Cero peso en el grupo. Si se va, la conversación ni pestañea.',
   'Consume memes, chismes y peleas como quien va a un bufé libre y no deja propina.',
-  'Lo único que ha compartido con el grupo es su número de teléfono. Y fue sin querer.',
+  'Lo único que ha compartido con el grupo es su número de teléfono, y nadie lo ha usado para nada guarro, que ya es decir.', // ROCKSTAR
   'Si alguna vez dice algo, que sea para despedirse. Sería lo más útil que ha escrito.',
 ];
 
@@ -241,46 +241,46 @@ async function cmdFantasmas(sock, msg, groupMeta) {
 // chiste, es una queja.
 let AVISO_PURGA = [
   'El contador no encuentra nada que salvar: ni un chiste malo, ni una opinión de mierda, nada. Sois una foto de perfil con conexión a internet.',
-  'Hay gente que ha escrito más que vosotros solo discutiendo dónde se cenaba. Vosotros ni os enterasteis de que había cena.',
+  'Hay gente que ha escrito más que vosotros solo discutiendo dónde se cenaba. Vosotros ni os enterasteis de que había cena, ni de lo que pasó después del postre.', // ROCKSTAR
   'Si desaparecéis, el grupo se entera por esta lista, no porque os eche de menos. Ese es exactamente vuestro peso aquí: el de un mueble que nadie mueve.',
-  'Diez mensajes o menos. Si hubiera que citar vuestra mejor intervención, no habría de dónde sacarla.',
+  'Diez mensajes o menos. Ni para un sexting de los cortos os llega lo que habéis escrito.', // ROCKSTAR
   'Estáis en el grupo igual que está el extintor en la pared: alguien os puso ahí un día, nadie os mira, y en el fondo todos esperan no tener que usaros nunca.',
-  'Diez mensajes o menos. Los callados por lo menos escuchan; vosotros sois ausentes con la aplicación abierta, que es bastante más triste.',
-  'El contador no da para más análisis: diez mensajes o menos no dicen nada, y vosotros tampoco.',
+  'Diez mensajes o menos. Sois de los que miran por la cerradura y nunca entran en la habitación.', // ROCKSTAR
+  'El contador no da para más: diez mensajes o menos, que es lo que dura vuestra vida sexual, en minutos.', // ROCKSTAR
   'El grupo funcionaría exactamente igual si en vuestro sitio hubiera una piedra. La diferencia es que la piedra no ocuparía plaza en la lista de miembros ni haría como que participa.',
   'Sois el relleno que se pone para que el grupo parezca grande y vivo, un decorado con número de teléfono.',
-  'Os han tenido que poner en una lista para encontraros. En el chat, vuestro nombre no ocupa sitio.',
+  'Os han tenido que poner en una lista para encontraros. En el chat, vuestro nombre no ocupa sitio, ni en la cama de nadie.', // ROCKSTAR
   'Habéis apurado el puto silencio hasta el final. Os sacan con la boca cerrada y el grupo ni baja el volumen.',
-  'Vuestra relevancia en el grupo, calculada dos veces por si acaso: cero.',
+  'Vuestra relevancia en el grupo, calculada dos veces por si acaso: cero. Vuestro atractivo ni hizo falta calcularlo.', // ROCKSTAR
   'Habéis pasado por el grupo sin que nadie os mencione ni para insultaros. Ni eso os habéis ganado.',
   'Estáis suscritos al grupo, no dentro de él. Os llegan las notificaciones, las silenciáis y seguís ocupando plaza como parásitos.',
-  'Un bot de spam habría aportado más conversación que vosotros, y al bot por lo menos se le puede bloquear.',
+  'Un bot de webcams guarras habría aportado más conversación que vosotros, y encima con fotos.', // ROCKSTAR
   'Os leéis el grupo entero cada día como mirones de mierda y no soltáis ni un puto jaja.',
   'La cifra de cada uno está en la lista, y no mejora al repasarla. Y aun así seguís aquí, ocupando un sitio con la naturalidad de quien no sabe que sobra.',
   'El grupo tiene miembros y tiene atrezzo. Los miembros hablan. El atrezzo está ahí para que la escena no parezca vacía. Adivinad de qué lado os ha puesto el contador.',
-  'Ni un buenos días, ni un jaja suelto, ni un audio que nadie iba a escuchar, nada, y la plaza sigue siendo vuestra.',
+  'Ni un buenos días, ni un jaja, ni una foto subida de tono, nada, y la plaza sigue siendo vuestra.', // ROCKSTAR
   'Estáis en un grupo de amigos y no habéis dicho lo suficiente para tener uno dentro. Eso no se consigue por accidente.',
   'El bot no os echa por caeros mal. Os echa porque ni para caer mal habéis abierto la boca.',
-  'Vuestro historial entero se lee mientras carga un audio, y no hay nada que entender porque no habéis dicho nada.',
+  'Vuestro historial entero se lee en lo que dura un polvo vuestro, y eso es decir poquísimo.', // ROCKSTAR
   'Unos no hablan porque no tienen nada que decir, y vosotros lo habéis convertido en un proyecto de vida, con constancia y todo.',
-  'Diez mensajes o menos. Lo vuestro es mirar desde la ventana una fiesta a la que os invitaron.',
+  'Diez mensajes o menos. Os invitaron a la orgía y os habéis pasado la noche en la cocina.', // ROCKSTAR
   'Si alguien os fuera a echar de menos, ya lo habría dicho. Nadie ha dicho nada.',
   'Vuestra participación entera cabe en un mensaje. Este, sin ir más lejos, ya es más largo que todo lo que habéis escrito desde que entrasteis.',
   'Habéis pasado por el grupo como quien entra en un bar solo a mear: sin pedir, sin saludar y dejando peste.',
-  'Cualquiera de este grupo escribe más que vosotros mientras espera el ascensor. Vosotros tenéis el ascensor, la espera y ni un puto mensaje.',
+  'Cualquiera de este grupo escribe más que vosotros mientras espera el ascensor, y dentro del ascensor hace cosas que vosotros ni en sueños.', // ROCKSTAR
   'Si el grupo fuera una fiesta, vosotros seríais el abrigo de alguien encima de la cama: estáis en la casa, ocupáis sitio, y nadie os ha dirigido la palabra en toda la noche.',
-  'El bot os ha metido en una lista, y no es la del top ni la de los graciosos: es la que se vacía cada cierto tiempo.',
+  'El bot os ha metido en una lista, y no es la de los que follan: es la que se vacía cada cierto tiempo.', // ROCKSTAR
   'Diez mensajes o menos. La gente entra aquí a hablar con sus amigos; vosotros entráis a comprobar que siguen ahí, como quien mira si la nevera sigue enchufada.',
-  'La lista pone el número de cada uno y ninguno pasa de diez. Os sobran dedos para contar todo lo que habéis dicho.',
+  'La lista pone el número de cada uno y ninguno pasa de diez. Os sobran dedos para contarlo, y los dedos, por lo que se ve, los tenéis ocupados en otra cosa.', // ROCKSTAR
   'Sois miembros del grupo en el mismo sentido en que un cartel es parte de la calle: estáis pegados ahí, nadie os quita, y nadie os lee tampoco.',
-  'Diez mensajes o menos. Ni una frase vuestra que merezca captura, porque no hay frases.',
-  'Sois una foto de perfil y un historial que se lee de un tirón, entre dos notificaciones.',
+  'Diez mensajes o menos. Ni una frase vuestra merece captura, y fotos vuestras tampoco las pide nadie.', // ROCKSTAR
+  'Sois una foto de perfil sin nada detrás, de esos perfiles de Tinder que no contestan nunca.', // ROCKSTAR
   'Unos aportan chistes y otros mierda, pero aportan. Vosotros ni mierda habéis dejado.',
-  'Estáis por debajo del corte, y el corte era escribir algo. Lo que fuera. Un puto «ok».',
+  'Estáis por debajo del corte, y el corte era escribir algo. Un «ok», un gemido, lo que fuera.', // ROCKSTAR
   'El bot esperaba que dijerais algo para poder meterse con vosotros. Se ha cansado de esperar y se mete igual, que para eso está esta lista.',
-  'Diez mensajes o menos. Si el grupo os manda notificaciones, se las estáis tirando todas.',
+  'Diez mensajes o menos. Las notificaciones del grupo os vibran en el bolsillo, y es lo único que os vibra en todo el día.', // ROCKSTAR
   'Lleváis meses en el grupo y si os cruzan por la calle no saben ni cómo os llamáis.',
-  'El grupo os aceptó, os dio sitio y esperó. El grupo ya no espera. El bot tampoco, y el bot es el que tiene el botón.',
+  'El grupo os aceptó, os dio sitio y esperó, como una cita que se queda sin beso. El grupo ya no espera, y el bot tiene el botón.', // ROCKSTAR
   'El número de cada uno cabe en la lista sin apretar. Ni dos cifras: así de poco habéis dado.',
   'Dónde escribáis fuera de aquí da igual: aquí no habéis dicho nada que valga la pena leer dos veces.',
   'Vuestra aportación al grupo es tan escasa que el bot ha tenido que crear una lista solo para poder nombraros. Antes de esto no había motivo para escribir vuestro nombre.',
@@ -294,39 +294,39 @@ const UMBRAL_INACTIVO = 10;
 // mitad de las veces la lista se leería como un ranking cualquiera.
 let AMENAZAS = [
   'Escribid algo o el bot os expulsa. Y lo peor no va a ser irse: va a ser que nadie pregunte dónde estáis.',
-  'La próxima vez que el bot pase por aquí, esta lista estará vacía. O porque escribisteis, o porque os expulsó a todos. Las dos vacían igual.',
+  'La próxima vez que el bot pase por aquí, esta lista estará vacía. O escribís, o el bot os saca, y sacar es lo único que se os va a hacer en este grupo.', // ROCKSTAR
   'Tenéis los mensajes que tardéis en decidiros. Después os saca el bot, sin despedida, porque para despedirse hay que hablar.',
   'O empezáis a existir o el bot deja de contaros. Y lo que el bot no cuenta, el bot lo expulsa.',
-  'Escribid algo que el grupo pueda repetir. Ahora mismo no hay una frase vuestra que alguien se sepa.',
-  'Con lo que habéis escrito no os echarían de menos ni en un grupo de dos. Quien quede se iría, y tendría razón.',
+  'Escribid algo que el grupo pueda repetir. Ahora mismo no hay una frase vuestra que alguien se sepa, ni un gemido que alguien recuerde.', // ROCKSTAR
+  'Con lo que habéis escrito no os echarían de menos ni en un trío: los otros dos ni se darían cuenta.', // ROCKSTAR
   'De esta lista se sale escribiendo o te expulsa el bot. No hay una tercera puerta y el bot no la está buscando.',
-  'El bot va a limpiar. Podéis estar dentro cuando lo haga o podéis estar en la papelera con el resto del atrezzo.',
+  'El bot va a limpiar. Podéis estar dentro cuando lo haga, o fuera, con los pañuelos usados y el resto del atrezzo.', // ROCKSTAR
   'Cada día que pasa sin que escribáis es una firma más en vuestra propia expulsión, y ya lleváis el documento casi lleno.',
   'Lo grave no es que el bot os eche. Es que el grupo va a seguir exactamente igual de bien, y eso lo sabéis vosotros mejor que nadie.',
-  'Escribid o fuera. Y si os echa, tampoco vais a escribir para quejaros, que ya nos conocemos.',
+  'Escribid o fuera. Si os echa, no os vais a quejar, ya lo sabemos: a vosotros lo de gritar no se os da, ni en la cama.', // ROCKSTAR
   'El bot ya tiene vuestros números en la lista de expulsión. Solo le falta darle al botón, y no tiene ninguna prisa porque vosotros tampoco la habéis tenido nunca.',
-  'El grupo tiene hilos, audios y discusiones. De vosotros tiene un nombre en una lista y poco más.',
+  'El grupo tiene hilos, audios y algún que otro calentón. De vosotros tiene un nombre en una lista.', // ROCKSTAR
   'Escribid. Si el grupo tuviera que enseñar algo vuestro, enseñaría el hueco donde debería estar el mensaje.',
   'Quedáis avisados: el bot expulsa solo, no pregunta y no guarda copia de nadie.',
-  'Escribid algo, lo que sea, aunque sea un punto. El bot lo acepta antes de sacaros, y ni eso habéis mandado.',
+  'Escribid algo, aunque sea un punto o un emoji de berenjena. El bot lo acepta antes de sacaros.', // ROCKSTAR
   'El grupo no os necesita y el bot ya lo sabe. Os va a expulsar, y la única prueba de que estuvisteis aquí va a ser esta lista.',
   'Esta lista se vacía de dos maneras: escribiendo o expulsados. Elegís vosotros, pero elegís hoy.',
-  'Os vais a ir sin ceremonia, sin mensaje y sin aviso. Igual que entrasteis, pero al revés y con menos gente mirando.',
+  'Os vais a ir sin ceremonia, sin mensaje y sin aviso, como quien se va de una cama ajena a las seis.', // ROCKSTAR
   'Esta lista es la que se usa para echar. No hay otra, y vosotros estáis en ella.',
   'Escribid o el bot os borra del grupo. Tampoco le cuesta mucho borrar algo que nunca estuvo.',
-  'Os quedan las horas que tarde el bot en aburrirse y expulsaros. Calculad.',
+  'Os quedan las horas que tarde el bot en aburrirse y expulsaros, que viene a ser lo que tardáis vosotros en aburrir a alguien en la cama.', // ROCKSTAR
   'El bot no os echa por nada que hayáis hecho. Os echa por lo que no habéis hecho nunca: abrir la puta boca.',
   'Escribid ya o el bot os echa, y el hueco que dejéis lo va a llenar cualquiera en una tarde. Eso es lo que asusta, no la expulsión.',
   'Aquí no se negocia ni hay excepciones: se cuentan mensajes y se expulsa. Los vuestros ya están contados todos.',
   'La paciencia tenía un límite y la habéis agotado. La siguiente ronda es de expulsiones.',
-  'O escribís algo o preparaos para la notificación de expulsión, que será lo primero que leáis entero.',
-  'Limpieza de armario: lo que lleva meses sin ponerse va a la basura. Vosotros lleváis meses sin abrir la boca.',
-  'Última oportunidad antes de que el bot haga sitio. Y hace falta sitio, porque aquí sobra peso muerto.',
+  'O escribís algo o preparaos para la notificación de expulsión, que será la notificación más excitante que os llegue este año.', // ROCKSTAR
+  'Limpieza de armario: lo que lleva meses sin usarse va a la basura. Vosotros lleváis meses sin que os use nadie, y no solo en el chat.', // ROCKSTAR
+  'Última oportunidad antes de que el bot haga sitio, que aquí sobra peso muerto, del que no se mueve ni encima ni debajo.', // ROCKSTAR
   'El grupo funciona sin vosotros y lo sabéis. El bot solo va a oficializar lo que ya es un hecho.',
-  'Escribid en el grupo. Lo que hay ahora se lee del tirón y no da ni para un cotilleo.',
+  'Escribid en el grupo. Lo que hay ahora se lee del tirón y no da ni para un cotilleo, ni para un mal calentón.', // ROCKSTAR
   'Vuestros nombres están en la lista de la limpieza. Salir de ella es tan fácil como escribir algo.',
   'Os va a expulsar un bot. Ni una persona del grupo se ha tomado la molestia.',
-  'Escribid, joder, un mensaje, el que sea. El bot no pide calidad, pide que existáis.',
+  'Escribid, joder, un mensaje, el que sea. El bot no pide calidad, que esto no es una primera cita.', // ROCKSTAR
   'Que os echen da igual. Lo que jode es que nadie va a notar que os habéis ido.',
 ]
 

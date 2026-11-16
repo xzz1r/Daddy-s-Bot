@@ -26,34 +26,34 @@
 // Se ha escrito al privado del bot un comando que necesita grupo. Lo lee el
 // owner tier y nadie mas: seco, corto y sin sangre.
 const SOLO_GRUPOS = [
-  'Eso en el grupo. Aquí solo estamos tú y yo, y yo no me lo hago a mí mismo.',
+  'Eso en el grupo. Aquí solo estamos tú y yo, y yo no me lo hago a mí mismo.', // ROCKSTAR
   'En privado esto no tiene público, y sin público no tiene gracia. Al grupo.',
-  'Aquí no. Esto se hace delante de todos, que si no, no lo vive nadie.',
+  'Aquí no. Esto, como tus fantasías de exhibicionista, solo luce con público. Al grupo.', // ROCKSTAR
   'Lo de los grupos se hace en los grupos. Aquí, como mucho, me cuentas tu día.',
-  'Eso necesita testigos, y aquí el único testigo soy yo. Llévalo al grupo.',
+  'Eso necesita testigos. Hacer cosas a solas en tu cuarto ya lo haces bastante: al grupo.', // ROCKSTAR
   'El grupo es donde se cobra, se roba y se llora. Esto es la sala de espera.',
-  'Al grupo con eso. En privado no hay marcador, ni capturas, ni quien lo cuente.',
-  'Eso es de grupo. Aquí lo único que se mueve es esta conversación, y va lenta.',
+  'Al grupo con eso. En privado no hay capturas ni nadie que te aplauda cuando terminas.', // ROCKSTAR
+  'Eso es de grupo. Aquí, a solas conmigo, solo se te va a mover la muñeca.', // ROCKSTAR
   'Sin el grupo mirando no hay salseo que valga. Aquí no.',
   'Para eso está el grupo, que es donde está la gente a la que se le hace.',
   'Aquí no hay a quién apuntar. El grupo está lleno de candidatos.',
   'Por privado no sale. El grupo, en cambio, lo está esperando.',
-  'Lo que se hace a solas no sale en ninguna captura. Al grupo.',
-  'Eso pide grupo. Aquí estamos tú, yo y un silencio bastante incómodo.',
+  'Lo que se hace a solas no sale en ninguna captura. Al grupo.', // ROCKSTAR
+  'Eso pide grupo. Aquí estamos tú, yo y una tensión que no va a acabar en nada.', // ROCKSTAR
   'Llévalo al grupo. Aquí no hay ranking que subir ni nadie a quien bajar.',
   'Este chat es para lo que no se dice delante de todos. Eso sí se dice: al grupo.',
   'Las fichas, los robos y las broncas están en el grupo. Aquí no se juega.',
-  'Sal al grupo con eso. En privado, por mucho que insistas, no pasa nada.',
+  'Sal al grupo con eso. En privado, por mucho que insistas y lo frotes, no pasa nada.', // ROCKSTAR
   'Eso es de grupo. Aquí no tengo a quién enseñárselo.',
   'El grupo tiene el público, el marcador y las víctimas. Aquí no hay nada de eso.',
-  'En el grupo, que es donde se aplaude. Aquí solo hay eco.',
+  'En el grupo, que es donde se aplaude. Aquí, a solas, solo aplaudes con una mano.', // ROCKSTAR
   'La mesa está montada en el grupo. Aquí no hay partida.',
   'Lo que no se ve no cuenta, y en privado no se ve. Al grupo.',
-  'Para eso hacen falta más de dos, y en este chat somos dos. Al grupo.',
+  'Para eso hacen falta más de dos, como para lo mejor de la vida. Aquí somos dos: al grupo.', // ROCKSTAR
   'En el grupo funciona. Aquí solo sirve para que me escribas, y eso ya lo haces.',
   'Eso es de grupo. Aquí tienes toda mi atención, pero ningún objetivo.',
-  'Hazlo en el grupo y que lo vea todo el mundo. Aquí no se entera ni el aire.',
-  'Esto en privado no luce. En el grupo, sí.',
+  'Hazlo en el grupo y que lo vea todo el mundo: a escondidas ya no te pone.', // ROCKSTAR
+  'Esto en privado no luce. Como tú, que con la luz apagada ganas mucho. Al grupo.', // ROCKSTAR
   'Ahí fuera, en el grupo, hay alguien esperando a que lo hagas. Aquí no.',
   'Al grupo, que es donde las cosas tienen consecuencias. Aquí no las tienen.',
 ];
@@ -63,21 +63,21 @@ const SOLO_GRUPOS = [
 // como lo llama el menu: nombrar a un dueño en un aviso que lee todo el grupo
 // es señalar a una persona, y eso no lo hace el bot en ningun sitio.
 const SIN_PERMISO = [
-  'Eso es de otro nivel, y tú no llegas ni arrastrándote como la rata que eres.',
+  'Eso es de otro nivel. Ni de puntillas llegas, y mira que de rodillas llegas a todo.', // ROCKSTAR
   'Eso es de quien paga la fiesta. Tú, comemierda, solo vienes a limpiar las vomitonas.',
   'Ese permiso lo tiene quien decide. Tú no decides ni cuándo te limpias el culo.',
   'Te falta rango y te sobra hocico, y esa mezcla huele a mierda desde aquí.',
   'Eso lo tocan los de arriba. Un inútil de mierda como tú obedece, y ni eso bien.',
-  'Eso no lo toca una rata como tú ni rezando de rodillas.',
-  'Has intentado colarte delante de todos, y el grupo se está meando de risa.',
+  'Eso no lo toca una rata como tú. Tú tocas otras cosas, y a solas.', // ROCKSTAR
+  'Has intentado colarte por detrás, y por detrás aquí no entra nadie sin permiso.', // ROCKSTAR
   'No, gilipoyas. Eso está muy por encima de ti y no vas a subir ni un puto escalón.',
   'Ese permiso es para gente de fiar, y de ti no se fía ni tu puta madre.',
-  'Pides un dedo y ya vas a por el brazo, sanguijuela. Por eso no te dan ni la hora.',
-  'Ni con el grupo entero borracho te dejarían tocar eso, pequeña.',
+  'Te dan un dedo y ya quieres meter la mano entera, sanguijuela. Ni la hora te dan.', // ROCKSTAR
+  'Ni con el grupo entero borracho y cachondo te dejarían tocar eso, pequeña.', // ROCKSTAR
   'Te crees arriba porque hay gente abajo, gilipoyas, y sigues siendo una mierda.',
-  'A un pedazo de mierda como tú no le fían ni el cambio del pan, y menos permisos.',
+  'A ti no te prestan ni un condón, y un permiso menos: lo que tocas no vuelve igual.', // ROCKSTAR
   'Hay gente por encima de ti, y el grupo entero sabe por qué: porque das puto asco.',
-  'Eso se lo dejan a gente seria. Tú eres el chiste del grupo y ni gracia haces.',
+  'Eres el chiste guarro del grupo, sin gracia ni final feliz. Esto es de gente seria.', // ROCKSTAR
   'Eso es para quien vale algo, y tú no vales ni lo que cuesta mandarte a la mierda.',
 ];
 
@@ -86,30 +86,30 @@ const SIN_PERMISO = [
 // llamando admin delante de todos, que es mentira. Quien llama elige el pool
 // mirando al que escribe (avisoPermiso en helpers).
 const SIN_PERMISO_ADMIN = [
-  'Ser admin no te hace importante, imbécil. Te hace útil, y ni eso cumples.',
+  'Ser admin no te hace importante, imbécil. Útil solo has sido a solas y con pestillo.', // ROCKSTAR
   'Tienes rango de inútil de mierda, y esto está dos escalones por encima de tu culo.',
   'Te queda grande el cargo, incompetente de mierda, y esto ni lo hueles.',
-  'Te hicieron admin y te crees con mando, mediocre. Mandas lo que el bot quiera: nada.',
-  'Miserable. Te dan admin y en cinco minutos ya quieres los botones gordos.',
+  'Te crees con mando, mediocre. El único que manejas es el de la tele, de madrugada.', // ROCKSTAR
+  'Te dan admin y ya quieres los botones gordos. Calma, que lo gordo te viene grande.', // ROCKSTAR
   'Tienes rango y sigues sin ser nadie. Hace falta ser muy mierda para conseguirlo.',
-  'Farsante con placa de admin. Se te ha visto intentarlo y se te ha calado.',
-  'Creías que el rango te lo daba todo, despreciable. Te da derecho a callarte.',
-  'Llevas el rango como quien lleva un disfraz prestado, y se te nota la etiqueta.',
+  'Farsante con placa. Pones cara de mando como quien finge un orgasmo, y se te nota.', // ROCKSTAR
+  'Creías que el rango te lo daba todo, como aquella noche. Y tampoco te lo dieron.', // ROCKSTAR
+  'Llevas el rango como un disfraz de poli sexy: queda mono y no detiene a nadie.', // ROCKSTAR
   'Eres admin de adorno, cabrón. Esto lo tocan los de arriba, y tú no llegas.',
-  'Tu rango da para borrar stickers, gilipoyas. Esto queda muy por encima.',
+  'Tu rango da para borrar stickers guarros, y antes te los guardas. Esto, ni olerlo.', // ROCKSTAR
   'Esto no viene con el rango, escoria. Se le da a quien vale, y a ti no te lo dan.',
   'Ni siendo admin, rata. Hay alturas que no vas a pisar nunca.',
   'Eres admin de la última fila, y los de delante se limpian el culo con tus avisos.',
   'Lameculos con rango, lameculos igual. Esto no se te da.',
   'Ser admin no te quita lo escoria. Y esto sigue sin ser para ti.',
-  'Te dieron admin de milagro, comemierda, y ya quieres el segundo milagro.',
+  'Te dieron admin de milagro, como tu último polvo, y ya quieres repetir los dos.', // ROCKSTAR
   'Tu cargo sirve para mandar callar, subnormal, y aquí te mandan callar a ti.',
   'Eres admin de guardería, no de mando. Asúmelo, imbécil de mierda.',
   'Decidiendo cosas de mayores con un rango de mierda. Siéntate.',
-  'Tu rango no te convierte en alguien, solo te da botones. Y ni esos sabes usar.',
+  'Tu rango solo te da botones, y te pasa como en la cama: no das con el bueno.', // ROCKSTAR
   'Ni con el cargo puesto dejas de chupar del grupo. Esto no es para ti.',
   'Para recados te sobra el rango. Esto está por encima de ti, y de tus recados.',
-  'Con rango o sin él, das la misma puta pena. Y esto no es para ti, reina.',
+  'Con rango o sin él, en la cama y fuera das la misma pena. Esto no es para ti, reina.', // ROCKSTAR
 ];
 
 // UN MIEMBRO ACABA DE TOCAR UN COMANDO DE ADMIN, Y LO HA VISTO EL GRUPO.
@@ -136,42 +136,42 @@ const SOLO_ADMINS = [
   'Tú no mandas ni en tu puta casa, comemierda, y vienes a mandar aquí.',
   '¿Tú admin? Antes le dan el rango a una rata con sarna que a ti, pequeña.',
   'Te ha visto el grupo entero intentando mandar sin rango. Qué puto ridículo das.',
-  'Tu único cargo aquí es el de chupapoyas oficial, y ese sí te lo ganaste.',
+  'Tu único cargo aquí es el de chupapoyas oficial, y ese sí te lo ganaste.', // ROCKSTAR
   'No eres admin, gilipoyas, y con esa cara de mierda no te lo van a dar nunca.',
   'Sin rango no tocas nada, mierdecilla. Aquí tu sitio es callar y aplaudir.',
-  'Ni chupándole la polla a cada admin te darían el rango, y seguro que lo has pensado.',
+  'Ni de rodillas ante cada admin te darían el rango, y seguro que lo has pensado.', // ROCKSTAR
   'Has intentado mandar sin rango, y el grupo se está descojonando de ti ahora mismo.',
-  'Tú no eres admin. Eres el puto felpudo donde los admins se limpian los pies.',
+  'No eres admin: eres el felpudo, y por cómo te tumbas cuando entra alguien, te gusta.', // ROCKSTAR
   'Querías mandar sin rango. Aquí eso se llama hacer el gilipoyas en público.',
   'A un desgraciado de mierda como tú no le dan el rango ni por pena.',
   'Sin rango, sin peso y sin nadie que dé la cara por ti. Aquí eres relleno de mierda.',
   'El grupo te soporta como a una diarrea, y a una diarrea no se la hace admin.',
-  'Eres miembro raso porque nadie se fía de ti ni para sujetar el puto móvil.',
-  'Te dejan escribir aquí de milagro. Mandar, ni en tus putos sueños mojados.',
+  'Eres miembro raso: no te dejan ni sujetar la vela, y eso que de velas sabes un rato.', // ROCKSTAR
+  'Te dejan escribir aquí de milagro. Mandar, ni en tus putos sueños mojados.', // ROCKSTAR
   'A ti no te hacen admin ni aunque te mueras y lo pidan en tu funeral.',
   'Te has creído admin un segundo, pringado de mierda, y el grupo lo ha visto entero.',
   'Tu nombre no sale en la lista de admins, y no sale porque eres una puta mierda.',
   'Aquí manda quien tiene cojones y rango. Tú no tienes ni lo uno ni lo otro.',
-  '¿Mandar tú? Si no te contesta ni tu puta madre al primer mensaje.',
+  '¿Mandar tú? Si en la cama tampoco mandas: te dicen «no te muevas» y no te mueves.', // ROCKSTAR
   'Lo de mandar te lo metes por el culo, que es donde te cabe el rango que tienes.',
   'El botón te ha visto venir, gilipoyas, y no se mueve por un muerto de hambre.',
   'No te dan el rango porque en cuanto abres la boca sale mierda.',
   'Querías ser admin y te has quedado en payaso del grupo. Ese cargo sí es tuyo.',
-  'Insistiendo no te van a dar el rango, plasta de los cojones. Te van a dar la patada.',
-  'Ni lamiendo culos llegas a admin, y mira que tienes la lengua entrenada.',
-  'No eres admin ni lo vas a ser. Tu techo aquí es que no te echen, y por los pelos.',
+  'Insistiendo no hay rango, plasta. No te funciona ni en la discoteca a las seis.', // ROCKSTAR
+  'Ni lamiendo culos llegas a admin, y mira que tienes la lengua entrenada.', // ROCKSTAR
+  'No eres admin ni lo vas a ser. El rango, como el sexo, lo ves por internet.', // ROCKSTAR
   'Tocar lo ajeno es lo más cerca del poder que va a estar un parásito como tú.',
   'Das órdenes sin rango y los admins se parten el culo contigo. Sigue, que es gratis.',
-  'Tienes las mismas opciones de ser admin que de follar este año: cero.',
-  'Aquí el rango se gana, y tú no has ganado ni una puta discusión en tu vida.',
-  'Miembro raso con ínfulas de jefe. Lo más patético que ha pasado hoy por el chat.',
+  'Tienes las mismas opciones de ser admin que de follar este año: cero.', // ROCKSTAR
+  'El rango se gana, y tú no has ganado nada, ni un rasca ni un polvo a la primera.', // ROCKSTAR
+  'Miembro raso con ínfulas. Mandas como besas: mucha lengua y nadie lo ha pedido.', // ROCKSTAR
   'Ese botón es de admins, no de basura como tú. Lo tuyo es no pintar una mierda.',
   'Nadie te va a dar el rango, escoria. Ni ahora ni cuando lloriquees por privado.',
   'Pintas menos que los que se piraron del grupo y vienes a dar órdenes de mierda.',
-  'No tienes rango, NPC de mierda. Tienes un móvil y la cara dura de intentarlo.',
-  'Para esto hace falta rango, y te falta eso, cerebro y un puto amigo en el grupo.',
-  'Te dan permiso para escribir y ya te lo estás follando. Mandar, ni de coña.',
-  'Con ganas no se abre, pringado. Hace falta rango, y tú eres miembro raso de mierda.',
+  'No tienes rango, NPC. Tienes un móvil, una mano libre y demasiado tiempo a solas.', // ROCKSTAR
+  'Para esto hace falta rango, cerebro y alguien que te toque sin cobrarte. Ni uno.', // ROCKSTAR
+  'Te dan permiso para escribir y ya te lo estás follando. Mandar, ni de coña.', // ROCKSTAR
+  'Con ganas no se abre, pringado. Eso te lo debieron decir en tu primera vez.', // ROCKSTAR
 ];
 
 // Se ha puesto a si mismo de objetivo. Se lee en el grupo.
@@ -180,31 +180,31 @@ const A_TI_MISMO = [
   'Contra ti no, pedazo de mierda. Que lo hayas intentado dice bastante de tu cabeza.',
   'A ti no. Métete con alguien que te conteste, si es que alguien te habla, pequeña.',
   'Elige a otra persona, si es que conoces a alguien que no te tenga bloqueado.',
-  'Eso se hace con dos, y tú has traído uno y medio cerebro.',
-  'No. Ni el bot quiere ver cómo te haces una paja delante del espejo.',
-  'Contra ti no. En el grupo hay gente de sobra, y toda te cae mejor que tú.',
+  'Eso se hace con dos, como casi todo lo bueno. Tú a solas ya te apañas bastante, se nota.', // ROCKSTAR
+  'No. Ni el bot quiere ver cómo te haces una paja delante del espejo.', // ROCKSTAR
+  'Contra ti no. Que te gustes tanto no significa que te puedas hacer de todo.', // ROCKSTAR
   'Ponerte de objetivo es lo más triste que ha pasado hoy aquí, y eso que estás tú.',
   'No se puede. Ni para darte por culo a ti te bastas.',
-  'Tú contra ti. Pierdes seguro, y encima das pena por partida doble.',
+  'Tú contra ti. Ni en la cama te ganas: siempre acabas antes que tú.', // ROCKSTAR
   'Elige a otra persona. A ti ya te conoces, y sabes que no vales una mierda.',
   'Si tanto te odias, págate un psicólogo, que al bot no le pagas una mierda.',
-  'Deja de mirarte el ombligo, que de ahí para abajo tampoco hay nada que ver.',
+  'Deja de mirarte el ombligo, que de ahí para abajo tampoco hay nada que ver.', // ROCKSTAR
   'Autolesión por comando. Para eso ya tienes tu cara, no hace falta el bot.',
   'No te lo vas a hacer a ti. Ni aunque te lo merezcas, que te lo mereces de cojones.',
-  'Hay que ser muy torpe para apuntarse a uno mismo, y tú lo eres de sobra.',
+  'Apuntarte a ti es ligar con tu reflejo: dice que sí a todo y nunca te llama.', // ROCKSTAR
   'Contigo no se juega. Bastante te la juegas tú en cuanto hablas, mi niña.',
   'Ni enemigos tienes, pringado de mierda, y por eso te apuntas a ti de aburrimiento.',
-  'Esto se le hace a otra persona, no al espejo, que bastante sufre ya contigo.',
-  'Víctima y verdugo a la vez. Eres tan inútil que necesitas los dos papeles.',
+  'Esto se le hace a otra persona, no al espejo, que ya te ve hacer bastantes cosas a solas.', // ROCKSTAR
+  'Víctima y verdugo a la vez. Es el único trío que vas a conseguir: tú, tú y tu mala idea.', // ROCKSTAR
   'No se puede, y el grupo entero acaba de ver lo gilipoyas que eres.',
   'Un poco de amor propio, joder. Ni para eso te llega, triste de los cojones.',
-  'Has apuntado a tu propio nombre. Buena puntería para lo inútil que eres.',
-  'Contigo no llega para dos bandos. No llega ni para uno, la verdad.',
-  'Eres el único objetivo que no te dice que no, y ni así te sale, desgraciado.',
+  'Te has apuntado a ti. Por fin apuntas y das en el sitio, aunque sea el equivocado.', // ROCKSTAR
+  'Contigo no llega para dos bandos. Para un solitario, sí, y lo juegas cada noche.', // ROCKSTAR
+  'Eres lo único que nunca te dice que no, y aun así te quedas a medias.', // ROCKSTAR
   'Menciona a otra persona. Contigo no sale nada, como en el resto de tu puta vida.',
   'Eso es para otra persona. Contigo solo haces el puto ridículo, y gratis.',
-  'No insistas, que se nota que te sobra tiempo y te falta follar.',
-  'Te quieres dar caña a ti. Normal: eres lo único que se deja tocar por ti.',
+  'No insistas, que se nota que te sobra tiempo y te falta follar.', // ROCKSTAR
+  'Te quieres dar caña a ti. Normal: eres lo único que se deja tocar por ti.', // ROCKSTAR
   'A ti no, comemierda. Busca con quién pelear, si te queda alguien que te hable.',
 ];
 
@@ -223,33 +223,33 @@ const A_TI_MISMO = [
 // se queda tal cual.
 const AL_BOT = [
   'A mí no, retrasado de mierda. Menciona a quien querías, si te acuerdas de quién era.',
-  'Has respondido a un mensaje del bot, gilipoyas. Responde al de la persona, joder.',
+  'Has respondido al bot, gilipoyas. A mí no me pongas, que soy un programa.', // ROCKSTAR
   'Le has respondido al bot, pedazo de imbécil. El comando es para una persona, no para mí.',
-  'Respondes a mi mensaje para darle a otra persona. Así de mierda te funciona la cabeza.',
+  'Respondes al bot para darle a otra persona, imbécil. Así le llegan tus nudes a tu jefe.', // ROCKSTAR
   'De todo el chat, has respondido al del bot. Hay que ser subnormal de cojones.',
-  'Has apuntado al bot respondiendo a su mensaje. Hay que tener el puto cerebro de adorno.',
+  'Has apuntado al bot, gilipoyas. Con esa puntería, en la cama todo son «ahí no».', // ROCKSTAR
   'Me has respondido a mí y no a la persona. Tienes la cabeza llena de mierda.',
   'El mensaje al que respondes es mío, imbécil. Ni leer de quién es te da el cerebro.',
-  'Respondiste al bot, anormal. Hasta el comando sabe que no iba para mí, y tú no.',
+  'Respondiste al bot, anormal. Yo no tengo cuerpo, y por lo visto a ti eso no te frena.', // ROCKSTAR
   'Responder al mensaje equivocado es de subnormal. Tú has respondido al bot: de premio.',
   'Tu cerebro de mierda le ha respondido al bot. Responde a la persona que querías.',
-  'Has respondido al bot. Con una puta neurona más lo habrías visto, y no la tienes.',
+  'Has respondido al bot, subnormal. Te lías de persona igual que en la cama.', // ROCKSTAR
   'A mi mensaje no, subnormal: responde al de la persona. Ni eso te entra en la puta cabeza.',
   'Respondes al bot sin mencionar a nadie, idiota. Lo básico no te cabe en el cerebro.',
-  'Me has respondido a mí, que soy el bot. Tienes el puto cerebro apagado, pequeña.',
+  'Me has respondido a mí, cabeza hueca. Yo no tengo lo que buscas, pequeña.', // ROCKSTAR
 ];
 
 // El mismo aviso cuando lo que ha hecho es MENCIONAR al bot.
 const AL_BOT_MENCION = [
   'Has mencionado al bot, subnormal. Menciona a la persona, que no tiene ciencia.',
   'La mención era para otra persona y me la has hecho a mí. Tienes el cerebro de mierda.',
-  'De todo el grupo, has ido a mencionar al bot. Hay que ser imbécil, y lo eres de sobra.',
+  'De todo el grupo, mencionas al bot, idiota. Ese gusto explica tu historial.', // ROCKSTAR
   'Mencionas al bot para darle a otra persona. Esa neurona tuya no da para más, joder.',
-  'Has puesto mi nombre en la mención, gilipoyas. Al bot no se le tiran comandos.',
+  'Mi nombre en la mención, gilipoyas. Gimes el nombre equivocado hasta por escrito.', // ROCKSTAR
   'Solo tenías que mencionar a alguien, anormal, y vas y mencionas al puto bot.',
-  'Me mencionas a mí, que soy el bot. Ni el nombre de quien querías te cabe en el cerebro.',
+  'Me mencionas a mí, cabeza loca. Ya sé que te pongo, pero menciona a la persona.', // ROCKSTAR
   'Has mencionado al bot. Con medio cerebro habrías elegido bien, y ni medio tienes, joder.',
-  'A mí no me menciones, imbécil de mierda. Menciona a quien querías darle.',
+  'A mí no me menciones, imbécil. A mí no se me da por ningún lado.', // ROCKSTAR
   'Te equivocas de mención y eliges al bot. Ese cerebro de mierda no da ni para eso.',
 ];
 
@@ -257,33 +257,33 @@ const AL_BOT_MENCION = [
 // delante del propio admin, que es la mitad de la gracia.
 const CONTRA_UN_ADMIN = [
   'A un admin no, gilipoyas. Métete con alguien que no te pueda partir la cara.',
-  'Contra un admin no tienes nada que hacer, comemierda, ni con todas tus ganas.',
-  'Cerrarle la boca a un admin no puedes, cabrón. Te toca tragarte lo que diga.',
+  'Contra un admin no tienes nada que hacer. Esas ganas, guárdatelas para esta noche.', // ROCKSTAR
+  'Cerrarle la boca a un admin no puedes, cabrón. Abre la tuya y trágate lo que te dé.', // ROCKSTAR
   'Sabías que a un admin no se le toca y lo has intentado igual, pedazo de imbécil.',
-  'Ni delante del grupo le callas. Solo has hecho el ridículo más gordo de la semana.',
+  'Ni delante del grupo le callas, y con tantas ganas que alguien pide que os dejen solos.', // ROCKSTAR
   'Es admin, escoria. Desde donde estás no le llegas ni a la suela del zapato.',
-  'Entre admins no se mutea, comemierda. Eso no lo decides tú ni en tus sueños mojados.',
-  'Un admin queriendo mutear a otro. El grupo tenía palomitas y le has dado el show.',
+  'Entre admins no se mutea, comemierda. Eso no lo decides tú ni en tus sueños mojados.', // ROCKSTAR
+  'Un admin queriendo mutear a otro. Tanta tensión ya huele a habitación de hotel.', // ROCKSTAR
   'Callar a otro admin no te sale, subnormal. Le das y te sigue escribiendo en la cara.',
-  'Mismo rango, mismo botón, cero efecto. Te has quedado con el dedo en el culo.',
+  'Mismo rango, mismo botón, cero efecto. Te has quedado con el dedo en el culo.', // ROCKSTAR
   'Mutear a otro admin no se puede, y todo el grupo te ha visto hacer el gilipoyas.',
-  'Tenéis el mismo rango, pringado. Te creías por encima y estáis a la misma puta altura.',
+  'Tenéis el mismo rango, pringado. Aquí nadie va encima de nadie, por mucho que te guste.', // ROCKSTAR
   'Contra otro admin no hay mute, cara de culo. Te lo comes con patatas como el resto.',
-  'El bot no os hace de árbitro. Si queréis daros por culo, hacedlo por privado.',
+  'El bot no os hace de árbitro. Si queréis daros por culo, hacedlo por privado.', // ROCKSTAR
   'Los admins no se callan entre sí, basura. Si no os aguantáis, os jodéis los dos.',
   'Querías usar tu cargo contra otro, desgraciado. El tuyo no da ni para limpiarte el culo.',
   'A un admin no se le mutea desde abajo ni desde al lado, y tú no estás ni al lado.',
-  'Ese mute rebota, y te da en toda tu cara de gilipoyas.',
+  'Ese mute rebota y te salpica en toda la cara. Ya deberías tener costumbre.', // ROCKSTAR
   'Estáis al mismo nivel, mediocre de mierda, y a ti ese nivel ya te venía grande.',
   'Le has tirado el mute a otro admin, pedazo de mierda. No entra, y ahora te tiene fichado.',
   'Intento de golpe de estado entre admins. Fracasado, como todo lo que haces.',
-  'Ahí no llega tu rango, despreciable. Se para en el suyo, como tú te paras en todo.',
+  'Ahí no llega tu rango, despreciable. Se queda a medias, como tú por las noches.', // ROCKSTAR
   'Un admin contra otro. El grupo se descojona, y tú te quedas sin mute y sin cara.',
   'Mute denegado, cobarde. Tus ganas de callarle las ha visto todo el puto grupo.',
   'Querías callar a un admin, y quien queda en ridículo eres tú.',
-  'A un admin no le tocas ni un pelo, mierdecilla. Ni con el botón ni sin él.',
+  'A un admin no le tocas ni un pelo: ni con el botón, ni con la mano, ni con lo otro.', // ROCKSTAR
   'Con un admin no, payaso. Elige a alguien de tu nivel: el suelo.',
-  'Le tienes ganas a un admin y no puedes hacerle nada. Te lo comes, y bien comido.',
+  'Le tienes ganas a un admin y no puedes hacerle nada. Te lo comes, y bien comido.', // ROCKSTAR
   'Contra un admin ni lo sueñes, gilipoyas. Tu dedo ahí no manda una mierda.',
   'Apuntas a un admin con el mute y lo único que has muteado es tu dignidad.',
 ];
@@ -348,21 +348,21 @@ const PURGA_ADMIN = [
   // Ninguna dice CUANTOS: salta a la quinta, pero quien echa a veinte de golpe
   // cae con veinte, y un numero fijo mentiria.
   'Has encadenado expulsiones sin cabeza y sin permiso, gilipoyas. Te quedas sin rango.',
-  'Has usado el admin para una pataleta de mierda. Pues ya no eres admin.',
-  'Te has corrido echando gente, y el bot te ha echado a ti del cargo.',
+  'Has usado el admin para desahogarte a gusto. Se acabó el desahogo: ya no eres admin.', // ROCKSTAR
+  'Te has corrido echando gente, y el bot te ha echado a ti del cargo.', // ROCKSTAR
   'O te robaron la cuenta o eres así de imbécil. Sin admin en los dos casos.',
   'El grupo no es tuyo, cabrón, y acabas de demostrar por qué. Rango fuera.',
   'Confundiste ser admin con hacer lo que te sale del coño. Y te has quedado sin las dos.',
   'A un inútil así no se le avisa: se le quita el botón de las manos.',
-  'Te has creído dios con el botón, gilipoyas, y ya no lo tienes.',
-  'Le has cogido gusto a echar gente, pedazo de mierda, y se te ha acabado el juguete.',
-  'Querías vaciar el grupo y te has vaciado el cargo. Así de poco te da la cabeza.',
+  'Le has dado al botón como a otra cosa, a lo loco y sin parar, y ya no lo tienes.', // ROCKSTAR
+  'Le has cogido gusto a echar gente, pedazo de mierda, y se te ha acabado el juguete.', // ROCKSTAR
+  'Querías vaciar el grupo y te has vaciado tú, y del cargo. Así de rápido acabas siempre.', // ROCKSTAR
   'Echar gente sin parar tiene un precio, y lo acabas de pagar con el rango y con la cara.',
   'Echabas gente como quien caga. El bot ha contado y ha tirado de la cadena contigo.',
   'Te dieron rango para cuidar el grupo, cabrón, y lo has usado para vaciarlo. Fuera.',
-  'Ahora eres miembro raso, como los que has echado. Y a ti te van a putear de lo lindo.',
+  'Ahora eres miembro raso. Ya no estás arriba: te toca ponerte debajo, como a todos.', // ROCKSTAR
   'Echar gente en masa te ha salido caro: el rango, y la puta cara delante de los que quedan.',
-  'Con tanto echar se te olvidó que a ti también te pueden joder. Pues ya te han jodido.',
+  'Con tanto echar se te olvidó que a ti también te pueden joder. Pues ya te han jodido.', // ROCKSTAR
 ];
 
 // COMANDO MAL ESCRITO. EL ESTANDAR, QUE LO PUSO EL DUEÑO:
@@ -413,54 +413,54 @@ const PURGA_ADMIN = [
 // deslizando otra vez hacia describir.
 const MAL_ESCRITO = [
   'Retraso de nacimiento, y cada vez que escribes algo lo confirmas.',
-  'No tienes cabeza ni para escribirlo bien, y el grupo lo ha leído con las faltas.',
+  'No te da la cabeza ni para escribirlo bien, y con los dedos, por lo visto, tampoco.', // ROCKSTAR
   'Tu cerebro es una puta piedra y se te nota en cada palabra que escribes.',
-  'No tienes ni media neurona, y lo que acabas de poner lo demuestra.',
+  'Escribes con media neurona, y aun así la usas menos que la mano derecha.', // ROCKSTAR
   'Ahí dentro no hay nada, y eso que has puesto es la firma.',
-  'Tu techo es escribir algo corto sin romperlo. Qué puta pena das.',
-  'Has razonado hasta donde te llega, y mira cómo ha quedado. Mañana, el mismo destrozo.',
-  'Acabas de tocar tu límite, y era escribir un comando. Qué puta miseria.',
+  'Tu techo es escribir algo corto sin romperlo. Durar poco ya lo dominas en otro sitio.', // ROCKSTAR
+  'Has escrito hasta donde te llega la cabeza, que es poco, como tus preliminares.', // ROCKSTAR
+  'Acabas de tocar tu límite escribiendo un comando. Normal que nadie te deje tocar más.', // ROCKSTAR
   'Ni lo escribes bien, cabrón. Ese es el suelo y ahí vives.',
   'Lo mínimo del mundo era escribirlo bien, comemierda, y ni a eso llegas.',
-  'No aciertas ni con las letras, y eso no se arregla. Naciste así y así te vas.',
+  'No aciertas ni con las letras, y en la cama no llegas: siempre «más arriba, más abajo».', // ROCKSTAR
   'Lo tuyo no lo arregla el autocorrector: corrige letras, no subnormales.',
   'No te ha fallado el móvil. Te ha fallado la cabeza y esa no tiene repuesto, pequeña.',
   'Lo tuyo no se arregla mirando la pantalla. Tu fallo está más arriba.',
   'Escribirlo bien no lo vas a aprender en tu puta vida. Retraso de fábrica.',
-  'Una puta palabra mal escrita y ya sabe el grupo hasta dónde das. Nada.',
+  'Una palabra mal escrita: tu cabeza da para eso, y tus mensajes guarros no ponen a nadie.', // ROCKSTAR
   'Te acaba de medir el grupo entero con un puto comando y has dado bajísimo.',
   'Escribes como piensas: como el puto culo.',
-  'Analfabetismo de mierda con wifi. Ni escribir te sale.',
-  'Una orden de una palabra y te ha ganado. Ahí está el techo de esa cabeza.',
+  'Analfabeto con wifi: escribes así porque el wifi solo lo usas para el porno.', // ROCKSTAR
+  'Una palabra y te ha ganado. Ese es tu techo, y con «más» y «sigue» en la cama, igual.', // ROCKSTAR
   'Esa cabeza tiene el techo tan bajo que escribir un comando ya le roza.',
-  'Mal escrito, y era una palabra corta. Esa cabeza con las largas ni lo intenta.',
+  'Mal escrito, y era corta. Esa cabeza contesta «sbue» a un «sube» y duerme en la calle.', // ROCKSTAR
   'Hasta un crío lo escribe bien a la primera. Tú no llegas a ese nivel, princesa.',
-  'Escribirlo entero era lo único que se te pedía, y ya pasa de tu puto techo.',
+  'Escribirlo entero era tu tope. En la cama te piden acabar lo que empiezas, y tampoco.', // ROCKSTAR
   'Escribirlo bien era una tontería y lo has jodido, inútil de mierda.',
-  'Vienes con defecto de fábrica, por eso hasta lo más simple te sale de puta pena.',
+  'Escribes con defecto de fábrica: a tus padres se les rompió el condón y la ortografía.', // ROCKSTAR
   'Escribes de puta pena y el grupo ya sabe cuánto da de sí esa cabeza.',
-  'Sin presión ninguna y te sale como el culo. En condiciones ideales, ese es tu nivel.',
+  'Sin presión ninguna y te sale fatal. Imagínate con alguien sin ropa delante, esperando.', // ROCKSTAR
   'Escribes así porque esa cabeza de mierda no llega a más.',
-  'Tus neuronas escriben así en su mejor día, y hoy era su mejor día.',
+  'Tus neuronas escriben así en su mejor día: las dos que quedan piensan en guarradas.', // ROCKSTAR
   'Con las neuronas que te quedan, ponerlo bien no iba a pasar nunca, y no ha pasado.',
-  'Ha quedado hecho un cristo, y es lo mejor que esa cabeza sabe hacer con un móvil.',
+  'Ha quedado hecho un cristo. Así escribes sin beber; de madrugada será porno abstracto.', // ROCKSTAR
   '¿Lo escribes mal y encima con esa seguridad de cojones? Ni te lo piensas.',
-  'A tu cerebro le cuesta lo mismo escribir un comando que a otros una tesis.',
+  'A tu cerebro escribir un comando le cuesta lo que a ti desabrochar algo con una mano.', // ROCKSTAR
   'Has fallado donde no falla nadie. Ese es tu listón, y está en el suelo.',
   'Cada letra mal puesta es una neurona ausente, y esa cabeza no tiene suplentes.',
   'Imbécil del todo y sin margen de mejora: lo más simple te sale como el puto culo.',
-  'Escribir bien no venía de serie en esa cabeza de mierda, y no se instala después.',
+  'Escribir bien no venía de serie en esa cabeza, como el aguante en otras partes.', // ROCKSTAR
   'Eres tan idiota que ni escribir sabes sin joderlo.',
-  'Ni dudas y lo escribes mal. Así de vacía tienes la puta cabeza.',
+  'Ni dudas y lo escribes mal. Esa seguridad sin motivo es la misma con la que te desnudas.', // ROCKSTAR
   'Lo has destrozado sin despeinarte. Para romper vales, para pensar eres una mierda.',
-  'Te ha salido algo que no es ningún idioma. Tu cabeza habla uno que no entiende nadie.',
+  'Te ha salido algo que no es ningún idioma: parecen tus ruidos en la cama, por escrito.', // ROCKSTAR
   'Un comando entero ya es la cima de ese cerebro. Te quedas a media cuesta.',
   'Lo has escrito como quien firma con la mano mala, y resulta que no tienes otra.',
   'Mal puesto, y eso no lo arregla la práctica, escoria. Lo trae esa cabeza.',
   'Eres tan poca mierda por dentro que ponerlo bien se te queda grande.',
   'Llevas la cabeza de puto adorno y en cuanto escribes se ve.',
-  'Lo que acabas de poner es el máximo de esa mente, y el máximo es esto.',
-  'Escribiste con el dedo y pensaste con el codo, que es con lo que piensas siempre.',
+  'Eso que has puesto es el máximo de esa mente, como el tuyo en la cama: dos minutos.', // ROCKSTAR
+  'Escribiste con el dedo y pensaste con lo de abajo, que es con lo que piensas siempre.', // ROCKSTAR
   'Ese comando lo escribe bien hasta el corrector, y tu cabeza ha conseguido estropearlo.',
   'Esa cabeza de mierda da para mucho menos de lo que has intentado escribir.',
 ];
@@ -483,18 +483,18 @@ const MAL_ESCRITO = [
 // sitio. Rotan aparte de las frases para que el mismo insulto no salga
 // siempre con el mismo cierre.
 const SIN_ACCESO = [
-  'De puntillas tampoco llegas al comando.',
+  'De rodillas tampoco llegas al comando.', // ROCKSTAR
   'Con ese rango, el comando ni te mira.',
-  'Para ese comando te falta rango y cara.',
-  'Sin rango, ese comando ni lo hueles.',
-  'El comando se ríe de ti, y con motivo.',
+  'Sin rango ni aguante, no hay comando.', // ROCKSTAR
+  'Ese comando no se deja tocar por ti.', // ROCKSTAR
+  'El comando te vio sin ropa. Aún se ríe.', // ROCKSTAR
   'Tú, sin rango, ni rozas ese comando.',
   'Tú y el comando no os conocéis de nada.',
-  'Te ha dejado en visto el puto comando.',
+  'Tus nudes y el comando: ambos en visto.', // ROCKSTAR
   'Tú sigue soñando con ese puto comando.',
   'El comando no atiende a gente como tú.',
   'Ni pagando te abre ese comando.',
-  'Ese puto comando no es para tus manos.',
+  'Con una mano ocupada no hay comando.', // ROCKSTAR
   'Tu rango no da ni para oler el comando.',
   'El comando te ha leído y pasa de ti.',
 ];
@@ -549,14 +549,14 @@ const OBJETIVO_DIA_CARTEL = [
 // aviso es fija (messageHandler); esto es lo que va detrás.
 const VER_UNA_VEZ = [
   'Borrado, gilipoyas.',
-  'Borrado.',
+  'Borrado. Esto no es OnlyFans: aquí se enseña una vez y gracias.', // ROCKSTAR
   'Borrado, anormal.',
   'Borrado. Nadie te quiere en su galería, mi niña.',
-  'Borrado. Tu mierda no se queda en la galería de nadie.',
-  'Borrado. Guárdate tus fotos donde te quepan, reina.',
-  'Borrado. Lee las putas normas antes de mandar nada.',
+  'Borrado. Si quieres que te guarden las fotos, cobra la suscripción como todo el mundo.', // ROCKSTAR
+  'Borrado. Guárdate tus fotos donde te quepan, reina.', // ROCKSTAR
+  'Borrado. Ver una vez, como tus citas: una y no se repite.', // ROCKSTAR
   'Borrado. ¿Tanto te cuesta darle al puto 1, princesa?',
-  'Borrado. Lo tuyo dura aquí lo que tardo en quitarlo.',
+  'Borrado. Lo tuyo dura aquí lo que duras tú en la cama.', // ROCKSTAR
   'Borrado. Ni regalada se queda nadie la mierda que mandas.',
   'Borrado. Las fotos sin ver una vez te las metes por el culo, muñequita.',
   'Borrado. Hay que ser subnormal para mandar basura a la vista de todos.',
@@ -569,28 +569,28 @@ const VER_UNA_VEZ = [
 // varios en vosotros, como el resto del bot. En baraja.
 const PURGE_UNO = [
   'fuera. Las reglas estaban a la vista y no las has leído, como no lees nada.',
-  'a la calle. Aquí se entra cumpliendo las reglas, y tú entraste a mirar.',
+  'a la calle. Entraste solo a mirar, y a los mirones se les echa antes de que se toquen.', // ROCKSTAR
   'fuera del grupo. Las normas no eran opcionales y te las has saltado, chiquitina.',
   'te vas por pasarte las putas reglas por el culo. Segunda oportunidad no hay.',
   'las reglas pedían poco, gilipoyas, y no has llegado ni a eso. Fuera.',
-  'fuera. No cumples lo que pide el grupo, y el grupo no te va a echar de menos.',
+  'fuera. No cumples lo que pide el grupo, como no cumples en otro sitio que todos sabemos.', // ROCKSTAR
   'te vas. Las reglas no se negocian, y tú no tenías nada con qué negociar.',
-  'fuera. Cumplir las reglas te habría costado menos que esto, pero pensar te cuesta más.',
+  'fuera. Las reglas eran fáciles, como los preliminares, y tú te saltas las dos cosas.', // ROCKSTAR
   'se acabó tu sitio aquí. Las reglas mandan, y tu sitio va para alguien que sepa leer.',
-  'se te echa, inútil. Aquí las reglas se cumplen o se sale, y tú sales.',
+  'se te echa, inútil. Las reglas se cumplen o se sale, y tú sales tan rápido como acabas.', // ROCKSTAR
 ];
 
 const PURGE_VARIOS = [
   'fuera. Las reglas estaban a la vista y no las habéis leído, como no leéis nada.',
-  'a la calle. Aquí se entra cumpliendo las reglas, y vosotros entrasteis a mirar.',
+  'a la calle. Entrasteis solo a mirar, y a los mirones se les echa antes de que se toquen.', // ROCKSTAR
   'fuera del grupo. Las normas no eran opcionales, y os las habéis saltado.',
   'os vais por no cumplir las reglas. Sin segunda oportunidad: la primera ya la tirasteis.',
   'las reglas pedían poco y no habéis llegado ni a eso. Fuera.',
-  'fuera. No cumplís lo que pide el grupo, y el grupo no os va a echar de menos.',
+  'fuera. No cumplís en el grupo, como no cumplís en la cama, y nadie os va a echar de menos.', // ROCKSTAR
   'os vais. Las reglas no se negocian, y vosotros no teníais nada con qué negociar.',
-  'largo de aquí. Cumplir las reglas costaba poco, pero pensar os cuesta un huevo.',
+  'largo de aquí. Las reglas eran fáciles, como los preliminares, y os las habéis saltado.', // ROCKSTAR
   'se acabó vuestro sitio aquí. Las reglas mandan, y ese sitio va para gente que sepa leer.',
-  'se os echa. Aquí las reglas se cumplen o se sale, y vosotros salís.',
+  'se os echa. Las reglas se cumplen o se sale, y vosotros salís tan rápido como acabáis.', // ROCKSTAR
 ];
 
 module.exports = {

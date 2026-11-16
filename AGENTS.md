@@ -264,6 +264,15 @@ duelos, dar, bote, tienda, asaltos, banco y sus esperas), ni `!piropo`,
 WINGMAN y las acciones sexuales, que se quedan como están. Una frase nueva
 entra sacando una floja, y los apelativos no se pierden por el camino.
 
+Llegó al 40 % el mismo 16 nov, y la capa 171 ya no deja bajar de ahí. **Las
+acciones con dibujos no llevan ni una** (las de `DIBUJOS` en
+`src/commands/acciones.js`): un tercio de sus gifs sale de series infantiles.
+Quedan fuera de la cuenta, y la capa falla si alguna lleva la marca. Tampoco
+cuentan la diana del día, los veredictos de dinero y robos de `!caso` ni las
+líneas del aura de `!social`. Los avisos siguen con sus topes (90
+caracteres, 84 los de rango, `MAL_ESCRITO` contra la cabeza): la guarrada
+cabe dentro, no los alarga.
+
 ## La peña activa se halaga, sin veneno
 
 Lo pidió el dueño (18 oct): a quien escribe, el bot lo halaga por su actividad,

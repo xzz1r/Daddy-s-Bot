@@ -17,8 +17,14 @@
 // NO CUENTAN (ni arriba ni abajo del porcentaje):
 //   · las dinámicas del aura: tirar, apostar, robar, duelos, dar, bote,
 //     tienda, asaltos, banco, bonos por escribir, y sus esperas y rencores;
+//     También lo que las explica o las lleva: la diana del día, los veredictos
+//     de dinero y de robos de !caso y las líneas del aura de !social;
 //   · lo que el dueño quiere tal cual: !piropo, WINGMAN y las acciones
-//     sexuales (fuck, anal, cum, spank, lickass, grope, undress, seduce, preg).
+//     sexuales (fuck, anal, cum, spank, lickass, grope, undress, seduce, preg);
+//   · LAS ACCIONES CON DIBUJOS (las de DIBUJOS en src/commands/acciones.js):
+//     un tercio de sus gifs sale de series infantiles. Ahí no va ni una, y la
+//     capa 171 falla si alguna lleva la marca. La lista se lee del código, así
+//     que una acción que entre en DIBUJOS sale sola de la cuenta.
 
 const fs = require('fs');
 const path = require('path');
@@ -27,7 +33,7 @@ const R = path.join(__dirname, '..');
 const MINIMO = 40;
 // Lo que ya hay. Sube con cada tanda (capa 171): una frase marcada no se pierde
 // por el camino sin que el check lo diga.
-const SUELO = 510;
+const SUELO = 1329;
 const MARCA = /\/\/.*\bROCKSTAR\b/;
 
 const FICHEROS_DINAMICAS = new Set([
@@ -36,11 +42,25 @@ const FICHEROS_DINAMICAS = new Set([
 ]);
 const POOLS_FUERA = [
   /^cooldownPhrases:(AURA_TIRADA|AURA_APOSTAR|AURA_TOP_ANSIAS|AURA_TOP_POBRE|ROBO|ROBO_ASALTO|ROBO_GUARDIA)$/,
-  /^avisos:DUELO_AJENO$/,
+  /^avisos:(DUELO_AJENO|OBJETIVO_DIA_CARTEL)$/,
+  /^caso:VEREDICTOS\.(insolvente|reincidente|buscado|rico|pobre)$/,
   /^rencorPhrases:(DUELO_|ROBO_)/,
   /^wingmanPhrases:(PIROPOS|WINGMAN_ANECDOTAS|WINGMAN_CIERRES)$/,
   /^accionPhrases:(FUCK|ANAL|CUM|SPANK|LICKASS|GROPE|UNDRESS|SEDUCE|PREG)$/,
+  /^social:AURA_LINES$/,
 ];
+
+// Las acciones que sacan dibujos, leídas del bloque `const DIBUJOS = {` sin
+// cargar el módulo (que tira de red y de ffmpeg).
+function accionesConDibujos() {
+  const txt = fs.readFileSync(path.join(R, 'src/commands/acciones.js'), 'utf8');
+  const i = txt.indexOf('const DIBUJOS = {');
+  if (i < 0) return [];
+  const bloque = txt.slice(i, txt.indexOf('\n};', i));
+  return [...bloque.matchAll(/^\s+([a-z]+):\s*\{\s*busca:/gm)].map((m) => m[1].toUpperCase());
+}
+const DIBUJOS = accionesConDibujos();
+if (DIBUJOS.length) POOLS_FUERA.push(new RegExp(`^accionPhrases:(${DIBUJOS.join('|')})$`));
 
 // El mismo recorrido que scripts/frases.js (poolsDeTexto), apuntando además
 // qué líneas llevan la marca.
@@ -128,4 +148,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { medir, MINIMO, SUELO };
+module.exports = { medir, MINIMO, SUELO, DIBUJOS };

@@ -32,38 +32,38 @@
 // %A ya le gano a %V la vez anterior y hoy vuelve a ganarle.
 const MOG_REPITE = [
   'Lo de %D no fue suerte. %A vuelve a moggear a %V, y esta vez con más testigos.',
-  'A %V no le bastó con lo de %D. Necesitaba perder otra vez contra %A para creérselo.',
+  'A %V no le bastó con lo de %D. Necesitaba que %A se le volviera a poner encima para creérselo.', // ROCKSTAR
   '%V pierde otra vez contra %A. Ya pasó %D, y la genética de %V no ha mejorado una puta mierda desde entonces.',
-  '%D %A se lo dejó claro a %V. Hoy se lo explica más despacio, a ver si esta vez le entra.',
+  '%D %A se lo dejó claro a %V. Hoy se lo explica más despacio, a ver si esta vez le entra.', // ROCKSTAR
   'Otra vez %A, otra vez %V debajo. Si lo de %D no dolió lo suficiente, esto ya debería.',
-  'Ni el tiempo que ha pasado desde %D le ha servido a %V. Pierde contra %A igual que entonces, y con menos excusas.',
+  'Desde %D, %V ha tenido tiempo de arreglarse, y aun así %A le vuelve a dejar con la boca abierta.', // ROCKSTAR
   '%V ya se comió el mog de %A %D, y hoy se lo ha vuelto a comer entero.',
-  '%A vuelve a pasar por encima de %V. Lo de %D no fue casualidad, y hoy queda confirmado.',
+  '%A vuelve a pasar por encima de %V, como %D. A %V parece que le va eso de quedarse debajo.', // ROCKSTAR
   '%D ya quedó claro quién mandaba entre %A y %V. Hoy se ha repetido en voz alta.',
-  'El mismo resultado que %D. A %V la cara no le ha cambiado, y a %A tampoco.',
+  'El mismo resultado que %D. %A sigue siendo con quien fantasea el grupo, y %V quien fantasea con %A.', // ROCKSTAR
   '%D %A arriba y %V abajo. Hoy, exactamente igual.',
   '%V perdió contra %A %D y hoy vuelve a perder. Hay derrotas que se aprenden a la primera, y %V no.',
-  'Desde %D, %V no ha arreglado nada de lo que %A le ganó. Se nota en la foto.',
+  'Desde %D, %V no ha arreglado nada de lo que %A le ganó. Se nota en la foto, y en las camas que no visita.', // ROCKSTAR
   '%A le vuelve a ganar a %V como %D. El espejo de %V ya ni se sorprende.',
-  'Otra vez %V debajo de %A, igual que %D. A estas alturas es una costumbre, no un resultado.',
+  'Otra vez %V debajo de %A, igual que %D. A estas alturas, %V ya pide la postura.', // ROCKSTAR
   'Lo de %D se repite. A %V le ha tocado ponerse otra vez al lado de %A, y otra vez sale perdiendo.',
 ];
 
 // %V le gano a %A la vez anterior y hoy gana %A. Se le remata a %V, que se
 // lo habia creido.
 const MOG_REVANCHA = [
-  '%D fue %V quien moggeó a %A. Hoy se le da la vuelta, y a %V la gloria le ha durado un suspiro.',
+  '%D fue %V quien moggeó a %A. Hoy se le da la vuelta, y a %V la gloria le ha durado lo que le dura un polvo.', // ROCKSTAR
   'Lo de %D se ha terminado. %V se creyó por encima de %A y hoy baja del pedestal de culo.',
-  'Revancha cobrada. %D ganó %V, hoy gana %A, y %V ya no tiene nada que enseñar.',
+  'Revancha cobrada. %D ganó %V, hoy gana %A, y %V ya no tiene nada que enseñar, ni con ropa ni sin ella.', // ROCKSTAR
   '%A tenía pendiente lo de %D. Hoy lo salda y %V vuelve al sitio del que nunca debió subir.',
   'A %V lo de %D se le subió a la cabeza. Hoy %A se la baja de un golpe.',
   '%D %V moggeó a %A. Hoy se acaba, y %A sale arriba.',
-  'Dura poco la gloria con esa cara. %V ganó %D y hoy %A le devuelve al suelo.',
+  'Dura poco la gloria con esa cara, como todo lo de %V. Ganó %D y hoy %A le devuelve al suelo.', // ROCKSTAR
   'Hay victorias que duran poco. La de %V %D era una, y hoy %A se ha encargado de dejarlo claro.',
-  '%V pensó que lo de %D contra %A iba a ser lo normal. Lo normal es esto.',
-  'Lo de %D fue un préstamo. %A lo ha recuperado hoy y %V se queda sin nada que contar.',
+  '%V se creyó que lo de %D contra %A era para siempre, como quien se cree que el rollo de una noche va a llamar. Hoy gana %A.', // ROCKSTAR
+  'Lo de %D fue un calentón. A %A se le ha pasado, y hoy pone a %V en su sitio.', // ROCKSTAR
   '%V venía de moggear a %A %D. Tenía que haberse quedado con esa, porque hoy gana %A.',
-  'Se acabó lo de %D. %V le ganó a %A, se lo creyó, y hoy lo paga delante de todos.',
+  'Se acabó lo de %D. %V le ganó a %A, se lo creyó, y hoy %A se lo cobra delante de todos, y sin preliminares.', // ROCKSTAR
   'Lo de %D queda como lo que fue entre %A y %V: un accidente. Hoy gana %A.',
   'La cuenta con %A ya no es la de %D. %V pierde hoy lo poco que ganó entonces.',
 ];
@@ -71,17 +71,17 @@ const MOG_REVANCHA = [
 // %A lleva %N seguidas contra %V (tres o mas, contando la de hoy).
 const MOG_RACHA = [
   '%N veces seguidas le ha tocado a %V mirar a %A desde abajo. La anterior fue %D, y sin cambio a la vista.',
-  'Esto ya es costumbre. %N seguidas de %A sobre %V, y la de %D no fue la última.',
+  'Esto ya es costumbre. %N seguidas de %A encima de %V, y %V ya ni protesta.', // ROCKSTAR
   'Con esta van %N. %V ha convertido perder contra %A en lo único constante de su vida.',
-  'Las últimas %N son de %A. %V no ha rascado nada desde entonces.',
+  'Las últimas %N son de %A. %V no ha rascado nada desde entonces, ni en los mogs ni en la cama.', // ROCKSTAR
   'Otra más, y van %N. %V pierde contra %A con una regularidad que no tiene en nada más.',
-  '%N seguidas de %A. Lo de %D ya no es noticia, lo raro sería que %V ganara una.',
+  '%N seguidas de %A. Lo de %D ya no es noticia: lo raro sería que %V llegara arriba alguna vez, en lo que sea.', // ROCKSTAR
   'Van %N seguidas de %A contra %V, y la última fue %D. El grupo ya ni pregunta quién gana.',
   '%N de %N para %A. %V ya no pierde contra %A: lo tiene por costumbre.',
-  '%V lleva %N derrotas seguidas contra %A. A estas alturas el mog es un trámite.',
+  '%V lleva %N derrotas seguidas contra %A. A estas alturas, %V se tumba antes de que empiece.', // ROCKSTAR
   'Ya son %N. Cada vez que alguien pone a %V al lado de %A, pasa lo mismo.',
   'Racha de %N para %A contra %V. Quien haga el siguiente mog ya sabe lo que va a salir.',
-  '%A suma %N seguidas contra %V. Llegados aquí, poner a %V al lado de %A ya es crueldad.',
+  '%A suma %N seguidas contra %V. Llegados aquí, %V debería pedirle a %A una cita en vez de otro mog.', // ROCKSTAR
 ];
 
 // ─── !duel ───────────────────────────────────────────────────────────────────
@@ -241,38 +241,38 @@ const ROBO_NI_VENGARSE = [
 
 // Hoy sale bastante mas alto que la vez anterior.
 const SHIP_SUBE = [
-  '%D les salió %C a %A y %V. Hoy salen bastante mejor, y el grupo ya empieza a hacer preguntas.',
+  '%D les salió %C a %A y %V. Hoy salen bastante mejor, y el grupo ya pregunta quién se queda a dormir en casa de quién.', // ROCKSTAR
   '%A y %V venían de un %C %D. Hoy el número sube, y el grupo ya pregunta qué ha pasado entre medias.',
-  'De %C %D a esto. Entre %A y %V algo se está moviendo, y no es el bot.',
+  'De %C %D a esto. Entre %A y %V algo se está moviendo, y no es el bot.', // ROCKSTAR
   '%D, %C para %A y %V, y hoy bastante más. El bot solo apunta, el cotilleo ya es cosa del grupo.',
-  '%A y %V suben desde el %C de %D. A este paso, la próxima vez hay que buscar padrinos.',
+  '%A y %V suben desde el %C de %D. A este paso, la próxima vez que no contesten en el grupo, ya sabremos por qué.', // ROCKSTAR
   'El ship de %A y %V se quedó %D en %C. Hoy mejora, que ya es más de lo que mejora casi nadie aquí.',
   '%D fue un %C para %A y %V. Hoy sube, y a %A y %V ya no les vale culpar al bot.',
-  '%A y %V dejan atrás el %C de %D. Si esto sigue así, alguien va a tener que dar explicaciones.',
+  '%A y %V dejan atrás el %C de %D. Si esto sigue así, alguien va a tener que cambiar las sábanas.', // ROCKSTAR
 ];
 
 // Hoy sale bastante mas bajo.
 const SHIP_BAJA = [
   '%D a %A y %V les salió %C. Hoy baja, y es lo más sincero que les ha dicho nadie.',
-  'De %C %D a esto. %A y %V se están desenamorando sin haber empezado.',
+  'De %C %D a esto. %A y %V se están desenamorando sin haberse quitado ni la chaqueta.', // ROCKSTAR
   '%A y %V venían de un %C %D. Hoy bajan, y nadie en el grupo lo lamenta.',
   'Lo de %D pintaba mejor. %A y %V bajan desde un %C y ya no hay número que lo arregle.',
-  'El %C de %D era lo mejor que iban a tener %A y %V. Ya ni eso.',
+  'El %C de %D era lo mejor que iban a tener %A y %V. Ya no les da ni para un polvo por despecho.', // ROCKSTAR
   '%D eran %C. Entre %A y %V la cosa ha ido a peor, y nadie se sorprende.',
-  'Caída libre desde el %C de %D. A %A y %V el ship ya no les da ni para amistad.',
-  'El ship de %A y %V baja. Lo de %D, aquel %C, fue un espejismo.',
+  'Caída libre desde el %C de %D. A %A y %V el ship ya no les da ni para amistad con derecho a roce.', // ROCKSTAR
+  'El ship de %A y %V baja. Lo de %D, aquel %C, fue un espejismo, o un calentón que ya se ha enfriado.', // ROCKSTAR
 ];
 
 // Hoy sale mas o menos lo mismo.
 const SHIP_IGUAL = [
   'Parecido a lo de %D, que fue %C. %A y %V están atascados en la misma mediocridad.',
-  '%D ya eran %C. %A y %V no suben ni bajan, se quedan donde nadie les mira.',
+  '%D ya eran %C. %A y %V ni suben ni bajan: misionero y sin ganas.', // ROCKSTAR
   'Casi el mismo resultado que %D. A %A y %V ni el ship les da una sorpresa.',
-  'Otra vez en torno al %C de %D. Lo de %A y %V es estable, estable de no ir a ninguna parte.',
+  'Otra vez en torno al %C de %D. Lo de %A y %V es estable, estable de no pasar nunca del sofá al dormitorio.', // ROCKSTAR
   '%D a %A y %V les salió %C, y hoy más o menos lo mismo. Esto no se mueve.',
-  '%A y %V repiten número, casi calcado al de %D. Esto no va a ningún lado.',
+  '%A y %V repiten número, casi calcado al de %D. Esto no va a ningún lado, y menos a la cama.', // ROCKSTAR
   'Lo de %A y %V sigue donde estaba %D. La respuesta es la misma por mucho que se pregunte.',
-  'Desde %D, %A y %V siguen igual. La química de siempre, que es poca.',
+  'Desde %D, %A y %V siguen igual. La química de siempre, que no da ni para un magreo.', // ROCKSTAR
 ];
 
 module.exports = {

@@ -46,20 +46,20 @@ const POBRE = 100;
 const VEREDICTOS = {
   nunca: [
     'No ha escrito nunca, ni un hola. Está aquí de adorno.',
-    'Cero mensajes desde que entró. El grupo conoce su número y poco más.',
-    'Ocupa plaza y no ha dicho ni mu. Ni para despedirse va a abrir la boca.',
+    'Cero mensajes desde que entró. El grupo conoce su número, y ni para una llamada guarra lo ha usado nadie.', // ROCKSTAR
+    'Ocupa plaza y no ha dicho ni mu. Ni un gemido se le conoce.', // ROCKSTAR
   ],
   fantasmaLargo: [
     'Más de un mes sin escribir. Ocupa plaza y no paga ni con presencia.',
-    'Un mes sin decir nada. A estas alturas es decoración.',
-    'Un mes largo sin escribir, y el grupo ha seguido igual sin sus mensajes.',
+    'Un mes sin decir nada. Más tiempo del que pasa sin que le toquen, y ya es decir.', // ROCKSTAR
+    'Un mes largo sin escribir. Ni en el grupo ni en la cama se le espera ya.', // ROCKSTAR
     'Existe en la lista de miembros y en ningún otro sitio.',
   ],
   fantasma: [
     'Días y días sin abrir la boca. Lo que pasa en el grupo le da igual, o eso parece.',
-    'Hace días que no escribe ni una letra. El grupo ha dejado de contar con su opinión.',
+    'Hace días que no escribe. Lo mismo está en una cama ajena, lo mismo en la suya mirando el techo.', // ROCKSTAR
     'Lleva días sin escribir. Su último mensaje ya queda tan arriba que no se encuentra.',
-    'Más de una semana sin dar señales. Cuando vuelva, habrá que presentarle al grupo otra vez.',
+    'Más de una semana sin dar señales. Cuando vuelva, habrá que presentarle al grupo otra vez, como a los ligues de una noche que repiten sin querer.', // ROCKSTAR
   ],
   insolvente: [
     'En números rojos. Le debe aura a un bot de WhatsApp.',
@@ -78,14 +78,14 @@ const VEREDICTOS = {
   ],
   ausente: [
     'Unos días sin escribir. Se le está olvidando cómo se hace.',
-    'Lleva unos días callándose. Un par más y ya es costumbre.',
-    'Se está enfriando. Un par de días más y pasa a mueble.',
+    'Lleva unos días callándose. O tiene a alguien en la cama, o no tiene a nadie, y las dos cosas explican el silencio.', // ROCKSTAR
+    'Se está enfriando, y no solo en el grupo. Un par de días más y pasa a mueble.', // ROCKSTAR
   ],
   // El que sostiene el grupo se lleva un halago, sin veneno (dueño, 18 oct).
   pilar: [
     'Sostiene el grupo a base de mensajes, y sin eso esto sería otro chat muerto.',
-    'Está entre quienes más escriben, y se nota en cada conversación que arranca.',
-    'Si deja de escribir, el grupo lo nota el primer día. Es de lo mejor que tiene este chat.',
+    'Está entre quienes más escriben, y se nota en cada conversación que arranca, y en más de un suspiro.', // ROCKSTAR
+    'Si deja de escribir, el grupo lo nota el primer día. Es de lo mejor que tiene este chat, y hay quien lo nota también por las noches.', // ROCKSTAR
   ],
   rico: [
     'Tanta aura en un bot de WhatsApp, más que un logro, parece un diagnóstico.',
@@ -99,8 +99,8 @@ const VEREDICTOS = {
   ],
   normal: [
     'Un expediente sin una sola línea que merezca leerse dos veces.',
-    'Del montón. Si mañana desaparece, se nota solo por el hueco en la lista.',
-    'Nada grave y nada bueno. Una vida de relleno que da pereza hasta archivar.',
+    'Del montón. Si mañana desaparece, se nota por el hueco en la lista, y en ninguna cama.', // ROCKSTAR
+    'Nada grave y nada bueno: misionero, luz apagada y a dormir. Da pereza hasta archivarlo.', // ROCKSTAR
   ],
 };
 
