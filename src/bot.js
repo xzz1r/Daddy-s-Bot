@@ -90,6 +90,23 @@ function pararLatidoPresencia() {
   if (refrescoPresencia) { clearInterval(refrescoPresencia); refrescoPresencia = null; }
 }
 
+// *!visto* SE APLICA AL MOMENTO (16 nov). Antes la respuesta decia «para
+// aparecer en linea hace falta reconectar: pm2 restart bot», o sea una orden de
+// terminal por WhatsApp. No hace falta reconectar: la presencia se manda cuando
+// se quiera, y el latido se enciende o se para aqui mismo. Lo que se negocia al
+// conectar (markOnlineOnConnect) ya lee el interruptor nuevo en la proxima.
+async function aplicarVisto(encendido) {
+  const miSock = sock;
+  if (!miSock || typeof miSock.sendPresenceUpdate !== 'function') return;
+  pararLatidoPresencia();
+  if (encendido) {
+    refrescoPresencia = setInterval(latidoPresencia, 10 * 60 * 1000);
+    refrescoPresencia.unref?.();
+  }
+  await withTimeout(Promise.resolve(miSock.sendPresenceUpdate(encendido ? 'available' : 'unavailable')), TOPE_RED)
+    .catch((e) => logger.warn(`!visto: no se pudo cambiar la presencia (${e.message}); se aplica al reconectar`));
+}
+
 // ─── EL LATIDO PARA EL GUARDIAN ─────────────────────────────────────────────
 //
 // El guardian hace de anti-admin cuando el bot no esta (ver src/guardian.js).
@@ -139,7 +156,7 @@ const STUB_SOLICITUD = new Set([144, 172]);
 // cinco solicitudes seguidas se hace UN barrido, no cinco.
 const autoAcceptPendiente = new Map();
 const { handleMessage, invalidateGroupMeta, getGroupMeta, metaFrescaParaBaileys, peekGroupMeta, sembrarGrupos, reabrirPendientes, castigarHistoriaCruda, borrarSpamReciente } = require('./handlers/messageHandler');
-const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, isAutoAceptarEnabled, isBotEnabled, flushState, vistoActivo } = require('./utils/state');
+const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, isAutoAceptarEnabled, isBotEnabled, flushState, vistoActivo, cuandoCambieVisto } = require('./utils/state');
 const { isOwner, sameUser, isBotAdmin, phoneMatch, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto, resolverLid, bareJid, aprenderLidsDeDueños } = require('./utils/wa');
 const { anotarDeuda, cobrarDeuda, flushDeuda } = require('./utils/adminDeuda');
 // anotarAlta apunta el motivo de cada alta; motivoDelAlta lo consulta cuando hay
@@ -177,6 +194,7 @@ const { PURGA_ADMIN } = require('./data/avisos');
 // LANZA: se queda, y el try/catch de al lado no atrapa nada porque no hay error
 // que atrapar. Es el mismo numero que ya usaba la consulta de metadata.
 const TOPE_RED = 8000;
+cuandoCambieVisto(aplicarVisto);
 const { VF_STATIC } = require('./utils/sticker');
 const { recordar: recordarMensaje, recuperar: recuperarMensaje } = require('./utils/mensajesRecientes');
 const { recordar: recordarHistorial, ingestarEvento: ingestarHistorial, flush: flushHistorial } = require('./utils/historialGrupo');

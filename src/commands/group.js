@@ -438,11 +438,11 @@ async function cmdAdm(sock, msg, args, groupMeta) {
 // cambia como se comporta la cuenta entera no tiene por que saber nadie que
 // esta ahi.
 //
-// EL CAMBIO ES INMEDIATO PARA EL VISTO Y DIFERIDO PARA LA PRESENCIA. Marcar
-// leido se decide en cada mensaje, asi que apagarlo surte efecto en el
-// siguiente. Anunciarse en linea se negocia al abrir la sesion
-// (markOnlineOnConnect), asi que para dejar de aparecer conectado hace falta
-// reconectar. Se dice en la respuesta en vez de fingir que ya esta hecho.
+// EL CAMBIO ES INMEDIATO, TAMBIEN LA PRESENCIA (16 nov). Marcar leido se
+// decide en cada mensaje. Aparecer en linea se mandaba solo al abrir la sesion
+// (markOnlineOnConnect), y la respuesta le decia al dueño «pm2 restart bot» por
+// WhatsApp. Ya no: bot.js manda la presencia nueva y enciende o para el latido
+// en cuanto cambia el interruptor (aplicarVisto).
 async function cmdVisto(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   const sender = getSender(msg);
@@ -470,11 +470,12 @@ async function cmdVisto(sock, msg, args, groupMeta) {
 
   await ponerVisto(quiero);
   return sock.sendMessage(jid, {
+    // La presencia ya se ha cambiado dentro de ponerVisto (bot.js se apunta
+    // con cuandoCambieVisto): no hay nada que reiniciar ni que decirle al
+    // dueño que haga en la VPS.
     text: quiero
-      ? `*VISTO ENCENDIDO*\n_Desde el próximo mensaje se marca todo como leído._\n` +
-        `_Para aparecer *en línea* hace falta reconectar: pm2 restart bot._`
-      : `*VISTO APAGADO*\n_Desde el próximo mensaje no se marca nada._\n` +
-        `_Seguirás apareciendo en línea hasta que se reconecte: pm2 restart bot._`,
+      ? `*VISTO ENCENDIDO*\n_Desde ya marco todo como leído y aparezco en línea._`
+      : `*VISTO APAGADO*\n_Desde ya no marco nada y dejo de aparecer en línea._`,
   }, { quoted: msg });
 }
 
@@ -1206,11 +1207,21 @@ async function cmdAutoAceptar(sock, msg, args, groupMeta) {
   //
   // Antes esto salia como "Habia 1 esperando y he metido a 0", que se lee como
   // una respuesta normal cuando en realidad es el bot fallando en silencio.
+  //
+  // Y SIN CODIGO EN EL CHAT (16 nov). Aqui ponia «mándale esto a quien lleva el
+  // bot: `pm2 logs bot … | grep autoaceptar`», una orden de terminal a la vista
+  // de todo el grupo. El motivo exacto lo apunta aceptarPendientes y sale en
+  // `npm run estado`; en el grupo se dice lo que pasa, con palabras.
   if (!hechas) {
+    const una = pendientes === 1;
+    const sinRespuesta = !r || ((r.caidos || []).length && !Object.keys(r.estados || {}).length && !r.sinJid);
+    const porque = sinRespuesta ? 'WhatsApp no me ha contestado al intentarlo'
+      : r.sinJid >= pendientes ? `WhatsApp me ${una ? 'la pasa' : 'las pasa'} sin decirme de quién ${una ? 'es' : 'son'}`
+        : `WhatsApp no me deja ${una ? 'aprobarla' : 'aprobarlas'}`;
     return sock.sendMessage(jid, {
       text: '*Autoaccept encendido*, pero no he podido aprobar ninguna.\n' +
-        `Hay *${pendientes}* esperando y WhatsApp me las ha rechazado o no las entiendo.\n` +
-        `_Mándale esto a quien lleva el bot:_ \`pm2 logs bot --lines 40 --nostream | grep autoaceptar\``,
+        `${una ? 'Hay *1* esperando' : `Hay *${pendientes}* esperando`} y ${porque}.\n` +
+        '_Lo vuelvo a intentar yo solo en cada repaso, y el motivo exacto queda apuntado para quien lleva el bot._',
     }, { quoted: msg });
   }
 

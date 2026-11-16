@@ -1229,6 +1229,9 @@ async function capaStores() {
   // cruce se apunta. En la VPS el check corre con el bot encendido: dos
   // procesos escribiendo el mismo data/rencor.json se pisan.
   require(path.join(R, 'src/utils/rencorStore'))._usarFichero(path.join(os.tmpdir(), `rencor-check-${process.pid}.json`));
+  // Y lo mismo con los fallos de !autoaccept: las pruebas fallan a proposito, y
+  // apuntarlos en data/ ensuciaria lo que lee `npm run estado` en la VPS.
+  require(path.join(R, 'src/utils/joinRequests'))._usarFicheroFallos(path.join(os.tmpdir(), `autoaceptar-check-${process.pid}.json`));
   for (const c of comandos) {
     for (let i = 0; i < TIRADAS; i++) {
       try {
@@ -25508,6 +25511,78 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     exige(Array.isArray(RS.DIBUJOS) && RS.DIBUJOS.length >= 10, `scripts/rockstar.js no encuentra las acciones con dibujos (${(RS.DIBUJOS || []).length}): podría contar guarradas en acciones de series infantiles`);
     exige(r.total > 3000, `el contador de scripts/rockstar.js solo encuentra ${r.total} frases: ha dejado de leer los pools`);
     if (fallos === antes171) console.log(verde(`   ✓ ${r.marcadas} de ${r.total} frases (${r.pct.toFixed(1)} %) de doble sentido estilo Rockstar; objetivo ${RS.MINIMO} %`));
+  }
+
+  // ── 172. LO TÉCNICO NO SALE AL CHAT (16 nov) ─────────────────────────────
+  // El dueño, con la captura de *!autoaccept* en el grupo: «¿por qué muestras
+  // líneas de código en el bot?». El aviso de «no he podido aprobar ninguna»
+  // pedía, a la vista de todos, «mándale esto a quien lleva el bot: `pm2 logs
+  // bot … | grep autoaceptar`»; *!visto* le decía «pm2 restart bot» y *!fk* el
+  // nombre de una variable del .env. Lo de la VPS va al log y a `npm run
+  // estado`; en WhatsApp, palabras.
+  //
+  // Se mira el texto de los comandos, los manejadores y los datos: un literal con
+  // pm2, npm run, grep, --nostream, .env o una variable de clave, fuera de los
+  // comentarios y de las llamadas al log. Y se conduce *!autoaccept* hasta el
+  // fallo para ver lo que llega de verdad al grupo.
+  {
+    console.log('\n172. LO TÉCNICO NO SALE AL CHAT');
+    const antes172 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const TECNICO = /\bpm2\s+(?:logs|restart|start|stop|reload)\b|\bnpm run\b|--nostream|\bgrep\s|(?:^|[\s(])\.env\b|\b[A-Z]{3,}_API(?:_KEY)?\b/;
+    const malas172 = [];
+    for (const dir of ['src/commands', 'src/handlers', 'src/data']) {
+      for (const f of fs.readdirSync(path.join(R, dir)).filter((x) => x.endsWith('.js'))) {
+        const lineas = fs.readFileSync(path.join(R, dir, f), 'utf8').split('\n');
+        lineas.forEach((l, i) => {
+          const t = l.trim();
+          if (!t || t.startsWith('//') || t.startsWith('*') || t.startsWith('/*')) return;
+          if (!/['"`]/.test(t) || !TECNICO.test(t)) return;
+          if (/process\.env/.test(t)) return;
+          // Dentro de una llamada al log (puede abrir unas lineas mas arriba).
+          const cerca = lineas.slice(Math.max(0, i - 5), i + 1).join('\n');
+          if (/\b(?:logger|console)\.\w+\(/.test(cerca) && !/sendMessage|text:/.test(lineas.slice(Math.max(0, i - 2), i + 1).join('\n'))) return;
+          malas172.push(`${dir}/${f}:${i + 1}`);
+        });
+      }
+    }
+    exige(!malas172.length, `hay texto de terminal o de la VPS que puede salir al chat: ${malas172.slice(0, 5).join(', ')}`);
+
+    // *!autoaccept* con cola y sin poder aprobar: lo que llega al grupo.
+    const { cmdAutoAceptar: autoAcc172 } = require(path.join(R, 'src/commands/group'));
+    const G172 = '000000172@g.us';
+    const BOT172 = '549172@s.whatsapp.net';
+    const ADM172 = '34600001721@s.whatsapp.net';
+    const parts172 = [{ id: BOT172, admin: 'admin' }, { id: ADM172, admin: 'admin' }];
+    for (const [nombre, sock172] of [
+      ['WhatsApp contesta error', { groupRequestParticipantsUpdate: async (g, l) => l.map((j) => ({ status: '403', jid: j })) }],
+      ['la solicitud llega sin número', { groupRequestParticipantsUpdate: async () => [], sinNumero: true }],
+      ['la petición se cae', { groupRequestParticipantsUpdate: async () => { throw new Error('timed out'); } }],
+    ]) {
+      let dicho = '';
+      const s = {
+        user: { id: BOT172 },
+        groupRequestParticipantsList: async () => (sock172.sinNumero
+          ? [{ t: '1700', request_method: 'invite_link' }]
+          : [{ jid: '34600001729@s.whatsapp.net', request_method: 'invite_link' }]),
+        groupRequestParticipantsUpdate: sock172.groupRequestParticipantsUpdate,
+        sendMessage: async (j, c) => { dicho = c.text || ''; return {}; },
+      };
+      await autoAcc172(s,
+        { key: { remoteJid: G172, participant: ADM172, fromMe: false, id: `K172${nombre.length}` }, message: { conversation: 'x' } },
+        ['on'], { id: G172, participants: parts172 });
+      exige(/no he podido aprobar ninguna/i.test(dicho), `*!autoaccept* (${nombre}) no dice que ha fallado: «${dicho.slice(0, 80)}»`);
+      exige(!TECNICO.test(dicho) && !/`/.test(dicho), `*!autoaccept* (${nombre}) mete texto de terminal en el grupo: «${dicho.slice(0, 120)}»`);
+    }
+    require(path.join(R, 'src/utils/state')).toggleAutoAceptar(G172, false);
+    exige(require(path.join(R, 'src/utils/joinRequests')).fallosAutoaceptar(1).some((x) => x.grupo === G172),
+      'el fallo de *!autoaccept* no se apunta: sin eso, `npm run estado` no puede decir por qué no entra nadie');
+
+    // *!visto* se aplica al momento, sin pedir que se reinicie nada.
+    const botSrc172 = soloCodigo('src/bot.js');
+    exige(/cuandoCambieVisto\(aplicarVisto\)/.test(botSrc172) && /sendPresenceUpdate\(encendido \? 'available' : 'unavailable'\)/.test(botSrc172),
+      '*!visto* ya no cambia la presencia al momento: volvería a hacer falta reiniciar el bot desde la VPS');
+    if (fallos === antes172) console.log(verde('   ✓ ni pm2, ni grep, ni el .env en lo que lee el grupo; !autoaccept dice lo que pasa con palabras y apunta el motivo para estado'));
   }
 
 

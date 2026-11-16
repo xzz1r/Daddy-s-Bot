@@ -251,6 +251,16 @@ WhatsApp contesta al lote con el @lid en `jid` y el teléfono en `pn_jid`: se
 casa por todas las formas (14 nov), o cada cuenta normal se quedaba sin
 respuesta y gastaba el cupo de perfiles.
 
+## Lo técnico no sale al chat
+
+Lo dijo el dueño (16 nov), con la captura de `!autoaccept` en el grupo: «¿por
+qué muestras líneas de código en el bot?». Nada que se lea en WhatsApp lleva
+órdenes de terminal (`pm2`, `npm run`, `grep`), rutas, el `.env` ni nombres de
+variables. Lo que hace falta para arreglarlo va al log y a `npm run estado`
+(los fallos de `!autoaccept` se apuntan en `data/autoaceptarFallos.json`); en
+el chat se dice lo que pasa, con palabras. Y si algo se puede aplicar sin
+reiniciar, se aplica: `!visto` cambia la presencia al momento. Capa 172.
+
 ## Doble sentido guarro estilo Rockstar: el 40 % del bot
 
 Lo pidió el dueño (16 nov): «al menos un 40 %» de las frases, «en todo el

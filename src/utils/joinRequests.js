@@ -333,14 +333,63 @@ function jidDeSolicitud(attrs) {
   return null;
 }
 
+// POR QUE NO SE PUDO APROBAR, APUNTADO PARA LA VPS (16 nov).
+//
+// Cuando no entraba ninguna, *!autoaccept* le decia al GRUPO «mándale esto a
+// quien lleva el bot: `pm2 logs bot … | grep autoaceptar`». Una orden de
+// terminal en un chat de WhatsApp, a la vista de todos. El dueño: «¿por qué
+// muestras líneas de código en el bot?».
+//
+// El motivo se guarda aqui —cuantas, que contesto WhatsApp, y los atributos de
+// una solicitud que no se entendio— y sale en `npm run estado`, que es donde se
+// mira lo interno. En el grupo solo se dice lo que paso, con palabras.
+const FILE_FALLOS = path.join(__dirname, '../../data/autoaceptarFallos.json');
+const MAX_FALLOS = 30;
+let ficheroFallos = FILE_FALLOS;
+
+// En cola: el repaso y *!autoaccept* pueden apuntar a la vez, y leer-sumar-
+// escribir en paralelo pierde una de las dos.
+let colaFallos = Promise.resolve();
+function apuntarFallo(grupo, dato) {
+  colaFallos = colaFallos.then(async () => {
+    try {
+      const previos = await readJsonOrEnoent(ficheroFallos, []);
+      const lista = [...(Array.isArray(previos) ? previos : []), { ts: Date.now(), grupo, ...dato }].slice(-MAX_FALLOS);
+      await atomicWriteJson(ficheroFallos, lista);
+    } catch (e) { logger.warn(`autoaceptar: no pude apuntar el fallo: ${e.message}`); }
+  });
+  return colaFallos;
+}
+
+function fallosAutoaceptar(horas = 24) {
+  const desde = Date.now() - horas * 3600000;
+  let v = [];
+  try { v = JSON.parse(require('fs').readFileSync(ficheroFallos, 'utf8')); } catch { v = []; }
+  return (Array.isArray(v) ? v : []).filter((x) => x && x.ts >= desde);
+}
+
 async function aceptarPendientes(sock, grupo) {
   if (typeof sock?.groupRequestParticipantsUpdate !== 'function') return null;
   let lista;
   try { lista = await withTimeout(sock.groupRequestParticipantsList(grupo), TOPE_COLA); }
   catch { return null; }
   if (!lista || !lista.length) return { aprobados: 0, sinJid: 0, rechazados: 0 };
+  const r = await aprobarLista(sock, grupo, lista);
+  // Ni una aprobada habiendo cola sin vetar: se apunta el porque.
+  if (!r.aprobados && lista.length > r.rechazados) {
+    await apuntarFallo(grupo, {
+      pendientes: lista.length, sinJid: r.sinJid, estados: r.estados, caidos: r.caidos,
+      ...(r.muestra ? { muestra: r.muestra } : {}),
+    });
+  }
+  return r;
+}
 
+async function aprobarLista(sock, grupo, lista) {
   let aprobados = 0, sinJid = 0;
+  let muestra = null;
+  const estados = {};   // lo que contesto WhatsApp por solicitud, si no fue 200
+  const caidos = [];    // lotes enteros que fallaron, con el mensaje
   const jids = [];
   for (const p of lista) {
     const jid = jidDeSolicitud(p);
@@ -348,6 +397,7 @@ async function aceptarPendientes(sock, grupo) {
       // Si aun asi no se encuentra, se dice CON EL SOBRE DELANTE. Callarse aqui
       // es lo que convirtio esto en "no acepta y no se sabe por que".
       sinJid++;
+      if (!muestra) muestra = p;
       logger.warn(`autoaceptar: solicitud sin JID reconocible en ${grupo}. Atributos: ${JSON.stringify(p)}`);
       continue;
     }
@@ -385,7 +435,7 @@ async function aceptarPendientes(sock, grupo) {
     if (i + POR_LOTE < vetados.length) await new Promise((r) => setTimeout(r, PAUSA_ENTRE_LOTES));
   }
 
-  if (!limpios.length) return { aprobados, sinJid, rechazados };
+  if (!limpios.length) return { aprobados, sinJid, rechazados, estados, caidos, muestra };
 
   for (let i = 0; i < limpios.length; i += POR_LOTE) {
     const lote = limpios.slice(i, i + POR_LOTE);
@@ -394,6 +444,7 @@ async function aceptarPendientes(sock, grupo) {
       res = await sock.groupRequestParticipantsUpdate(grupo, lote, 'approve');
     } catch (e) {
       logger.warn(`autoaceptar: no pude aprobar el lote de ${lote.length} en ${grupo}: ${e.message}`);
+      caidos.push(String(e.message || e).slice(0, 160));
       continue;
     }
     // WhatsApp NO lanza cuando rechaza: devuelve el error dentro del status, uno
@@ -410,15 +461,19 @@ async function aceptarPendientes(sock, grupo) {
       const fila = filas.find((f) => f?.jid === jid) || filas[k];
       const estado = String(fila?.status ?? (filas.length ? '?' : '200'));
       if (estado === '200') { aprobados++; await olvidarSolicitud(grupo, jid); }
-      else logger.warn(`autoaceptar: WhatsApp rechazo aprobar a ${jid} en ${grupo} (status ${estado})`);
+      else {
+        estados[estado] = (estados[estado] || 0) + 1;
+        logger.warn(`autoaceptar: WhatsApp rechazo aprobar a ${jid} en ${grupo} (status ${estado})`);
+      }
     }
     if (i + POR_LOTE < limpios.length) await new Promise((r) => setTimeout(r, PAUSA_ENTRE_LOTES));
   }
-  return { aprobados, sinJid, rechazados };
+  return { aprobados, sinJid, rechazados, estados, caidos, muestra };
 }
 
 module.exports = {
-  aceptarPendientes, jidDeSolicitud,
+  aceptarPendientes, jidDeSolicitud, fallosAutoaceptar,
+  _usarFicheroFallos: (f) => { ficheroFallos = f || FILE_FALLOS; },
   notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, sondeoReciente, colaConocida,
   reactivarSondeo, frenoNuevo, estaFrenado, flushJoinRequests, SONDEO_VALIDO_MS,
   _reset, _marcarSondeo, _frenado,

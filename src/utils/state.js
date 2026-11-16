@@ -168,12 +168,23 @@ function vistoActivo(porDefecto) {
   return typeof v === 'boolean' ? v : Boolean(porDefecto);
 }
 
+// QUIEN TIENE QUE ENTERARSE DEL CAMBIO. La presencia (aparecer en linea) la
+// lleva bot.js, que es quien tiene el socket. Antes *!visto* decia «hace falta
+// reconectar: pm2 restart bot» en el chat: una orden de terminal para el
+// dueño, por WhatsApp. Ahora bot.js se apunta aqui y aplica el cambio al
+// momento.
+const alCambiarVisto = [];
+function cuandoCambieVisto(fn) { if (typeof fn === 'function') alCambiarVisto.push(fn); }
+
 async function ponerVisto(enable) {
   _state.autoRead = Boolean(enable);
   // Se escribe AL MOMENTO, igual que el resto de interruptores. Este en
   // concreto se toca cuando algo va mal con la cuenta, y perderlo en un
   // reinicio seria volver a encender lo que se acaba de apagar a proposito.
   await saveState(_state);
+  for (const fn of alCambiarVisto) {
+    try { await fn(_state.autoRead); } catch { /* la presencia no tumba el comando */ }
+  }
   return _state.autoRead;
 }
 
@@ -209,5 +220,5 @@ const toggleAura            = (jid, enable) => setMembership('auraDisabled',    
 const isAutoAceptarEnabled  = (jid)         => hasMembership('autoAceptar',          jid);
 const toggleAutoAceptar     = (jid, enable) => setMembership('autoAceptar',          jid, enable);
 
-module.exports = { vistoActivo, ponerVisto, initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, flushState, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness, isAntiLinkEnabled, toggleAntiLink, isAntiFakeEnabled, toggleAntiFake, isSoloAdminsEnabled, toggleSoloAdmins, isAuraEnabled, toggleAura, isAutoAceptarEnabled, toggleAutoAceptar };
+module.exports = { vistoActivo, ponerVisto, cuandoCambieVisto, initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, flushState, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness, isAntiLinkEnabled, toggleAntiLink, isAntiFakeEnabled, toggleAntiFake, isSoloAdminsEnabled, toggleSoloAdmins, isAuraEnabled, toggleAura, isAutoAceptarEnabled, toggleAutoAceptar };
 

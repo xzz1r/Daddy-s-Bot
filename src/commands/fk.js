@@ -99,10 +99,15 @@ async function downloadImage(found) {
 
 // Formatea los resultados de una API facial (Lenso/FaceCheck): cada línea es la
 // URL de ORIGEN donde apareció la cara (resultado directo) + su score.
-function formatFacial(name, envKey, result) {
+function formatFacial(name, result) {
   if (!result) return '';
   if (!result.ok) {
-    if (result.reason === 'bad-key') return `\n\n*${name}:* key inválida (revisa ${envKey}).`;
+    // Sin el nombre de la variable del .env: eso es de la VPS, no del chat.
+    // Se queda en el log, para quien lleva el bot.
+    if (result.reason === 'bad-key') {
+      logger.warn(`!fk: la clave de ${name} no vale: revisa ${name.toUpperCase()}_API_KEY en el .env`);
+      return `\n\n*${name}:* la clave del servicio no vale; hay que cambiarla.`;
+    }
     if (result.reason === 'timeout') return `\n\n*${name}:* la búsqueda tardó demasiado, reintenta.`;
     if (result.reason === 'error')   return `\n\n*${name}:* la búsqueda falló (red/límite/créditos).`;
     return ''; // no-key / no-image: silencioso
@@ -189,8 +194,8 @@ async function searchBlock(buf, imgUrl) {
   engines.push(`PimEyes → pimeyes.com`); // subir la foto adjunta
   out += `*Buscar la cara:*\n${engines.join('\n')}`;
 
-  out += formatFacial('Lenso', 'LENSO_API_KEY', lenso);
-  out += formatFacial('FaceCheck', 'FACECHECK_API_KEY', fc);
+  out += formatFacial('Lenso', lenso);
+  out += formatFacial('FaceCheck', fc);
   return out;
 }
 

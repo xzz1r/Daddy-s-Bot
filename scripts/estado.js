@@ -680,6 +680,22 @@ if (!bot) {
     if (c.borrado === r.total) bien(`${r.total} estado(s) en 24 h, todos borrados`);
     else bien(`estados en 24 h: ${parte}`);
   }
+  // !autoaccept QUE NO PUDO APROBAR NINGUNA (16 nov), con el porqué. Antes se
+  // le pedía al grupo, por WhatsApp, que mandara un `pm2 logs … | grep`; ahora
+  // el motivo se apunta en data/autoaceptarFallos.json y se lee aquí.
+  try {
+    const fa = require(path.join(RAIZ, 'src/utils/joinRequests')).fallosAutoaceptar(24);
+    if (fa.length) {
+      const u = fa[fa.length - 1];
+      const partes = [];
+      if (u.sinJid) partes.push(`${u.sinJid} sin un número que el bot reconozca`);
+      for (const [st, n] of Object.entries(u.estados || {})) partes.push(`${n} con error ${st} de WhatsApp`);
+      if ((u.caidos || []).length) partes.push(`la petición falló: «${u.caidos[0]}»`);
+      const grupos = new Set(fa.map((x) => x.grupo)).size;
+      aviso(`autoaccept: ${fa.length} repaso(s) en 24 h sin poder aprobar ninguna (${grupos} grupo(s)); el último, ${u.pendientes} esperando: ${partes.join(', ') || 'sin detalle'}`,
+        'pásale esta línea a quien mantenga el bot' + (u.muestra ? `; así llega una solicitud: ${JSON.stringify(u.muestra).slice(0, 200)}` : ''));
+    }
+  } catch { /* sin datos */ }
 }
 
 // ¿El PROCESO corre el codigo del disco? Son dos cosas distintas y confundirlas
