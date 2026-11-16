@@ -54,26 +54,26 @@ const FIEL_LOW = [
   'Eres la clase de escoria que vendería a su madre por un kebab con extra de carne, y encima regatearía el precio.',
   '[nombre] traiciona con la frecuencia de quien se lava los dientes: dos veces al día y a veces tres si hay oportunidad.',
   '[nombre] promete con la misma solemnidad con la que un crío jura que no ha sido él: mirándote a los ojos mientras miente de puta madre.',
-  '[nombre] te clava un cuchillo en la espalda y luego te pregunta si le puedes sacar el cuchillo porque lo necesita.',
+  'Dices «solo somos amigos» con la ropa de esa persona puesta.', // ROCKSTAR
   'Tienes el oficio de Judas, pero sin la decencia de devolver las treinta monedas.',
-  '[nombre] es tan desleal que si le prestas un boli lo devuelve sin tinta y mordido. Y encima te dice que ya estaba así.',
-  '[nombre] te quita la pareja y luego te pide consejo para la relación.',
-  '[nombre] es el tipo de persona que te denuncia a la policía y luego te visita en la cárcel para preguntarte qué tal.',
-  'Eres de esa escoria que le copia los deberes al compañero y luego le acusa de copiar.',
-  'La última vez que fuiste fiel a algo fue a tu mano derecha, y eso porque la izquierda no tenía suficiente técnica.',
+  '*Fidelidad garantizada hasta la segunda copa.* Lo pone en tu etiqueta, [nombre], y en la de todos tus ex.', // ROCKSTAR
+  '[nombre] te quita la pareja y luego te pide consejo para la relación.', // ROCKSTAR
+  'Tienes guardado a tu lío como «Mecánico». Tu coche no ha pisado un taller en su vida.', // ROCKSTAR
+  'Le juras amor eterno a tu pareja en la cena y amor de una noche a otra persona en el postre.', // ROCKSTAR
+  'La última vez que fuiste fiel a algo fue a tu mano derecha, y eso porque la izquierda no tenía suficiente técnica.', // ROCKSTAR
   'Guardas un secreto hasta que alguien te invita a una caña. Lo sueltas antes de que baje la espuma, mi niña.',
   'Te cuentan un secreto y al rato ya lo sabe gente que ni conoce a quien te lo contó.',
   '[nombre] dice que ayuda con la mudanza y a esa hora está subiendo historias desde una piscina.',
-  'Te vas de la cena antes del postre y sin pagar tu parte, y luego preguntas qué tal fue.',
+  'Prometes ser fiel con la misma mano con la que escribes a tu ex a las tres de la mañana.', // ROCKSTAR
   'Cambias de bando en una bronca según quién tenga más gente detrás. Tu lealtad la decide un recuento.',
   '[nombre] tiene capturas de todos sus amigos guardadas por si algún día hacen falta. Ya han hecho falta.',
-  'Celebras tu cumpleaños con la gente que les cae mal a tus amigos, y dejas que se enteren por las historias.',
+  'Tu «estoy con los de la oficina» huele a un perfume que no es de la oficina.', // ROCKSTAR
   'Prometes que vas y a la hora te inventas una fiebre. La fiebre sale luego en una foto de discoteca.',
-  'Te prestan dinero y sigues sin blanca, según tú, brindando en una terraza.',
+  'Te ofreces a llevar a casa a la pareja de tu amigo, y llegáis a casa al día siguiente.', // ROCKSTAR
   'Tus amigos te cuentan sus problemas y tú se los cuentas a sus ex. Las rupturas llevan tu firma.',
   'Hablas bien de la gente delante y la despellejas en el audio siguiente, y a veces te equivocas de chat, princesa.',
   '[nombre] vende a quien sea por un sitio en la mesa buena. Cambia de mesa, y nadie le guarda la silla.',
-  'Te piden que guardes el sitio en la cola y se lo das al primero que te sonríe.',
+  'Dices que el roce hace el cariño, y rozas a todo el que se deja.', // ROCKSTAR
   'Juras por tu madre cada vez que mientes, y a tu madre ya le deben de pitar los oídos todo el día.',
   'Abandonas los grupos de trabajo justo antes de entregar, y luego pones tu nombre en la portada.',
 ];
@@ -83,31 +83,31 @@ const FIEL_LOW = [
 // ═══════════════════════════════════════════════════════════════════════════
 
 const INFIEL_HIGH = [
-  'Eres tan infiel que tu entrepierna debería tener su propio DNI y cotizar a la Seguridad Social por horas extras, muñeca.',
-  'Quien esté contigo te espera en casa mientras tú haces horas extra de mierda. Y las horas extra no son en la oficina.',
+  'Eres tan infiel que tu entrepierna debería tener su propio DNI y cotizar a la Seguridad Social por horas extras, muñeca.', // ROCKSTAR
+  'Quien esté contigo te espera en casa mientras tú haces horas extra de mierda. Y las horas extra no son en la oficina.', // ROCKSTAR
   '[nombre] guarda a sus ex en un puto archivo histórico, y todas las carpetas llevan la misma etiqueta: traición.',
-  'Quien salga contigo necesita más una aseguradora que un anillo. Lo tuyo es siniestro total.',
+  'Quien salga contigo necesita más una aseguradora que un anillo. Lo tuyo es siniestro total.', // ROCKSTAR
   '[nombre] pone los cuernos y luego regala flores. Con la tarjeta de la víctima.',
   '[nombre] borra chats más rápido de lo que escribe «te quiero».',
   '[nombre] tiene el móvil con tres contraseñas, huella dactilar y borrado automático. Lo que protege no es su intimidad.',
   'Eres de esa gente que va al funeral de una relación con el traje puesto para la siguiente boda.',
-  'Tienes la fidelidad de un perro callejero, pero sin la excusa de no tener dueño. Tú tienes, y aun así meas en otros jardines.',
-  '[nombre] tiene tantos líos abiertos que necesita un calendario solo para no cruzarlos.',
-  'Engañar es tu cardio: lo haces todos los días, mantienes el ritmo y ni sudas la camiseta.',
+  'Tienes la fidelidad de un perro callejero, pero sin la excusa de no tener dueño. Tú tienes, y aun así meas en otros jardines.', // ROCKSTAR
+  '[nombre] tiene tantos líos abiertos que necesita un calendario solo para no cruzarlos.', // ROCKSTAR
+  'Engañar es tu cardio: lo haces todos los días, mantienes el ritmo y ni sudas la camiseta.', // ROCKSTAR
   'Eres de esa gente que se descarga Tinder en la boda y lo usa durante la ceremonia.',
-  'Tu historial sentimental debería venir con un aviso: peligro biológico, no tocar sin protección y, a ser posible, no tocar.',
+  'Tu historial sentimental debería venir con un aviso: peligro biológico, no tocar sin protección y, a ser posible, no tocar.', // ROCKSTAR
   'Engañarías a tu pareja con la misma cara con la que le das los buenos días.',
   'Quien te aguante como pareja debería cobrar un sueldo, con plus de peligrosidad y horas nocturnas.',
   '[nombre], eres tan infiel que tu funeral va a parecer una reunión de antiguos alumnos: todo el mundo se conoce y nadie dice de qué.',
   'Guardarías a la pareja como «Casa» y al resto como «Trabajo».',
-  'Dices que vas al gimnasio y vuelves con el pelo mojado y la bolsa sin abrir, pequeña.',
+  'Dices que vas al gimnasio y vuelves con el pelo mojado y la bolsa sin abrir, pequeña.', // ROCKSTAR
   'Tienes dos cargadores, dos móviles y dos versiones del mismo finde. Las dos te salen bien, y eso asusta.',
   'Borras el historial y acto seguido pides que confíen en ti.',
   '[nombre] pide perdón con el mismo ramo a parejas distintas. En la floristería ya le conocen.',
   'Quien salga contigo se va a enterar de la mitad. La otra mitad la sabrá el grupo entero, con capturas.',
-  'Eres capaz de liarte con alguien en una boda mientras tu pareja baila con la abuela.',
+  'Eres capaz de liarte con alguien en una boda mientras tu pareja baila con la abuela.', // ROCKSTAR
   'Tendrías Tinder con la foto de las vacaciones que te pagó tu pareja.',
-  'Pondrías «en camino» desde la cama de otra persona.',
+  'Pondrías «en camino» desde la cama de otra persona.', // ROCKSTAR
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
