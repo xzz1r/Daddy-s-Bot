@@ -88,10 +88,14 @@ const {
   fetchLatestWaWebVersion,
   fetchLatestBaileysVersion,
   DisconnectReason,
-  Browsers,
   downloadContentFromMessage,
   getBinaryNodeChild,
+  derivePairingCodeKey,
+  aesEncryptCTR,
+  bytesToCrockford,
+  jidEncode,
 } = require('@whiskeysockets/baileys');
+const { randomBytes } = require('crypto');
 const { pipeline } = require('stream/promises');
 const { Transform } = require('stream');
 
@@ -1365,22 +1369,50 @@ function apuntarDispositivo(d) {
   try { fs.mkdirSync(AUTH_DIR, { recursive: true }); fs.writeFileSync(ficheroDispositivo(), JSON.stringify(d)); } catch { /* sin marca: cuenta como navegador */ }
 }
 const dispositivoDeSesion = () => (leerDispositivo().dispositivo === 'android' ? 'android' : 'navegador');
-const CARA_NAVEGADOR = ['Ubuntu', 'Chrome', '120.0.0'];
-const navegadorDe = (d) => (d === 'android'
-  ? (typeof Browsers?.android === 'function' ? Browsers.android('14') : ['14', 'Android', ''])
-  : [...CARA_NAVEGADOR]);
+// Lo que Baileys lee como [sistema, navegador, versión]. Con 'Android' en el
+// segundo, se registra como móvil Android (ANDROID_PHONE, Browsers.android de
+// rc14); el sistema va como «Android», que es lo que manda whatsapp-rust.
+const navegadorDe = (d) => (d === 'android' ? ['Android', 'Android', ''] : ['Ubuntu', 'Chrome', '120.0.0']);
 
-// EL CÓDIGO SE PIDE CON CARA DE NAVEGADOR (16 nov). Primer intento en la VPS:
-// el móvil del guardián contestó «No se pudo vincular el dispositivo» a cada
-// código. El móvil solo acepta el código de un dispositivo que se presenta
-// como navegador («Chrome (Ubuntu)», como se vinculó siempre), no como
-// «Android (14)». Baileys lee la misma lista del navegador al conectar —ahí
-// el guardián ya se ha presentado como Android— y al pedir el código: se
-// cambia solo durante la petición y se deja como estaba.
-async function conCaraDeNavegador(navegador, fn) {
-  const antes = navegador.slice();
-  if (navegador[1] !== CARA_NAVEGADOR[1]) navegador.splice(0, navegador.length, ...CARA_NAVEGADOR);
-  try { return await fn(); } finally { navegador.splice(0, navegador.length, ...antes); }
+// EL CÓDIGO, PIDIÉNDOLO DE VERDAD (16 nov). En la VPS, el móvil del guardián
+// contestó «No se pudo vincular el dispositivo» a cada código, y era porque
+// esos códigos no existían: requestPairingCode de Baileys se inventa el
+// código, manda la petición y lo devuelve SIN esperar a WhatsApp. Si WhatsApp
+// la rechaza —un nombre de dispositivo sin sistema operativo, como el
+// «Android (14)» de Browsers.android, o demasiados códigos seguidos para ese
+// número—, el código que se enseña no vale.
+//
+// Aquí se pide igual que Baileys (mismas claves y mismo cifrado, para que
+// Baileys complete la vinculación cuando el móvil escriba el código) pero con
+// `query`, que espera la respuesta y falla si WhatsApp dice que no. Y con lo
+// que WhatsApp acepta (whatsapp-rust #601 y #979): plataforma 1 (Chrome) y un
+// nombre con un sistema operativo de verdad entre paréntesis.
+async function pedirCodigo(conexion, numero, nombre = 'Chrome (Android)') {
+  const creds = conexion.authState.creds;
+  const codigo = bytesToCrockford(randomBytes(5));
+  creds.pairingCode = codigo;
+  creds.me = { id: jidEncode(numero, 's.whatsapp.net'), name: '~' };
+  conexion.ev.emit('creds.update', creds);
+  const sal = randomBytes(32);
+  const iv = randomBytes(16);
+  const clave = await derivePairingCodeKey(codigo, sal);
+  const envuelta = Buffer.concat([sal, iv, aesEncryptCTR(creds.pairingEphemeralKeyPair.public, clave, iv)]);
+  await withTimeout(conexion.query({
+    tag: 'iq',
+    attrs: { to: 's.whatsapp.net', type: 'set', id: conexion.generateMessageTag(), xmlns: 'md' },
+    content: [{
+      tag: 'link_code_companion_reg',
+      attrs: { jid: creds.me.id, stage: 'companion_hello', should_show_push_notification: 'true' },
+      content: [
+        { tag: 'link_code_pairing_wrapped_companion_ephemeral_pub', attrs: {}, content: envuelta },
+        { tag: 'companion_server_auth_key_pub', attrs: {}, content: creds.noiseKey.public },
+        { tag: 'companion_platform_id', attrs: {}, content: '1' },
+        { tag: 'companion_platform_display', attrs: {}, content: nombre },
+        { tag: 'link_code_pairing_nonce', attrs: {}, content: '0' },
+      ],
+    }],
+  }), TOPE_RED);
+  return codigo;
 }
 
 // El código de vinculación, también en un fichero: `npm run vincular-guardian`
@@ -1522,7 +1554,6 @@ async function conectar() {
   // Una sesión hecha entra como lo que es; una nueva se vincula como Android.
   const hayQueVincular = !state.creds?.registered;
   const dispositivo = hayQueVincular ? dispositivoDeseado() : dispositivoDeSesion();
-  // La misma lista que lee Baileys: ver conCaraDeNavegador.
   const navegador = navegadorDe(dispositivo);
   const version = await versionWA();
   if (!version) logger.unaVez('guardian: version de whatsapp', new Error('no contesta nadie; sigo con la de Baileys'));
@@ -1623,9 +1654,20 @@ async function conectar() {
     // segundos, `sock` ya apunta a otro (o a nada) y esto reventaría.
     const miSock = sock;
     setTimeout(async () => {
+      if (miSock !== sock) return;
+      let codigo = null;
       try {
-        if (miSock !== sock) return;
-        const codigo = await conCaraDeNavegador(navegador, () => miSock.requestPairingCode(miNumero()));
+        codigo = await pedirCodigo(miSock, miNumero(), dispositivo === 'android' ? 'Chrome (Android)' : 'Chrome (Linux)');
+      } catch (e) {
+        // WHATSAPP DICE QUE NO, y se dice: sin esto se enseñaba un código que
+        // no existía. Se desarma igual: insistir es lo que frena al número.
+        desarmarVinculacion();
+        const porque = `${e?.message || e}${e?.data ? ` (${e.data})` : ''}`;
+        logger.error(`guardián: WhatsApp no acepta pedir el código: ${porque}`);
+        try { fs.writeFileSync(FICHERO_CODIGO, JSON.stringify({ ts: Date.now(), error: porque, dispositivo })); } catch { /* queda el log */ }
+        return;
+      }
+      try {
         // SE DESARMA EN CUANTO SALE UNO. Si nadie lo escribe, el siguiente
         // arranque no manda otro: hay que volver a pedirlo a mano. Es la
         // diferencia entre un código y una ráfaga de códigos.
@@ -1739,7 +1781,7 @@ if (require.main === module) {
 module.exports = { esDueno, lineaDuenos, _ficheroDueno: (f, g) => { FICHERO_DUENO = f; if (g) FICHERO_LIDS_DUENOS = g; _lidsDueno = { mtime: -1, lids: [] }; }, alDegradar, alCambioDeAdmin, alExpulsar, _olvidarPurgas: () => purgas.clear(), _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _esperaRespaldo: (ms) => { ESPERA_RESPALDO = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, _latidoBot: (f) => { LATIDO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _vigilarMemoria: vigilarMemoria, _pistaMuerteMuda: pistaMuerteMuda, _MEMORIA: MEMORIA, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR,
   // Ver una vez (16 nov).
   vigilarVerUnaVez, medioVerUnaVez, reponerClaves, barrerFotos, apartarSesionSiCambia,
-  dispositivoDeseado, dispositivoDeSesion, navegadorDe, conCaraDeNavegador, apuntarDispositivo, FICHERO_CODIGO,
+  dispositivoDeseado, dispositivoDeSesion, navegadorDe, pedirCodigo, apuntarDispositivo, FICHERO_CODIGO,
   _verUnaVez: ({ dir, fichero, descarga, espera } = {}) => {
     if (dir) DIR_VER_UNA_VEZ = dir;
     if (fichero) FICHERO_VER_UNA_VEZ = fichero;

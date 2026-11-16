@@ -93,6 +93,12 @@ async function main() {
   const { armado, codigo: FICHERO_CODIGO, dispositivo: DISPOSITIVO } = rutas();
 
   if (process.argv.includes('--volver')) {
+    // Con una sesión buena no se toca nada: devolver una apartada más vieja
+    // la estropearía.
+    if (sesionHecha()) {
+      console.log('El guardián ya tiene su sesión. No toco nada.');
+      return;
+    }
     const ult = volverALaDeAntes();
     console.log(ult ? 'Devuelta la sesión de antes: el guardián vuelve a proteger como siempre.'
       : 'No hay ninguna sesión apartada que devolver.');
@@ -145,6 +151,10 @@ async function main() {
   for (let i = 0; i < 60 && !codigo; i++) {
     await dormir(1500);
     const c = leer(FICHERO_CODIGO);
+    if (c?.ts >= desde && c.error) {
+      // WhatsApp ha dicho que no al pedirlo: no hay código que escribir.
+      fallar(`WhatsApp no acepta pedir el código: ${c.error}.\nSi es por haber pedido muchos seguidos, espera una hora antes de volver a probar.`);
+    }
     if (c?.codigo && c.ts >= desde) codigo = c.codigo;
   }
   if (!codigo) {
@@ -153,6 +163,7 @@ async function main() {
     fallar(`El guardián no ha pedido el código. Lo último que dice:\n${log}`);
   }
 
+  console.log('WhatsApp ha aceptado el código: ahora sí existe.');
   console.log(`\n  CÓDIGO: ${codigo}\n`);
   console.log(`  En el móvil de +${numero}:`);
   console.log('  WhatsApp → Dispositivos vinculados → Vincular un dispositivo');

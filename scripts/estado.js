@@ -690,7 +690,7 @@ if (!bot) {
       const linea = `ver una vez en 24 h: ${c.foto || 0} foto(s) recibidas, ${c['aviso vacío apartado'] || 0} aviso(s) vacío(s) apartados`;
       if (c['solo el aviso vacío'] && !guardoGuardian) {
         aviso(`${linea}, y ${c['solo el aviso vacío']} de las que solo llegó el aviso vacío`,
-          'al bot WhatsApp solo le manda el aviso; las guarda el guardián vinculado como Android: npm run vincular-guardian');
+          'WhatsApp no le manda las fotos de ver una vez a los dispositivos vinculados; se sacan respondiendo a la foto sin haberla abierto');
       } else if (c['solo el aviso vacío']) {
         bien(`${linea}; de ${c['solo el aviso vacío']} solo le llegó el aviso, y el guardián guardó ${guardoGuardian}`, true);
       } else bien(linea, true);

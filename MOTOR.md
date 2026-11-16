@@ -1335,18 +1335,28 @@ aparta la sesión de navegador (`data/authGuardian.navegador-<fecha>`, se
 mueve, no se borra), pide el código y el script lo enseña y espera a que se
 complete. Con `GUARDIAN_DISPOSITIVO=navegador` se vincula como antes.
 
-**El código se pide con cara de navegador** (16 nov). Primer intento en la
-VPS: el móvil del guardián contestó «No se pudo vincular el dispositivo» a
-cada código. El móvil solo acepta el código de un dispositivo que se
-presenta como navegador, no como «Android (14)». Baileys lee la misma lista
-del navegador al conectar (donde el guardián ya dijo que es Android) y al
-pedir el código, así que `conCaraDeNavegador` la cambia a «Chrome (Ubuntu)»
-solo durante la petición. En el móvil sale como «Chrome (Ubuntu)». Y si la
-vinculación no se completa, `npm run vincular-guardian` devuelve sola la
-sesión apartada (`-- --volver` lo hace a mano): el guardián no se queda nunca
-sin proteger. Con `npm run vincular-guardian -- +<número>` el número se
+Si la vinculación no se completa, `npm run vincular-guardian` devuelve sola la
+sesión apartada (`-- --volver` lo hace a mano, y no toca una sesión buena): el
+guardián no se queda nunca sin proteger. Con `npm run vincular-guardian -- +<número>` el número se
 escribe en el .env (`GUARDIAN=`, en su línea) y el script enseña para qué
-número pide el código, que tiene que ser el del móvil donde se escribe. `npm
-run estado` dice si sigue como navegador, cuántas fotos le llegan y guarda, de
+número pide el código, que tiene que ser el del móvil donde se escribe.
+
+**Los códigos no existían** (16 nov). Con la cara de navegador y el número
+bien puesto, el móvil siguió contestando «No se pudo vincular el
+dispositivo». La causa: `requestPairingCode` de Baileys se inventa el código,
+manda la petición con `sendNode` y lo devuelve sin esperar a WhatsApp. Si
+WhatsApp la rechaza (`bad-request`: un nombre sin sistema operativo como el
+«Android (14)» de `Browsers.android`, o demasiados códigos seguidos para el
+número), el código que se enseña no vale. `pedirCodigo` hace lo mismo que
+Baileys (mismas claves y cifrado, así que Baileys completa la vinculación)
+pero con `query`, que espera la respuesta y falla con el error de WhatsApp,
+y con lo que aceptó whatsapp-rust (#601, #979): `companion_platform_id` 1 y
+«Chrome (Android)», sistema «Android» en el registro. Si WhatsApp dice que
+no, `npm run vincular-guardian` enseña el motivo, no un código. El PR de
+Baileys que trajo Android (#2201) se llama «can receive viewonce», y quien
+lo probó dice que llega sin responder a la foto; también, que con código
+de vinculación no iba bien: es esto.
+
+`npm run estado` dice si sigue como navegador, cuántas fotos le llegan y guarda, de
 cuántas solo le llega el aviso (entonces Android tampoco sirve) y cuántos
 mensajes de grupo no pudo abrir. Capa 174.

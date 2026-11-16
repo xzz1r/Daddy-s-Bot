@@ -178,8 +178,13 @@ bot ya busca su copia; mientras baja deja `<id>.pend` y el bot espera. No
 abre nada, no manda vistos y solo lo hace con el bot en la misma máquina. Se
 vincula con `npm run vincular-guardian`, con el móvil del guardián delante:
 la sesión de navegador se aparta (se mueve, no se borra) y nunca cambia sola.
-El código se pide con cara de navegador (el móvil rechaza el de «Android»), y
-si no se completa, la sesión de antes vuelve sola.
+Si no se completa, la sesión de antes vuelve sola. **El código se pide
+esperando la respuesta de WhatsApp** (`pedirCodigo`): `requestPairingCode` de
+Baileys no la espera y enseñaba códigos que WhatsApp había rechazado (el
+«Android (14)» no lleva un sistema operativo de verdad), y el móvil decía
+«No se pudo vincular el dispositivo» (VPS, 16 nov). Va con plataforma 1 y
+«Chrome (Android)», y si WhatsApp dice que no, el script lo dice en vez de
+dar un código.
 El bot sigue como navegador. `npm run estado` dice si al guardián le llegan.
 El guardián nunca sale en línea ni marca nada como visto o abierto. Capa
 174; ver `MOTOR.md`.

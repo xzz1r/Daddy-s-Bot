@@ -8014,7 +8014,8 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       // lo escanea. Administrando por SSH desde el propio movil no vale — el QR
       // sale en la misma pantalla con la que habria que escanearlo. El guardian
       // ya sabe su numero (el GUARDIAN del .env), asi que pide el codigo solo.
-      exige(/requestPairingCode\s*\(/.test(gsrc),
+      // Desde el 16 nov con pedirCodigo, que espera la respuesta de WhatsApp.
+      exige(/pedirCodigo\(miSock, miNumero\(\)/.test(gsrc),
         'el guardian ya no pide codigo de vinculacion: vuelve a hacer falta escanear un QR, que por SSH desde el movil no se puede');
 
       // Y EL BORRADO DE CREDENCIALES A MEDIAS, que es la trampa que costo cinco
@@ -10231,7 +10232,9 @@ const di=async(quien,t)=>{out.length=0;
 
       const src = soloCodigo('src/guardian.js');
       const iPuerta = src.indexOf('vinculacionArmada()');
-      const iPide = src.indexOf('requestPairingCode');
+      // Desde el 16 nov el código se pide con pedirCodigo (espera la respuesta
+      // de WhatsApp), no con requestPairingCode de Baileys.
+      const iPide = src.indexOf('pedirCodigo(miSock');
       exige(iPuerta >= 0 && iPide >= 0 && iPuerta < iPide,
         'la comprobación de armado va DESPUÉS de pedir el código, o ya no está: el código sale igual');
       // Y que la puerta PARE de verdad. Comprobar solo el orden dejaba pasar un
@@ -25793,9 +25796,17 @@ const r = {};
   try { r.espera = (await V.bajar({ user: { id: '34600000174@s.whatsapp.net' } }, cita('PEND174'), found, 'cita')).length; } catch (e) { r.espera = e.message; }
   // La sesión: solo se aparta con la vinculación armada.
   r.nav = [G.navegadorDe('android')[1], G.navegadorDe('navegador')[1], G.dispositivoDeseado()];
-  const CN = G.navegadorDe('android'); let durante = [];
-  await G.conCaraDeNavegador(CN, async () => { durante = CN.slice(); });
-  r.cara = [durante[1], CN[1]];
+  // El código se pide esperando la respuesta de WhatsApp, con plataforma 1 y
+  // un nombre con sistema operativo; si WhatsApp dice que no, falla.
+  const { initAuthCreds } = require('@whiskeysockets/baileys');
+  const pedidos = [];
+  const conexion = (falla) => ({ authState: { creds: initAuthCreds() }, ev: { emit: () => {} }, generateMessageTag: () => 'T174',
+    query: async (n) => { pedidos.push(n); if (falla) { const e = new Error('bad-request'); e.data = 400; throw e; } return { tag: 'iq', attrs: { type: 'result' } }; } });
+  const c1 = conexion(false);
+  const cod = await G.pedirCodigo(c1, '5491100000174');
+  const hijos = Object.fromEntries((pedidos[0]?.content?.[0]?.content || []).map((x) => [x.tag, String(x.content).slice(0, 40)]));
+  r.pedido = [cod === c1.authState.creds.pairingCode && /^[A-Z0-9]{8}$/.test(cod), c1.authState.creds.me?.id, hijos.companion_platform_id, hijos.companion_platform_display, pedidos[0]?.content?.[0]?.attrs?.stage];
+  try { await G.pedirCodigo(conexion(true), '5491100000174'); r.rechazo = 'no falló'; } catch (e) { r.rechazo = e.message; }
   const sesion = (marca) => { fs.rmSync(auth, { recursive: true, force: true }); fs.mkdirSync(auth, { recursive: true });
     fs.writeFileSync(path.join(auth, 'creds.json'), JSON.stringify({ registered: true, account: { details: 'eA==' }, me: { id: '34600000174:3@s.whatsapp.net' } }));
     if (marca) G.apuntarDispositivo({ dispositivo: marca, abierto: 1 }); };
@@ -25833,8 +25844,9 @@ const r = {};
         exige(r.sinArmar === null, 'el guardián aparta su sesión sin que nadie haya pedido vincular: se quedaría fuera hasta que alguien se diera cuenta');
         exige(r.deAntes === 'navegador' && r.apartada === true, 'con la vinculación armada, la sesión de navegador no se aparta (movida, no borrada) para vincular como Android');
         exige(r.yaAndroid === null, 'una sesión que ya es Android se aparta al armar la vinculación');
-        exige(JSON.stringify(r.cara) === '["Chrome","Android"]',
-          `el código no se pide con cara de navegador, o la lista no vuelve a Android: ${JSON.stringify(r.cara)}`);
+        exige(JSON.stringify(r.pedido) === JSON.stringify([true, '5491100000174@s.whatsapp.net', '1', 'Chrome (Android)', 'companion_hello']),
+          `el código no se pide como lo acepta WhatsApp (plataforma 1, nombre con sistema operativo): ${JSON.stringify(r.pedido)}`);
+        exige(r.rechazo === 'bad-request', `si WhatsApp rechaza pedir el código, el guardián enseña un código que no existe: ${r.rechazo}`);
       }
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     const g174 = soloCodigo('src/guardian.js');
@@ -25843,11 +25855,13 @@ const r = {};
     exige(/const navegador = navegadorDe\(dispositivo\)/.test(g174) && /browser: navegador,/.test(g174)
       && /await apartarSesionSiCambia\(\);[\s\S]{0,400}limpiarCredencialesAMedias\(\)/.test(g174),
       'el guardián ya no elige como qué se vincula, o aparta la sesión después de limpiar credenciales');
-    // El móvil rechaza el código de un «Android (14)»: se pide con cara de
-    // navegador, sobre la misma lista que lee Baileys (16 nov).
-    exige(/conCaraDeNavegador\(navegador, \(\) => miSock\.requestPairingCode/.test(g174),
-      'el guardián pide el código de vinculación presentándose como Android: el móvil contesta «No se pudo vincular el dispositivo»');
-    exige(/pipeline\(flujo, cuenta, fs\.createWriteStream/.test(g174) && !/Buffer\.concat/.test(g174),
+    // requestPairingCode de Baileys no espera a WhatsApp y enseña códigos que
+    // no existen: el móvil contesta «No se pudo vincular el dispositivo».
+    exige(/pedirCodigo\(miSock, miNumero\(\)/.test(g174) && !/requestPairingCode\(/.test(g174),
+      'el guardián vuelve a pedir el código con requestPairingCode, que no espera la respuesta de WhatsApp');
+    exige(/withTimeout\(conexion\.query\(/.test(g174), 'el guardián pide el código sin esperar a WhatsApp, o sin tope');
+    const bajar174 = (g174.match(/async function bajarAFichero[\s\S]*?\n\}/) || [''])[0];
+    exige(/pipeline\(flujo, cuenta, fs\.createWriteStream/.test(bajar174) && !/Buffer\.concat|readFile/.test(bajar174),
       'el guardián baja la foto entera a memoria: con su tope de 96 MB, un vídeo lo tumba');
     const apartar174 = (g174.match(/async function apartarSesionSiCambia[\s\S]*?\n\}/) || [''])[0];
     exige(/fsp\.rename\(AUTH_DIR, destino\)/.test(apartar174) && !/\brm(Sync)?\(/.test(apartar174),
@@ -25863,8 +25877,8 @@ const r = {};
     exige(/await esperarDelGuardian\(ids\)/.test(v174) && /n\.endsWith\('\.pend'\)/.test(v174),
       'el bot ya no espera a la copia que baja el guardián, o no barre sus marcas viejas');
     const est174 = soloCodigo('scripts/estado.js');
-    exige(/guardianVerUnaVez\.json/.test(est174) && /npm run vincular-guardian/.test(est174) && /como Android tampoco le llega la foto/.test(est174),
-      '`npm run estado` ya no dice si el guardián está como navegador ni si le llegan las fotos');
+    exige(/guardianVerUnaVez\.json/.test(est174) && /como Android tampoco le llega la foto/.test(est174),
+      '`npm run estado` ya no dice si al guardián vinculado como Android le llegan las fotos');
     const pk174 = JSON.parse(fs.readFileSync(path.join(R, 'package.json'), 'utf8'));
     exige(/vincularGuardian\.js/.test(pk174.scripts?.['vincular-guardian'] || ''), 'falta `npm run vincular-guardian`');
     // Si la vinculación no se completa, la sesión de antes vuelve sola: el
