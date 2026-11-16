@@ -25489,6 +25489,24 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes170) console.log(verde('   ✓ con el búfer real de Baileys, el aviso vacío ya no pisa a la foto de ver una vez: llega, se guarda y /toimg la saca'));
   }
 
+  // ── 171. EL DOBLE SENTIDO ESTILO ROCKSTAR NO SE PIERDE (16 nov) ─────────────
+  // El dueño: «al menos un 40 %» de las frases, en todo el bot menos en las
+  // dinámicas del aura. Cada una lleva `// ROCKSTAR` (scripts/rockstar.js). Se
+  // escribe por tandas; mientras, lo que ya hay no baja del suelo de la última
+  // tanda, y ninguna marca va a parar a lo que no cuenta (dinámicas, !piropo,
+  // WINGMAN y acciones sexuales).
+  {
+    console.log('\n171. EL DOBLE SENTIDO ESTILO ROCKSTAR NO SE PIERDE');
+    const antes171 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const RS = require(path.join(R, 'scripts/rockstar.js'));
+    const r = RS.medir();
+    exige(r.marcadas >= RS.SUELO, `quedan ${r.marcadas} frases de doble sentido estilo Rockstar y había ${RS.SUELO}: alguien las ha quitado`);
+    exige(r.fueraMarcadas === 0, `${r.fueraMarcadas} frases marcadas // ROCKSTAR están en dinámicas, !piropo, WINGMAN o acciones sexuales: ahí no cuentan`);
+    exige(r.total > 3000, `el contador de scripts/rockstar.js solo encuentra ${r.total} frases: ha dejado de leer los pools`);
+    if (fallos === antes171) console.log(verde(`   ✓ ${r.marcadas} de ${r.total} frases (${r.pct.toFixed(1)} %) de doble sentido estilo Rockstar; objetivo ${RS.MINIMO} %`));
+  }
+
 
 
 

@@ -251,6 +251,19 @@ WhatsApp contesta al lote con el @lid en `jid` y el teléfono en `pn_jid`: se
 casa por todas las formas (14 nov), o cada cuenta normal se quedaba sin
 respuesta y gastaba el cupo de perfiles.
 
+## Doble sentido guarro estilo Rockstar: el 40 % del bot
+
+Lo pidió el dueño (16 nov): «al menos un 40 %» de las frases, «en todo el
+bot, menos en las frases de dinámicas». Cómo escribe Rockstar está en
+`GUIA.md` («El refuerzo: cómo escribe Rockstar»): la guarrada la dice la
+marca con voz de anuncio, dentro del vocabulario de su producto, por
+insinuación y sin dar por hecho el cuerpo ni la pareja. Cada frase así
+lleva `// ROCKSTAR` al final de su línea, y `npm run rockstar` dice cuánto
+lleva el bot. No cuentan las dinámicas del aura (tirar, apostar, robar,
+duelos, dar, bote, tienda, asaltos, banco y sus esperas), ni `!piropo`,
+WINGMAN y las acciones sexuales, que se quedan como están. Una frase nueva
+entra sacando una floja, y los apelativos no se pierden por el camino.
+
 ## La peña activa se halaga, sin veneno
 
 Lo pidió el dueño (18 oct): a quien escribe, el bot lo halaga por su actividad,

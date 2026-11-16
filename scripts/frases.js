@@ -152,7 +152,7 @@ const POOLS_MODO = args.includes('--pools');
 // grupo», el cierre de «no tienes acceso» y el «habla más» del aura): nadie 232.
 // Y el 13 nov, en el barrido de lo cursi y lo que no se entendía (222
 // frases reescritas en el sitio): nadie 228, molde 65, enlatado 122.
-const TECHO = { nadie: 222, analogia: 6, coletilla: 7, eco: 0, molde: 65, enlatado: 122, roto: 0 };
+const TECHO = { nadie: 222, analogia: 6, coletilla: 7, eco: 0, molde: 65, enlatado: 118, roto: 0 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();

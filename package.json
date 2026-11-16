@@ -20,6 +20,7 @@
     "acciones": "node scripts/acciones.js",
     "analogias": "node scripts/analogias.js",
     "frases": "node scripts/frases.js",
+    "rockstar": "node scripts/rockstar.js",
     "audio": "node scripts/audio.js",
     "enlace": "node scripts/enlace.js",
     "actos": "node scripts/actos.js",

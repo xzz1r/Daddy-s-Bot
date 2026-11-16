@@ -112,26 +112,26 @@ const LABELS = {
       'Tienes esa cara que hace que las apps se inventen algoritmos para esconderte. Hasta el software siente asco.',
       'Tu foto de perfil está elegida con lupa, y se entiende: es la que menos asco da.',
       'Ni el mejor fotógrafo saca nada de ahí. Cobraría, te devolvería el dinero y te pediría perdón por la vergüenza.',
-      'Tienes la cara con la que la gente es amable por pena.',
+      'Te dicen «guapa» después de follar, nunca antes. Es la propina, no la opinión.', // ROCKSTAR
       'Todos los rasgos hacia abajo y ninguno que compense. Equipo perdedor. Capitán: tu cara, y el vestuario da asco.',
       'Tercio medio sin soporte, todo arrastrado. Una cara que se rinde antes que tú, y tú ya te rendiste. Rendición de mierda.',
-      'La luz no encuentra nada que marcar en tu cara. Ni un pómulo.',
+      '*Lo que se dice guapa: con dos copas y la luz apagada.* Así te vende tu mejor amiga.', // ROCKSTAR
       'Cuando alguien te describe empieza por el pelo y ahí se queda, porque de la cara no hay por dónde cogerte.',
-      'Sin estructura, el resto da igual. Te arreglas el pelo sobre un solar.',
+      'Te ligan a las seis de la mañana, cuando ya han encendido las luces y no queda nadie más. Se les ve en la cara al irse contigo.', // ROCKSTAR
       'Ningún rasgo tuyo sube la media, ni por casualidad. El sorteo te dejó fuera y no hay reintegro, chiquitina.',
       'Cada selfie tuya lleva tres filtros y dos rezos, y ni así.',
-      'Te olvidan en mitad de una frase. No hay nada en esa cara que se quede.',
-      'La simetría te la saltaste. Cada mitad de tu cara va por su lado.',
+      'Tu ex te dejó una nota en la almohada: «gracias por todo, menos por la cara».', // ROCKSTAR
+      'Cuando te dicen «eres especial», lo dicen mirando al techo y pensando en otra.', // ROCKSTAR
       'Apps, espejos y cristales de coche dicen lo mismo. El problema es tu puta cara, no el cristal.',
-      'Ni de niña tenías arreglo, y los años no te han hecho ningún favor.',
-      'Riéndote, seria o sin hacer nada, sales igual de mal. Apaga la cámara.',
+      'Tus matches deslizan por la primera foto y desaparecen en la segunda. Los que se quedan no se quedan por la cara.', // ROCKSTAR
+      'Dicen que con la boca haces maravillas. Por eso te piden que no levantes la vista.', // ROCKSTAR
       'Te hacen la foto de grupo en segundo plano por piedad. El primero sería una puta denuncia pública.',
       'Te haces la foto una y otra vez y eliges la última. Las descartadas las ha visto tu móvil y se calla.',
       'Llamas «diferente» a estar mal hecha. Eso solo te lo crees tú.',
       'Tienes la frente grande, la barbilla huyendo y la nariz en medio sin saber qué hacer.',
-      'No tienes días buenos, tienes días menos malos, y el menos malo sigue dando vergüenza.',
-      'En las fotos de grupo siempre te toca el borde, y nadie lo ha decidido: se nota solo.',
-      'Te van a decir que es el ángulo. El ángulo no tiene la culpa de lo que hay detrás.',
+      'Efecto secundario de tu cara de cerca: se baja todo lo que estaba subiendo.', // ROCKSTAR
+      'Te tocan el culo en la discoteca y, en cuanto te giras, piden perdón por equivocarse de persona.', // ROCKSTAR
+      'Tu mejor amiga te presenta como «la que tiene buena personalidad», que en el mercado de la carne es la letra pequeña.', // ROCKSTAR
       'Tienes rasgos de tres personas que no se soportan, y la reunión se nota en cada foto.',
     ],
   },
@@ -171,57 +171,57 @@ const LABELS = {
     low: [
       'Tienes una papada con más personalidad que tú, y encima ella sí sale en todas las putas fotos.',
       'Tienes cara de luna llena, gorda y sin un puto ángulo. No se sabe dónde acaba tu cara y dónde empieza el cuello.',
-      'Tu nariz se torció un día y decidió quedarse así para joderte la vida. Lo consigue cada vez que sales de perfil.',
+      'Te dicen que eres muy gracioso, que es la manera educada de no acostarse contigo.', // ROCKSTAR
       'Tienes media cara mirando a un lado y la otra media a otro. Ni tu puta cara se pone de acuerdo contigo.',
       'Mandíbula no tienes. Tienes un cuello que sube hasta la boca y se rinde ahí, como te rindes tú con todo.',
       'Esa frente tuya da para proyectar una peli, y las entradas te la agrandan cada mes. En dos años serás frente y poco más.',
       'Tienes los ojos tan separados que cada uno mira una película distinta, y las dos son de terror cuando te ves en el espejo.',
-      'Los dientes te salen en todas direcciones, como si se hubieran peleado dentro de tu boca y no hubiera ganado ninguno.',
+      'Cuando te quitas la camiseta, quien está contigo se pone la suya.', // ROCKSTAR
       'Piel grasienta, granos en la frente y poros como cráteres. Tu cara se puede freír sin echarle aceite.',
-      'Tienes las orejas tan despegadas que en las fotos de frente salen antes que tu puta cara.',
+      'Te follan con los ojos cerrados y la imaginación abierta, y en la imaginación sales otro.', // ROCKSTAR
       'La papada te cuelga hasta el pecho y te tiembla entera cuando te ríes. Nadie te mira a los ojos: todos te miran eso.',
       'Tu cara es gorda por arriba, gorda por abajo y gorda por los lados. Lo único fino que tienes es el pelo, y se te está cayendo.',
       'Tienes el mentón metido hacia dentro, huyendo de tu cara. Hasta tu barbilla sabe que eso no tiene arreglo.',
-      'Ojos saltones, nariz de patata y labios de besugo. Has sacado lo peor de cada puto rasgo.',
+      '*Anticonceptivo natural, cien por cien eficaz:* tu cara. No falla ni con la ovulación encima.', // ROCKSTAR
       'Tu asimetría se ve a un kilómetro: un ojo más alto, una ceja más gorda y la boca torcida hacia donde le sale del coño.',
       'Te dejas barba para tapar que no tienes mandíbula, y te sale a parches. Ni el pelo quiere estar en tu cara.',
-      'Tienes la cabeza pequeña y la cara grande, una proporción de mierda que no te arregla ni el mejor peluquero.',
+      'Te has comprado una cama de matrimonio por si acaso, y el «por si acaso» lleva tres años sin pasar.', // ROCKSTAR
       'Cuando sonríes enseñas más encía que dientes, y los que enseñas están amarillos. No sonrías en tu puta vida.',
-      'Tu perfil es una nariz con una cara colgando detrás.',
+      'Las pocas veces que mojas tú, la otra persona apaga la luz antes de que llegues a la cama.', // ROCKSTAR
       'Cejas juntas, ojos hundidos y ojeras hasta los pómulos, que no tienes. Tienes una cara de mierda en todos los pisos.',
-      'Tienes la cara hinchada todo el año, como si te hubieran picado mil avispas. Y no: es que eres así de feo.',
-      'Tu cuello tiene tres pliegues y tu cara dos papadas. Cuando bajas la cabeza, desapareces dentro de ti.',
+      'Te tiras a la piscina en las fiestas para que alguien te vea mojado por fin.', // ROCKSTAR
+      'En la cama te piden que te dejes la camiseta puesta. Y la gorra. Y, si puede ser, la luz apagada.', // ROCKSTAR
       'Cerdo de mierda, tienes la cara llena de granos reventados con los dedos sucios, y se te nota a dos metros.',
-      'Nariz torcida, boca torcida y sonrisa torcida. Lo único recto en tu cara es la raya del pelo, y porque te la haces tú.',
-      'Tienes los rasgos tan mal puestos que tu cara parece montada a ciegas. Ni tu madre sabe por qué lado mirarte.',
+      'Has puesto un espejo en el techo y lo usas para vigilar que nadie se arrepienta a mitad.', // ROCKSTAR
+      'Te piden fotos de los abdominales para ver si compensan la cara. No compensan, y lo de más abajo ya ni lo han pedido.', // ROCKSTAR
     ],
   },
   fea: {
     name: 'fea',
     goodIsHigh: false,
     high: [
-      'Tienes cara de foto de carnet incluso cuando la foto es buena. El carnet da asco y la foto también.',
+      'Con la luz apagada rindes como cualquiera. El problema es que luego alguien la enciende para buscar la ropa.', // ROCKSTAR
       'Tu piel tiene textura, tu mandíbula no tiene borde y tus ojos no tienen forma. La suma da asco, y se ve a un metro.',
       'Tienes bolsas malares y flacidez temprana. Dormir diez horas no arregla una estructura que cede, y el resultado da vergüenza en cualquier luz, pequeña.',
-      'Tu cara es la prueba de que la simetría sola no basta. La tienes y sigue siendo un ridículo de manual.',
+      '*Tu cara, versión de fábrica: queda mejor de espaldas.* Por eso quien repite contigo pide siempre la misma postura.', // ROCKSTAR
       'Tu cara no tiene un mal ángulo. Tiene solo malos ángulos, que es distinto y peor, y no hay una puta esquina donde esconderse.',
-      'Tu cara funciona de fondo, nunca de primer plano. Por eso te escondes detrás en las fotos, y ni así se salva la mierda.',
-      'Ni siendo así de fea destacas. Te miran, no se quedan con nada y siguen, que es la peor combinación que existe.',
-      'Sales bien solo en la foto buscada: luz medida, ángulo ensayado, intento tras intento. La que cuelas sigue dando asco.',
+      'Quien se acuesta contigo cierra los ojos, y no de gusto. Lo llama concentrarse.', // ROCKSTAR
+      'Cara de «me lo pasé bien, pero borra las fotos». Te lo dicen todos a la mañana siguiente, y con prisa.', // ROCKSTAR
+      'Contigo los preliminares incluyen apagar la luz, la tele y, si se pudiera, tu cara.', // ROCKSTAR
       'Tu problema no se arregla adelgazando. El hueso no negocia, y la cara sigue siendo basura.',
       'Ni la mejor luz del mundo te saca partido, porque no hay partido que sacar. La luz necesita hueso y ahí no lo hay.',
-      'Evitas los vídeos por algo: en movimiento la cara se cae sola y la cámara lo recoge todo.',
-      'No hay versión tuya que funcione en foto, y la cámara no tiene la culpa: la tienes tú.',
+      'En tu porno casero la cámara no sube de los hombros. Ni quien lo graba quiere verte la cara.', // ROCKSTAR
+      'Efectos secundarios de tu cara: gatillazos, prisas por acabar y un «mañana madrugo» que no se cree nadie.', // ROCKSTAR
       'Asimetría evidente en el eje vertical. Se nota en cuanto alguien te mira dos segundos, y todo el mundo mira dos putos segundos.',
-      'Cremas, dietas, flequillo y filtro: toca todo lo que quieras, tu cara sigue en el mismo sitio.',
+      'Te follan pensando en otra, y lo sabes porque al acabar dicen otro nombre. Tú das las gracias igual.', // ROCKSTAR
       '[nombre], tercio medio largo, mandíbula inexistente y cero soporte óseo. La cara se te cae sola y no hay puto ángulo que arregle un fallo estructural.',
       'Tienes canthal tilt negativo, ojos hundidos y proyección malar nula, [nombre]. El pack completo de la mierda genética y sin una sola compensación.',
       '[nombre], el maquillaje tapa la piel, pero no puede una mierda con la estructura. Y el problema es la estructura.',
       '[nombre], tu perfil es una línea recta de la frente al cuello. Ahí no hay nada que mirar, y por eso nadie mira.',
-      '[nombre], tu cara empeora cuanto más te acercas. La cámara frontal lo sabe y te odia.',
+      'Solo se acuestan contigo a partir del sexto cubata. Del séptimo en adelante ya no se les levanta, y no es por el alcohol.', // ROCKSTAR
       '[nombre], cero proyección zigomática. Todo se cae hacia dentro y hacia abajo a la vez, y lleva años cayéndose.',
       'Cara plana, nariz proyectada y mentón que huye, [nombre]. Tres fallos que se empeoran entre sí.',
-      'Tu tercio superior no combina con el inferior, [nombre]. Es como si te hubieran montado por partes y con las piezas de dos cajas.',
+      '[nombre], mandas fotos sin cara para que funcionen. Las que llevan cara vuelven con un «jajaja».', // ROCKSTAR
       '[nombre], cero proyección en frente, nariz y mentón. Los tres puntos que deciden un perfil, y los tres fallando a la vez.',
       'Tienes arcada comprimida y maxilar estrecho, [nombre]. Se nota en toda la parte media y no hay ortodoncia que llegue tan tarde.',
       '[nombre], cero pómulo, cero borde y cero sombra. Todo blando y redondo, y nada que la luz pueda salvar.',
@@ -267,22 +267,22 @@ const LABELS = {
       'La barriga te cuelga por delante y te tapa el pubis entero. Para verte ahí abajo necesitas un espejo, y ni con espejo lo consigues.',
       'Los rollos de la espalda se te apilan en tres escalones de grasa, y el sujetador se te hunde entre ellos hasta desaparecer.',
       'Las estrías te cruzan la barriga, las caderas y los muslos, blancas y moradas, de tanto que se te ha estirado la piel. Tu piel ya no da más de sí, y tú sigues engordando.',
-      'La celulitis te baja del culo a las rodillas, hoyo por hoyo, y no te queda un trozo de pierna liso donde descansar la vista.',
+      'Para llegar a lo importante hay que levantarte la barriga con las dos manos, y quien lo intenta se cansa antes de llegar.', // ROCKSTAR
       'Te mueves y te tiembla todo: la barriga, los brazos, la papada y el culo, cada cosa a su ritmo. Andas tú, y detrás anda toda tu puta grasa con un segundo de retraso.',
-      'Tienes los tobillos hinchados de cargar con tanto peso, y donde debería empezar el pie solo hay más pierna. Los tobillos los perdiste hace muchos kilos.',
-      'El ombligo se te ha hundido tanto en la barriga que ya no se le ve el fondo. Ahí dentro se te puede perder cualquier cosa.',
+      '*Edición deluxe: el doble de carne por el mismo polvo.* Y aun así contigo no repite nadie.', // ROCKSTAR
+      'Encima no te pones nunca: la única vez que lo probaste, la cama hizo un ruido que todavía recuerda el vecino.', // ROCKSTAR
       'Las tetas se te han caído encima de la barriga y ya no se sabe qué es cada cosa. Es todo grasa apilada, y el sujetador solo decide el orden.',
       'Respiras fuerte hasta sentada. Tanta grasa te aprieta por dentro que cada frase te sale con un resoplido al final, y ni siquiera te has movido.',
-      'Te sobran treinta putos kilos, y se te notan todos a la vez. No hay una sola parte de tu cuerpo que se haya librado: la grasa ha llegado a todas.',
-      'Hasta las manos se te han engordado. Los anillos se te quedaron pequeños hace tiempo, y los nudillos ya no se te marcan, se te hunden.',
-      'El cuello no existe. La cabeza se te apoya directamente en una papada que baja hasta los hombros, y cualquier collar se te pierde entre los pliegues.',
+      'Sudas antes, durante y después. Quien te folla sale como de una sauna, y la sauna no la repite nadie.', // ROCKSTAR
+      'Te gusta que te agarren de las caderas: son lo único que se encuentra sin linterna.', // ROCKSTAR
+      'Quien se acuesta contigo pide la luz apagada, y no por romanticismo: por miedo a perderse.', // ROCKSTAR
       'Tienes el cuerpo en forma de bola. De frente eres ancha, de lado eres barriga y por detrás eres culo. Ningún puto ángulo te salva.',
       'Sudas por la grasa que te sobra, y se te nota en cada pliegue: debajo de las tetas, entre los rollos y detrás de las rodillas. Tu cuerpo tiene más sitios para sudar que para enseñar.',
-      'La piel de la barriga se te ha estirado tanto que te cuelga hasta cuando aprietas. Aprietas la tripa y no se mete nada, porque ahí no hay músculo: solo grasa.',
-      'La barriga se te parte en dos pisos de grasa, uno encima del ombligo y otro debajo. Te sientas, y el de abajo se te derrama sobre los muslos.',
-      'Los costados te caen por encima de cualquier pantalón en dos asas de grasa, joder. Para agarrarte no hace falta buscar: por cualquier lado hay de sobra.',
+      'Lo tuyo en la cama tiene categoría propia en las webs guarras, y es de las que la gente busca en modo incógnito.', // ROCKSTAR
+      'Contigo encima, el misionero es una emergencia: a la tercera embestida el de abajo pide aire.', // ROCKSTAR
+      'Tus nudes llegan en panorámica. El móvil no tiene un modo más ancho.', // ROCKSTAR
       'Lo tuyo no es tener unos kilos de más: es estar gorda de verdad, con la barriga, la papada y los muslos dándolo por confirmado. El número del bot solo te lo pone por escrito.',
-      'Las rodillas se te han perdido debajo de la grasa de los muslos, y donde debería verse el hueso solo se ve un pliegue más.',
+      'Tu idea de un trío es tú y dos pizzas familiares. Las pizzas, por lo menos, no salen corriendo.', // ROCKSTAR
     ],
     mid: [
       'De pie das el pego. Te sientas, el botón del vaquero empieza a negociar, y a media tarde ya lo has soltado.',
@@ -341,28 +341,28 @@ const LABELS = {
       'Tu mejor ángulo lleva años en busca y captura. No se fugó: nunca existió, y la cámara lo sabe mejor que tú.',
       'Ni el alcohol te mejora. El alcohol es sincero, y tú sigues siendo esta basura.',
       'Te vas de la fiesta y nadie se da cuenta hasta el día siguiente. Lo más sexy que has hecho es desaparecer, y ni eso deja de dar pena de mierda.',
-      'Apagas la luz para ayudar, y a oscuras se te sigue notando. Ni el interruptor te salva de ese cuerpo de asco.',
+      'Apagas la luz para ayudar, y a oscuras se te sigue notando. Ni el interruptor te salva de ese cuerpo de asco.', // ROCKSTAR
       'Nadie te pide que te quedes a la segunda copa. La primera ya fue caridad. La segunda sería una puta broma.',
       'Tu cara no se olvida, por desgracia. La gente borra el historial para no volver a verla.',
       'El espejo te debe una disculpa y no te la va a dar. Tú le debes apagar la puta luz.',
-      'Te desnudas y el cuarto pierde valor de mercado. Hasta el colchón se queja, y con razón: das asco hasta sin ropa.',
+      'Te desnudas y el cuarto pierde valor de mercado. Hasta el colchón se queja, y con razón: das asco hasta sin ropa.', // ROCKSTAR
       'La gente te manda a la friendzone para no tener que mandarte a la mierda.',
       'Te miran y cambian de tema rápido, por no tener que decirte nada.',
-      'Un desnudo tuyo parece un informe médico. Nadie lo pide por vicio, y quien lo ve pide que se borre esa mierda.',
-      'Te han fingido más bostezos que gemidos, y los bostezos eran los de verdad.',
-      'La ropa interior te queda grande justo donde debería quedarte justa.',
-      'Nadie te desviste con la mirada. Si acaso te ponen otra capa, por piedad.',
-      'A tu paso no se levanta nada. Ni una ceja.',
-      'La gente prefiere su propia mano antes que la tuya y lo prefiere con ganas, reina.',
+      'Un desnudo tuyo parece un informe médico. Nadie lo pide por vicio, y quien lo ve pide que se borre esa mierda.', // ROCKSTAR
+      'Te han fingido más bostezos que gemidos, y los bostezos eran los de verdad.', // ROCKSTAR
+      'La ropa interior te queda grande justo donde debería quedarte justa.', // ROCKSTAR
+      'Nadie te desviste con la mirada. Si acaso te ponen otra capa, por piedad.', // ROCKSTAR
+      'A tu paso no se levanta nada. Ni una ceja.', // ROCKSTAR
+      'La gente prefiere su propia mano antes que la tuya y lo prefiere con ganas, reina.', // ROCKSTAR
       'De lejos todavía cuelas. En cuanto te acercas, se acaba.',
       'Tienes un cuerpo que se ve entero y no apetece por ningún lado.',
-      'Nadie te imagina por la noche, ni por aburrimiento.',
+      'Nadie te imagina por la noche, ni por aburrimiento.', // ROCKSTAR
       'Lo único que se te marca es la decepción. Con ropa y sin ella, chiquitina.',
       'La gente te usa de contraste: a tu lado cualquiera brilla. Gracias por el puto servicio.',
       'No tienes boca que apetezca ni manos que inviten. No hay por dónde cogerte.',
       'Cuando entras se hace un silencio de esos incómodos. Ni el camarero te mira.',
       'Te acercas a susurrar algo y la otra persona se aparta. No hace falta que acabes la frase.',
-      'Por tu cama pasa tan poca gente que no da ni para contarlo.',
+      'Por tu cama pasa tan poca gente que no da ni para contarlo.', // ROCKSTAR
     ],
     extreme: [
       'Estás tan bien que da rabia mirarte, y se te mira igual. Lo que dices después ya no lo escucha nadie.',
@@ -420,24 +420,24 @@ const LABELS = {
       'Te asignan lo que no se puede romper. Ya aprendieron, a hostias, lo que pasa si te dan algo serio: lo conviertes en mierda.',
       'Te sobra teoría de bar, y cuando toca hacerlo se te acaba y te vas. Mucho discurso y cero obra.',
       'Te llega lo serio, inútil, y pides tiempo. Te lo dan, y lo único que entregas es otra excusa.',
-      'Tu frase es «yo ya lo decía». Lo decías y no lo hacías, que hablar es gratis.',
-      'Nadie te disputa el puesto de inútil oficial. Te lo reservan con tu nombre, y nadie más quiere sentarse ahí.',
+      'Prometes mucho, aguantas poco y acabas antes que nadie. En el curro y donde no es el curro.', // ROCKSTAR
+      '*Rendimiento garantizado durante los dos primeros minutos.* Lo pone en tu contrato y en tu historial de ligues.', // ROCKSTAR
       'Cuando cuentan contigo, alguien arranca el cronómetro del desastre. Nunca falla, y el desastre lleva tu firma de inútil.',
       'Lo tocas y sale flojo, da igual qué sea. Lo único que te sale siempre bien es la cagada.',
       'Cada vez que dices «yo me encargo», alguien se prepara para recoger tus restos. El encargo dura un mensaje y la cagada, una semana de mierda.',
-      'Se te da de puta madre explicar lo que no has hecho. Hacerlo, ya no tanto.',
-      'El equipo respira cuando te vas. Dejas el curro hecho un asco.',
+      'Te piden que lo hagas bien y despacio, y lo haces mal y deprisa. En todos los sitios, por lo que cuentan.', // ROCKSTAR
+      'Dices «yo me encargo» con la misma seguridad con que dices «yo controlo». Luego no controlas, y alguien tiene que limpiar.', // ROCKSTAR
       'Nadie te deja el volante, y hacen bien. De copiloto solo quejas, y las quejas son de parásito, pequeña.',
       'Firmas el curro de otro como si fuera tuyo, y se nota en que por una vez está bien hecho.',
-      'Resuelves lo fácil y en cuanto se complica, te esfumas. Así cualquiera.',
-      'Nadie copia tu método. Cuando no estás, el grupo rinde más.',
+      'Te dan algo grande entre manos y no sabes qué hacer con ello. Pasa con los proyectos y, dicen, con todo lo demás.', // ROCKSTAR
+      'Haces la mitad del trabajo y pides el aplauso entero. En la cama igual: medio polvo y cara de haber ganado algo.', // ROCKSTAR
       'Cuando hay algo serio, el plan B es no contar contigo. Y el plan B funciona de maravilla.',
-      'Tu frase favorita es «estoy en ello». Lo que no aparece nunca es el ello terminado.',
-      'Lo máximo que das tú es lo mínimo de cualquiera que se lo curra.',
+      'Contigo no se queda satisfecho nadie: ni el jefe ni quien ha compartido almohada contigo.', // ROCKSTAR
+      'Lo tuyo es fingir que sabes lo que haces, y fingir es también lo que hace quien se acuesta contigo.', // ROCKSTAR
       'Mandas un audio de cinco minutos explicando lo que vas a hacer, y es lo único que haces, pequeña.',
-      'Cualquier arreglo tuyo es un problema nuevo con tu firma.',
+      'Te sabes la teoría de todo y en la práctica no atinas ni con el agujero de la cerradura.', // ROCKSTAR
       'Hablas de excelencia y entregas un PDF torcido y tarde.',
-      'Contigo no se enfadan: se organizan sin ti. Y eso escuece más.',
+      '*Tu versión estrella: caduca a los cinco minutos y sin final feliz.*', // ROCKSTAR
       'Nadie toma tu relevo con miedo. Lo toma con alivio, y se le nota en la cara, princesa.',
       'Te piden un arreglo y montas una reunión. La reunión no aprieta ni un puto tornillo.',
       'Los resultados te esquivan como quien esquiva a un borracho en el metro.',
@@ -856,26 +856,26 @@ const LABELS = {
     high: [
       'Nivel 100 en el juego, nivel tutorial en la vida. Años farmeando logros en el único sitio donde nadie te conoce: currículum de pringado.',
       'Tu manera de conocer gente es esperar a que alguien mencione tu tema. Nunca pasa, y te quedas con el dato en la boca, haciendo el ridículo.',
-      'Si pudieras, tendrías un personaje de foto de perfil. Da menos vergüenza que tu cara.',
-      'Tus prioridades están tan claras que no incluyen a nadie de carne y hueso. Agenda llena de partidas y vida de mierda.',
-      'Cuentas tus logros en una cena y la mesa entera saca el móvil a la vez. Trofeos de pringado.',
-      'Estás al día de cosas que no afectan a una sola parte de tu vida. Toda esa información y ni una puta aplicación práctica.',
+      'De sexo te sabes la teoría, los mods y los atajos de teclado, y sigues sin pasarte el tutorial.', // ROCKSTAR
+      '*Tu cuarto: el único servidor donde no ha entrado nadie más que tú.* Ni en cooperativo.', // ROCKSTAR
+      'El único cuerpo que has tocado con ganas venía en caja, con peana y edición limitada.', // ROCKSTAR
+      'Tienes el navegador en modo incógnito desde 2015, y aun así se te nota en la cara lo que ves.', // ROCKSTAR
       'Llevas años en la misma silla hundida y ya no se sabe dónde acaba la silla y empieza el gilipoyas.',
       'Te sabes el parche de memoria y en la mesa nadie ha abierto ese juego. El plan para salir te lo cuentan cuando ya han vuelto.',
       'Tu waifu no existe, [nombre], tu rank no paga facturas y tus figuras te miran con la misma decepción que tu familia. Decorado de un cuarto de mierda.',
       '[nombre], tienes el cuarto lleno de cajas sin abrir. Compras para tapar un hueco y el hueco sigue igual: consumo de pringado, hueco intacto.',
       'Eres quien confunde tener comunidad con tener gente que le importe, [nombre]. Nadie de ahí iría a tu entierro, cabrón. Ni sabrían la fecha.',
       '[nombre], la mitad de tus frases empiezan con un dato que nadie pidió. Asienten, cambian de tema y te dejan con el lore en la boca y cara de ridículo.',
-      'Hablas de tu afición hasta que la otra persona mira el móvil, y sigues hablando mientras lo mira.',
-      'Tienes opiniones firmísimas sobre el final de una serie y ninguna sobre tu propia vida.',
-      'Corriges la fecha de estreno de una película en mitad de una anécdota ajena, y luego te extraña que no te inviten.',
+      'Cuando dices «me he pasado la noche dándole», en el grupo ya saben que hablas del mando.', // ROCKSTAR
+      'Tu waifu recibe más caricias que cualquier persona que conozcas: la limpias con un paño cada domingo.', // ROCKSTAR
+      'Lo más húmedo que te ha pasado este año es la pasta térmica.', // ROCKSTAR
       'Llevas una vida entera en un juego que se reinicia cada temporada. En ese tiempo otra gente ha aprendido un idioma.',
-      'Tu lista de cosas para este año son tres consolas, una figura de edición limitada y ningún sitio al que ir.',
+      'Te pones los cascos para que no te oigan, y no siempre estás jugando.', // ROCKSTAR
       '[nombre], sabes el lore de doce universos y no aguantas tres minutos de conversación con alguien que no lo sepa.',
       '[nombre], sales de casa para ir a un salón del manga y vuelves con tres bolsas y ningún teléfono.',
-      'Estás en un montón de servidores y en ningún cumpleaños, [nombre]. Tienes buen ping y ni un solo plan para salir.',
+      '[nombre], dices que no tienes tiempo para ligar. Tienes trescientas horas en un juego de citas.', // ROCKSTAR
       'Tu escritorio tiene vasos viejos, latas vacías y una lámpara RGB que no se apaga. Ahí no entra ni tu madre, princesa.',
-      '[nombre], esperas tu momento con los cascos puestos y la persiana bajada. Tu momento no sabe ni en qué calle vives.',
+      '[nombre], el único lubricante que conoces es el de los sticks del mando, y lo compras por litros.', // ROCKSTAR
       'Te enfadas porque nadie valora tu afición, [nombre]. Nadie te la ha pedido, y encima te toca explicar quién es cada personaje.',
       '[nombre], tu única anécdota del mes pasó dentro de una partida, y para contarla hay que explicar quince cosas antes.',
       '[nombre], tu ropa es merchandising y tu conversación también. Te quitas la camiseta y te quedas sin tema.',
@@ -1263,26 +1263,26 @@ const LABELS = {
     goodIsHigh: false,
     high: [
       'Donde el resto pone un límite, [nombre], tú pones una anécdota que nadie quería oír. Y la anécdota da asco.',
-      'Tu repertorio es tan cutre, [nombre], que hasta los que te siguen la broma lo hacen por pena.',
+      '*Abierta las 24 horas, sin cita previa.* Lo pone en tu puerta y en tu historial, [nombre].', // ROCKSTAR
       'Tu presencia hace que la gente mida lo que dice, [nombre], y no por respeto. Por defensa, guarra, como quien esquiva un charco.',
       'Nadie te ha explicado dónde está la línea, [nombre], porque dan por hecho que la ves. No la ves, guarra: la pisas y sigues andando.',
-      'Tu forma de llamar la atención es la más barata del catálogo, [nombre], y encima no funciona. Cutre hasta para eso.',
+      '[nombre], en tu cama entra gente sin reserva y sale sin despedirse. Y tú lo llamas vida social.', // ROCKSTAR
       '[nombre], por donde pasas dejas rastro, huele, y encima hablas.',
       'Eres tan descuidada, [nombre], que ya nadie se sorprende de lo que traes puesto ni de lo que sueltas. El asco se les pasó de tanto verte.',
-      'En años, [nombre], lo único que has hecho es bajar el listón. Ya lo llevas arrastrando por el suelo.',
-      'Sueltas primero y piensas después, [nombre]. Y la mayoría de las veces, ni después.',
-      'Nadie te tiene por divertida, [nombre]. Te tienen por ruidosa, que no es lo mismo ni de lejos.',
+      '[nombre], tu boca ha visto más mundo que tu pasaporte.', // ROCKSTAR
+      'Efectos secundarios de quedar contigo: picores, una visita al médico y un mensaje incómodo a los ex, [nombre].', // ROCKSTAR
+      '[nombre], a ti «te invito a una copa» te suena a contrato firmado.', // ROCKSTAR
       'Llamas naturalidad a no controlarte nunca, [nombre], y la diferencia la nota todo el mundo menos tú.',
-      'Tu contribución más constante, [nombre], es el silencio incómodo que dejas detrás de cada mensaje.',
-      'Cuando hablas, todo el mundo mira el móvil para no tener que contestarte, [nombre].',
+      'Tienes tarjeta de cliente en el ginecólogo, [nombre], y ya has completado dos.', // ROCKSTAR
+      '[nombre], tus rodillas tienen más kilómetros que tus zapatos.', // ROCKSTAR
       'Tu idea de romper el hielo es tirar un cubo de basura al centro de la sala, [nombre]. Y luego preguntas por qué se ha quedado todo el mundo callado.',
-      '[nombre], tu sentido del humor se quedó en el patio del colegio, y tú con él.',
+      'El ruido que haces atraviesa el edificio entero, [nombre], y los vecinos ya distinguen a tus ligues por el día de la semana.', // ROCKSTAR
       'Nadie quiere escribir después de ti en el hilo, [nombre]. Dejas la conversación como dejas todo: hecha una mierda.',
       '[nombre], te ofendes cuando te devuelven el tono. Lo repartes todo el día y no aguantas ni una.',
-      '[nombre], te crees el alma de la fiesta y eres el motivo de que se acabe.',
+      '[nombre], cuando dices en el grupo «me lo he tragado todo», nadie piensa que hablas de una serie.', // ROCKSTAR
       '[nombre], tu idea de complicidad es arrastrar a otros a tu nivel de cabrona, y ahí no quiere bajar nadie.',
       'Ya nadie te sigue el juego, [nombre], y sigues jugando sola. Eso es lo triste.',
-      '[nombre], ya nadie se ríe: pasan tu mensaje deprisa y siguen a lo suyo.',
+      '[nombre], tu lista de contactos va por número, como la charcutería: se coge turno y se pasa.', // ROCKSTAR
       '[nombre], lo que a otras les cuesta admitir borrachas, tú lo cuentas sobria y con detalles que nadie pidió.',
       '[nombre], tienes la vergüenza de adorno. Se te ve el gusto por incomodar y encima te sale natural, que es lo que da miedo.',
       '[nombre], con un audio tuyo de treinta segundos se le quita el hambre a cuatro personas.',

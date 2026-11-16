@@ -28,29 +28,29 @@ const RIZZ = {
     '%N es un siete con la luz del bar y un tres cuando encienden las luces para cerrar.',
   ],
   low: [
-    'Te han usado de aviso en el grupo: si entra %N, nos vamos. Eres un puto protocolo de evacuación con nombre propio.',
+    'Tu técnica de ligue dura lo mismo que tú en la cama, %N: dos minutos y un perdón.', // ROCKSTAR
     'Confundes insistir con tener algo, %N, y no tienes nada: un bloqueo en tres apps y una vergüenza ajena que ya es colectiva.',
     'Un match contigo lo deshacen en cinco minutos, %N, y tú sigues escribiendo. El bloqueo ya está, pringado, y el párrafo también.',
     'Tu audio de ligue dura dos minutos, %N, y lo escuchan a doble velocidad para acabar antes. Dos minutos de mierda, y aun así sobran.',
-    'Te inventan una pareja para no quedar contigo, %N. La inventada tiene más futuro, y tú te quedas con el plan de pringado.',
+    '*%N, el ligue que no necesita protección: no llega nunca a la cama.*', // ROCKSTAR
     'Mandas la misma frase a cinco personas que se conocen, %N, y ahora tienen un grupo para leerla. Tu ligue es un meme de mierda.',
     'Insistes después del no, %N, como si el no viniera con letra pequeña. No venía, y el segundo mensaje ya es de parásito.',
-    'Cuando ligas en público el grupo mira al techo, %N, por no verte arrastrarte. El arrastre da vergüenza hasta a quien no te conoce.',
-    'Callado tendrías alguna oportunidad, %N, pero abres la boca a los diez segundos y se acabó: diez segundos de ridículo y a casa.',
-    'El visto es el único orgasmo que vas a provocar, %N. Y ni siquiera es tuyo: es el alivio de no contestarte.',
+    'Llevas condones en la cartera desde 2019, %N. Han caducado dos veces y siguen sin estrenar.', // ROCKSTAR
+    'Tu calentón aguanta lo que tus conversaciones, %N: a la tercera frase ya te han dejado con él.', // ROCKSTAR
+    'El visto es el único orgasmo que vas a provocar, %N. Y ni siquiera es tuyo: es el alivio de no contestarte.', // ROCKSTAR
     'Ligas como se pide limosna, %N: mano abierta y dignidad por el suelo. Te dan el no y das las gracias.',
     'Te dicen «eres buena gente» para no decirte que das asco, %N.',
     'Mandas «buenos días» cada mañana desde hace un mes, %N, y ni Dios te los devuelve. Un mes de mierda en silenciados.',
-    'Hasta el camarero te cobra más rápido para que te largues, %N, antes del número. El ticket es el rechazo, y es de los cutres.',
+    'Ligas a pelo, %N: sin gracia, sin plan y sin que te dejen terminar.', // ROCKSTAR
     'Te dan conversación de cortesía y la ordeñas hasta secarla, %N. Ese «jajaja» no te lo debían.',
     'Te dijeron «te escribo» y no escriben, %N. Era un adiós educado, y tú lo guardaste como promesa.',
-    'Pides explicaciones por un no, %N, cuando lo que te debían era un visto.',
+    'Tu frase estrella acaba en «…y si quieres vamos a mi casa», %N. Te dicen que no antes de llegar al «si».', // ROCKSTAR
     'Contestas a sus historias con el emoji de fuego y ahí se te acaba el repertorio, %N. Llevas un año de fuegos y ni una cita.',
-    'Ni friendzone te dan, %N. Te tienen en el destierro, con bloqueo y pestillo.',
-    'Entras al after y el after se acaba, %N. Nadie dice nada, pero la gente coge el abrigo cuando llegas.',
+    'Te mandan a la friendzone con tanta prisa, %N, que ni da tiempo a calentar.', // ROCKSTAR
+    'En tu lista de ligues hay tres nombres, %N, y los tres son bots de webs guarras.', // ROCKSTAR
     'Tu mejor frase para ligar es «¿qué haces?», %N. La respuesta suele llegar en forma de bloqueo.',
     'Pediste café para dos y te has bebido los dos, %N. La otra persona dijo que iba al baño hace una hora.',
-    'Sonríes a alguien en el metro y esa persona se baja una parada antes, %N.',
+    'Te dicen «otro día» con la cara con la que se dice «nunca», %N, y tú sigues dejando la cama hecha.', // ROCKSTAR
     'Le das like a una foto de hace tres años y a los diez minutos esa cuenta es privada, %N.',
     'Tu tipo es cualquiera que te conteste, %N, y aun así nadie cumple el requisito.',
   ],
