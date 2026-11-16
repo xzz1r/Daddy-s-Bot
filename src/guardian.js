@@ -22,10 +22,15 @@
 // anti-admin; y un admin echa a cinco en menos de cinco minutos o echa al dueño
 // con el bot fuera, le quita el admin (ver alExpulsar).
 //
-// NO lee mensajes. NO responde comandos. NO cuenta nada, no toca el aura, no
-// escribe en `data/`. No manda un solo mensaje al grupo: la reposición ya
-// aparece sola en el aviso de sistema de WhatsApp y un texto encima solo sería
-// el bot explicando su propia defensa a quien acaba de atacarla.
+// NO responde comandos. NO cuenta nada, no toca el aura. No manda un solo
+// mensaje al grupo: la reposición ya aparece sola en el aviso de sistema de
+// WhatsApp y un texto encima solo sería el bot explicando su propia defensa a
+// quien acaba de atacarla.
+//
+// Lo único que mira de los mensajes son las fotos y vídeos de ver una vez, y
+// solo para dejarle al bot una copia en data/verUnaVez/ (16 nov, ver
+// «LAS FOTOS DE VER UNA VEZ»). No contesta, no marca nada como visto y no las
+// abre: las baja como haría el móvil al recibirlas.
 //
 // Esa lista de "no" es la mitad del diseño. Una segunda cuenta automatizada es
 // una segunda cuenta que WhatsApp puede vetar, y lo que hace que la veten es
@@ -83,7 +88,12 @@ const {
   fetchLatestWaWebVersion,
   fetchLatestBaileysVersion,
   DisconnectReason,
+  Browsers,
+  downloadContentFromMessage,
+  getBinaryNodeChild,
 } = require('@whiskeysockets/baileys');
+const { pipeline } = require('stream/promises');
+const { Transform } = require('stream');
 
 // LA VERSIÓN DE WHATSAPP WEB, la más nueva entre lo que dice WhatsApp Web y lo
 // que publica Baileys en GitHub (19 oct). Con la de GitHub sola, WhatsApp
@@ -965,6 +975,304 @@ async function alExpulsar(groupJid, participants, action, author, authorPn) {
   return { quitados, repuestos };
 }
 
+// ─── LAS FOTOS DE VER UNA VEZ, PARA EL BOT (16 nov) ─────────────────────────
+//
+// El dueño: «intenta arreglar esto vía guardián». A un dispositivo vinculado
+// que se presenta como navegador —el bot— WhatsApp le manda de cada foto o
+// vídeo de ver una vez solo el aviso vacío, y /toimg y /s no tienen nada que
+// sacar. El guardián es otra cuenta, en los mismos grupos, y vinculado como
+// Android (ver «COMO QUÉ SE VINCULA») a él tiene que llegarle la foto entera.
+//
+// La baja en cuanto llega y la deja en data/verUnaVez/<id>.bin, que es donde
+// el bot ya busca su copia (utils/verUnaVez.js). El id de un mensaje es el
+// mismo para todos los del grupo: el /toimg de quien responda a la foto la
+// encuentra, la haya abierto o no. Mientras baja, deja <id>.pend al lado, y el
+// bot espera a que termine en vez de contestar que no le llega.
+//
+// No la abre: bajar no manda ningún acuse, y el guardián no marca nada como
+// visto. Una descarga a la vez, de la red al disco sin pasar entera por la
+// memoria, con el mismo tope de tamaño, de vida y de carpeta que el bot.
+//
+// SOLO SI EL BOT ESTÁ EN ESTA MÁQUINA (su latido existe). El guardián puede
+// correr en el ordenador de otra persona, y ahí no guarda fotos de nadie.
+//
+// Y deja dicho qué le llega (data/guardianVerUnaVez.json) para `npm run
+// estado`: si como Android tampoco le llega la foto, se ve ahí.
+let DIR_VER_UNA_VEZ = path.join(__dirname, '../data/verUnaVez');
+let FICHERO_VER_UNA_VEZ = path.join(__dirname, '../data/guardianVerUnaVez.json');
+const TOPE_FOTO = 24 * 1024 * 1024;          // MAX_MEDIA_BYTES, el tope de medios del bot
+const VIDA_FOTO = 6 * 60 * 60 * 1000;        // TTL_MS de utils/verUnaVez.js
+const TOPE_FOTOS = 400;                      // TOPE_DISCO_FICHEROS
+const TOPE_MEGAS_FOTOS = 300 * 1024 * 1024;  // TOPE_DISCO_BYTES
+const VIDA_PEND = 3 * 60 * 1000;
+const TOPE_DESCARGA = 90 * 1000;
+let ESPERA_FOTO = 8000;   // tras el aviso vacío, lo que se espera a la foto
+
+const copiarVerUnaVez = () => String(process.env.GUARDIAN_VER_UNA_VEZ || '').trim() !== '0'
+  && estadoDelBot() !== 'desconocido';
+
+// El mismo nombre de fichero que el bot (nombreDisco en utils/verUnaVez.js).
+const nombreFoto = (id) => String(id || '').split('|').pop().replace(/[^A-Za-z0-9_-]/g, '').slice(0, 80);
+
+// La foto o el vídeo de ver una vez de un mensaje, dentro de sus envoltorios.
+function medioVerUnaVez(m, capa = 0, vista = false) {
+  if (!m || capa > 6) return null;
+  for (const [k, tipo] of [['imageMessage', 'image'], ['videoMessage', 'video']]) {
+    if (m[k]) return vista || m[k].viewOnce === true ? { nodo: m[k], tipo } : null;
+  }
+  const envoltorio = m.viewOnceMessage || m.viewOnceMessageV2 || m.viewOnceMessageV2Extension;
+  const dentro = envoltorio?.message || m.ephemeralMessage?.message || m.documentWithCaptionMessage?.message;
+  return dentro ? medioVerUnaVez(dentro, capa + 1, vista || Boolean(envoltorio)) : null;
+}
+
+// Lo que llega, junto y como mucho cada cinco segundos.
+let porApuntar = [];
+let sinAbrir = 0;
+let relojApunte = null;
+function volcarVerUnaVez() {
+  relojApunte = null;
+  if (sinAbrir) { porApuntar.push({ ts: Date.now(), que: 'sin abrir', n: sinAbrir }); sinAbrir = 0; }
+  if (!porApuntar.length) return;
+  const nuevos = porApuntar;
+  porApuntar = [];
+  try {
+    let v = [];
+    try { v = JSON.parse(fs.readFileSync(FICHERO_VER_UNA_VEZ, 'utf8')); } catch { v = []; }
+    if (!Array.isArray(v)) v = [];
+    v.push(...nuevos);
+    fs.mkdirSync(path.dirname(FICHERO_VER_UNA_VEZ), { recursive: true });
+    fs.writeFileSync(FICHERO_VER_UNA_VEZ, JSON.stringify(v.slice(-300)));
+  } catch { /* contar no tumba nada */ }
+}
+function apuntarVerUnaVez(que) {
+  if (que === 'sin abrir') sinAbrir++;
+  else porApuntar.push({ ts: Date.now(), que });
+  if (relojApunte) return;
+  relojApunte = setTimeout(volcarVerUnaVez, 5000);
+  relojApunte.unref?.();
+}
+
+let descargar = (nodo, tipo) => downloadContentFromMessage(nodo, tipo);
+
+async function bajarAFichero(nodo, tipo, ruta) {
+  const tmp = `${ruta}.${process.pid}.tmp`;
+  let total = 0;
+  const flujo = await withTimeout(Promise.resolve(descargar(nodo, tipo)), TOPE_RED);
+  const cuenta = new Transform({
+    transform(trozo, _cod, listo) {
+      total += trozo.length;
+      if (total > TOPE_FOTO) listo(new Error('demasiado grande'));
+      else listo(null, trozo);
+    },
+  });
+  try {
+    await withTimeout(pipeline(flujo, cuenta, fs.createWriteStream(tmp)), TOPE_DESCARGA);
+    if (total < 100) throw new Error('vino vacía');
+    await fsp.rename(tmp, ruta);
+    return total;
+  } catch (e) {
+    try { flujo?.destroy?.(); } catch { /* ya cerrado */ }
+    await fsp.rm(tmp, { force: true }).catch(() => {});
+    throw e;
+  }
+}
+
+// Fuera lo caducado y, si aun así se pasa, lo más viejo: las reglas de
+// barrerDisco del bot, que solo barre cuando guarda él.
+let ultimoBarrido = 0;
+function barrerFotos(ahora = Date.now()) {
+  if (ahora - ultimoBarrido < 10 * 60 * 1000) return 0;
+  ultimoBarrido = ahora;
+  let nombres = [];
+  try { nombres = fs.readdirSync(DIR_VER_UNA_VEZ); } catch { return 0; }
+  const vivas = [];
+  let borradas = 0;
+  for (const n of nombres) {
+    const ruta = path.join(DIR_VER_UNA_VEZ, n);
+    try {
+      const st = fs.statSync(ruta);
+      const edad = ahora - st.mtimeMs;
+      if (((n.endsWith('.tmp') || n.endsWith('.pend')) && edad > VIDA_PEND) || edad > VIDA_FOTO) { fs.unlinkSync(ruta); borradas++; continue; }
+      if (n.endsWith('.bin')) vivas.push({ ruta, ts: st.mtimeMs, tam: st.size });
+    } catch { /* ya no está */ }
+  }
+  vivas.sort((a, b) => a.ts - b.ts);
+  let total = vivas.reduce((a, v) => a + v.tam, 0);
+  while (vivas.length && (vivas.length > TOPE_FOTOS || total > TOPE_MEGAS_FOTOS)) {
+    const v = vivas.shift();
+    total -= v.tam;
+    try { fs.unlinkSync(v.ruta); borradas++; } catch { /* ya no está */ }
+  }
+  return borradas;
+}
+
+let colaFotos = Promise.resolve();
+const enCola = new Set();
+function guardarFoto(id, { nodo, tipo }) {
+  const nombre = nombreFoto(id);
+  if (!nombre || enCola.has(nombre)) return null;
+  const ruta = path.join(DIR_VER_UNA_VEZ, `${nombre}.bin`);
+  if (fs.existsSync(ruta)) return null;
+  if (!nodo?.mediaKey || !(nodo.directPath || nodo.url)) { apuntarVerUnaVez('sin clave'); return null; }
+  enCola.add(nombre);
+  const pend = path.join(DIR_VER_UNA_VEZ, `${nombre}.pend`);
+  try { fs.mkdirSync(DIR_VER_UNA_VEZ, { recursive: true }); fs.writeFileSync(pend, ''); } catch { /* sin marca, el bot no espera */ }
+  const p = colaFotos.then(() => bajarAFichero(nodo, tipo, ruta)).then(
+    (bytes) => { apuntarVerUnaVez('guardada'); return bytes; },
+    (e) => {
+      apuntarVerUnaVez('no se pudo bajar');
+      logger.warn(`guardián: no pude guardar una foto de ver una vez (${e?.message || e})`);
+      return 0;
+    },
+  ).finally(() => {
+    enCola.delete(nombre);
+    try { fs.rmSync(pend, { force: true }); } catch { /* da igual */ }
+    try { barrerFotos(); } catch { /* barrer no tumba nada */ }
+  });
+  colaFotos = p.then(() => {}, () => {});
+  return p;
+}
+
+// Las que llegaron con la foto, y los avisos vacíos esperando a la suya.
+const conFoto = new Map();   // id -> ts
+const avisos = new Map();    // id -> reloj
+function recordarFoto(id) {
+  conFoto.delete(id);
+  conFoto.set(id, Date.now());
+  while (conFoto.size > 2000) conFoto.delete(conFoto.keys().next().value);
+}
+const CIPHERTEXT = 2;   // proto.WebMessageInfo.StubType.CIPHERTEXT: no se pudo abrir
+
+function mirarMensaje(m) {
+  const id = m?.key?.id ? String(m.key.id) : '';
+  if (!id || !String(m.key.remoteJid || '').endsWith('@g.us')) return null;
+  const medio = m.message ? medioVerUnaVez(m.message) : null;
+  if (medio) {
+    if (!copiarVerUnaVez()) return null;
+    if (!conFoto.has(id)) apuntarVerUnaVez('foto');
+    recordarFoto(id);
+    if (avisos.has(id)) { clearTimeout(avisos.get(id)); avisos.delete(id); }
+    return guardarFoto(id, medio);
+  }
+  if (m.message) return null;
+  if (m.key.isViewOnce === true) {
+    if (conFoto.has(id) || avisos.has(id) || !copiarVerUnaVez()) return null;
+    const t = setTimeout(() => {
+      avisos.delete(id);
+      if (!conFoto.has(id)) apuntarVerUnaVez('solo el aviso');
+    }, ESPERA_FOTO);
+    t.unref?.();
+    avisos.set(id, t);
+    return null;
+  }
+  if (m.messageStubType === CIPHERTEXT && copiarVerUnaVez()) apuntarVerUnaVez('sin abrir');
+  return null;
+}
+
+// Se mira ANTES del búfer de eventos de Baileys, como en el bot
+// (instalarFiltro): ahí dentro el aviso vacío sustituye a la foto si llegan
+// con el mismo id. Solo se mira; todo sigue su camino igual.
+const MARCA_VER_UNA_VEZ = Symbol.for('daddy.guardian.verUnaVez');
+function vigilarVerUnaVez(s) {
+  const ev = s?.ev;
+  if (!ev || typeof ev.emit !== 'function') return false;
+  if (ev[MARCA_VER_UNA_VEZ]) return true;
+  const emitir = ev.emit.bind(ev);
+  ev.emit = (evento, datos, ...resto) => {
+    if (evento === 'messages.upsert' && Array.isArray(datos?.messages)) {
+      for (const m of datos.messages) {
+        try { mirarMensaje(m); } catch { /* mirar no se come ningún mensaje */ }
+      }
+    }
+    return emitir(evento, datos, ...resto);
+  };
+  ev[MARCA_VER_UNA_VEZ] = true;
+  return true;
+}
+
+// ─── LAS CLAVES DE UN SOLO USO, COMO EL BOT (16 nov) ────────────────────────
+//
+// Para mandarle la foto, cada persona del grupo abre primero un canal con el
+// dispositivo del guardián, y para eso gasta una de sus claves de un solo uso
+// del servidor. Recién vinculado no tiene canal con nadie, y Baileys solo
+// repone cinco: es lo que dejó al bot sordo (utils/clavesUnUso.js). Mismas
+// cifras: por debajo de 200 se sube hasta 812, como mucho una vez por hora, y
+// solo si guarda fotos para el bot.
+const CLAVES_UMBRAL = 200;
+const CLAVES_OBJETIVO = 812;
+let ultimaSubidaClaves = 0;
+async function reponerClaves() {
+  if (!sock || typeof sock.query !== 'function' || typeof sock.uploadPreKeys !== 'function') return null;
+  const r = await withTimeout(sock.query({
+    tag: 'iq',
+    attrs: { id: sock.generateMessageTag(), xmlns: 'encrypt', type: 'get', to: 's.whatsapp.net' },
+    content: [{ tag: 'count', attrs: {} }],
+  }), TOPE_RED);
+  const n = Number(getBinaryNodeChild(r, 'count')?.attrs?.value);
+  if (!Number.isFinite(n) || n >= CLAVES_UMBRAL || Date.now() - ultimaSubidaClaves < 60 * 60 * 1000) return n;
+  ultimaSubidaClaves = Date.now();
+  await withTimeout(sock.uploadPreKeys(CLAVES_OBJETIVO - n), 60000);
+  logger.info(`guardián: quedaban ${n} claves de un solo uso; subidas ${CLAVES_OBJETIVO - n}`);
+  return CLAVES_OBJETIVO;
+}
+let relojClaves = null;
+function vigilarClaves() {
+  // Se mira en cada ronda: el bot puede arrancar después que el guardián.
+  const una = () => {
+    if (!copiarVerUnaVez() || dispositivoDeSesion() !== 'android') return;
+    reponerClaves().catch((e) => logger.unaVez('guardián: claves de un solo uso', e));
+  };
+  setTimeout(una, 20000).unref?.();
+  if (!relojClaves) { relojClaves = setInterval(una, 3 * 60 * 60 * 1000); relojClaves.unref?.(); }
+}
+
+// ─── COMO QUÉ SE VINCULA (16 nov) ───────────────────────────────────────────
+//
+// Como Android, para que le llegue lo de ver una vez. Es Browsers.android de
+// Baileys rc14, el mismo que el bot tiene detrás de WA_DISPOSITIVO, y se fija
+// al vincular: una sesión de navegador no pasa a Android sin volver a
+// vincularla. Con GUARDIAN_DISPOSITIVO=navegador se vincula como antes.
+//
+// La sesión guarda como qué se vinculó en data/authGuardian/dispositivo.json
+// (sin ese fichero, es de antes: navegador). NO SE CAMBIA SOLA: una sesión que
+// funciona no se toca hasta que alguien, con el móvil del guardián delante,
+// pide vincular (`npm run vincular-guardian`). Entonces la de navegador se
+// aparta entera —se mueve, no se borra— y se vincula la nueva.
+const dispositivoDeseado = () => (String(process.env.GUARDIAN_DISPOSITIVO || '').trim().toLowerCase() === 'navegador' ? 'navegador' : 'android');
+const ficheroDispositivo = () => path.join(AUTH_DIR, 'dispositivo.json');
+function leerDispositivo() {
+  try { return JSON.parse(fs.readFileSync(ficheroDispositivo(), 'utf8')) || {}; } catch { return {}; }
+}
+function apuntarDispositivo(d) {
+  try { fs.mkdirSync(AUTH_DIR, { recursive: true }); fs.writeFileSync(ficheroDispositivo(), JSON.stringify(d)); } catch { /* sin marca: cuenta como navegador */ }
+}
+const dispositivoDeSesion = () => (leerDispositivo().dispositivo === 'android' ? 'android' : 'navegador');
+const navegadorDe = (d) => (d === 'android'
+  ? (typeof Browsers?.android === 'function' ? Browsers.android('14') : ['14', 'Android', ''])
+  : ['Ubuntu', 'Chrome', '120.0.0']);
+
+// El código de vinculación, también en un fichero: `npm run vincular-guardian`
+// lo lee de ahí y lo enseña, sin buscarlo en el log.
+const FICHERO_CODIGO = path.join(__dirname, '../data/guardianCodigo.json');
+
+// Devuelve a dónde la movió, o null si no tocaba.
+async function apartarSesionSiCambia() {
+  if (!vinculacionArmada()) return null;
+  const deseado = dispositivoDeseado();
+  const actual = dispositivoDeSesion();
+  if (actual === deseado) return null;
+  const previo = await useMultiFileAuthState(AUTH_DIR);
+  const c = previo.state?.creds;
+  if (!c?.registered || !c?.account) return null;   // no hay sesión hecha que apartar
+  const d = new Date();
+  const marca = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}${String(d.getSeconds()).padStart(2, '0')}`;
+  const destino = `${AUTH_DIR}.${actual}-${marca}`;
+  await fsp.rename(AUTH_DIR, destino);
+  await fsp.mkdir(AUTH_DIR, { recursive: true });
+  logger.warn(`guardián: aparto la sesión de ${actual} en data/${path.basename(destino)} y me vinculo como ${deseado}`);
+  return destino;
+}
+
 // Aparte y exportada: es un borrado de credenciales, o sea lo que mas cuesta si
 // se equivoca de condicion, y solo ocurre en un arranque tras una vinculacion a
 // medias. Sin poder probarla, la unica forma de saber si acierta seria dejar una
@@ -1057,6 +1365,11 @@ async function conectar() {
 
   await fsp.mkdir(AUTH_DIR, { recursive: true });
 
+  // Si alguien pidió vincular y la sesión es de otro dispositivo (la de
+  // navegador de antes), se aparta entera antes de nada (ver «COMO QUÉ SE
+  // VINCULA»).
+  await apartarSesionSiCambia();
+
   // CREDENCIALES A MEDIAS: SE MIRA `account`, NO `registered`.
   //
   // Es la misma trampa que ya costó cinco intentos en el bot, y aquí habría
@@ -1074,6 +1387,9 @@ async function conectar() {
   await limpiarCredencialesAMedias();
 
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
+  // Una sesión hecha entra como lo que es; una nueva se vincula como Android.
+  const hayQueVincular = !state.creds?.registered;
+  const dispositivo = hayQueVincular ? dispositivoDeseado() : dispositivoDeSesion();
   const version = await versionWA();
   if (!version) logger.unaVez('guardian: version de whatsapp', new Error('no contesta nadie; sigo con la de Baileys'));
 
@@ -1090,7 +1406,7 @@ async function conectar() {
     // llama más la atención que una que no se anuncia.
     markOnlineOnConnect: false,
     syncFullHistory: false,
-    browser: ['Ubuntu', 'Chrome', '120.0.0'],
+    browser: navegadorDe(dispositivo),
 
     // ─── TODO LO QUE NO ES UN GRUPO, NI SE MIRA ──────────────────────────
     //
@@ -1128,6 +1444,8 @@ async function conectar() {
   });
 
   sock.ev.on('creds.update', saveCreds);
+  // Las fotos de ver una vez, para el bot (ver arriba).
+  vigilarVerUnaVez(sock);
 
   // ─── VINCULACIÓN POR CÓDIGO ─────────────────────────────────────────────
   //
@@ -1140,7 +1458,6 @@ async function conectar() {
   //   → "Vincular con el número de teléfono"
   //
   // El QR sigue saliendo si no hay número puesto, como respaldo.
-  const hayQueVincular = !state.creds?.registered;
 
   // NADIE PIDE UN CODIGO QUE NADIE ESPERA. Si hace falta vincular pero no se ha
   // armado, se dice y se para: pm2 lo deja quieto (stop_exit_codes) y el movil
@@ -1154,6 +1471,9 @@ async function conectar() {
     try { sock.end(); } catch {}
     process.exit(SALIDA_SESION_MUERTA);
   }
+  // La sesión nueva apunta como qué se vincula. Si no llega a completarse,
+  // limpiarCredencialesAMedias se lleva la carpeta entera, marca incluida.
+  if (hayQueVincular) apuntarDispositivo({ dispositivo, pedido: Date.now() });
 
   const porCodigo = Boolean(miNumero()) && hayQueVincular;
   if (porCodigo) {
@@ -1177,6 +1497,7 @@ async function conectar() {
         // diferencia entre un código y una ráfaga de códigos.
         desarmarVinculacion();
         const bonito = String(codigo).match(/.{1,4}/g)?.join('-') || codigo;
+        try { fs.writeFileSync(FICHERO_CODIGO, JSON.stringify({ ts: Date.now(), codigo: bonito, dispositivo })); } catch { /* queda el log */ }
         console.log(`\n  CÓDIGO DE VINCULACIÓN DEL GUARDIÁN: ${bonito}\n`);
         console.log(`  En el móvil de +${miNumero()}:`);
         console.log('  WhatsApp → Dispositivos vinculados → Vincular un dispositivo');
@@ -1199,10 +1520,17 @@ async function conectar() {
     }
     if (connection === 'open') {
       espera = ESPERA_MIN;
+      const d = leerDispositivo();
+      if (d.dispositivo && !d.abierto) apuntarDispositivo({ ...d, abierto: Date.now() });
+      try { fs.rmSync(FICHERO_CODIGO, { force: true }); } catch { /* da igual */ }
+      vigilarClaves();
       const aQuien = protegido();
       logger.info(aQuien || lidProtegido()
         ? `guardián en línea. Repongo el admin del bot (+${aQuien || '?'}, lid ${lidProtegido() || 'sin anotar'}) ${lineaDuenos()}.`
         : `guardián en línea, pero aún no sé cuál es el bot: esperando a que conecte. Protejo ${lineaDuenos()}.`);
+      logger.info(`guardián vinculado como ${dispositivo}` + (!copiarVerUnaVez() ? '; no guardo fotos de ver una vez (el bot no está en esta máquina)'
+        : dispositivo === 'android' ? '; guardo las fotos de ver una vez para el bot'
+          : '; como navegador no me llegan las fotos de ver una vez: npm run vincular-guardian'));
       // El repaso va DESPUÉS de anunciar la conexión y sin bloquearla: si la
       // consulta de grupos tarda o falla, el guardián sigue en pie y escuchando,
       // que es su trabajo principal.
@@ -1274,4 +1602,19 @@ if (require.main === module) {
   } else arrancar();
 }
 
-module.exports = { esDueno, lineaDuenos, _ficheroDueno: (f, g) => { FICHERO_DUENO = f; if (g) FICHERO_LIDS_DUENOS = g; _lidsDueno = { mtime: -1, lids: [] }; }, alDegradar, alCambioDeAdmin, alExpulsar, _olvidarPurgas: () => purgas.clear(), _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, _latidoBot: (f) => { LATIDO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _vigilarMemoria: vigilarMemoria, _pistaMuerteMuda: pistaMuerteMuda, _MEMORIA: MEMORIA, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };
+module.exports = { esDueno, lineaDuenos, _ficheroDueno: (f, g) => { FICHERO_DUENO = f; if (g) FICHERO_LIDS_DUENOS = g; _lidsDueno = { mtime: -1, lids: [] }; }, alDegradar, alCambioDeAdmin, alExpulsar, _olvidarPurgas: () => purgas.clear(), _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, _latidoBot: (f) => { LATIDO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _vigilarMemoria: vigilarMemoria, _pistaMuerteMuda: pistaMuerteMuda, _MEMORIA: MEMORIA, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR,
+  // Ver una vez (16 nov).
+  vigilarVerUnaVez, medioVerUnaVez, reponerClaves, barrerFotos, apartarSesionSiCambia,
+  dispositivoDeseado, dispositivoDeSesion, navegadorDe, apuntarDispositivo, FICHERO_CODIGO,
+  _verUnaVez: ({ dir, fichero, descarga, espera } = {}) => {
+    if (dir) DIR_VER_UNA_VEZ = dir;
+    if (fichero) FICHERO_VER_UNA_VEZ = fichero;
+    if (descarga) descargar = descarga;
+    if (espera) ESPERA_FOTO = espera;
+    ultimoBarrido = 0; conFoto.clear(); enCola.clear();
+    for (const t of avisos.values()) clearTimeout(t);
+    avisos.clear();
+  },
+  _volcarVerUnaVez: volcarVerUnaVez,
+  _esperarFotos: () => colaFotos,
+};

@@ -160,6 +160,16 @@ fallidos, y `npm run estado` enseña el motivo del último y lo que traía la
 cita, sin mandar a nadie al log (dueño, 16 nov: «así no debo usar comandos
 por separado»).
 
+**Las guarda el guardián** (dueño, 16 nov: «intenta arreglar esto vía
+guardián»). El guardián, vinculado como Android, baja cada foto de ver una
+vez de los grupos al llegar y la deja en `data/verUnaVez/<id>.bin`, donde el
+bot ya busca su copia; mientras baja deja `<id>.pend` y el bot espera. No
+abre nada, no manda vistos y solo lo hace con el bot en la misma máquina. Se
+vincula con `npm run vincular-guardian`, con el móvil del guardián delante:
+la sesión de navegador se aparta (se mueve, no se borra) y nunca cambia sola.
+El bot sigue como navegador. `npm run estado` dice si al guardián le llegan.
+Capa 174; ver `MOTOR.md`.
+
 ## Historias de grupo: se abren, se reconocen y se quitan
 
 Lo pidió el dueño (13 nov): «el bot no está baneando la peña que sube

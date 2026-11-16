@@ -1294,3 +1294,28 @@ sesión vieja se aparta con `mv`), y tras vincular, durante unas horas o días,
 muchos mensajes de grupo no se podrán abrir hasta que la gente le reparta su
 clave al dispositivo nuevo. No se enciende sin que lo pida el dueño. Capa 167.
 
+**Las guarda el guardián** (16 nov, dueño: «intenta arreglar esto vía
+guardián»). El guardián es otra cuenta, en los mismos grupos, y no importa
+qué huella tenga: se vincula como Android (`Browsers.android`, el mismo de
+`WA_DISPOSITIVO`) para que le llegue la foto entera. Envuelve `sock.ev.emit`
+como el bot y, de cada foto o vídeo de ver una vez de un grupo, la baja al
+llegar (de la red al disco, sin pasarla entera por memoria, una a la vez y
+con el tope de 24 MB) a `data/verUnaVez/<id>.bin`, que es donde el bot ya
+busca su copia. El id es el mismo para todos los del grupo: el `/toimg` de
+quien responda la saca, la haya abierto o no. Mientras baja deja
+`<id>.pend`, y el bot espera hasta 25 s en vez de contestar. Barre la
+carpeta con las mismas reglas que el bot (6 h, 400 ficheros, 300 MB). No abre
+nada, no manda vistos y no contesta. Solo lo hace con el bot en la misma
+máquina (su latido): en la de otra persona no guarda fotos de nadie. Repone
+sus claves de un solo uso como el bot (200 → 812), para que la gente le pueda
+repartir su clave de grupo al dispositivo nuevo.
+
+La sesión guarda como qué se vinculó (`data/authGuardian/dispositivo.json`;
+sin él, navegador) y **no cambia sola**. `npm run vincular-guardian`, con el
+móvil del guardián delante, arma la vinculación y reinicia el guardián; este
+aparta la sesión de navegador (`data/authGuardian.navegador-<fecha>`, se
+mueve, no se borra), pide el código y el script lo enseña y espera a que se
+complete. Con `GUARDIAN_DISPOSITIVO=navegador` se vincula como antes. `npm
+run estado` dice si sigue como navegador, cuántas fotos le llegan y guarda, de
+cuántas solo le llega el aviso (entonces Android tampoco sirve) y cuántos
+mensajes de grupo no pudo abrir. Capa 174.

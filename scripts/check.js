@@ -7887,8 +7887,15 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       // Y LO QUE NO PUEDE HACER, leido del codigo.
       exige(!/sendMessage\s*\(/.test(gsrc),
         'el guardian manda mensajes: tiene que ser una cuenta muda, es lo que la mantiene fuera del radar');
-      exige(!/messages\.upsert/.test(gsrc),
-        'el guardian escucha mensajes: solo tiene que mirar quien sube y baja de admin');
+      // LOS MENSAJES, SOLO PARA LAS FOTOS DE VER UNA VEZ (16 nov). El dueño
+      // pidió que el guardián le guarde al bot esas fotos: es lo único que mira
+      // de un mensaje, y solo para bajarlo a disco. Nada de leerlos, ni de
+      // marcarlos como vistos (capa 174).
+      const fueraVerUnaVez = gsrc.replace(/function vigilarVerUnaVez[\s\S]*?\n\}/, '');
+      exige(!/messages\.upsert/.test(fueraVerUnaVez),
+        'el guardian escucha mensajes fuera de las fotos de ver una vez: solo tiene que mirar quien sube y baja de admin');
+      exige(!/readMessages|sendReceipt|sendPresenceUpdate/.test(gsrc),
+        'el guardian marca mensajes como vistos o se anuncia: es una cuenta muda');
       exige(!/require\(['"]\.\/handlers/.test(gsrc) && !/require\(['"]\.\/commands/.test(gsrc),
         'el guardian carga los comandos del bot: es una cuenta que no responde a nadie');
       exige(/data\/authGuardian|authGuardian/.test(gsrc),
@@ -7899,8 +7906,12 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       // cosa, tiene que no PODER hacerla sin que esto se ponga rojo.
       const llamadas = [...gsrc.matchAll(/sock\.([a-zA-Z]+)\s*\(/g)].map((m) => m[1]);
       // groupFetchAllParticipating es del repaso al reconectar: leer en que
-      // grupos esta. Sigue siendo LEER y ASCENDER, nada mas.
-      const PERMITIDAS = new Set(['groupParticipantsUpdate', 'groupMetadata', 'groupFetchAllParticipating', 'ev', 'end']);
+      // grupos esta. Sigue siendo LEER y ASCENDER, nada mas. Y desde el 16 nov,
+      // contar y reponer sus claves de un solo uso (query, generateMessageTag,
+      // uploadPreKeys), lo que hace cualquier cliente, para que le lleguen las
+      // fotos de ver una vez que guarda para el bot.
+      const PERMITIDAS = new Set(['groupParticipantsUpdate', 'groupMetadata', 'groupFetchAllParticipating', 'ev', 'end',
+        'query', 'generateMessageTag', 'uploadPreKeys']);
       const demas = [...new Set(llamadas)].filter((x) => !PERMITIDAS.has(x));
       exige(demas.length === 0,
         `el guardian llama a sock.${demas.join(', sock.')}: solo puede leer la ficha del grupo y ascender, nada mas`);
@@ -8061,7 +8072,7 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       exige(delBot.length === 0,
         `el guardian carga ${delBot.join(', ')} del repositorio: deja de poder correrse suelto, y acaba con un pie en el estado del bot`);
 
-      const NODE = new Set(['path', 'fs', 'fs/promises', 'os', 'crypto', 'util', 'events', 'child_process', 'v8']);
+      const NODE = new Set(['path', 'fs', 'fs/promises', 'os', 'crypto', 'util', 'events', 'child_process', 'v8', 'stream', 'stream/promises']);
       const fuera = requiere.filter((r) => !r.startsWith('.') && !NODE.has(r)
         && r !== '@whiskeysockets/baileys');
       exige(fuera.length === 0,
@@ -25698,6 +25709,134 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     const est173 = fs.readFileSync(path.join(R, 'scripts/estado.js'), 'utf8');
     exige(/lleva pegada/.test(est173) && /de !inmune/.test(est173), '`npm run estado` ya no dice cuántos inmunes ve ni avisa de una línea pegada en el .env');
     if (fallos === antes173) console.log(verde('   ✓ la línea pegada del .env se lee, !inmune guarda por número y por @lid, y ni texto, ni stickers, ni fotos castigan a un inmune'));
+  }
+
+  // ── 174. EL GUARDIÁN LE GUARDA AL BOT LAS FOTOS DE VER UNA VEZ (16 nov) ────
+  // El dueño: «intenta arreglar esto vía guardián». Al bot, vinculado como
+  // navegador, WhatsApp solo le manda el aviso vacío. El guardián, vinculado
+  // como Android, baja la foto al llegar y la deja en data/verUnaVez/<id>.bin,
+  // donde el bot ya busca su copia. En sandbox:
+  //   · sin el bot en la máquina no guarda nada; con él, guarda la de ver una
+  //     vez (con su marca .pend mientras baja) y no las demás;
+  //   · todo mensaje sigue su camino, y apunta foto, guardada, solo el aviso y
+  //     sin abrir para `npm run estado`;
+  //   · el bot la saca desde una respuesta sin clave, y espera a la que se está
+  //     bajando;
+  //   · la sesión de navegador solo se aparta (se mueve, no se borra) cuando
+  //     alguien arma la vinculación, y una nueva se vincula como Android.
+  {
+    console.log('\n174. EL GUARDIÁN LE GUARDA AL BOT LAS FOTOS DE VER UNA VEZ');
+    const antes174 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'guardian174-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = `
+const fs = require('fs'), path = require('path'); const { Readable } = require('stream');
+const G = require('./src/guardian'); const V = require('./src/utils/verUnaVez');
+const data = path.join(__dirname, 'data'); const dir = path.join(data, 'verUnaVez'); const auth = G.AUTH_DIR;
+G._latidoBot(path.join(data, 'botLatido.json'));
+const r = {};
+(async () => {
+  let bajadas = 0;
+  G._verUnaVez({ dir, fichero: path.join(data, 'guardianVerUnaVez.json'), espera: 200,
+    descarga: async () => { bajadas++; return Readable.from([Buffer.alloc(5000, 7)]); } });
+  const ev = { emit: (e, d) => { ev.visto = d; return true; } };
+  G.vigilarVerUnaVez({ ev });
+  const foto = (id) => ({ key: { id, remoteJid: '120363000000174@g.us', participant: '174@lid' },
+    message: { viewOnceMessageV2: { message: { imageMessage: { mediaKey: Buffer.from('k'), directPath: '/v/x', mimetype: 'image/jpeg' } } } } });
+  ev.emit('messages.upsert', { messages: [foto('SINBOT174')], type: 'notify' });
+  await G._esperarFotos();
+  r.sinBot = fs.existsSync(path.join(dir, 'SINBOT174.bin'));
+  fs.writeFileSync(path.join(data, 'botLatido.json'), JSON.stringify({ conectado: true, ts: Date.now(), pid: process.pid }));
+  ev.emit('messages.upsert', { messages: [foto('FOTO174'), { key: { id: 'NORMAL174', remoteJid: '120363000000174@g.us' },
+    message: { imageMessage: { mediaKey: Buffer.from('k'), directPath: '/x' } } }], type: 'notify' });
+  r.pend = fs.existsSync(path.join(dir, 'FOTO174.pend'));
+  r.pasan = ev.visto.messages.length;
+  await G._esperarFotos();
+  r.guardada = fs.existsSync(path.join(dir, 'FOTO174.bin')) ? fs.statSync(path.join(dir, 'FOTO174.bin')).size : 0;
+  r.pendFuera = !fs.existsSync(path.join(dir, 'FOTO174.pend'));
+  r.normal = fs.existsSync(path.join(dir, 'NORMAL174.bin'));
+  ev.emit('messages.upsert', { messages: [{ key: { id: 'AVISO174', remoteJid: '120363000000174@g.us', isViewOnce: true }, messageStubType: 2 }] });
+  ev.emit('messages.upsert', { messages: [{ key: { id: 'FOTO174', remoteJid: '120363000000174@g.us', isViewOnce: true }, messageStubType: 2 }] });
+  ev.emit('messages.upsert', { messages: [{ key: { id: 'C1', remoteJid: '120363000000174@g.us' }, messageStubType: 2 }] });
+  await new Promise((x) => setTimeout(x, 450));
+  G._volcarVerUnaVez();
+  r.eventos = JSON.parse(fs.readFileSync(path.join(data, 'guardianVerUnaVez.json'), 'utf8')).map((x) => x.que);
+  r.bajadas = bajadas;
+  V._usarDisco(dir);
+  const cita = (id) => ({ key: { id: 'R' + id, remoteJid: '120363000000174@g.us' }, message: { extendedTextMessage: { text: '/toimg',
+    contextInfo: { stanzaId: id, participant: '174@lid', quotedMessage: { viewOnceMessageV2: { message: { imageMessage: { mimetype: 'image/jpeg' } } } } } } } });
+  const found = V.clasificar(cita('x').message.extendedTextMessage.contextInfo.quotedMessage);
+  try { r.botLee = (await V.bajar({ user: { id: '34600000174@s.whatsapp.net' } }, cita('FOTO174'), found, 'cita')).length; } catch (e) { r.botLee = e.message; }
+  V._usarEsperaGuardian(5000);
+  fs.writeFileSync(path.join(dir, 'PEND174.pend'), '');
+  setTimeout(() => { fs.writeFileSync(path.join(dir, 'PEND174.bin'), Buffer.alloc(3000, 1)); fs.rmSync(path.join(dir, 'PEND174.pend')); }, 600);
+  try { r.espera = (await V.bajar({ user: { id: '34600000174@s.whatsapp.net' } }, cita('PEND174'), found, 'cita')).length; } catch (e) { r.espera = e.message; }
+  // La sesión: solo se aparta con la vinculación armada.
+  r.nav = [G.navegadorDe('android')[1], G.navegadorDe('navegador')[1], G.dispositivoDeseado()];
+  const sesion = (marca) => { fs.rmSync(auth, { recursive: true, force: true }); fs.mkdirSync(auth, { recursive: true });
+    fs.writeFileSync(path.join(auth, 'creds.json'), JSON.stringify({ registered: true, account: { details: 'eA==' }, me: { id: '34600000174:3@s.whatsapp.net' } }));
+    if (marca) G.apuntarDispositivo({ dispositivo: marca, abierto: 1 }); };
+  sesion(null);
+  r.sinArmar = await G.apartarSesionSiCambia();
+  fs.writeFileSync(path.join(data, 'vincularGuardian'), '');
+  r.deAntes = G.dispositivoDeSesion();
+  const d = await G.apartarSesionSiCambia();
+  r.apartada = Boolean(d) && /authGuardian\\.navegador-/.test(d) && fs.existsSync(path.join(d, 'creds.json')) && !fs.existsSync(path.join(auth, 'creds.json'));
+  sesion('android');
+  r.yaAndroid = await G.apartarSesionSiCambia();
+  console.log('R174' + JSON.stringify(r)); process.exit(0);
+})().catch((e) => { console.log('R174' + JSON.stringify({ error: e.stack })); process.exit(0); });
+`;
+      fs.writeFileSync(path.join(caja, 't174.js'), guion);
+      const entorno = { ...process.env, OWNER_NUMBER: '33600000174', LOG_LEVEL: 'error' };
+      delete entorno.GUARDIAN_DISPOSITIVO; delete entorno.GUARDIAN_VER_UNA_VEZ;
+      const out = spawnSync('node', ['t174.js'], { cwd: caja, encoding: 'utf8', timeout: 60000, env: entorno });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R174'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(r.sinBot === false, 'el guardián guarda fotos de ver una vez sin el bot en la máquina: en la de otra persona no guarda las de nadie');
+        exige(r.guardada === 5000 && r.bajadas === 1, `el guardián no deja la foto de ver una vez en data/verUnaVez/<id>.bin (${r.guardada} bytes, ${r.bajadas} bajada/s)`);
+        exige(r.pend === true && r.pendFuera === true, 'el guardián no marca con .pend la foto que está bajando, o no quita la marca al terminar: el bot no sabe si esperar');
+        exige(r.normal === false, 'el guardián guarda fotos que no son de ver una vez');
+        exige(r.pasan === 2, 'el guardián se come mensajes al mirarlos: todos tienen que seguir su camino');
+        exige(JSON.stringify(r.eventos) === JSON.stringify(['foto', 'guardada', 'solo el aviso', 'sin abrir']),
+          `el guardián no apunta bien lo que le llega para npm run estado: ${JSON.stringify(r.eventos)}`);
+        exige(r.botLee === 5000, `el bot no saca la foto que guardó el guardián desde una respuesta sin clave: ${r.botLee}`);
+        exige(r.espera === 3000, `el bot no espera a la foto que el guardián está bajando: ${r.espera}`);
+        exige(JSON.stringify(r.nav) === JSON.stringify(['Android', 'Chrome', 'android']),
+          `el guardián no se vincula como Android por defecto, o su sesión de navegador cambia de huella: ${JSON.stringify(r.nav)}`);
+        exige(r.sinArmar === null, 'el guardián aparta su sesión sin que nadie haya pedido vincular: se quedaría fuera hasta que alguien se diera cuenta');
+        exige(r.deAntes === 'navegador' && r.apartada === true, 'con la vinculación armada, la sesión de navegador no se aparta (movida, no borrada) para vincular como Android');
+        exige(r.yaAndroid === null, 'una sesión que ya es Android se aparta al armar la vinculación');
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    const g174 = soloCodigo('src/guardian.js');
+    exige(/vigilarVerUnaVez\(sock\)/.test(g174) && /vigilarClaves\(\)/.test(g174),
+      'el guardián ya no mira las fotos de ver una vez o no repone sus claves de un solo uso al conectar');
+    exige(/browser: navegadorDe\(dispositivo\)/.test(g174) && /await apartarSesionSiCambia\(\);[\s\S]{0,400}limpiarCredencialesAMedias\(\)/.test(g174),
+      'el guardián ya no elige como qué se vincula, o aparta la sesión después de limpiar credenciales');
+    exige(/pipeline\(flujo, cuenta, fs\.createWriteStream/.test(g174) && !/Buffer\.concat/.test(g174),
+      'el guardián baja la foto entera a memoria: con su tope de 96 MB, un vídeo lo tumba');
+    const apartar174 = (g174.match(/async function apartarSesionSiCambia[\s\S]*?\n\}/) || [''])[0];
+    exige(/fsp\.rename\(AUTH_DIR, destino\)/.test(apartar174) && !/\brm(Sync)?\(/.test(apartar174),
+      'la sesión del guardián se borra en vez de apartarse al vincular de nuevo');
+    const v174 = soloCodigo('src/utils/verUnaVez.js');
+    exige(/await esperarDelGuardian\(ids\)/.test(v174) && /n\.endsWith\('\.pend'\)/.test(v174),
+      'el bot ya no espera a la copia que baja el guardián, o no barre sus marcas viejas');
+    const est174 = soloCodigo('scripts/estado.js');
+    exige(/guardianVerUnaVez\.json/.test(est174) && /npm run vincular-guardian/.test(est174) && /como Android tampoco le llega la foto/.test(est174),
+      '`npm run estado` ya no dice si el guardián está como navegador ni si le llegan las fotos');
+    const pk174 = JSON.parse(fs.readFileSync(path.join(R, 'package.json'), 'utf8'));
+    exige(/vincularGuardian\.js/.test(pk174.scripts?.['vincular-guardian'] || ''), 'falta `npm run vincular-guardian`');
+    const vg174 = soloCodigo('scripts/vincularGuardian.js');
+    exige(/vincularGuardian'\)/.test(vg174) && /guardianCodigo\.json/.test(vg174) && !/rmSync\([^)]*authGuardian/.test(vg174),
+      '`npm run vincular-guardian` ya no arma la vinculación y enseña el código, o borra la sesión del guardián');
+    if (fallos === antes174) console.log(verde('   ✓ el guardián baja la foto de ver una vez a la carpeta del bot, el bot la saca o la espera, y la sesión solo se aparta cuando se pide vincular'));
   }
 
 

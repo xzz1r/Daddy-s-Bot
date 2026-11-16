@@ -625,6 +625,40 @@ if (!bot) {
         'pásale esa línea a quien mantenga el bot: es WhatsApp quien no se lo entrega');
     }
   }
+  // LA COPIA DEL GUARDIÁN (16 nov). Vinculado como Android, el guardián baja
+  // las fotos de ver una vez que al bot no le llegan y se las deja en
+  // data/verUnaVez/ (src/guardian.js). Aquí se ve si le llegan a él.
+  let guardoGuardian = 0;
+  try {
+    let disp = null;
+    try { disp = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data/authGuardian/dispositivo.json'), 'utf8')).dispositivo; } catch { /* sesión de antes: navegador */ }
+    const hayGuardian = Boolean(String(process.env.GUARDIAN || '').replace(/\D/g, '')) || fs.existsSync(path.join(RAIZ, 'data/authGuardian'));
+    let gv = [];
+    try { gv = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data/guardianVerUnaVez.json'), 'utf8')); } catch { gv = []; }
+    gv = (Array.isArray(gv) ? gv : []).filter((x) => x && x.ts >= Date.now() - 24 * 3600000);
+    const c = {};
+    for (const x of gv) c[x.que] = (c[x.que] || 0) + (Number(x.n) || 1);
+    guardoGuardian = c.guardada || 0;
+    if (hayGuardian && disp !== 'android') {
+      aviso('el guardián sigue vinculado como navegador: así no puede guardar las fotos de ver una vez',
+        'con el móvil del guardián delante: npm run vincular-guardian');
+    } else if (hayGuardian) {
+      const linea = `guardián (Android), ver una vez en 24 h: ${c.foto || 0} foto(s) recibidas, ${guardoGuardian} guardada(s) para el bot`
+        + (c['solo el aviso'] ? `, ${c['solo el aviso']} de las que solo le llegó el aviso` : '')
+        + (c['sin abrir'] ? ` · ${c['sin abrir']} mensaje(s) de grupo que no pudo abrir` : '');
+      const logG = () => {
+        const l = (sh('pm2 logs guardian --lines 2000 --nostream 2>/dev/null', 20000) || '').split('\n')
+          .filter((x) => /ver una vez|claves de un solo uso|vinculado como/.test(x))
+          .map((x) => x.replace(/^\s*\d+\|[\w-]+\s*\|\s*/, '').trim().slice(0, 220)).slice(-3);
+        return l.length ? `en el log:\n        ${l.join('\n        ')}` : 'pásale esta línea a quien mantenga el bot';
+      };
+      if (!c.foto && c['solo el aviso']) mal(`${linea}: como Android tampoco le llega la foto`, logG());
+      else if (c['no se pudo bajar'] || c['sin clave']) {
+        aviso(`${linea}; ${c['no se pudo bajar'] || 0} no se pudieron bajar y ${c['sin clave'] || 0} llegaron sin clave`, logG());
+      } else if (gv.length) bien(linea, true);
+      else bien('guardián vinculado como Android: aún no le ha llegado ninguna foto de ver una vez', true);
+    }
+  } catch { /* sin datos */ }
   // LO DE VER UNA VEZ QUE LLEGA (15 nov): cuántas fotos llegaron de verdad,
   // cuántos avisos vacíos se apartaron para que no las pisaran, y de cuántas
   // solo llegó el aviso. Ver utils/verUnaVez.js (instalarFiltro).
@@ -634,9 +668,11 @@ if (!bot) {
       const c = {};
       for (const x of ll) c[x.que] = (c[x.que] || 0) + 1;
       const linea = `ver una vez en 24 h: ${c.foto || 0} foto(s) recibidas, ${c['aviso vacío apartado'] || 0} aviso(s) vacío(s) apartados`;
-      if (c['solo el aviso vacío']) {
+      if (c['solo el aviso vacío'] && !guardoGuardian) {
         aviso(`${linea}, y ${c['solo el aviso vacío']} de las que solo llegó el aviso vacío`,
-          'WhatsApp no le manda las fotos de ver una vez a los dispositivos vinculados; se sacan respondiendo a la foto sin haberla abierto');
+          'al bot WhatsApp solo le manda el aviso; las guarda el guardián vinculado como Android: npm run vincular-guardian');
+      } else if (c['solo el aviso vacío']) {
+        bien(`${linea}; de ${c['solo el aviso vacío']} solo le llegó el aviso, y el guardián guardó ${guardoGuardian}`, true);
       } else bien(linea, true);
     }
   } catch { /* sin datos */ }

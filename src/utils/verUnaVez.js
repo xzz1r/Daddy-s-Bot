@@ -86,6 +86,32 @@ async function leerDisco(ids) {
   return null;
 }
 
+// LA COPIA DEL GUARDIÁN (16 nov). El guardián, vinculado como Android, baja
+// la foto que al bot no le llega y la deja aquí con el mismo nombre (ver
+// src/guardian.js, «LAS FOTOS DE VER UNA VEZ»). Mientras baja deja <id>.pend
+// al lado: si alguien pide /toimg en ese rato, se espera a que termine.
+const VIDA_PEND_MS = 3 * 60 * 1000;
+let ESPERA_GUARDIAN_MS = 25000;
+const rutaPend = (id) => { const r = rutaDisco(id); return r ? r.replace(/\.bin$/, '.pend') : null; };
+function bajandoElGuardian(ids) {
+  return ids.some((id) => {
+    const r = rutaPend(id);
+    if (!r) return false;
+    try { return Date.now() - fsSync.statSync(r).mtimeMs < VIDA_PEND_MS; } catch { return false; }
+  });
+}
+async function esperarDelGuardian(ids) {
+  if (!bajandoElGuardian(ids)) return null;
+  const hasta = Date.now() + ESPERA_GUARDIAN_MS;
+  while (Date.now() < hasta) {
+    await new Promise((r) => { setTimeout(r, 300); });
+    const listo = await leerDisco(ids);
+    if (listo) return listo;
+    if (!bajandoElGuardian(ids)) return leerDisco(ids);
+  }
+  return null;
+}
+
 // Fuera lo caducado, y si aun así se pasa del tope, lo más viejo.
 async function barrerDisco() {
   ultimoBarrido = Date.now();
@@ -97,7 +123,8 @@ async function barrerDisco() {
     const ruta = path.join(DIR_DISCO, n);
     try {
       const st = await fsp.stat(ruta);
-      const viejoTmp = n.endsWith('.tmp') && Date.now() - st.mtimeMs > 60 * 1000;
+      const viejoTmp = (n.endsWith('.tmp') && Date.now() - st.mtimeMs > 60 * 1000)
+        || (n.endsWith('.pend') && Date.now() - st.mtimeMs > VIDA_PEND_MS);
       if (viejoTmp || Date.now() - st.mtimeMs > TTL_MS) { await fsp.unlink(ruta); borrados++; continue; }
       if (n.endsWith('.bin')) vivos.push({ ruta, ts: st.mtimeMs, tam: st.size });
     } catch { /* ya no está */ }
@@ -425,8 +452,9 @@ async function bajarSinApuntar(sock, msg, found, origen, opts = {}) {
       const tras = tomar(ids);
       if (tras) return tras;
     }
-    // La copia en disco: la de hace un rato, o la de antes de un reinicio.
-    const delDisco = await leerDisco(ids);
+    // La copia en disco: la de hace un rato, la de antes de un reinicio o la
+    // que el guardián está terminando de bajar.
+    const delDisco = (await leerDisco(ids)) || (await esperarDelGuardian(ids));
     if (delDisco) {
       porId.set(delDisco.id, { buf: delDisco.buf, ts: Date.now() });
       bytes += delDisco.buf.length;
@@ -747,5 +775,6 @@ module.exports = {
   _escribirEventos: escribirEventos,
   _olvidarMemoria: () => { porId.clear(); alias.clear(); vuelos.clear(); noEntregadas.clear(); conContenido.clear(); crudas.clear(); bytes = 0; },
   _usarEsperaSoloAviso: (ms) => { ESPERA_SOLO_AVISO_MS = ms; },
+  _usarEsperaGuardian: (ms) => { ESPERA_GUARDIAN_MS = ms; },
   _rutaDisco: rutaDisco,
 };

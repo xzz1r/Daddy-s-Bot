@@ -135,9 +135,11 @@ module.exports = {
     //   pm2 save
     //
     // RAM: pide menos que el bot. No guarda estado, no cachea nada, no procesa
-    // mensajes — solo mantiene la sesión abierta y escucha un evento. Y descarta
-    // antes de descifrar todo lo que no sea de un grupo, que es lo que le impide
-    // crecer como el bot.
+    // mensajes — solo mantiene la sesión abierta y escucha un evento. De los
+    // mensajes, solo baja las fotos de ver una vez para el bot (16 nov), de la
+    // red al disco y sin pasarlas enteras por memoria. Y descarta antes de
+    // descifrar todo lo que no sea de un grupo, que es lo que le impide crecer
+    // como el bot.
     //
     // EL TECHO ESTUVO EN 120M Y ERA UNA TRAMPA. La cifra salía de medir 22 MB
     // recién arrancado, pero esos 22 MB eran `heapUsed` y `max_memory_restart`
