@@ -7,6 +7,17 @@
 // los avisos salen todos de aqui.
 const PREFIJOS = ['!', '/'];
 
+// SPAM_INMUNES leido del .env TAL CUAL, para cuando dotenv no lo ve porque la
+// linea quedo pegada a la de antes (ver spamInmunes mas abajo). Solo digitos y
+// comas: lo que venga detras no es suyo.
+function inmunesDelEnvCrudo() {
+  try {
+    const crudo = require('fs').readFileSync(require('path').join(__dirname, '..', '.env'), 'utf8');
+    const m = /SPAM_INMUNES=([\d,+ ]+)/.exec(crudo);
+    return m ? m[1] : '';
+  } catch { return ''; }
+}
+
 // ─── EL DUEÑO PUEDE SER MAS DE UN NUMERO ────────────────────────────────────
 //
 // Hasta ahora OWNER_NUMBER era UNO, y el tier se completaba con CO_OWNERS. Pero
@@ -99,7 +110,13 @@ const config = {
   // SPAM_INMUNES=numero1,numero2, por lo mismo que CO_OWNERS: ni un número
   // real escrito en el código. Solo esa regla: el resto de la moderación
   // (enlaces, historias, anti-empresa) les sigue tocando.
-  spamInmunes: (process.env.SPAM_INMUNES || '')
+  //
+  // Y SI LA LINEA SE PEGO A LA ANTERIOR, SE LEE IGUAL (16 nov). Se añadió con
+  // `echo … >> .env`, y si al .env le faltaba el salto de línea final, la línea
+  // queda «OTRA=valorSPAM_INMUNES=…»: dotenv no ve SPAM_INMUNES y los dos
+  // números seguían recibiendo el aviso. Se busca en el .env tal cual.
+  // `npm run estado` avisa de la línea pegada (sin enseñar valores).
+  spamInmunes: (process.env.SPAM_INMUNES || inmunesDelEnvCrudo())
     .split(',')
     .map(n => n.replace(/\D/g, ''))
     .filter(Boolean),

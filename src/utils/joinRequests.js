@@ -375,10 +375,10 @@ async function aceptarPendientes(sock, grupo) {
   catch { return null; }
   if (!lista || !lista.length) return { aprobados: 0, sinJid: 0, rechazados: 0 };
   const r = await aprobarLista(sock, grupo, lista);
-  // Ni una aprobada habiendo cola sin vetar: se apunta el porque.
-  if (!r.aprobados && lista.length > r.rechazados) {
+  // Lo que se queda fuera sin estar vetado: se apunta el porque.
+  if (lista.length - r.rechazados - r.aprobados > 0) {
     await apuntarFallo(grupo, {
-      pendientes: lista.length, sinJid: r.sinJid, estados: r.estados, caidos: r.caidos,
+      pendientes: lista.length, aprobados: r.aprobados, sinJid: r.sinJid, estados: r.estados, caidos: r.caidos,
       ...(r.muestra ? { muestra: r.muestra } : {}),
     });
   }
@@ -391,6 +391,8 @@ async function aprobarLista(sock, grupo, lista) {
   const estados = {};   // lo que contesto WhatsApp por solicitud, si no fue 200
   const caidos = [];    // lotes enteros que fallaron, con el mensaje
   const jids = [];
+  const formasPor = new Map();  // jid usado -> todas las formas que trae la solicitud
+  const attrsPor = new Map();   // jid usado -> la solicitud tal cual, para estado
   for (const p of lista) {
     const jid = jidDeSolicitud(p);
     if (!jid) {
@@ -402,6 +404,8 @@ async function aprobarLista(sock, grupo, lista) {
       continue;
     }
     jids.push(jid);
+    formasPor.set(jid, formasSolicitud(p));
+    attrsPor.set(jid, p);
   }
 
   // ─── LOS TACHADOS NO PASAN LA PUERTA ──────────────────────────────────────
@@ -414,7 +418,7 @@ async function aprobarLista(sock, grupo, lista) {
     // Las dos formas: la solicitud trae una sola, y la lista negra guarda
     // telefono y LID por separado. Sin canonicalJid, un vetado que pide entrar
     // con la forma que no se guardo pasa como si nada.
-    const formas = [bareJid(jid), canonicalJid(jid)].filter(Boolean);
+    const formas = [...new Set([jid, ...(formasPor.get(jid) || [])].flatMap((f) => [bareJid(f), canonicalJid(f)]).filter(Boolean))];
     const veto = await isBanned(formas).catch(() => null);
     if (veto) vetados.push(jid); else limpios.push(jid);
   }
@@ -447,28 +451,66 @@ async function aprobarLista(sock, grupo, lista) {
       caidos.push(String(e.message || e).slice(0, 160));
       continue;
     }
-    // WhatsApp NO lanza cuando rechaza: devuelve el error dentro del status, uno
-    // por participante. Contarlos todos como aprobados seria mentir en el
-    // recuento, que es de las pocas cosas que este bot no se permite.
-    //
-    // La respuesta se cruza POR JID cuando lo trae, y por posicion cuando no:
-    // Baileys devuelve `{ status, jid }` por participante y en el mismo orden,
-    // pero el jid puede volver en otra forma (lid contra telefono) y entonces
-    // buscar por nombre no encuentra nada.
-    const filas = Array.isArray(res) ? res : [];
-    for (let k = 0; k < lote.length; k++) {
-      const jid = lote[k];
-      const fila = filas.find((f) => f?.jid === jid) || filas[k];
-      const estado = String(fila?.status ?? (filas.length ? '?' : '200'));
+    // Lo que contesta WhatsApp, por persona (ver leerEstados).
+    const fallidas = [];
+    for (const [jid, estado] of leerEstados(lote, res)) {
       if (estado === '200') { aprobados++; await olvidarSolicitud(grupo, jid); }
-      else {
-        estados[estado] = (estados[estado] || 0) + 1;
-        logger.warn(`autoaceptar: WhatsApp rechazo aprobar a ${jid} en ${grupo} (status ${estado})`);
+      else fallidas.push([jid, estado]);
+    }
+
+    // CON LA OTRA FORMA DE LA PERSONA (16 nov). Cada solicitud trae el @lid y
+    // el telefono (`jid` y `phone_number`), y Baileys aprueba mandando solo
+    // uno. Si WhatsApp rechaza esa forma, se prueba con la otra, en un solo
+    // lote. Lo que siga fallando es lo que se apunta.
+    const conOtra = [];
+    for (const [jid, estado] of fallidas) {
+      const otra = (formasPor.get(jid) || []).find((f) => bareJid(f) !== bareJid(jid));
+      if (otra) conOtra.push([jid, otra, estado]);
+      else anotarFallida(jid, estado);
+    }
+    if (conOtra.length) {
+      let res2 = null;
+      try { res2 = await sock.groupRequestParticipantsUpdate(grupo, conOtra.map(([, otra]) => otra), 'approve'); }
+      catch (e) { caidos.push(String(e.message || e).slice(0, 160)); }
+      const segundo = new Map(res2 ? leerEstados(conOtra.map(([, otra]) => otra), res2) : []);
+      for (const [jid, otra, estado] of conOtra) {
+        const e2 = segundo.get(otra);
+        if (e2 === '200') {
+          aprobados++;
+          await olvidarSolicitud(grupo, jid);
+          logger.warn(`autoaceptar: aprobada en ${grupo} con su otra forma (${otra}); con ${jid} WhatsApp dio ${estado}`);
+        } else anotarFallida(jid, `${estado}${e2 ? `/${e2}` : ''}`);
       }
     }
     if (i + POR_LOTE < limpios.length) await new Promise((r) => setTimeout(r, PAUSA_ENTRE_LOTES));
   }
   return { aprobados, sinJid, rechazados, estados, caidos, muestra };
+
+  function anotarFallida(jid, estado) {
+    estados[estado] = (estados[estado] || 0) + 1;
+    if (!muestra) muestra = attrsPor.get(jid) || null;
+    logger.warn(`autoaceptar: WhatsApp rechazo aprobar a ${jid} en ${grupo} (status ${estado})`);
+  }
+}
+
+// WhatsApp NO lanza cuando rechaza: devuelve el error dentro del status, uno
+// por participante. Contarlos todos como aprobados seria mentir en el recuento.
+// La respuesta se cruza POR JID cuando lo trae, y por posicion cuando no:
+// Baileys devuelve `{ status, jid }` por participante y en el mismo orden, pero
+// el jid puede volver en otra forma (lid contra telefono).
+function leerEstados(lote, res) {
+  const filas = Array.isArray(res) ? res : [];
+  return lote.map((jid, k) => {
+    const fila = filas.find((f) => f?.jid === jid) || filas[k];
+    return [jid, String(fila?.status ?? (filas.length ? '?' : '200'))];
+  });
+}
+
+// Todas las formas de la persona que trae una solicitud: el `jid` y lo que
+// venga en `phone_number`, `lid` u otro atributo con forma de JID.
+function formasSolicitud(attrs) {
+  const esJid = (v) => typeof v === 'string' && /@(s\.whatsapp\.net|lid|c\.us)$/i.test(v);
+  return [...new Set(Object.values(attrs || {}).filter(esJid))];
 }
 
 module.exports = {

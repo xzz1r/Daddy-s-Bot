@@ -680,6 +680,32 @@ if (!bot) {
     if (c.borrado === r.total) bien(`${r.total} estado(s) en 24 h, todos borrados`);
     else bien(`estados en 24 h: ${parte}`);
   }
+  // LOS INMUNES AL SPAM (16 nov). El dueño pasó dos números y siguieron
+  // recibiendo el aviso: la línea de SPAM_INMUNES se pegó a la anterior del
+  // .env y dotenv no la veía. Aquí se dice cuántos ve el bot, de dónde, y si
+  // alguna línea del .env lleva otra pegada (solo los nombres, nunca valores).
+  try {
+    const fsx = require('fs');
+    let crudo = '';
+    try { crudo = fsx.readFileSync(path.join(RAIZ, '.env'), 'utf8'); } catch { crudo = ''; }
+    const pegadas = [];
+    for (const l of crudo.split('\n')) {
+      const m = /^\s*([A-Z][A-Z0-9_]*)=/.exec(l);
+      if (!m) continue;
+      const otra = /\S([A-Z][A-Z0-9]*_[A-Z0-9_]+)=/.exec(l.slice(m[0].length));
+      if (otra) pegadas.push(`${m[1]} lleva pegada ${otra[1]}`);
+    }
+    if (pegadas.length) {
+      aviso(`.env: ${pegadas.join('; ')}. Falta un salto de línea y la primera variable queda mal`,
+        'abre el .env y separa esa línea en dos; luego npm run update');
+    }
+    let guardados = [];
+    try { guardados = JSON.parse(fsx.readFileSync(path.join(RAIZ, 'data/state.json'), 'utf8')).spamInmunes || []; } catch { guardados = []; }
+    const delEnv = (process.env.SPAM_INMUNES || (/SPAM_INMUNES=([\d,+ ]+)/.exec(crudo) || [])[1] || '')
+      .split(',').map((n) => n.replace(/\D/g, '')).filter(Boolean);
+    const total = new Set([...delEnv, ...guardados]).size;
+    if (total) bien(`spam: ${total} inmune(s) (${delEnv.length} del .env, ${guardados.length} de !inmune)`, true);
+  } catch { /* sin datos */ }
   // !autoaccept QUE NO PUDO APROBAR NINGUNA (16 nov), con el porqué. Antes se
   // le pedía al grupo, por WhatsApp, que mandara un `pm2 logs … | grep`; ahora
   // el motivo se apunta en data/autoaceptarFallos.json y se lee aquí.
@@ -692,7 +718,7 @@ if (!bot) {
       for (const [st, n] of Object.entries(u.estados || {})) partes.push(`${n} con error ${st} de WhatsApp`);
       if ((u.caidos || []).length) partes.push(`la petición falló: «${u.caidos[0]}»`);
       const grupos = new Set(fa.map((x) => x.grupo)).size;
-      aviso(`autoaccept: ${fa.length} repaso(s) en 24 h sin poder aprobar ninguna (${grupos} grupo(s)); el último, ${u.pendientes} esperando: ${partes.join(', ') || 'sin detalle'}`,
+      aviso(`autoaccept: ${fa.length} repaso(s) en 24 h con solicitudes que no entraron (${grupos} grupo(s)); el último, ${u.pendientes} esperando y ${u.aprobados || 0} aprobada(s): ${partes.join(', ') || 'sin detalle'}`,
         'pásale esta línea a quien mantenga el bot' + (u.muestra ? `; así llega una solicitud: ${JSON.stringify(u.muestra).slice(0, 200)}` : ''));
     }
   } catch { /* sin datos */ }

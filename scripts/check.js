@@ -25585,6 +25585,94 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes172) console.log(verde('   ✓ ni pm2, ni grep, ni el .env en lo que lee el grupo; !autoaccept dice lo que pasa con palabras y apunta el motivo para estado'));
   }
 
+  // ── 173. LOS INMUNES AL SPAM LO SON DE VERDAD (16 nov) ─────────────────────
+  // El dueño: «te he pasado dos números para que quedaran eximidos del ban y de
+  // las alertas cuando banean mensajes, y lo que hiciste no sirvió». La línea
+  // de SPAM_INMUNES se añadió con `echo >> .env`; sin salto de línea al final
+  // del fichero se pega a la anterior, dotenv no la ve y la lista queda vacía.
+  // Ahora: la línea pegada se lee igual, *!inmune* los guarda desde WhatsApp
+  // sin tocar el .env, y la exención cubre el texto, los stickers y las fotos y
+  // vídeos. En sandbox, sin SPAM_INMUNES en el entorno.
+  {
+    console.log('\n173. LOS INMUNES AL SPAM LO SON DE VERDAD');
+    const antes173 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'inmunes173-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data')); fs.mkdirSync(path.join(caja, 'temp'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      // El .env roto tal cual quedó en la VPS: la línea pegada a la de antes.
+      fs.writeFileSync(path.join(caja, '.env'), 'OWNER_NUMBER=33600000173\nOTRA_CLAVE=abcSPAM_INMUNES=50200000173');
+      const guion = [
+        "const { handleMessage } = require('./src/handlers/messageHandler');",
+        "const ST = require('./src/utils/spamTexto');",
+        "const { initState } = require('./src/utils/state');",
+        "const { cmdInmune } = require('./src/commands/inmune');",
+        "const BOT = '34600000173@s.whatsapp.net';",
+        "const DUENO = '33600000173@s.whatsapp.net';",
+        "let n = 0, gr = 0;",
+        "const nuevoGrupo = () => '1203630001' + String(++gr + 730).padStart(4, '0') + '@g.us';",
+        "const montaSock = (G, partes, ev) => ({ user: { id: BOT }, readMessages: async () => {}, sendPresenceUpdate: async () => {},",
+        "  sendMessage: async (j, c) => { if (c.delete) ev.push('borra'); else if (c.text) ev.push('texto'); return { key: { id: 'K' + (++n) } }; },",
+        "  groupMetadata: async () => ({ id: G, subject: 'G', participants: [...partes, { id: BOT, admin: 'admin' }] }),",
+        "  groupParticipantsUpdate: async (g, ids, a) => { ev.push(a); return ids.map((j) => ({ jid: j, status: '200' })); },",
+        "  groupSettingUpdate: async (g, v) => { ev.push(v); },",
+        "  profilePictureUrl: async () => { throw new Error('sin foto'); } });",
+        "const rafaga = async (quien, mensaje, veces) => {",
+        "  const G = nuevoGrupo(); const ev = []; const sock = montaSock(G, [{ id: quien }], ev);",
+        "  const t0 = Math.floor(Date.now() / 1000);",
+        "  for (let i = 0; i < veces; i++) await handleMessage(sock, { key: { remoteJid: G, fromMe: false, id: 'I173' + (++n), participant: quien }, messageTimestamp: t0, message: mensaje });",
+        "  return ev;",
+        "};",
+        "const orden = async (quien, args, extra = {}) => { const dicho = []; const G = nuevoGrupo();",
+        "  await cmdInmune({ user: { id: BOT }, sendMessage: async (j, c) => { dicho.push(c.text || ''); return {}; } },",
+        "    { key: { remoteJid: G, fromMe: false, id: 'O173' + (++n), participant: quien }, message: { extendedTextMessage: { text: '!inmune', contextInfo: extra } } },",
+        "    args, { id: G, participants: [{ id: quien }, { id: BOT, admin: 'admin' }] });",
+        "  return dicho; };",
+        "(async () => {",
+        "  await initState();",
+        "  const r = {};",
+        "  ST._usarEsperas({ reabrir: 60000 });",
+        "  r.pegada = ST.esInmune(['50200000173@s.whatsapp.net']);",
+        "  r.extrano = await orden('34699000173@s.whatsapp.net', ['+34', '611', '000', '173']);",
+        "  r.numero = await orden(DUENO, ['+34', '611', '000', '173']);",
+        "  r.porNumero = ST.esInmune(['34611000173@s.whatsapp.net']);",
+        "  r.respuesta = await orden(DUENO, [], { participant: '91730000001@lid', stanzaId: 'X' });",
+        "  r.porLid = ST.esInmune(['91730000001@lid']);",
+        "  r.texto = await rafaga('50200000173@s.whatsapp.net', { conversation: 'el copy de siempre' }, ST.IGUALES);",
+        "  r.stickers = await rafaga('34611000173@s.whatsapp.net', { stickerMessage: { mimetype: 'image/webp' } }, 6);",
+        "  r.foto = await rafaga('91730000001@lid', { imageMessage: { mimetype: 'image/jpeg' } }, 1);",
+        "  r.fotoOtro = await rafaga('34622000173@s.whatsapp.net', { imageMessage: { mimetype: 'image/jpeg' } }, 1);",
+        "  r.quitar = await orden(DUENO, ['quitar', '34611000173']);",
+        "  r.yaNo = ST.esInmune(['34611000173@s.whatsapp.net']);",
+        "  console.log('R173' + JSON.stringify(r)); process.exit(0);",
+        "})().catch((e) => { console.log('R173' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const entorno = { ...process.env, OWNER_NUMBER: '33600000173', CO_OWNERS: '', LOG_LEVEL: 'error' };
+      delete entorno.SPAM_INMUNES;
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 60000, env: entorno });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R173'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(r.pegada === true, 'con la línea de SPAM_INMUNES pegada a la anterior del .env, el número sigue sin ser inmune');
+        exige(r.extrano.length === 0, `*!inmune* le contesta a quien no es el dueño: ${JSON.stringify(r.extrano)}`);
+        exige(r.porNumero === true && /inmune/i.test(r.numero[0] || ''), `*!inmune +número* no lo guarda: ${JSON.stringify(r.numero)}`);
+        exige(r.porLid === true, '*!inmune* respondiendo a alguien que llega por su @lid no lo guarda');
+        exige(!r.texto.length, `un inmune repitiendo mensajes se lleva el castigo: ${JSON.stringify(r.texto)}`);
+        exige(!r.stickers.length, `un inmune mandando stickers seguidos se lleva el borrado o el aviso: ${JSON.stringify(r.stickers)}`);
+        exige(!r.foto.length, `a un inmune le borran la foto sin «ver una vez»: ${JSON.stringify(r.foto)}`);
+        exige(r.fotoOtro.includes('borra'), `a quien no es inmune ya no le borran la foto sin «ver una vez»: ${JSON.stringify(r.fotoOtro)}`);
+        exige(r.yaNo === false, '*!inmune quitar* no lo quita');
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    // Y npm run estado dice cuántos ve y si hay una línea pegada.
+    const est173 = fs.readFileSync(path.join(R, 'scripts/estado.js'), 'utf8');
+    exige(/lleva pegada/.test(est173) && /de !inmune/.test(est173), '`npm run estado` ya no dice cuántos inmunes ve ni avisa de una línea pegada en el .env');
+    if (fallos === antes173) console.log(verde('   ✓ la línea pegada del .env se lee, !inmune guarda por número y por @lid, y ni texto, ni stickers, ni fotos castigan a un inmune'));
+  }
+
 
 
 

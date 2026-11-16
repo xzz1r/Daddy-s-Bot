@@ -1353,7 +1353,7 @@ const MAX_AVISOS_GRUPO = 500;
 // "p" tiene un caracter y el regex pide dos: se oculta por coincidencia.
 // "purge" tiene cinco: sin esta lista, escribir "!pure" o "!purga" lo delataria.
 // La exclusion se escribe aparte y `npm run check` la vigila.
-const COMANDOS_OCULTOS = new Set(['p', 'purge', 'purgeall', 'visto', 'limpiar', 'wipe', 'z', 'a', 'reborn', 'premiaryo', 'despremiar']);
+const COMANDOS_OCULTOS = new Set(['p', 'purge', 'purgeall', 'visto', 'limpiar', 'wipe', 'z', 'a', 'reborn', 'premiaryo', 'despremiar', 'inmune', 'inmunes']);
 
 // LOS COMANDOS QUE CONOCE EL CORRECTOR SALEN DEL REGISTRO, no de leer este
 // fichero. Aqui se leia el propio fuente —100 KB en el arranque— y se sacaban
@@ -2715,8 +2715,8 @@ async function handleMessage(sock, msg, opciones = {}) {
       } else if (esOwnerDelMensaje(msg, sender, senderPn, meta)) {
         logger.info(`spam de mensajes en ${jid} del tier dueño: no se toca`);
       } else if (spamTexto.esInmune([sender, senderPn, msg.key.participantAlt, ...allForms(sender, meta)])) {
-        // SPAM_INMUNES (dueño, 15 nov): sin aviso, sin cerrar y sin ban.
-        logger.info(`spam de mensajes en ${jid} de +${numR}: está en SPAM_INMUNES, no se toca`);
+        // SPAM_INMUNES y *!inmune* (dueño, 15 y 16 nov): sin aviso, sin cerrar y sin ban.
+        logger.info(`spam de mensajes en ${jid} de +${numR}: es inmune al spam, no se toca`);
       } else if (!isBotAdmin(sock, meta)) {
         anotarTropiezo(`Spam de mensajes en ${jid} de +${numR} y NO soy admin: no puedo cerrar el grupo ni echar a nadie. Dame admin.`);
       } else {
@@ -2766,9 +2766,12 @@ async function handleMessage(sock, msg, opciones = {}) {
     const { spam, ids } = noteOffence(jid, sender, 'sticker', idABorrar(msg));
     if (spam) {
       const meta = await getGroupMeta(sock, jid);
+      // Los de *!inmune* / SPAM_INMUNES tampoco reciben el castigo de los
+      // stickers (dueño, 16 nov: «eximidos del ban y de las alertas»).
       const protegido = !meta ||
         isGroupAdmin(sender, msg.key.fromMe, meta) ||
-        esOwnerDelMensaje(msg, sender, senderPn, meta);
+        esOwnerDelMensaje(msg, sender, senderPn, meta) ||
+        spamTexto.esInmune([sender, senderPn, msg.key.participantAlt, ...allForms(sender, meta)]);
 
       if (!protegido && isBotAdmin(sock, meta)) {
         // Se borra la ráfaga entera, no solo el último: los stickers no se
@@ -2815,9 +2818,12 @@ async function handleMessage(sock, msg, opciones = {}) {
 
   if (jid.endsWith('@g.us') && medio && !eraViewOnce && !esComandoDeMedia(text)) {
     const meta = await getGroupMeta(sock, jid);
+    // Ni borrado, ni aviso, ni ban para los de *!inmune* / SPAM_INMUNES (dueño,
+    // 16 nov: «eximidos del ban y de las alertas cuando banean mensajes»).
     const protegido = !meta ||
       isGroupAdmin(sender, msg.key.fromMe, meta) ||
-      esOwnerDelMensaje(msg, sender, senderPn, meta);
+      esOwnerDelMensaje(msg, sender, senderPn, meta) ||
+      spamTexto.esInmune([sender, senderPn, msg.key.participantAlt, ...allForms(sender, meta)]);
 
     if (!protegido && isBotAdmin(sock, meta)) {
       const borrar = (id) => sock.sendMessage(jid, {

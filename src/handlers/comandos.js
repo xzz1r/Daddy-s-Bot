@@ -355,6 +355,10 @@ const FAMILIAS = [
   // corrector: ver COMANDOS_OCULTOS y cmdVisto en group.js.
   { nombres: ['visto'], meta: true,
     hace: (c) => c.de('group').cmdVisto(c.sock, c.msg, c.args, c.meta) },
+  // !inmune — los números que no reciben el castigo por spam, guardados desde
+  // WhatsApp. Oculto y solo del dueño principal: ver commands/inmune.js.
+  { nombres: ['inmune', 'inmunes'], meta: true,
+    hace: (c) => c.de('inmune').cmdInmune(c.sock, c.msg, c.args, c.meta) },
   // LA CAJA. Los verbos tienen nombre propio porque nadie escribe "!vault lock"
   // cuando lo que piensa es "lock". Nombres cortos y en ingles porque es lo que
   // se escribe con prisa, y las dos opciones castellanas obvias estaban pilladas

@@ -168,6 +168,25 @@ function vistoActivo(porDefecto) {
   return typeof v === 'boolean' ? v : Boolean(porDefecto);
 }
 
+// INMUNES AL SPAM GUARDADOS DESDE WHATSAPP (16 nov). Los del .env
+// (SPAM_INMUNES) dependian de editar el fichero en la VPS, y la linea se pego a
+// la anterior: los dos numeros seguian recibiendo el aviso. *!inmune* los
+// guarda aqui, en el estado, sin tocar ficheros. Cada entrada son los digitos
+// del telefono o un JID entero (el @lid de quien se señala respondiendo).
+function inmunesSpamGuardados() {
+  return Array.isArray(_state?.spamInmunes) ? _state.spamInmunes.map(String) : [];
+}
+
+async function ponerInmuneSpam(valores, dentro) {
+  const lista = new Set(inmunesSpamGuardados());
+  for (const v of [].concat(valores || []).map((x) => String(x || '').trim()).filter(Boolean)) {
+    if (dentro) lista.add(v); else lista.delete(v);
+  }
+  _state.spamInmunes = [...lista];
+  await saveState(_state);
+  return [...lista];
+}
+
 // QUIEN TIENE QUE ENTERARSE DEL CAMBIO. La presencia (aparecer en linea) la
 // lleva bot.js, que es quien tiene el socket. Antes *!visto* decia «hace falta
 // reconectar: pm2 restart bot» en el chat: una orden de terminal para el
@@ -220,5 +239,5 @@ const toggleAura            = (jid, enable) => setMembership('auraDisabled',    
 const isAutoAceptarEnabled  = (jid)         => hasMembership('autoAceptar',          jid);
 const toggleAutoAceptar     = (jid, enable) => setMembership('autoAceptar',          jid, enable);
 
-module.exports = { vistoActivo, ponerVisto, cuandoCambieVisto, initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, flushState, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness, isAntiLinkEnabled, toggleAntiLink, isAntiFakeEnabled, toggleAntiFake, isSoloAdminsEnabled, toggleSoloAdmins, isAuraEnabled, toggleAura, isAutoAceptarEnabled, toggleAutoAceptar };
+module.exports = { vistoActivo, ponerVisto, cuandoCambieVisto, inmunesSpamGuardados, ponerInmuneSpam, initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, flushState, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness, isAntiLinkEnabled, toggleAntiLink, isAntiFakeEnabled, toggleAntiFake, isSoloAdminsEnabled, toggleSoloAdmins, isAuraEnabled, toggleAura, isAutoAceptarEnabled, toggleAutoAceptar };
 

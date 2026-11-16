@@ -307,25 +307,41 @@ function _usarEsperas({ reabrir } = {}) { esperaReabrir = reabrir ?? REABRIR_MS;
 // que se conozca de la persona (@lid, teléfono, canónica) y con el 9 de los
 // móviles argentinos y sin él: WhatsApp a veces lo quita del JID (ver
 // esShipAlto en commands/ship.js, el mismo caso).
+//
+// Y DOS LISTAS (16 nov): la del .env y la que el dueño guarda con *!inmune*
+// desde WhatsApp (utils/state.js). Una entrada con @ es un JID entero (el @lid
+// de quien se señaló respondiendo) y se compara tal cual.
+function inmunesActuales() {
+  const delEnv = require('../config').spamInmunes || [];
+  let guardados = [];
+  try { guardados = require('./state').inmunesSpamGuardados(); } catch { guardados = []; }
+  return [...new Set([...delEnv, ...guardados])];
+}
+
 function esInmune(formas, lista = null) {
-  const inmunes = lista || require('../config').spamInmunes || [];
+  const inmunes = lista || inmunesActuales();
   if (!inmunes.length) return false;
-  const { canonicalJid } = require('./wa');
+  const { canonicalJid, bareJid } = require('./wa');
   const digitos = (x) => String(x || '').split('@')[0].split(':')[0].replace(/\D/g, '');
   const sinNueveAR = (d) => (/^549\d{8,}$/.test(d) ? '54' + d.slice(3) : d);
   const propios = new Set();
+  const jids = new Set();
   for (const f of (formas || []).filter(Boolean)) {
     for (const x of [f, canonicalJid(f)]) {
-      if (!x || !/@s\.whatsapp\.net$|^\d+$/.test(String(x))) continue;
+      if (!x) continue;
+      if (String(x).includes('@')) jids.add(bareJid(x));
+      if (!/@s\.whatsapp\.net$|^\d+$/.test(String(x))) continue;
       const d = digitos(x);
       if (d) propios.add(sinNueveAR(d));
     }
   }
-  return inmunes.some((n) => propios.has(sinNueveAR(n)));
+  return inmunes.some((n) => (String(n).includes('@')
+    ? jids.has(bareJid(n)) || jids.has(bareJid(canonicalJid(n)))
+    : propios.has(sinNueveAR(String(n).replace(/\D/g, '')))));
 }
 
 module.exports = {
-  esInmune,
+  esInmune, inmunesActuales,
   anotar, sancion, avisosDe, olvidarAvisos, textoAviso, textoBan, textoSinAdmin,
   apuntarReapertura, olvidarReapertura, reaperturasPendientes, esperaReapertura,
   IGUALES, VENTANA_S, GRACIA_MS, AVISO_DURA_MS, REABRIR_MS,
