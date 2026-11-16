@@ -178,6 +178,8 @@ bot ya busca su copia; mientras baja deja `<id>.pend` y el bot espera. No
 abre nada, no manda vistos y solo lo hace con el bot en la misma máquina. Se
 vincula con `npm run vincular-guardian`, con el móvil del guardián delante:
 la sesión de navegador se aparta (se mueve, no se borra) y nunca cambia sola.
+El código se pide con cara de navegador (el móvil rechaza el de «Android»), y
+si no se completa, la sesión de antes vuelve sola.
 El bot sigue como navegador. `npm run estado` dice si al guardián le llegan.
 El guardián nunca sale en línea ni marca nada como visto o abierto. Capa
 174; ver `MOTOR.md`.

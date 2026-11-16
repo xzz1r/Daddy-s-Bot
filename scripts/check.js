@@ -25793,6 +25793,9 @@ const r = {};
   try { r.espera = (await V.bajar({ user: { id: '34600000174@s.whatsapp.net' } }, cita('PEND174'), found, 'cita')).length; } catch (e) { r.espera = e.message; }
   // La sesión: solo se aparta con la vinculación armada.
   r.nav = [G.navegadorDe('android')[1], G.navegadorDe('navegador')[1], G.dispositivoDeseado()];
+  const CN = G.navegadorDe('android'); let durante = [];
+  await G.conCaraDeNavegador(CN, async () => { durante = CN.slice(); });
+  r.cara = [durante[1], CN[1]];
   const sesion = (marca) => { fs.rmSync(auth, { recursive: true, force: true }); fs.mkdirSync(auth, { recursive: true });
     fs.writeFileSync(path.join(auth, 'creds.json'), JSON.stringify({ registered: true, account: { details: 'eA==' }, me: { id: '34600000174:3@s.whatsapp.net' } }));
     if (marca) G.apuntarDispositivo({ dispositivo: marca, abierto: 1 }); };
@@ -25830,13 +25833,20 @@ const r = {};
         exige(r.sinArmar === null, 'el guardián aparta su sesión sin que nadie haya pedido vincular: se quedaría fuera hasta que alguien se diera cuenta');
         exige(r.deAntes === 'navegador' && r.apartada === true, 'con la vinculación armada, la sesión de navegador no se aparta (movida, no borrada) para vincular como Android');
         exige(r.yaAndroid === null, 'una sesión que ya es Android se aparta al armar la vinculación');
+        exige(JSON.stringify(r.cara) === '["Chrome","Android"]',
+          `el código no se pide con cara de navegador, o la lista no vuelve a Android: ${JSON.stringify(r.cara)}`);
       }
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     const g174 = soloCodigo('src/guardian.js');
     exige(/vigilarVerUnaVez\(sock\)/.test(g174) && /vigilarClaves\(\)/.test(g174),
       'el guardián ya no mira las fotos de ver una vez o no repone sus claves de un solo uso al conectar');
-    exige(/browser: navegadorDe\(dispositivo\)/.test(g174) && /await apartarSesionSiCambia\(\);[\s\S]{0,400}limpiarCredencialesAMedias\(\)/.test(g174),
+    exige(/const navegador = navegadorDe\(dispositivo\)/.test(g174) && /browser: navegador,/.test(g174)
+      && /await apartarSesionSiCambia\(\);[\s\S]{0,400}limpiarCredencialesAMedias\(\)/.test(g174),
       'el guardián ya no elige como qué se vincula, o aparta la sesión después de limpiar credenciales');
+    // El móvil rechaza el código de un «Android (14)»: se pide con cara de
+    // navegador, sobre la misma lista que lee Baileys (16 nov).
+    exige(/conCaraDeNavegador\(navegador, \(\) => miSock\.requestPairingCode/.test(g174),
+      'el guardián pide el código de vinculación presentándose como Android: el móvil contesta «No se pudo vincular el dispositivo»');
     exige(/pipeline\(flujo, cuenta, fs\.createWriteStream/.test(g174) && !/Buffer\.concat/.test(g174),
       'el guardián baja la foto entera a memoria: con su tope de 96 MB, un vídeo lo tumba');
     const apartar174 = (g174.match(/async function apartarSesionSiCambia[\s\S]*?\n\}/) || [''])[0];
@@ -25857,6 +25867,39 @@ const r = {};
       '`npm run estado` ya no dice si el guardián está como navegador ni si le llegan las fotos');
     const pk174 = JSON.parse(fs.readFileSync(path.join(R, 'package.json'), 'utf8'));
     exige(/vincularGuardian\.js/.test(pk174.scripts?.['vincular-guardian'] || ''), 'falta `npm run vincular-guardian`');
+    // Si la vinculación no se completa, la sesión de antes vuelve sola: el
+    // guardián no se queda sin proteger (16 nov). En una carpeta aparte.
+    {
+      const VG = require(path.join(R, 'scripts/vincularGuardian.js'));
+      const d174 = fs.mkdtempSync(path.join(os.tmpdir(), 'vincular174-'));
+      try {
+        const ordenes = [];
+        VG._prueba({ data: d174, shell: (c) => { ordenes.push(c); return ''; } });
+        fs.mkdirSync(path.join(d174, 'authGuardian'));
+        fs.writeFileSync(path.join(d174, 'authGuardian', 'creds.json'), JSON.stringify({ registered: true, me: { id: 'x' } }));
+        fs.mkdirSync(path.join(d174, 'authGuardian.navegador-20261116220000'));
+        fs.writeFileSync(path.join(d174, 'authGuardian.navegador-20261116220000', 'creds.json'), JSON.stringify({ registered: true, account: { a: 1 } }));
+        fs.writeFileSync(path.join(d174, 'vincularGuardian'), '');
+        exige(VG.sesionHecha() === false, 'una vinculación a medias cuenta como sesión hecha');
+        const devuelta = VG.volverALaDeAntes();
+        exige(devuelta && VG.sesionHecha() === true && !fs.existsSync(path.join(d174, 'vincularGuardian'))
+          && fs.readdirSync(d174).some((n) => n.startsWith('authGuardian.fallida-'))
+          && ordenes.some((c) => /pm2 restart guardian/.test(c)),
+        'la sesión apartada no vuelve a su sitio (o se borra la de a medias, o queda armada la vinculación, o no se reinicia el guardián)');
+        // Y el número, escrito en su propia línea del .env sin tocar lo demás.
+        const env174 = path.join(d174, 'env');
+        fs.writeFileSync(env174, 'OWNER_NUMBER=34600000174\nGUARDIAN=123\nOTRA=x');
+        VG._prueba({ env: env174 });
+        VG.ponerEnEnv('5491100000174');
+        const t1 = fs.readFileSync(env174, 'utf8');
+        fs.writeFileSync(env174, 'OWNER_NUMBER=34600000174\nOTRA=x');
+        VG.ponerEnEnv('5491100000174');
+        const t2 = fs.readFileSync(env174, 'utf8');
+        exige(t1 === 'OWNER_NUMBER=34600000174\nGUARDIAN=5491100000174\nOTRA=x'
+          && t2 === 'OWNER_NUMBER=34600000174\nOTRA=x\nGUARDIAN=5491100000174\n',
+        `npm run vincular-guardian -- +<número> no deja GUARDIAN bien puesto en el .env: ${JSON.stringify([t1, t2])}`);
+      } finally { fs.rmSync(d174, { recursive: true, force: true }); }
+    }
     const vg174 = soloCodigo('scripts/vincularGuardian.js');
     exige(/vincularGuardian'\)/.test(vg174) && /guardianCodigo\.json/.test(vg174) && !/rmSync\([^)]*authGuardian/.test(vg174),
       '`npm run vincular-guardian` ya no arma la vinculación y enseña el código, o borra la sesión del guardián');

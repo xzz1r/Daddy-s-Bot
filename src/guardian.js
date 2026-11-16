@@ -1365,9 +1365,23 @@ function apuntarDispositivo(d) {
   try { fs.mkdirSync(AUTH_DIR, { recursive: true }); fs.writeFileSync(ficheroDispositivo(), JSON.stringify(d)); } catch { /* sin marca: cuenta como navegador */ }
 }
 const dispositivoDeSesion = () => (leerDispositivo().dispositivo === 'android' ? 'android' : 'navegador');
+const CARA_NAVEGADOR = ['Ubuntu', 'Chrome', '120.0.0'];
 const navegadorDe = (d) => (d === 'android'
   ? (typeof Browsers?.android === 'function' ? Browsers.android('14') : ['14', 'Android', ''])
-  : ['Ubuntu', 'Chrome', '120.0.0']);
+  : [...CARA_NAVEGADOR]);
+
+// EL CÓDIGO SE PIDE CON CARA DE NAVEGADOR (16 nov). Primer intento en la VPS:
+// el móvil del guardián contestó «No se pudo vincular el dispositivo» a cada
+// código. El móvil solo acepta el código de un dispositivo que se presenta
+// como navegador («Chrome (Ubuntu)», como se vinculó siempre), no como
+// «Android (14)». Baileys lee la misma lista del navegador al conectar —ahí
+// el guardián ya se ha presentado como Android— y al pedir el código: se
+// cambia solo durante la petición y se deja como estaba.
+async function conCaraDeNavegador(navegador, fn) {
+  const antes = navegador.slice();
+  if (navegador[1] !== CARA_NAVEGADOR[1]) navegador.splice(0, navegador.length, ...CARA_NAVEGADOR);
+  try { return await fn(); } finally { navegador.splice(0, navegador.length, ...antes); }
+}
 
 // El código de vinculación, también en un fichero: `npm run vincular-guardian`
 // lo lee de ahí y lo enseña, sin buscarlo en el log.
@@ -1508,6 +1522,8 @@ async function conectar() {
   // Una sesión hecha entra como lo que es; una nueva se vincula como Android.
   const hayQueVincular = !state.creds?.registered;
   const dispositivo = hayQueVincular ? dispositivoDeseado() : dispositivoDeSesion();
+  // La misma lista que lee Baileys: ver conCaraDeNavegador.
+  const navegador = navegadorDe(dispositivo);
   const version = await versionWA();
   if (!version) logger.unaVez('guardian: version de whatsapp', new Error('no contesta nadie; sigo con la de Baileys'));
 
@@ -1524,7 +1540,7 @@ async function conectar() {
     // llama más la atención que una que no se anuncia.
     markOnlineOnConnect: false,
     syncFullHistory: false,
-    browser: navegadorDe(dispositivo),
+    browser: navegador,
 
     // ─── TODO LO QUE NO ES UN GRUPO, NI SE MIRA ──────────────────────────
     //
@@ -1609,7 +1625,7 @@ async function conectar() {
     setTimeout(async () => {
       try {
         if (miSock !== sock) return;
-        const codigo = await miSock.requestPairingCode(miNumero());
+        const codigo = await conCaraDeNavegador(navegador, () => miSock.requestPairingCode(miNumero()));
         // SE DESARMA EN CUANTO SALE UNO. Si nadie lo escribe, el siguiente
         // arranque no manda otro: hay que volver a pedirlo a mano. Es la
         // diferencia entre un código y una ráfaga de códigos.
@@ -1723,7 +1739,7 @@ if (require.main === module) {
 module.exports = { esDueno, lineaDuenos, _ficheroDueno: (f, g) => { FICHERO_DUENO = f; if (g) FICHERO_LIDS_DUENOS = g; _lidsDueno = { mtime: -1, lids: [] }; }, alDegradar, alCambioDeAdmin, alExpulsar, _olvidarPurgas: () => purgas.clear(), _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _esperaRespaldo: (ms) => { ESPERA_RESPALDO = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, _latidoBot: (f) => { LATIDO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _vigilarMemoria: vigilarMemoria, _pistaMuerteMuda: pistaMuerteMuda, _MEMORIA: MEMORIA, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR,
   // Ver una vez (16 nov).
   vigilarVerUnaVez, medioVerUnaVez, reponerClaves, barrerFotos, apartarSesionSiCambia,
-  dispositivoDeseado, dispositivoDeSesion, navegadorDe, apuntarDispositivo, FICHERO_CODIGO,
+  dispositivoDeseado, dispositivoDeSesion, navegadorDe, conCaraDeNavegador, apuntarDispositivo, FICHERO_CODIGO,
   _verUnaVez: ({ dir, fichero, descarga, espera } = {}) => {
     if (dir) DIR_VER_UNA_VEZ = dir;
     if (fichero) FICHERO_VER_UNA_VEZ = fichero;

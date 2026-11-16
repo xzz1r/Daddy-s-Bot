@@ -1333,7 +1333,20 @@ sin él, navegador) y **no cambia sola**. `npm run vincular-guardian`, con el
 móvil del guardián delante, arma la vinculación y reinicia el guardián; este
 aparta la sesión de navegador (`data/authGuardian.navegador-<fecha>`, se
 mueve, no se borra), pide el código y el script lo enseña y espera a que se
-complete. Con `GUARDIAN_DISPOSITIVO=navegador` se vincula como antes. `npm
+complete. Con `GUARDIAN_DISPOSITIVO=navegador` se vincula como antes.
+
+**El código se pide con cara de navegador** (16 nov). Primer intento en la
+VPS: el móvil del guardián contestó «No se pudo vincular el dispositivo» a
+cada código. El móvil solo acepta el código de un dispositivo que se
+presenta como navegador, no como «Android (14)». Baileys lee la misma lista
+del navegador al conectar (donde el guardián ya dijo que es Android) y al
+pedir el código, así que `conCaraDeNavegador` la cambia a «Chrome (Ubuntu)»
+solo durante la petición. En el móvil sale como «Chrome (Ubuntu)». Y si la
+vinculación no se completa, `npm run vincular-guardian` devuelve sola la
+sesión apartada (`-- --volver` lo hace a mano): el guardián no se queda nunca
+sin proteger. Con `npm run vincular-guardian -- +<número>` el número se
+escribe en el .env (`GUARDIAN=`, en su línea) y el script enseña para qué
+número pide el código, que tiene que ser el del móvil donde se escribe. `npm
 run estado` dice si sigue como navegador, cuántas fotos le llegan y guarda, de
 cuántas solo le llega el aviso (entonces Android tampoco sirve) y cuántos
 mensajes de grupo no pudo abrir. Capa 174.
