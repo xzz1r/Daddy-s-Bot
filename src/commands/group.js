@@ -1,5 +1,5 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { isOwner, isMainOwner, isAdmin, isBotJid, isBotAdmin, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser, esMiembroActual, resolverLid } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, isBotJid, isBotAdmin, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser, esMiembroActual, resolverLid, dueñoEnPrivado } = require('../utils/wa');
 const { streamToBuffer, MAX_DOWNLOAD_BYTES, atomicWriteJson, readJsonOrEnoent, pickFresh, pickBaraja, withTimeout } = require('../utils/helpers');
 const path = require('path');
 const logger = require('../utils/logger');
@@ -446,37 +446,45 @@ async function cmdAdm(sock, msg, args, groupMeta) {
 async function cmdVisto(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   const sender = getSender(msg);
-  if (!isMainOwner(sender, msg.key.fromMe, groupMeta)) return;   // silencio
+  if (!isMainOwner(sender, msg.key.fromMe, groupMeta) && !dueñoEnPrivado(msg)) return;   // silencio
+
+  // SECRETO (dueño, 16 nov): «el comando /visto solo yo tengo conocimiento de
+  // su existencia». Como *!a*: en un grupo la orden se borra y la respuesta va
+  // a su privado. Nadie más ve ni la orden ni la respuesta, co-dueños
+  // incluidos; a quien no es el dueño no le contesta nada (ver arriba).
+  const enGrupo = jid.endsWith('@g.us');
+  if (enGrupo) {
+    sock.sendMessage(jid, {
+      delete: { remoteJid: jid, fromMe: Boolean(msg.key.fromMe), id: msg.key.id, participant: sender },
+    }).catch(() => {});
+  }
+  const destino = enGrupo ? require('./k').privadoDelOwner(sender, groupMeta) : jid;
+  const decir = (text) => (destino
+    ? sock.sendMessage(destino, { text }, enGrupo ? {} : { quoted: msg })
+      .catch((e) => logger.warn(`!visto: no pude escribir al privado: ${e.message}`))
+    : null);
 
   const arg = String(args[0] || '').toLowerCase();
   const actual = vistoActivo(config.autoRead);
 
   if (!['on', 'off', 'si', 'sí', 'no'].includes(arg)) {
-    return sock.sendMessage(jid, {
-      text: `*VISTO:* ${actual ? 'encendido' : 'apagado'}\n` +
-        `_${actual
-          ? 'El bot marca leído todo y aparece en línea siempre. Es la señal más automática que da la cuenta.'
-          : 'El bot no marca leído ni aparece en línea. Menos ruido para WhatsApp.'}_\n` +
-        `_Se cambia con *${config.prefix}visto on* / *${config.prefix}visto off*._`,
-    }, { quoted: msg });
+    return decir(`*VISTO:* ${actual ? 'encendido' : 'apagado'}\n` +
+      `_${actual
+        ? 'El bot marca leído todo y aparece en línea siempre. Es la señal más automática que da la cuenta.'
+        : 'El bot no marca leído ni aparece en línea. Menos ruido para WhatsApp.'}_\n` +
+      `_Se cambia con *${config.prefix}visto on* / *${config.prefix}visto off*._`);
   }
 
   const quiero = arg === 'on' || arg === 'si' || arg === 'sí';
-  if (quiero === actual) {
-    return sock.sendMessage(jid, {
-      text: `_El visto ya estaba ${actual ? 'encendido' : 'apagado'}._`,
-    }, { quoted: msg });
-  }
+  if (quiero === actual) return decir(`_El visto ya estaba ${actual ? 'encendido' : 'apagado'}._`);
 
+  // La presencia ya se ha cambiado dentro de ponerVisto (bot.js se apunta con
+  // cuandoCambieVisto): no hay nada que reiniciar ni que decirle al dueño que
+  // haga en la VPS.
   await ponerVisto(quiero);
-  return sock.sendMessage(jid, {
-    // La presencia ya se ha cambiado dentro de ponerVisto (bot.js se apunta
-    // con cuandoCambieVisto): no hay nada que reiniciar ni que decirle al
-    // dueño que haga en la VPS.
-    text: quiero
-      ? `*VISTO ENCENDIDO*\n_Desde ya marco todo como leído y aparezco en línea._`
-      : `*VISTO APAGADO*\n_Desde ya no marco nada y dejo de aparecer en línea._`,
-  }, { quoted: msg });
+  return decir(quiero
+    ? `*VISTO ENCENDIDO*\n_Desde ya marco todo como leído y aparezco en línea._`
+    : `*VISTO APAGADO*\n_Desde ya no marco nada y dejo de aparecer en línea._`);
 }
 
 // !kick @user — remove a member (admin only).

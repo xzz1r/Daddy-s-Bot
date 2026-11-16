@@ -25825,6 +25825,13 @@ const r = {};
     const apartar174 = (g174.match(/async function apartarSesionSiCambia[\s\S]*?\n\}/) || [''])[0];
     exige(/fsp\.rename\(AUTH_DIR, destino\)/.test(apartar174) && !/\brm(Sync)?\(/.test(apartar174),
       'la sesión del guardián se borra en vez de apartarse al vincular de nuevo');
+    // EL GUARDIÁN NO SE VE. Nunca sale en línea (con eso Baileys solo manda el
+    // acuse de entrega «inactive», el de cualquier móvil en segundo plano),
+    // nunca marca nada como visto ni abierto y no sabe nada del *!visto* del
+    // bot, que es secreto del dueño (capa 175).
+    exige(/markOnlineOnConnect:\s*false/.test(g174) && !/sendPresenceUpdate|readMessages|sendReceipt/.test(g174)
+      && !/['"](read|played|read-self)['"]/.test(g174) && !/autoRead/.test(g174),
+      'el guardián se anuncia en línea, marca algo como visto o abierto, o mira el !visto del bot: tiene que ser invisible');
     const v174 = soloCodigo('src/utils/verUnaVez.js');
     exige(/await esperarDelGuardian\(ids\)/.test(v174) && /n\.endsWith\('\.pend'\)/.test(v174),
       'el bot ya no espera a la copia que baja el guardián, o no barre sus marcas viejas');
@@ -25837,6 +25844,61 @@ const r = {};
     exige(/vincularGuardian'\)/.test(vg174) && /guardianCodigo\.json/.test(vg174) && !/rmSync\([^)]*authGuardian/.test(vg174),
       '`npm run vincular-guardian` ya no arma la vinculación y enseña el código, o borra la sesión del guardián');
     if (fallos === antes174) console.log(verde('   ✓ el guardián baja la foto de ver una vez a la carpeta del bot, el bot la saca o la espera, y la sesión solo se aparta cuando se pide vincular'));
+  }
+
+  // ── 175. *!visto* SOLO LO CONOCE EL DUEÑO (16 nov) ──────────────────────────
+  // El dueño: «el comando /visto solo yo tengo conocimiento de su existencia».
+  // Como *!a*: a quien no es el dueño principal (co-dueños incluidos) no le
+  // contesta nada; en un grupo, la orden se borra y la respuesta va a su
+  // privado, nunca al grupo; por privado contesta ahí. En sandbox.
+  {
+    console.log('\n175. !visto SOLO LO CONOCE EL DUEÑO');
+    const antes175 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'visto175-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data')); fs.mkdirSync(path.join(caja, 'temp'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const { initState } = require('./src/utils/state');",
+        "const { cmdVisto } = require('./src/commands/group');",
+        "const BOT = '34600000175@s.whatsapp.net', DUENO = '33600000175@s.whatsapp.net', CO = '33600000575@s.whatsapp.net';",
+        "const G = '120363000000175@g.us';",
+        "const orden = async (quien, donde, args) => { const ev = [];",
+        "  const sock = { user: { id: BOT }, sendPresenceUpdate: async () => {},",
+        "    sendMessage: async (j, c) => { ev.push({ a: j.endsWith('@g.us') ? 'grupo' : 'privado', que: c.delete ? 'borra' : 'texto', text: c.text || '' }); return {}; } };",
+        "  const key = donde === 'grupo' ? { remoteJid: G, fromMe: false, id: 'V175' + Math.random(), participant: quien } : { remoteJid: quien, fromMe: false, id: 'V175' + Math.random() };",
+        "  await cmdVisto(sock, { key, message: { conversation: '!visto ' + args.join(' ') } }, args,",
+        "    donde === 'grupo' ? { id: G, subject: 'G', participants: [{ id: quien }, { id: BOT, admin: 'admin' }] } : null);",
+        "  await new Promise((r) => setTimeout(r, 50)); return ev; };",
+        "(async () => {",
+        "  await initState();",
+        "  const r = {};",
+        "  r.extrano = await orden('34699000175@s.whatsapp.net', 'grupo', ['on']);",
+        "  r.codueno = await orden(CO, 'grupo', ['on']);",
+        "  r.codPriv = await orden(CO, 'privado', []);",
+        "  r.grupo = await orden(DUENO, 'grupo', ['off']);",
+        "  r.privado = await orden(DUENO, 'privado', ['on']);",
+        "  console.log('R175' + JSON.stringify(r)); process.exit(0);",
+        "})().catch((e) => { console.log('R175' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const entorno = { ...process.env, OWNER_NUMBER: '33600000175', CO_OWNERS: '33600000575', LOG_LEVEL: 'error' };
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 60000, env: entorno });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R175'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(!r.extrano.length && !r.codueno.length && !r.codPriv.length,
+          `*!visto* le contesta o hace algo a quien no es el dueño principal: ${JSON.stringify([r.extrano, r.codueno, r.codPriv])}`);
+        exige(r.grupo.some((x) => x.a === 'grupo' && x.que === 'borra'), '*!visto* en un grupo no borra la orden: todo el grupo ve que existe');
+        exige(!r.grupo.some((x) => x.a === 'grupo' && x.que === 'texto'), `*!visto* contesta en el grupo: ${JSON.stringify(r.grupo)}`);
+        exige(r.grupo.some((x) => x.a === 'privado' && /VISTO APAGADO/.test(x.text)), `*!visto* en un grupo no le confirma al dueño por privado: ${JSON.stringify(r.grupo)}`);
+        exige(r.privado.length === 1 && r.privado[0].a === 'privado' && /VISTO ENCENDIDO/.test(r.privado[0].text),
+          `*!visto* por privado no contesta ahí: ${JSON.stringify(r.privado)}`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes175) console.log(verde('   ✓ !visto no le contesta a nadie más que al dueño, y en un grupo se borra y le responde por privado'));
   }
 
 

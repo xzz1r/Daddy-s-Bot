@@ -168,7 +168,16 @@ abre nada, no manda vistos y solo lo hace con el bot en la misma máquina. Se
 vincula con `npm run vincular-guardian`, con el móvil del guardián delante:
 la sesión de navegador se aparta (se mueve, no se borra) y nunca cambia sola.
 El bot sigue como navegador. `npm run estado` dice si al guardián le llegan.
-Capa 174; ver `MOTOR.md`.
+El guardián nunca sale en línea ni marca nada como visto o abierto. Capa
+174; ver `MOTOR.md`.
+
+## !visto: solo lo conoce el dueño
+
+Lo dijo el dueño (16 nov): «el comando /visto solo yo tengo conocimiento de
+su existencia». Va como `!a`: del dueño principal y de nadie más, co-dueños
+incluidos; a otro no le contesta nada, no sale en el menú ni en el corrector
+(`COMANDOS_OCULTOS`), en un grupo la orden se borra y la respuesta le llega
+al privado. Por privado contesta ahí. Capa 175.
 
 ## Historias de grupo: se abren, se reconocen y se quitan
 
