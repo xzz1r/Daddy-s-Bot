@@ -631,6 +631,23 @@ asalto. Cuatro cosas que se copian y tres que no.
 - **La parodia de producto.** Los objetos de la tienda son productos con
   promesas. Se venden como se vende una garantía extendida: prometiendo mucho y
   cubriendo poco.
+- **El doble sentido guarro** (lo pidió el dueño, 16 nov: «las típicas bromas
+  sexuales que mete Rockstar»; mirado en sus anuncios, no de memoria). Rockstar
+  no insulta con una guarrada pegada: la dice **la marca, con voz de anuncio**,
+  dentro del vocabulario de su propio producto. Eslóganes cortos («Puts the
+  Sex in Drive», «Always Come Early», «Suddenly You Are Big Enough», «mine's
+  bigger!»), nombres de marca guarros, letra pequeña y efectos secundarios
+  absurdos, y un locutor tranquilo diciendo burradas. Aquí: el banco cobra
+  «un diez por meterla, un treinta por sacarla», la tienda vende el escudo
+  como «siempre con protección», la ganzúa «entra por cualquier agujero» y el
+  aviso de sacar trae «si te dura más de cuatro horas, consulta a tu
+  banquero». El eslogan va en cursiva, como un rótulo, y la frase sigue
+  hablando de esa persona. Bruto, por insinuación, sin describir sexo, sin
+  dar por hecho el cuerpo ni la pareja (regla 9), y sustituyendo a una floja.
+  Vive mezclado en `GUARDADO`, `SACADO`, `COMPRA_ESCUDO`, `COMPRA_GANZUA`,
+  `COMPRA_CEBO`, `ROB_FAIL`, `APUESTA_PIERDE` y la espera de `!apostar`.
+  Fuentes: gtaboom.com (vallas de GTA 6), gamerant.com (marcas de la saga),
+  grandtheftwiki.com (cuñas de GTA III).
 - **La crueldad es siempre sobre la conducta y la fantasía propia**, nunca sobre
   lo que alguien es de nacimiento. Rockstar se ríe del que se cree alguien, no
   del que nació donde nació. El bot ya funciona así y no se mueve de ahí.

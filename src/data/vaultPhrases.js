@@ -15,7 +15,7 @@
 const GUARDADO = [
   'Guardadito. Que nadie diga que no sabes cuidar tus cuatro duros.',
   'Guardado, y la cerradura ya ha cobrado su parte. Tu miedo empieza a salir caro.',
-  'Al banco. El grupo entero sabe que hay algo ahí, eso sí.',
+  'Hasta el fondo, como te gusta. *Banco del grupo: entra fácil, sale caro.*',
   'Con dos vueltas de llave. El candado ya ha cobrado, y tú ya puedes dejar de temblar.',
   'Guardado. Un golpe redondo se lleva una parte de dentro. Tú, de momento, aguantas el resto.',
   'Cerrado. Lo que queda fuera sigue siendo carne, por si acaso.',
@@ -32,7 +32,7 @@ const GUARDADO = [
   'Bajo llave. Casi a salvo: con *!robarbanco* todavía te lo pueden reventar.',
   'Bajo llave y fuera de la mesa. Esa aura ya no juega y tú tampoco con ella, pequeña.',
   'Ya está dentro. Sacarlo va a doler, y lo sabes.',
-  'Cerrado. Muy prudente y muy inútil, todo a la vez.',
+  'Metida. Tarifas de la casa: un diez por meterla, un treinta por sacarla. Si te la dejas dentro, gratis.',
 ];
 
 // Lo ha sacado. Ha pagado comisión. Se lee en el grupo.
@@ -48,8 +48,8 @@ const SACADO = [
   'Abierto con tu propia llave. La cerradura también cobra.',
   'En la mano. Ese pellizco de menos es lo que vale la tranquilidad.',
   'Abierto. Y ahora a gastarlo rápido, antes de que te lo levante alguien del grupo.',
-  'Abierto. Cada vez que lo mueves, algo se queda por el camino.',
-  'En la mano. Ya no está a salvo, pero al menos sirve para algo.',
+  'Sacada. *Banco del grupo: porque sacarla a tiempo tiene un precio.* Treinta por ciento, y tu padre no lo pagó.',
+  'Sacada. Efectos secundarios: bolsillo flojo y un treinta por ciento menos. Si te dura más de cuatro horas, consulta a tu banquero.',
   'Fuera. Lo que has pagado por salir va al bote, y el bote se lo lleva otro.',
   'Sacado. Tu propia cerradura te ha cobrado, y ni te ha dado las gracias.',
   'Fuera. El aura vuelve a la mesa, y la mesa está llena de gente con hambre.',
