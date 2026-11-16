@@ -714,26 +714,26 @@ const LABELS = {
     ],
     mid: [
       'Contestas al momento, te contestan cuando les da la gana, y la conversación la sigues tú como si nada.',
-      'Todavía no pagas cenas ajenas, pero ya te sabes cómo toma el café quien no te escribe nunca.',
+      'Todavía no pagas cenas ajenas, pero ya sabes la talla de ropa interior de quien no te escribe nunca.', // ROCKSTAR
       'Tienes un chat fijado arriba del todo, y en ese chat el último mensaje siempre es tuyo, pequeña.',
       'Das likes de madrugada a fotos viejas. No has escrito todavía, pero el dedo ya te ha delatado.',
       'Dices que pasas de esa persona y miras su última conexión. Pasas, sí, pero por su perfil.',
-      'Te dejan en visto y mandas un meme para disimular. El meme también se queda en visto.',
-      'Aún te queda algo de orgullo: esperas antes de contestar, eso sí, mirando la pantalla.',
+      'Te dejan en visto y mandas una foto «sin querer». Sin querer, sin camiseta y con la luz buena.', // ROCKSTAR
+      'Aún te queda algo de orgullo: esperas cinco minutos antes de contestar, con el móvil en una mano y la otra ocupada.', // ROCKSTAR
       'Cambias de planes en cuanto alguien a quien le das igual dice que a lo mejor se pasa. Y te quedas esperando.',
-      'Escribes un párrafo, lo borras y mandas «jaja». Ese botón de borrar es lo único que te queda de dignidad.',
+      'Escribes un párrafo, lo borras y mandas «jaja». Lo que de verdad querías mandar era una foto, y también la has borrado.', // ROCKSTAR
       'Le haces favores a quien solo te escribe para pedirlos, y todavía te extraña que no te escriba para otra cosa.',
     ],
     low: [
       'No has escrito dos veces seguidas en tu puta vida. Tanto orgullo que tu madre se entera de tus cosas por las historias.',
       'Contestas cuando te sale de los huevos, si contestas. Dignidad intacta, y la gente que te escribe ya se ha acostumbrado a hablar sola.',
       'Nadie te ha visto pagar una cena para impresionar. Tampoco te ha visto nadie pagar una cena, pequeña.',
-      'Cuando alguien pasa de ti, tú pasas el doble y ni lo comentas. Da miedo pensar a cuánta gente has dejado tirada así.',
-      'Sabes decir que no a la primera y sin un audio de cinco minutos explicándolo. Lo que no sabes es decir que sí y así va tu agenda.',
+      'Cuando alguien pasa de ti, tú pasas el doble, y esa noche ya estás en otra cama.', // ROCKSTAR
+      'Sabes decir que no a la primera, y también que sí, y lo segundo lo dices más de lo que se cuenta.', // ROCKSTAR
       'Nunca has cambiado un plan por alguien que no lo cambiaría por ti. Eso te deja muchos findes libres, y los pasas sin quejarte.',
       'Nunca has mandado un «buenos días» a quien no te lo mande primero. Orgullo de hierro, y una lista de gente que se cansó de esperar.',
-      'Tus mensajes van sin un solo corazón. Quien te quiere tiene que adivinarlo.',
-      'Si alguien se pone raro contigo, no preguntas qué ha pasado. Lo borras, y se entera por tu foto de perfil, que ya no le carga.',
+      'Tus mensajes van sin un solo corazón, y aun así te escriben de madrugada.', // ROCKSTAR
+      'Si alguien se pone raro contigo, no preguntas: lo borras y te buscas otra persona antes de cenar.', // ROCKSTAR
       'Nadie consigue tenerte pendiente del móvil. Tú tienes a otros pendientes, y te encanta, mala persona.',
     ],
   },
@@ -771,26 +771,26 @@ const LABELS = {
     mid: [
       'Callas los secretos hasta la tercera copa. A partir de la cuarta los cuentas con nombre y apellido.',
       'Guardas capturas por si acaso. Todavía no las has enseñado, pero la carpeta ya tiene nombre, chiquitina.',
-      'Contigo la gente aprende a contar las cosas a medias y sin nombres.',
+      'Contigo la gente aprende a no contarte con quién se acuesta, porque al día siguiente lo sabe hasta el portero.', // ROCKSTAR
       'Te enteras de algo y aguantas hasta el día siguiente. Luego lo cuentas empezando por «no digas que te lo he dicho yo».',
-      'Estás en las dos conversaciones de la bronca, y en las dos le das la razón a quien tienes delante.',
+      'Estás en las dos conversaciones de la bronca, y en las dos camas cuando se arreglan.', // ROCKSTAR
       'Devuelves lo que te prestan, pero la mitad, un mes tarde y con cara de estar haciendo un favor.',
-      'Cuando toca dar la cara en el grupo, mandas un audio de tres minutos que no dice nada y no mancha a nadie.',
+      'Cuando toca dar la cara en el grupo, mandas un audio que no dice nada. Lo jugoso lo cuentas en privado y con detalles de cama.', // ROCKSTAR
       'Pagas tu parte de la cena calculada al céntimo y sin propina, y luego te comes el pan de todos, pequeña.',
-      'Das la razón en privado y te callas en el grupo. Quien te defendió se ha quedado sin testigo.',
+      'Das la razón en privado, y en privado das también otras cosas que en el grupo no se cuentan.', // ROCKSTAR
       'Tienes el móvil lleno de audios que nadie te dio permiso para reenviar. De momento, los mandas a una sola persona.',
     ],
     low: [
       'Cero. No tienes ni una mancha, y mira que oportunidades has tenido.',
       'Te cuentan secretos y no se te escapa ninguno. Eso asusta, porque nadie sabe qué más te callas.',
-      'Pagas rondas sin llevar la cuenta y prestas dinero sin acordarte. Así te va la cuenta del banco, eso sí.',
+      'Pagas rondas sin llevar la cuenta, y de lo que pasa en tu cama tampoco llevas la cuenta en voz alta, que es lo elegante.', // ROCKSTAR
       'Cuando hay bronca, dices lo que piensas delante de los dos. Te ganas enemigos, pero de frente.',
-      'Nunca has hecho una captura para enseñarla. Tu galería es aburridísima y el grupo duerme tranquilo.',
+      'Nunca has hecho una captura para enseñarla, ni de las fotos que te mandan de madrugada. Eso tiene mérito.', // ROCKSTAR
       'Si te dejan las llaves de casa, riegas las plantas y no abres un cajón. Hay gente aquí que no pasa esa prueba ni con cámaras.',
       'Cuando te la juegan, no te vengas ni lo cuentas. Buena gente de verdad, y por eso te la juegan tanto.',
-      'Lo que te cuentan de noche se queda en la noche. Por eso te cuentan tanto, y por eso sabes cosas que no deberías.',
+      'Lo que te cuentan de noche se queda en la noche, y lo que haces de noche también.', // ROCKSTAR
       'Defiendes a quien no está delante aunque no te caiga bien. Ahora nadie sabe cómo criticar a gusto contigo en el chat, pequeña.',
-      'Nadie te ha pillado cambiando de bando a mitad de una bronca. Eres leal hasta cuando no toca, y alguna vez no tocaba.',
+      'Eres leal hasta cuando no toca, también con quien te acuestas, y aquí eso es una especie protegida.', // ROCKSTAR
     ],
   },
 
@@ -881,26 +881,26 @@ const LABELS = {
       '[nombre], tu ropa es merchandising y tu conversación también. Te quitas la camiseta y te quedas sin tema.',
     ],
     mid: [
-      'Tienes vida, pero la mitad la vives en sitios que no existen y con gente que no conoces.',
+      'Ligas, pero tu primera cita acaba siempre con cuarenta minutos sobre una saga, y la segunda no existe.', // ROCKSTAR
       'Puedes mantener una conversación normal durante un rato. Luego se nota de dónde vienen tus referencias.',
       'Sales, sí, pero con cuentagotas y mirando el reloj para volver a la cueva.',
-      'Sales poco, y al volver te lo pasas recuperándote delante de la pantalla.',
-      'Cuando te enganchas a algo desapareces semanas, luego vuelves, y así llevas años.',
+      'Sales poco, y cuando ligas te entran tantos nervios que pides pausa como en el juego.', // ROCKSTAR
+      'Cuando te enganchas a algo desapareces semanas. La última vez que te enganchaste a una persona duró menos que una partida.', // ROCKSTAR
       'Cancelas planes por un parche del juego y lo cuentas como si fuera un entierro.',
       'Hablas normal en la cena hasta que alguien nombra una saga. Ahí te sale el párrafo, y la cena se acaba.',
       'Tienes vida fuera, pero la cuadras con los estrenos de temporada y los eventos del juego.',
-      'Tus historias, si subes alguna, son capturas de un juego de madrugada.',
+      'Tus historias, si subes alguna, son capturas de madrugada. Las otras capturas de madrugada no las ve nadie.', // ROCKSTAR
       'Tienes amigos de carne y hueso y amigos de Discord, y a los de Discord les cuentas más cosas, muñeca.',
     ],
     low: [
       'Cero. Tu tiempo libre incluye personas de verdad. En este grupo eso es casi exótico, mi niña.',
-      'Tienes vida social de verdad y la desperdicias en este grupo de mierda.',
-      'Sin señales. Tu vida pasa lejos de una pantalla y aun así no tienes ni una puta anécdota.',
+      'Cero. Tienes vida social de verdad y gente en tu cama que no sale de un juego.', // ROCKSTAR
+      'Sin señales. Tu vida pasa lejos de una pantalla, y por eso tienes anécdotas que no se pueden contar en este grupo.', // ROCKSTAR
       'Sin rastro. Sabes cuándo tu tema interesa y cuándo cortarte, cosa que aquí no sabe todo el mundo.',
       'Cero. Tienes amigos que conoces en persona y con cara. Te va a costar entender la mitad de los chistes del grupo.',
-      'Nada. Te hablan de una serie y dices que no la has visto, sin ninguna vergüenza. Así no hay quien hable contigo.',
+      'Nada. Te hablan de una serie y dices que no la has visto, porque esa noche tenías mejor plan en casa.', // ROCKSTAR
       'Sin señales. Sales, vuelves de día y no sabes qué trae el parche nuevo. Tu vida es más sana y más aburrida de contar, chiquitina.',
-      'Nunca has cancelado un plan por una partida. Eso sí, tampoco has ganado ninguna.',
+      'Nunca has cancelado un plan por una partida, y por un plan en la cama sí, que es lo que se hace.', // ROCKSTAR
       'Hablas de cualquier cosa sin llevarla a un anime. La gente lo agradece, y el friki del grupo te mira mal.',
       'Tu habitación tiene cama, armario y ventana, y ni una figura en una estantería. El grupo no sabe qué regalarte por tu cumpleaños.',
     ],
@@ -938,27 +938,27 @@ const LABELS = {
     ],
     mid: [
       'Te duchas por compromiso, no por convicción. Se nota en la cara de quien te da dos besos.',
-      'Tu cuarto tiene zonas que llevan meses sin ver la luz. Y tú lo sabes perfectamente.',
+      'Tu cuarto tiene zonas que llevan meses sin ver la luz, y la cama es la que menos visitas recibe.', // ROCKSTAR
       'Te duchas los días que sales. Los días que no sales, tu cuarto lo nota y tu silla también.',
-      'Tu cuarto está ordenado en la parte que sale en las videollamadas. El resto no lo ha visto nadie, y mejor así.',
-      'Cambias las sábanas cuando alguien va a dormir contigo, o sea, muy de vez en cuando, pequeña.',
+      'Tu cuarto está ordenado en la parte que sale en las videollamadas. Por eso las calientes las haces de cintura para arriba.', // ROCKSTAR
+      'Cambias las sábanas cuando alguien va a dormir contigo, o sea, muy de vez en cuando, pequeña.', // ROCKSTAR
       'Te lavas las manos después de mear si hay alguien mirando.',
-      'Tienes una silla que hace de armario, con tres capas de ropa entre sucia y ponible.',
+      'Tienes una silla que hace de armario, y encima, la ropa interior de varias noches que no quieres recordar.', // ROCKSTAR
       'Vacías la papelera cuando ya se desborda, y alrededor tienes el suelo lleno de lo que no cupo.',
       'Hueles bien al salir, y al volver ya se te nota el día entero.',
       'Tu cepillo de dientes tiene las cerdas abiertas hacia fuera, y lo sigues usando porque según tú aún limpia, princesa.',
     ],
     low: [
-      'Sin manchas. Tu ropa huele a limpio y tus sábanas también, que es lo máximo que te va a pasar esta semana.',
+      'Sin manchas. Tu ropa huele a limpio y tus sábanas también, que es lo máximo que te va a pasar esta semana.', // ROCKSTAR
       'Nada que reprochar. Te lavas como una persona normal, cosa que aquí no todos pueden decir.',
       'Cero. La gente entra en tu casa y se sienta sin mirar antes dónde. Tu sofá es el único del grupo sin historial, muñeca.',
       'Sin rastro. Si compartieras piso, nadie dejaría notas en la nevera por tu culpa. Eso en este grupo es noticia.',
-      'Nadie ha tenido que cambiarse de asiento por tu olor, y eso te deja sin excusa cuando se cambian por lo que dices.',
+      'Nadie ha tenido que cambiarse de asiento por tu olor, y quien se sienta a tu lado se arrima más de la cuenta.', // ROCKSTAR
       'Tu baño se puede enseñar sin avisar. Hay gente aquí que cierra la puerta con llave cuando tiene visita.',
-      'Hueles a suavizante hasta en agosto, y cuentas los lavados de la semana como quien cuenta goles.',
+      'Hueles a suavizante hasta en agosto, y hay quien se queda oliendo tu almohada cuando te vas.', // ROCKSTAR
       'Tienes las uñas cortas, la toalla seca y la nevera sin cosas vivas. Aburres, pero se puede comer en tu casa.',
       'En tu casa se puede abrir cualquier cajón sin miedo. Lo que da miedo es lo ordenados que están.',
-      'Te duchas antes de dormir y otra vez al levantarte. El agua caliente te ha visto más que tu familia.',
+      'Te duchas antes de dormir y al levantarte, y a veces con compañía, que es la manera más limpia de ducharse.', // ROCKSTAR
     ],
   },
 
@@ -1051,26 +1051,26 @@ const LABELS = {
     mid: [
       'Haces lo justo para que no te señalen y ni un puto dedo más. Cobarde, pero te funciona.',
       'Vales para lo fácil. Lo difícil se lo pasas a alguien y luego te pones la medalla igual.',
-      'Se puede contar contigo la mitad de las veces, y nunca se sabe qué puta mitad toca.',
+      'Se puede contar contigo la mitad de las veces, y en la cama la mitad del tiempo.', // ROCKSTAR
       'Haces tu parte si es corta. Si es larga, aparece una excusa perfectamente razonable.',
-      'Tu fiabilidad tiene horario. Fuera de él no respondes de nada y todos lo saben ya.',
+      'Tu fiabilidad tiene horario, y por la noche cierra pronto. Quien te ha esperado despierto lo sabe.', // ROCKSTAR
       'Ayudas en la mudanza llevando los cojines y te piras antes de que lleguen los muebles.',
       'Sirves de refuerzo, nunca de titular. Y ya llevas suficientes años en el banquillo, pequeña.',
-      'Empiezas los trabajos con un chat nuevo, un nombre gracioso y tres stickers. Ahí se te acaba la energía.',
+      'Empiezas las cosas con muchas ganas, un nombre gracioso y tres stickers, igual que tus ligues. Y se te acaban igual de pronto.', // ROCKSTAR
       'Te piden una cosa, haces la mitad y preguntas si con eso vale. Vale, pero la acaba otra persona.',
-      'Contestas «ahora lo miro» y lo miras cuando ya lo ha hecho otro.',
+      'Contestas «ahora voy» y llegas cuando ya ha terminado sin ti. Pasa en el curro y en otras partes.', // ROCKSTAR
     ],
     low: [
       'Nada que sacarte: haces lo que te toca y sin quejarte. Por eso te cargan con todo, y ni te das cuenta.',
       'Te dan una tarea y vuelve hecha, sin recordatorios ni audios de excusa. Aquí eso ya se celebra, muñeca.',
-      'Montas el mueble y no te sobra un tornillo. El resto del grupo tiene un cajón lleno de tornillos que sobraron.',
+      'Montas el mueble sin que sobre un tornillo, y quien te ha tenido en casa dice que todo encaja a la primera.', // ROCKSTAR
       'Cuando se organiza algo, acabas con la lista, las reservas y el bote. Te toca por eficaz y nadie te lo agradece.',
-      'Llegas, lo arreglas y te vas sin dar la charla. Deja algo sin arreglar para que los demás aprendan, que así no hay manera.',
+      'Llegas, lo arreglas y te vas sin dar la charla. Hay quien te llama para arreglar cosas que no estaban rotas.', // ROCKSTAR
       'Contestas a lo que te preguntan, en orden y sin audios. Por eso ya te preguntan todo a ti, hasta lo que no sabes.',
-      'Haces la parte aburrida sin quejarte y sin subirlo a historias. Por eso te la dejan siempre a ti.',
+      'Haces la parte aburrida sin quejarte, y en la cama, por lo que se cuenta, no hay parte aburrida.', // ROCKSTAR
       'Te equivocas, lo dices y lo arreglas en la misma tarde. El grupo tarda más en enterarse que tú en solucionarlo.',
       'Cuando tu nombre sale en un plan, el plan se hace. Cuando no sale, se queda en el chat hasta morirse.',
-      'Llevas siempre cargador, batería externa y un paracetamol. Eres la farmacia del grupo, y nadie te ha pagado nunca un ibuprofeno, pequeña.',
+      'Llevas cargador, batería externa y condones. Eres la farmacia del grupo, y la de ciertas noches también.', // ROCKSTAR
     ],
   },
 
@@ -1115,27 +1115,27 @@ const LABELS = {
     ],
     mid: [
       '[nombre], tienes proyectos a medias y otro que empiezas «cuando pueda». El cuando pueda no llega.',
-      'Ganas una de cada tres y te pasas el mes contándola, [nombre]. Las otras dos las sabe el grupo entero igual.',
-      'Apruebas siempre en la recuperación, [nombre]. En los exámenes, en el curro y con la gente.',
+      'Ganas una de cada tres y te pasas el mes contándola, [nombre], igual que tu último polvo.', // ROCKSTAR
+      'Apruebas siempre en la recuperación, [nombre]. En los exámenes, en el curro y en la cama: a la primera, nunca.', // ROCKSTAR
       'Te apuntas al gimnasio con cada propósito y sigues pagando la cuota por pura vergüenza de darte de baja.',
-      '[nombre], en cualquier torneo acabas en tercer puesto de cinco, que es el puesto que nadie recuerda al día siguiente.',
+      '[nombre], en cualquier torneo acabas en el tercer puesto de cinco, y en las citas igual: ni te eligen ni te descartan, te dejan para luego.', // ROCKSTAR
       '[nombre], te quedas a un punto del aprobado, a un euro del precio y a un mensaje de la cita. Siempre a uno.',
       '[nombre], te sabes las normas de todos los juegos y no ganas ninguno. Explicas la partida y luego acabas en cuarto lugar.',
       'Llegas a las finales y ahí te caes, [nombre]. Tu especialidad es dar ilusión justo hasta el día que cuenta.',
-      'Pides el plato más barato, el asiento del medio y el último turno, y nadie te lo ha pedido.',
+      'Pides el plato más barato y el último turno, [nombre], y en las fiestas te quedas con quien queda cuando ya se ha ido todo el mundo.', // ROCKSTAR
       'Tu currículum tiene más cursos empezados que trabajos terminados, [nombre]. El papel lo aguanta todo, la entrevista no.',
     ],
     low: [
       '[nombre], lo que empiezas lo acabas, y eso deja en evidencia a medio grupo cada vez que abres la boca.',
-      'Pierdes poco, y cuando pierdes no lloras en el grupo. Aquí eso te convierte en una rareza y hasta da sospecha, chiquitina.',
+      'Pierdes poco, y cuando ganas no lo cuentas en el grupo, tampoco lo de la cama, que es lo que más rabia da.', // ROCKSTAR
       '[nombre], tienes el palmarés que otros se inventan en las historias. Lo tuyo encima es verdad, que es lo que molesta.',
       'Te va bien y no lo cuentas, [nombre]. El grupo se entera por terceros y se muere de envidia en silencio.',
-      'Cumples plazos, devuelves lo que te prestan y llegas a la hora. Aburres de lo fiable que eres, pero ganas.',
+      'Cumples plazos, llegas a la hora y no te vas antes de tiempo. En ningún sitio, por lo que dicen.', // ROCKSTAR
       '[nombre], si pierdes una, pides la revancha y la ganas. Tienes un rencor de competición, y por eso ganas.',
       'Tus derrotas se cuentan con una mano y te sobran dedos. Lo que no se cuenta es la gente que te ha dejado de hablar por ganarle.',
       '[nombre], ganas sin prisa y sin avisar. Cuando el resto se entera, ya estás cobrando.',
-      'Nadie te ha visto pedir dinero, ayuda o perdón. Lo primero se admira, lo último ya da un poco de miedo.',
-      '[nombre], apuestas poco y ganas siempre. Te llaman suerte los que no saben contar.',
+      'Nadie te ha visto pedir dinero ni perdón, y lo otro, por lo que se cuenta, no te ha hecho falta pedirlo nunca.', // ROCKSTAR
+      '[nombre], apuestas poco y ganas siempre, y no solo en la mesa: hay quien ha perdido la cabeza contigo.', // ROCKSTAR
     ],
   },
 
@@ -1234,26 +1234,26 @@ const LABELS = {
     ],
     mid: [
       'Tienes suficientes historias para que se hable y suficientes silencios para que no se confirme.',
-      'Te lías con quien toca y a veces con quien no toca. El grupo lleva la cuenta mejor que tú.',
-      'No eres la más fácil del grupo, pero tampoco hace falta insistir mucho.',
-      'Tienes el móvil lleno de conversaciones que no enseñarías ni borracha.',
-      'A medio camino: te respetan de día y te escriben de madrugada.',
+      'Te lías con quien toca y a veces con quien no toca. El grupo lleva la cuenta mejor que tú.', // ROCKSTAR
+      'No eres la más fácil del grupo, pero tampoco hace falta insistir mucho.', // ROCKSTAR
+      'Tienes el móvil lleno de conversaciones que no enseñarías ni borracha.', // ROCKSTAR
+      'A medio camino: te respetan de día y te escriben de madrugada.', // ROCKSTAR
       'Tu fama llega a las fiestas antes que tú. Cuando entras ya no hace falta que te presenten.',
-      'Dices que no a la primera. A la tercera ya estás eligiendo qué ponerte.',
+      'Dices que no a la primera. A la tercera ya estás eligiendo qué ponerte.', // ROCKSTAR
       'No te pasas de la raya siempre. Te pasas cuando te conviene, y se te nota.',
-      'Tienes un par de nombres en la agenda que es mejor que nadie vea, y el grupo ya sospecha cuáles.',
-      'Vas de santa y te pillan en el after cada dos por tres.',
+      'Tienes un par de nombres en la agenda que es mejor que nadie vea, y el grupo ya sospecha cuáles.', // ROCKSTAR
+      'Vas de santa y te pillan en el after cada dos por tres.', // ROCKSTAR
     ],
     low: [
       'Ni una historia tuya que contar. Para el cotilleo eres un desierto, y para ligar también, pequeña.',
-      'Nada. No te mueves por impulso, y eso te ha ahorrado problemas y todas las noches buenas.',
+      'Nada. No te mueves por impulso, y eso te ha ahorrado problemas y todas las noches buenas.', // ROCKSTAR
       'Rebuscan en tu pasado algo que usar contra ti y no sale nada. Tan decente que da asco.',
       'Cero. Tu historial lo podría leer tu madre en voz alta en la cena de Navidad, y nadie dejaría de comer.',
-      'Sin rastro. Te invitan a una copa y pagas tú la siguiente, para no deberle nada a nadie. Así no ligas, pero duermes tranquila.',
+      'Sin rastro. Te invitan a una copa y pagas tú la siguiente, para que nadie piense que la noche incluye postre.', // ROCKSTAR
       'Nada. Tu ex todavía no tiene nada que contar de ti, y mira que lo ha intentado.',
-      'Limpio. En tus fotos de verano vas tapada hasta el cuello, y el grupo se aburre.',
+      'Limpio. En tus fotos de verano vas tapada hasta el cuello, y el grupo se aburre.', // ROCKSTAR
       'Sin material. Llevas años con la misma persona o con ninguna, y el grupo ya ni pregunta.',
-      'Cero escándalo. Los mensajes de madrugada los contestas tarde y por la mañana, así no hay historia posible.',
+      'Cero escándalo. Los mensajes de madrugada los contestas tarde y por la mañana, así no hay historia posible.', // ROCKSTAR
       'Nada. Te han querido liar mil veces y sigues sin nada que contar. A este grupo le das muy poco material, princesa.',
     ],
   },
@@ -1291,24 +1291,24 @@ const LABELS = {
     mid: [
       'A veces te frenas a tiempo y otras te pasas tres pueblos. Nunca se sabe cuál toca hasta que ya ha tocado.',
       'Te duchas todos los días, pero la toalla lleva un mes colgada y ya tiene opinión propia.',
-      'Tus audios empiezan bien, y a los veinte segundos ya estás contando algo de tu última noche que nadie te ha preguntado.',
+      'Tus audios empiezan bien, y a los veinte segundos ya estás contando algo de tu última noche que nadie te ha preguntado.', // ROCKSTAR
       'Te frenas en el grupo grande y en el pequeño sueltas cosas que hacen que alguien se salga del chat.',
-      'Tienes la habitación decente para las videollamadas. Lo que queda fuera del encuadre no lo ha visto nadie, por suerte.',
+      'Tienes la habitación decente para las videollamadas. Lo que queda fuera del encuadre no lo ha visto nadie, por suerte.', // ROCKSTAR
       'Llevas las uñas pintadas, y debajo de la pintura hay tierra de antes.',
-      'Solo a partir de la segunda copa sueltas guarradas, y la segunda copa te llega pronto.',
+      'Solo a partir de la segunda copa sueltas guarradas, y la segunda copa te llega pronto.', // ROCKSTAR
       'Te comportas en las cenas familiares, y en el grupo de amigos mandas stickers que dan ganas de lavarse los ojos.',
       'Friegas cuando ya no queda ni un vaso limpio, y lo cuentas como si fuera limpieza general.',
-      'La mitad de tus fotos las puede ver tu madre. La otra mitad está en una carpeta con contraseña y mal escondida, pequeña.',
+      'La mitad de tus fotos las puede ver tu madre. La otra mitad está en una carpeta con contraseña y mal escondida, pequeña.', // ROCKSTAR
     ],
     low: [
-      'Cero. Tienes tanto decoro que en las cenas te sientan en la punta, para poder hablar de guarradas en la otra, mi niña.',
+      'Cero. Tienes tanto decoro que en las cenas te sientan en la punta, para poder hablar de guarradas en la otra, mi niña.', // ROCKSTAR
       'Sin rastro. Aquí sales impoluta, y el grupo sospecha que es porque todavía no ha mirado bien.',
       'Hueles bien incluso al final del día. Tanto perfume para acabar cenando con tus padres.',
-      'Tienes la casa ordenada sin visita a la vista. Eso ya es de persona que no recibe visitas.',
-      'Nadie te ha oído contar una guarrada en el grupo. O no las tienes, o las guardas para alguien con más suerte que nosotros.',
+      'Tienes la casa ordenada sin visita a la vista. La cama, sobre todo, que no la deshace nadie.', // ROCKSTAR
+      'Nadie te ha oído contar una guarrada en el grupo. O no las tienes, o las guardas para alguien con más suerte que nosotros.', // ROCKSTAR
       'Tus fotos las puede ver tu abuela sin sustos. Y por eso no las ve nadie más.',
       'Lavas los platos al acabar de comer, y luego te sientas a mirar la cocina limpia.',
-      'De sexo hablas con la boca cerrada, o sea, nada. Tienes más misterio que el grupo entero junto, y eso cabrea.',
+      'De sexo hablas con la boca cerrada, o sea, nada. Tienes más misterio que el grupo entero junto, y eso cabrea.', // ROCKSTAR
       'Llevas pañuelos, gel y un cepillo de dientes en el bolso. Eres la persona limpia del grupo y te toca prestarlo todo, chiquitina.',
       'Cuando alguien suelta una guarrada, pones la cara que ponen las madres. Esa cara ya es un clásico del chat.',
     ],

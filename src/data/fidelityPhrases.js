@@ -18,15 +18,15 @@
 
 const FIEL_HIGH = [
   '[nombre] cumple hasta lo que no ha prometido, y luego te lo recuerda en cada cena.',
-  '[nombre] te cubre en una pelea de bar y encima pide perdón por no haber llegado antes. Luego te toca pagarle las copas un año.',
-  'La palabra de [nombre] vale más que un contrato. Lo malo es que la da para todo, y ahora le toca cumplir con medio grupo.',
+  '[nombre] no mira otros móviles ni otras camas, y en este grupo eso ya es un fetiche raro.', // ROCKSTAR
+  'Tu palabra vale más que un contrato, y en la cama también cumples lo que prometes.', // ROCKSTAR
   'Tú le sujetarías el pelo a cualquiera del grupo mientras vomita, y no se lo contarías a nadie. Ni a quien vomitaba.',
   'Compartes la última cerveza. En este grupo eso ya es una declaración de amor.',
   'Si alguien deja el móvil desbloqueado encima de la mesa, tú ni lo miras. Eso, aquí, es rarísimo.',
   '[nombre] te dice la verdad a la cara mientras el resto te miente sonriendo. Se agradece, y escuece.',
-  'Vas a todas las mudanzas, a todos los entierros y a todas las bodas. Tienes la agenda llena de favores y ni un plan tuyo.',
+  'Vas a todas las mudanzas, a todas las bodas y a la misma cama de siempre, y lo raro es que te guste.', // ROCKSTAR
   'Sigues con los mismos amigos y ni una bronca que se haya quedado sin arreglo. Aburre contarlo, eso sí.',
-  'Cuando alguien del grupo cae en desgracia, [nombre] le sigue invitando a los planes, y luego se pasa la noche dando explicaciones.',
+  '[nombre] tiene la pareja de siempre y no le busca sustituto ni de madrugada. Aquí eso se estudia.', // ROCKSTAR
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -38,12 +38,12 @@ const FIEL_MID = [
   '[nombre] ejerce la lealtad por cuenta propia: trabaja para quien pague mejor en cada momento, sin contrato fijo.',
   'Eres quien ayuda a mudarse pero se larga antes de montar los muebles. Presente en lo fácil, ausente en lo jodido.',
   'Lo tuyo es una puta lealtad de temporada. Te apuntas cuando hace buen tiempo y te das de baja cuando llueve.',
-  'Eres fiel hasta que alguien te pone delante una cerveza fría y una sonrisa, y entonces empiezas a negociar.',
-  'Contestarías al primer mensaje de un ex «por educación». La educación, en ti, no tiene hora de cierre.',
+  'Eres fiel hasta que alguien te pone delante una cerveza fría y una sonrisa, y entonces empiezas a negociar.', // ROCKSTAR
+  'Contestarías al primer mensaje de un ex «por educación». La educación, en ti, no tiene hora de cierre.', // ROCKSTAR
   'No has hecho nada todavía, pero tienes la excusa redactada por si acaso.',
-  'Eres fiel cuando te miran. Cuando no te miran, miras tú, y bastante, chiquitina.',
+  'Eres fiel cuando te miran. Cuando no te miran, miras tú, y bastante, chiquitina.', // ROCKSTAR
   'Ayudas a tus amigos si no coincide con el fútbol, con la siesta o con un plan mejor.',
-  '[nombre] no engaña a nadie porque no le sale ligar. El día que le salga, el grupo tiene tema para un año.',
+  '[nombre] no engaña a nadie porque no le sale ligar. El día que le salga, el grupo tiene tema para un año.', // ROCKSTAR
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -116,14 +116,14 @@ const INFIEL_HIGH = [
 
 const INFIEL_MID = [
   '[nombre] no engaña pero tampoco cierra la puerta del todo. Deja una rendija por si hay corriente de aire de otra cama.',
-  '[nombre] no ha cruzado la línea, pero ha meado justo al borde. No es faltar, pero los zapatos se mojan.',
-  '[nombre] no engaña pero tiene el kit de emergencia preparado. Condones en la cartera por si acaso. Y ese si acaso huele fatal.',
+  '[nombre] no ha cruzado la línea, pero ha meado justo al borde. No es faltar, pero los zapatos se mojan.', // ROCKSTAR
+  '[nombre] no engaña pero tiene el kit de emergencia preparado. Condones en la cartera por si acaso. Y ese si acaso huele fatal.', // ROCKSTAR
   '[nombre] tiene la coartada preparada para cosas que supuestamente no ha hecho. Ese nivel de preparación delata más que una prueba.',
-  'Eres quien dice que no pasa nada cuando aparece un pelo que no es de nadie de la casa. Siempre del gato, claro.',
+  'Eres quien dice que no pasa nada cuando aparece un pelo que no es de nadie de la casa. Siempre del gato, claro.', // ROCKSTAR
   '[nombre] tiene conversaciones que no enseñaría ni bajo amenaza. No son prueba de nada, pero de inocencia tampoco.',
   'No has sido infiel todavía, pero tienes el móvil boca abajo en la mesa como quien esconde un parte.',
-  'Sales a por tabaco y vuelves con perfume nuevo, y tú ni fumas.',
-  'Tienes un contacto guardado como «Fontanero» al que se escribe cuando el resto duerme, pequeña.',
+  'Sales a por tabaco y vuelves con perfume nuevo, y tú ni fumas.', // ROCKSTAR
+  'Tienes un contacto guardado como «Fontanero» al que se escribe cuando el resto duerme, pequeña.', // ROCKSTAR
   'Juras que solo es amistad, y a esa amistad le mandas audios que no le mandas a nadie más. Tú sabrás.',
 ];
 
@@ -133,11 +133,11 @@ const INFIEL_MID = [
 
 const INFIEL_LOW = [
   '[nombre] no engaña ni en sueños. Sueña que le ponen los cuernos y se despierta pidiéndole explicaciones a la almohada.',
-  'Eres tan fiel que podrían mandarte a una despedida en Benidorm y volverías sin nada más que quemaduras de sol.',
+  'Eres tan fiel que podrían mandarte a una despedida en Benidorm y volverías sin nada más que quemaduras de sol.', // ROCKSTAR
   '[nombre] deja el móvil desbloqueado encima de la mesa y nadie se pone nervioso. Qué vida más tranquila, y qué aburrida.',
-  'Te sientan al lado de alguien guapísimo en la barra y no pasas de la conversación. A la media hora, se cambia de taburete.',
-  'Te dejan las llaves del coche, la tarjeta y la pareja, y no tocas nada. Bueno, el coche quizá.',
-  'Entre tanta gente con el móvil lleno de fotos en pelotas, [nombre] no ha mandado ni una. Tampoco se las ha pedido nadie.',
+  'Te sientan al lado de alguien guapísimo en la barra y no pasas de la conversación. A la media hora, se cambia de taburete.', // ROCKSTAR
+  'Te dejan las llaves del coche, la tarjeta y la pareja, y no tocas nada. Bueno, el coche quizá.', // ROCKSTAR
+  'Entre tanta gente con el móvil lleno de fotos en pelotas, [nombre] no ha mandado ni una. Tampoco se las ha pedido nadie.', // ROCKSTAR
   'Tus colegas te usan de coartada cuando sus parejas sospechan: contigo nunca pasa nada.',
   'Si un día te pillaran siendo infiel, saldría en las noticias. Mientras tanto no sale nada, y tu vida tampoco da para más.',
   'Eres tan fiel que das asco. Del asco bueno, el que da ver algo tan limpio en este grupo de mierda.',

@@ -27,7 +27,7 @@ const R = path.join(__dirname, '..');
 const MINIMO = 40;
 // Lo que ya hay. Sube con cada tanda (capa 171): una frase marcada no se pierde
 // por el camino sin que el check lo diga.
-const SUELO = 316;
+const SUELO = 510;
 const MARCA = /\/\/.*\bROCKSTAR\b/;
 
 const FICHEROS_DINAMICAS = new Set([
