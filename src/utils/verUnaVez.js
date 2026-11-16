@@ -344,12 +344,12 @@ function mensajeDelMedio(sock, msg, origen) {
 // buscar en el log: cada fallo de /s o /toimg al bajar deja aquí su motivo, sin
 // contenido ni números, y estado lo resume.
 let FICHERO_FALLOS = path.join(__dirname, '../../data/fallosMedios.json');
-function apuntarFallo(motivo) {
+function apuntarFallo(motivo, detalle = null) {
   try {
     let v = [];
     try { v = JSON.parse(fsSync.readFileSync(FICHERO_FALLOS, 'utf8')); } catch { v = []; }
     if (!Array.isArray(v)) v = [];
-    v.push({ ts: Date.now(), motivo });
+    v.push({ ts: Date.now(), motivo, ...(detalle ? { detalle } : {}) });
     fsSync.mkdirSync(path.dirname(FICHERO_FALLOS), { recursive: true });
     fsSync.writeFileSync(FICHERO_FALLOS, JSON.stringify(v.slice(-100)));
   } catch { /* contar no tumba nada */ }
@@ -362,18 +362,51 @@ function fallos(horas = 24) {
   } catch { return []; }
 }
 
+// EL MOTIVO DE VERDAD (16 nov). Antes, si de la foto solo había llegado el
+// aviso vacío, cualquier fallo de /toimg se contaba y se contestaba como «no me
+// llegó», aunque la respuesta trajera la foto citada y lo que fallara fuera la
+// descarga. Ahora se mira primero lo que trae la cita: sin clave, la respuesta
+// no lleva la foto (quien responde ya la había abierto, o su móvil no la
+// tiene); con clave, es la descarga. Y se apunta lo que traía, para estado.
 async function bajar(sock, msg, found, origen, opts = {}) {
   try {
     return await bajarSinApuntar(sock, msg, found, origen, opts);
   } catch (e) {
     if (opts.unirse !== false) {
       const nodo = found?.msg || found?.data;
+      const sinClave = !nodo?.mediaKey;
       const ne = noEntregadaDe(idsRelacionados(msg, origen));
-      if (ne && e && typeof e === 'object') e.noEntregada = true;
-      apuntarFallo(ne ? 'no le llegó al bot' : !nodo?.mediaKey ? 'sin clave' : e?.resubida ? 'enlace muerto y sin copia' : 'descarga');
+      if (e && typeof e === 'object') {
+        if (sinClave && origen === 'cita') e.sinClaveEnCita = true;
+        else if (sinClave && ne) e.noEntregada = true;
+      }
+      const motivo = sinClave
+        ? (origen === 'cita' ? 'la respuesta no trae la foto' : ne ? 'no le llegó al bot' : 'sin clave')
+        : e?.resubida ? 'enlace muerto y sin copia' : 'descarga';
+      apuntarFallo(motivo, detalleFallo(msg, origen, nodo, e));
     }
     throw e;
   }
+}
+
+// Lo que traía el mensaje, sin contenido ni números: qué envoltorio, si venía
+// la clave, la ruta y el enlace, el error, y desde qué tipo de app se respondió
+// (por el id del mensaje: 3EB0 es web, 3A un iPhone).
+function detalleFallo(msg, origen, nodo, e) {
+  try {
+    const base = origen === 'cita' ? citaDe(msg)?.quotedMessage : msg?.message;
+    const id = String(msg?.key?.id || '');
+    return {
+      origen,
+      envoltorio: Object.keys(base || {}).slice(0, 4).join(','),
+      clave: Boolean(nodo?.mediaKey),
+      ruta: Boolean(nodo?.directPath),
+      enlace: Boolean(nodo?.url),
+      vista: nodo?.viewOnce === true || /viewOnce/.test(Object.keys(base || {}).join(',')),
+      app: id.startsWith('3EB0') ? 'web' : id.startsWith('3A') ? 'iPhone' : id ? 'Android u otra' : '?',
+      error: String(e?.message || e || '').slice(0, 120),
+    };
+  } catch { return null; }
 }
 
 async function bajarSinApuntar(sock, msg, found, origen, opts = {}) {
@@ -475,6 +508,8 @@ const conContenido = new Map(); // id -> { ts }: llegó la foto de verdad
 const crudas = new Map(); // id -> { enc, aviso, ts }: lo que trajo el socket
 // Lo que contestan /s y /toimg cuando es eso: no es un fallo de descarga.
 const NO_ENTREGADA = 'Esa foto de ver una vez no me llegó: WhatsApp no se la pasa al bot.';
+// Cuando se responde a la foto y la respuesta no la trae (ya estaba abierta).
+const SIN_CLAVE_CITA = 'Tu respuesta no trae la foto. Responde a la foto de ver una vez sin haberla abierto antes: una vez abierta, tu móvil ya no la guarda.';
 const MARCA_FILTRO = Symbol.for('daddy.verUnaVez.filtro');
 
 function podar(mapa) {
@@ -638,7 +673,9 @@ function apuntarLlegada(msg, tipo, sock = null, noEnviado = '') {
         try {
           if (conContenido.has(id) || vuelos.has(id) || tomar([id])) return;
           const cruda = crudas.get(id);
-          apuntarFallo('WhatsApp no se la mandó al bot');
+          // Esto NO es un fallo de /s ni de /toimg: nadie lo ha pedido todavía.
+          // Contarlo ahí hizo que estado enseñara 99 «fallos» de 100 que eran
+          // fotos mandadas al grupo. Va solo a las llegadas.
           apuntarEvento('solo el aviso vacío');
           logger.warn(`ver una vez: de ${id} al bot solo le llegó el aviso vacío (${noEnviado || 'view_once'}, ${tipo || '?'}); `
             + (cruda?.enc ? 'la foto llegó cifrada y no se pudo abrir' : 'la foto no llegó'));
@@ -704,7 +741,7 @@ function esperaArchivo(id) {
 }
 
 module.exports = {
-  clasificar, bajar, archivarVerUnaVez, apuntarLlegada, instalarFiltro, anotarStanza, llegadas, noEntregadaDe, NO_ENTREGADA, esperaArchivo, citaDe, barrerDisco, fallos,
+  clasificar, bajar, archivarVerUnaVez, apuntarLlegada, instalarFiltro, anotarStanza, llegadas, noEntregadaDe, NO_ENTREGADA, SIN_CLAVE_CITA, esperaArchivo, citaDe, barrerDisco, fallos,
   _usarDescarga, _vaciar, _guardar,
   _usarDisco: (dir) => { DIR_DISCO = dir; ultimoBarrido = 0; FICHERO_FALLOS = path.join(dir, '..', 'fallosMedios.json'); FICHERO_LLEGADAS = path.join(dir, '..', 'verUnaVezLlegadas.json'); porEscribir = []; },
   _escribirEventos: escribirEventos,

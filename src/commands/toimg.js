@@ -21,7 +21,7 @@ const { tempFile, cleanTemp, ffmpegSemaphore } = require('../utils/helpers');
 const { desmontarWebpAnimado, componerWebpAnimado, isAnimatedWebP, extractFirstAnmfFrame } = require('../utils/sticker');
 const { getSender } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
-const { bajar: bajarBytes, NO_ENTREGADA } = require('../utils/verUnaVez');
+const { bajar: bajarBytes, NO_ENTREGADA, SIN_CLAVE_CITA } = require('../utils/verUnaVez');
 const logger = require('../utils/logger');
 
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -441,8 +441,8 @@ async function cmdToImg(sock, msg, groupMeta) {
   } catch (err) {
     logger.error(`toimg error: ${err.message}`);
     await reembolsar();
-    if (err?.noEntregada) {
-      await sock.sendMessage(jid, { text: NO_ENTREGADA }, { quoted: msg });
+    if (err?.sinClaveEnCita || err?.noEntregada) {
+      await sock.sendMessage(jid, { text: err.sinClaveEnCita ? SIN_CLAVE_CITA : NO_ENTREGADA }, { quoted: msg });
       return;
     }
     await sock.sendMessage(jid, { text: 'No pude extraer el contenido. Prueba con otro archivo.' }, { quoted: msg });

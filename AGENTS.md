@@ -149,6 +149,16 @@ la foto citada en una respuesta, que se guarda venga en la respuesta que
 venga (`guardarDeCita`). Las fotos de ver una vez tampoco reciben el visto
 (capa 115). Capas 169 y 170; ver `MOTOR.md`.
 
+Es lo que dicen los propios hilos de Baileys (#1213, #2105): desde 2025
+WhatsApp no manda la foto de ver una vez a los dispositivos vinculados, solo
+el aviso; se saca respondiendo a la foto **sin haberla abierto** (abierta, el
+móvil ya no la guarda y la cita viene sin clave). Si `/toimg` o `/s` no sale,
+se dice por qué: «tu respuesta no trae la foto» (`SIN_CLAVE_CITA`) o la
+descarga. Las fotos de las que solo llegó el aviso no cuentan como intentos
+fallidos, y `npm run estado` enseña el motivo del último y lo que traía la
+cita, sin mandar a nadie al log (dueño, 16 nov: «así no debo usar comandos
+por separado»).
+
 ## Historias de grupo: se abren, se reconocen y se quitan
 
 Lo pidió el dueño (13 nov): «el bot no está baneando la peña que sube

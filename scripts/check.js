@@ -3751,8 +3751,13 @@ const di=async(quien,texto,extra)=>{
         const r = lS ? JSON.parse(lS.slice(3)) : null;
         if (!r) { fallos++; console.log(rojo(`   ✗ la prueba de !s con ver una vez no llegó al final: ${((salS.stderr || '') + (salS.stdout || '')).trim().split('\n').slice(-2).join(' | ').slice(0, 200)}`)); }
         else {
-          if (r.dichos.some((t) => /ver una vez/i.test(t))) { fallos++; console.log(rojo('   ✗ !s vuelve a negarse con lo de «ver una vez» en vez de intentarlo: el dueño lo tumbó, antes se podía')); }
-          if (r.dichos.length !== 2 || !r.dichos.every((t) => /No pude descargar eso/.test(t))) { fallos++; console.log(rojo(`   ✗ cuando no sale, !s no dice lo de siempre: ${r.dichos.join(' | ').slice(0, 120)}`)); }
+          // Se intenta siempre (r.pedidas). Si no sale, se dice por qué con
+          // palabras (16 nov): la cita sin clave es que quien responde ya la
+          // había abierto; con clave, es la descarga. Ninguna de las dos es
+          // negarse por ser de ver una vez.
+          const { SIN_CLAVE_CITA } = require(path.join(R, 'src/utils/verUnaVez'));
+          if (r.dichos.some((t) => /no se puede|no puedo con|no funciona con/i.test(t))) { fallos++; console.log(rojo('   ✗ !s vuelve a negarse con lo de «ver una vez» en vez de intentarlo: el dueño lo tumbó, antes se podía')); }
+          if (r.dichos.length !== 2 || r.dichos[0] !== SIN_CLAVE_CITA || !/No pude descargar eso/.test(r.dichos[1])) { fallos++; console.log(rojo(`   ✗ cuando no sale, !s no dice por qué (sin clave en la cita / descarga): ${r.dichos.join(' | ').slice(0, 160)}`)); }
           const k = r.pedidas[0] || {};
           if (r.pedidas.length !== 1 || k.id !== 'ORIG1' || !String(k.participant).startsWith('34600000098')) { fallos++; console.log(rojo(`   ✗ con la clave en la cita y sin ruta, !s no pide la resubida a quien mandó la foto: ${JSON.stringify(r.pedidas).slice(0, 120)}`)); }
           if (r.antes !== r.despues) { fallos++; console.log(rojo(`   ✗ un !s que no sale no devuelve el aura: ${r.antes} → ${r.despues}`)); }
@@ -25179,7 +25184,7 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
         exige(r.ultima === true, `la última foto no sale de la copia: ${r.ultima}`);
         exige(Array.isArray(r.toimg) && r.toimg.includes('image'), `!toimg respondiendo a una foto de ver una vez guardada no la devuelve: ${r.toimgTxt || JSON.stringify(r.toimg)}`);
         exige(r.caducada === 'no' && r.barrida, 'una copia de más de seis horas se sigue sirviendo, o el barrido no la quita');
-        exige(Array.isArray(r.fallos) && r.fallos.includes('sin clave'), `un !toimg sobre una foto que llegó sin clave no queda apuntado con su motivo para npm run estado: ${JSON.stringify(r.fallos)}`);
+        exige(Array.isArray(r.fallos) && r.fallos.some((x) => x === 'sin clave' || x === 'la respuesta no trae la foto'), `un !toimg sobre una foto que llegó sin clave no queda apuntado con su motivo para npm run estado: ${JSON.stringify(r.fallos)}`);
       }
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     if (fallos === antes166) console.log(verde('   ✓ las fotos de ver una vez se guardan en disco: salen tras un reinicio y aunque haya muchas, y lo caducado se borra'));
@@ -25343,7 +25348,7 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
         "  await cmdToImg(s1.sock, responde('VO1', '!toimg', B, sinClave()), meta);",
         "  await cmdSticker(s1.sock, responde('VO1', '!s', B, sinClave()), meta);",
         "  r.textos = s1.out.map((c) => c.text || Object.keys(c).join('+'));",
-        "  r.esperado = VU.NO_ENTREGADA;",
+        "  r.esperado = VU.SIN_CLAVE_CITA;",
         "  // 2. El aviso por la cabecera (fanout) también cuenta, y no se le pide nada al teléfono.",
         "  VU.apuntarLlegada(stub('VO2'), 'notify', s1.sock, 'view_once_unavailable_fanout');",
         "  VU.apuntarLlegada(stub('OTRO'), 'notify', s1.sock, '');",
@@ -25364,6 +25369,8 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
         "  r.citaConClave = resumen(s4.out);",
         "  await dormir(700);",
         "  r.fallos = VU.fallos(24).map((x) => x.motivo);",
+        "  r.detalle = (VU.fallos(24).find((x) => x.detalle) || {}).detalle || null;",
+        "  r.llegadas = VU.llegadas(24).map((x) => x.que);",
         "  console.log('R169' + JSON.stringify(r)); process.exit(0);",
         "})().catch((e) => { console.log('R169' + JSON.stringify({ fallo: e.stack })); process.exit(0); });",
       ].join('\n');
@@ -25381,10 +25388,13 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
           `la foto que vino citada con su clave en otra respuesta no la saca un /toimg posterior: ${JSON.stringify(r.desdeRespuesta)}`);
         exige(r.citaConClave.length === 1 && r.citaConClave[0].startsWith('image'),
           `/toimg con la foto citada y su clave no la saca: ${JSON.stringify(r.citaConClave)}`);
-        exige(r.fallos.includes('WhatsApp no se la mandó al bot') && r.fallos.includes('no le llegó al bot'),
-          `npm run estado no sabrá que la foto no le llegó al bot: ${JSON.stringify(r.fallos)}`);
-        exige(r.fallos.filter((x) => x === 'WhatsApp no se la mandó al bot').length === 2,
-          `una foto que luego vino en una respuesta se cuenta como no llegada: ${JSON.stringify(r.fallos)}`);
+        // Las fotos de las que solo llegó el aviso van a las llegadas, no a
+        // los fallos de /s y /toimg: nadie las había pedido (16 nov). Y el
+        // fallo de verdad lleva su motivo y lo que traía la cita.
+        exige(r.llegadas.filter((x) => x === 'solo el aviso vacío').length === 2 && !r.fallos.includes('WhatsApp no se la mandó al bot'),
+          `npm run estado no sabrá que la foto no le llegó al bot, o la cuenta como intento fallido: ${JSON.stringify(r.llegadas)} / ${JSON.stringify(r.fallos)}`);
+        exige(r.fallos.includes('la respuesta no trae la foto') && r.detalle && r.detalle.clave === false && r.detalle.origen === 'cita',
+          `el /toimg que no sale no apunta el motivo ni lo que traía la cita: ${JSON.stringify(r.fallos)} ${JSON.stringify(r.detalle)}`);
       }
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     if (fallos === antes169) console.log(verde('   ✓ la foto que no llega se dice tal cual, sin pedírsela al teléfono, y la que viene citada en una respuesta se guarda y /toimg la saca'));
@@ -25485,7 +25495,7 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
         exige(r.llegadas.filter((x) => x === 'solo el aviso vacío').length === 1,
           `de las fotos de las que solo llegó el aviso no queda constancia, o se apunta también la que llegó detrás: ${JSON.stringify(r.llegadas)}`);
         exige(r.llegadas.includes('foto') && r.llegadas.includes('aviso vacío apartado'), `npm run estado no sabrá cuántas fotos llegaron ni cuántos avisos se apartaron: ${JSON.stringify(r.llegadas)}`);
-        exige(r.fallos.filter((x) => x === 'WhatsApp no se la mandó al bot').length === 1, `el fallo de «no se la mandó» no se apunta una sola vez: ${JSON.stringify(r.fallos)}`);
+        exige(!r.fallos.includes('WhatsApp no se la mandó al bot'), `una foto de la que solo llegó el aviso se cuenta como /toimg fallido: ${JSON.stringify(r.fallos)}`);
         exige(r.enDisco === r.llegadas.length, `lo apuntado de ver una vez no llega al disco para npm run estado: ${r.enDisco} de ${r.llegadas.length}`);
       }
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }

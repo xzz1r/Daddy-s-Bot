@@ -34,6 +34,23 @@ const sh = (cmd, ms = 15000) => {
 
 let problemas = 0, avisos = 0;
 
+// LAS LINEAS DEL LOG, YA LEIDAS (16 nov). El dueño: «me mola que en cada
+// actualización me salten los errores que haya en el bot, así no debo usar
+// comandos por separado». Los avisos decian «pm2 logs bot … | grep …»: ahora
+// estado lo hace él y enseña las ultimas lineas que vienen al caso.
+let logBot = null;
+function delLog(patron, n = 3) {
+  if (logBot === null) logBot = sh('pm2 logs bot --lines 4000 --nostream 2>/dev/null', 25000) || '';
+  const re = patron instanceof RegExp ? patron : new RegExp(String(patron).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+  const lineas = logBot.split('\n').filter((l) => re.test(l))
+    .map((l) => l.replace(/^\s*\d+\|[\w-]+\s*\|\s*/, '').trim().slice(0, 220));
+  return lineas.slice(-n);
+}
+const enElLog = (patron, n = 3, siNo = 'todavía no hay líneas de esto en el log') => {
+  const l = delLog(patron, n);
+  return l.length ? `en el log:\n        ${l.join('\n        ')}` : siNo;
+};
+
 // DOS SALIDAS, UNA SOLA PASADA DE COMPROBACIONES.
 //
 // Esto imprimia cuarenta lineas para decir "va bien", y cuarenta lineas de "✔"
@@ -600,7 +617,7 @@ if (!bot) {
     for (const x of cifrados) if (x.motivo) motivos[x.motivo] = (motivos[x.motivo] || 0) + 1;
     const top = Object.entries(motivos).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([m, n]) => `${n}× «${m}»`).join(', ');
     aviso(`${cifrados.length} mensaje(s) de grupo en 24 h que el bot no pudo descifrar (${quienes})` + (top ? `: ${top}` : ''),
-      'pm2 logs bot --lines 3000 --nostream | grep "sin descifrar"   ← grupo, número, el error y la cabecera');
+      enElLog('sin descifrar'));
     if (historias) bien(`${historias} de ellos traían la marca de historia en la cabecera: se castigan sin abrirlos`, true);
     if (noEnviados.length) {
       const tipos = [...new Set(noEnviados.map((x) => x.noEnviado))].slice(0, 3).join(', ');
@@ -619,22 +636,28 @@ if (!bot) {
       const linea = `ver una vez en 24 h: ${c.foto || 0} foto(s) recibidas, ${c['aviso vacío apartado'] || 0} aviso(s) vacío(s) apartados`;
       if (c['solo el aviso vacío']) {
         aviso(`${linea}, y ${c['solo el aviso vacío']} de las que solo llegó el aviso vacío`,
-          'pm2 logs bot --lines 3000 --nostream | grep "solo le llegó el aviso"   ← cuál y si llegó cifrada');
+          'WhatsApp no le manda las fotos de ver una vez a los dispositivos vinculados; se sacan respondiendo a la foto sin haberla abierto');
       } else bien(linea, true);
     }
   } catch { /* sin datos */ }
-  // !s y !toimg QUE NO PUDIERON BAJAR LA FOTO (15 nov), con el porqué.
+  // !s y !toimg QUE NO PUDIERON BAJAR LA FOTO (15 nov), con el porqué. Solo
+  // los intentos de verdad: las fotos mandadas al grupo de las que solo llegó
+  // el aviso ya salen arriba, en las llegadas (antes se contaban aquí también
+  // y 99 de 100 «fallos» eran fotos que nadie había pedido). Y el último, con
+  // lo que traía la respuesta, sin tener que ir al log (16 nov).
   try {
-    const fm = require(path.join(RAIZ, 'src/utils/verUnaVez')).fallos(24);
+    const fm = require(path.join(RAIZ, 'src/utils/verUnaVez')).fallos(24)
+      .filter((x) => x.motivo !== 'WhatsApp no se la mandó al bot');
     if (fm.length) {
       const c = {};
       for (const x of fm) c[x.motivo] = (c[x.motivo] || 0) + 1;
       const parte = Object.entries(c).map(([k, v]) => `${v} ${k}`).join(', ');
-      const noMandadas = c['WhatsApp no se la mandó al bot'] || 0;
-      aviso(`!s / !toimg: ${fm.length} aviso(s) de fotos de ver una vez en 24 h (${parte})`,
-        noMandadas
-          ? `${noMandadas} foto(s) de ver una vez de las que al bot solo le llegó el aviso vacío; pásale esta línea a quien mantenga el bot`
-          : c['sin clave'] ? '«sin clave»: WhatsApp no le pasó al bot la foto; pásale esta línea a quien mantenga el bot' : 'pásale esta línea a quien mantenga el bot');
+      const u = [...fm].reverse().find((x) => x.detalle) || null;
+      const d = u?.detalle;
+      const traia = d
+        ? `el último (${u.motivo}): respondido desde ${d.app}, la cita traía ${d.envoltorio || 'nada'} · clave ${d.clave ? 'sí' : 'no'} · ruta ${d.ruta ? 'sí' : 'no'} · enlace ${d.enlace ? 'sí' : 'no'}${d.error ? ` · error: ${d.error}` : ''}`
+        : 'pásale esta línea a quien mantenga el bot';
+      aviso(`!s / !toimg: ${fm.length} intento(s) en 24 h que no pudieron sacar la foto (${parte})`, traia);
     }
   } catch { /* sin datos */ }
   // Las claves de un solo uso del bot en el servidor (utils/clavesUnUso.js) y
@@ -671,7 +694,7 @@ if (!bot) {
     }
     if (c['no-borrado']) {
       mal(`${c['no-borrado']} estado(s) en 24 h detectados y NO borrados: WhatsApp rechazó la revocación`,
-        'pm2 logs bot --lines 200 | grep "no pude borrar"   ← ahí está la respuesta del servidor');
+        enElLog('no pude borrar'));
     }
     if (c['por-broadcast']) {
       aviso(`${c['por-broadcast']} historia(s) en 24 h llegaron por status@broadcast: desde ahí no se pueden borrar`,
