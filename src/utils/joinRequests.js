@@ -375,10 +375,10 @@ async function aceptarPendientes(sock, grupo) {
   catch { return null; }
   if (!lista || !lista.length) return { aprobados: 0, sinJid: 0, rechazados: 0 };
   const r = await aprobarLista(sock, grupo, lista);
-  // Lo que se queda fuera sin estar vetado: se apunta el porque.
-  if (lista.length - r.rechazados - r.aprobados > 0) {
+  // Lo que se queda fuera sin estar vetado ni dentro ya: se apunta el porque.
+  if (lista.length - r.rechazados - r.aprobados - (r.yaDentro || 0) > 0) {
     await apuntarFallo(grupo, {
-      pendientes: lista.length, aprobados: r.aprobados, sinJid: r.sinJid, estados: r.estados, caidos: r.caidos,
+      pendientes: lista.length, aprobados: r.aprobados, yaDentro: r.yaDentro || 0, sinJid: r.sinJid, estados: r.estados, caidos: r.caidos,
       ...(r.muestra ? { muestra: r.muestra } : {}),
     });
   }
@@ -386,8 +386,9 @@ async function aceptarPendientes(sock, grupo) {
 }
 
 async function aprobarLista(sock, grupo, lista) {
-  let aprobados = 0, sinJid = 0;
+  let aprobados = 0, sinJid = 0, yaDentro = 0;
   let muestra = null;
+  const porMirar = [];  // [jid, estado] con 409: ¿ya está dentro?
   const estados = {};   // lo que contesto WhatsApp por solicitud, si no fue 200
   const caidos = [];    // lotes enteros que fallaron, con el mensaje
   const jids = [];
@@ -439,7 +440,7 @@ async function aprobarLista(sock, grupo, lista) {
     if (i + POR_LOTE < vetados.length) await new Promise((r) => setTimeout(r, PAUSA_ENTRE_LOTES));
   }
 
-  if (!limpios.length) return { aprobados, sinJid, rechazados, estados, caidos, muestra };
+  if (!limpios.length) return { aprobados, sinJid, rechazados, yaDentro, estados, caidos, muestra };
 
   for (let i = 0; i < limpios.length; i += POR_LOTE) {
     const lote = limpios.slice(i, i + POR_LOTE);
@@ -484,9 +485,39 @@ async function aprobarLista(sock, grupo, lista) {
     }
     if (i + POR_LOTE < limpios.length) await new Promise((r) => setTimeout(r, PAUSA_ENTRE_LOTES));
   }
-  return { aprobados, sinJid, rechazados, estados, caidos, muestra };
+
+  // EL 409 DE QUIEN YA ESTA DENTRO (16 nov). En el grupo del dueño quedaba una
+  // solicitud que WhatsApp seguía listando y que al aprobarla contestaba 409,
+  // con el @lid y con el teléfono: es de alguien que ya es miembro (su móvil
+  // enseñaba 1 solicitud y el bot veía más). Eso no es un fallo y no se dice
+  // como fallo: se mira la lista de miembros una vez y, si está, cuenta como
+  // resuelta.
+  if (porMirar.length) {
+    let dentro = new Set();
+    try {
+      if (typeof sock.groupMetadata === 'function') {
+        const meta = await withTimeout(sock.groupMetadata(grupo), TOPE_COLA);
+        for (const p of meta?.participants || []) {
+          for (const f of [p?.id, p?.lid, p?.phoneNumber]) if (f) dentro.add(bareJid(f));
+        }
+      }
+    } catch { dentro = new Set(); }
+    for (const [jid, estado] of porMirar) {
+      const formas = [jid, ...(formasPor.get(jid) || [])].map((f) => bareJid(f));
+      if (formas.some((f) => dentro.has(f))) {
+        yaDentro++;
+        await olvidarSolicitud(grupo, jid);
+        logger.info(`autoaceptar: la solicitud de ${jid} en ${grupo} es de alguien que ya está dentro (WhatsApp da ${estado})`);
+      } else registrarFallida(jid, estado);
+    }
+  }
+  return { aprobados, sinJid, rechazados, yaDentro, estados, caidos, muestra };
 
   function anotarFallida(jid, estado) {
+    if (/^409/.test(String(estado))) { porMirar.push([jid, estado]); return; }
+    registrarFallida(jid, estado);
+  }
+  function registrarFallida(jid, estado) {
     estados[estado] = (estados[estado] || 0) + 1;
     if (!muestra) muestra = attrsPor.get(jid) || null;
     logger.warn(`autoaceptar: WhatsApp rechazo aprobar a ${jid} en ${grupo} (status ${estado})`);

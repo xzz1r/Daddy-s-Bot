@@ -25584,6 +25584,23 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
       exige(/no he podido aprobar ninguna/i.test(dicho), `*!autoaccept* (${nombre}) no dice que ha fallado: «${dicho.slice(0, 80)}»`);
       exige(!TECNICO.test(dicho) && !/`/.test(dicho), `*!autoaccept* (${nombre}) mete texto de terminal en el grupo: «${dicho.slice(0, 120)}»`);
     }
+    // Y el 409 de quien YA ESTÁ DENTRO (16 nov): WhatsApp sigue listando su
+    // solicitud y al aprobarla da 409 con las dos formas. No es un fallo.
+    {
+      let dicho = '';
+      const s = {
+        user: { id: BOT172 },
+        groupRequestParticipantsList: async () => [{ jid: '91720000001@lid', phone_number: '51900000172@s.whatsapp.net', request_method: 'invite_link' }],
+        groupRequestParticipantsUpdate: async (g, l) => l.map((j) => ({ jid: j, status: '409' })),
+        groupMetadata: async () => ({ id: G172, participants: [...parts172, { id: '91720000001@lid', phoneNumber: '51900000172@s.whatsapp.net' }] }),
+        sendMessage: async (j, c) => { dicho = c.text || ''; return {}; },
+      };
+      await autoAcc172(s,
+        { key: { remoteJid: G172, participant: ADM172, fromMe: false, id: 'K172dentro' }, message: { conversation: 'x' } },
+        ['on'], { id: G172, participants: parts172 });
+      exige(/ya está dentro/i.test(dicho) && !/no he podido/i.test(dicho),
+        `*!autoaccept* cuenta como fallo la solicitud de alguien que ya está dentro (409): «${dicho.slice(0, 100)}»`);
+    }
     require(path.join(R, 'src/utils/state')).toggleAutoAceptar(G172, false);
     exige(require(path.join(R, 'src/utils/joinRequests')).fallosAutoaceptar(1).some((x) => x.grupo === G172),
       'el fallo de *!autoaccept* no se apunta: sin eso, `npm run estado` no puede decir por qué no entra nadie');

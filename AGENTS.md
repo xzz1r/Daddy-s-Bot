@@ -152,9 +152,10 @@ venga (`guardarDeCita`). Las fotos de ver una vez tampoco reciben el visto
 Es lo que dicen los propios hilos de Baileys (#1213, #2105): desde 2025
 WhatsApp no manda la foto de ver una vez a los dispositivos vinculados, solo
 el aviso; se saca respondiendo a la foto **sin haberla abierto** (abierta, el
-móvil ya no la guarda y la cita viene sin clave). Si `/toimg` o `/s` no sale,
-se dice por qué: «tu respuesta no trae la foto» (`SIN_CLAVE_CITA`) o la
-descarga. Las fotos de las que solo llegó el aviso no cuentan como intentos
+móvil ya no la guarda y la cita viene sin clave; la foto que manda uno mismo
+tampoco viaja en su respuesta). Si `/toimg` o `/s` no sale, el bot lo dice
+corto, sin explicaciones (dueño, 16 nov: «no pongas esas explicaciones de
+mierda»): «Esa foto no me llega.». Las fotos de las que solo llegó el aviso no cuentan como intentos
 fallidos, y `npm run estado` enseña el motivo del último y lo que traía la
 cita, sin mandar a nadie al log (dueño, 16 nov: «así no debo usar comandos
 por separado»).

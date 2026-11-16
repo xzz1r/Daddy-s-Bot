@@ -507,9 +507,9 @@ const noEntregadas = new Map(); // id -> { ts }
 const conContenido = new Map(); // id -> { ts }: llegó la foto de verdad
 const crudas = new Map(); // id -> { enc, aviso, ts }: lo que trajo el socket
 // Lo que contestan /s y /toimg cuando es eso: no es un fallo de descarga.
-const NO_ENTREGADA = 'Esa foto de ver una vez no me llegó: WhatsApp no se la pasa al bot.';
+const NO_ENTREGADA = 'Esa foto no me llega.';
 // Cuando se responde a la foto y la respuesta no la trae (ya estaba abierta).
-const SIN_CLAVE_CITA = 'Tu respuesta no trae la foto. Responde a la foto de ver una vez sin haberla abierto antes: una vez abierta, tu móvil ya no la guarda.';
+const SIN_CLAVE_CITA = 'Esa foto no me llega.';
 const MARCA_FILTRO = Symbol.for('daddy.verUnaVez.filtro');
 
 function podar(mapa) {

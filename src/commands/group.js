@@ -1191,6 +1191,16 @@ async function cmdAutoAceptar(sock, msg, args, groupMeta) {
   const r = await aceptarPendientes(sock, jid).catch(() => null);
   const hechas = r?.aprobados || 0;
   const vetadas = r?.rechazados || 0;
+  const dentro = r?.yaDentro || 0;
+
+  // LAS QUE SON DE GENTE QUE YA ESTA DENTRO (16 nov). WhatsApp las sigue
+  // listando y al aprobarlas da 409; no son un fallo.
+  if (!hechas && !vetadas && dentro && dentro >= pendientes) {
+    return sock.sendMessage(jid, {
+      text: '*Autoaccept encendido.*\n' +
+        'No hay nada que aprobar: ya está dentro.',
+    }, { quoted: msg });
+  }
 
   // CERO APROBADAS PORQUE ESTABAN TODAS VETADAS NO ES UN FALLO. Es el bot
   // haciendo exactamente lo que tiene que hacer, y sin esto salia por la rama
@@ -1213,15 +1223,14 @@ async function cmdAutoAceptar(sock, msg, args, groupMeta) {
   // de todo el grupo. El motivo exacto lo apunta aceptarPendientes y sale en
   // `npm run estado`; en el grupo se dice lo que pasa, con palabras.
   if (!hechas) {
-    const una = pendientes === 1;
+    const una = pendientes - dentro === 1;
     const sinRespuesta = !r || ((r.caidos || []).length && !Object.keys(r.estados || {}).length && !r.sinJid);
     const porque = sinRespuesta ? 'WhatsApp no me ha contestado al intentarlo'
       : r.sinJid >= pendientes ? `WhatsApp me ${una ? 'la pasa' : 'las pasa'} sin decirme de quién ${una ? 'es' : 'son'}`
         : `WhatsApp no me deja ${una ? 'aprobarla' : 'aprobarlas'}`;
     return sock.sendMessage(jid, {
       text: '*Autoaccept encendido*, pero no he podido aprobar ninguna.\n' +
-        `${una ? 'Hay *1* esperando' : `Hay *${pendientes}* esperando`} y ${porque}.\n` +
-        '_Lo vuelvo a intentar yo solo en cada repaso, y el motivo exacto queda apuntado para quien lleva el bot._',
+        `${una ? 'Hay *1* esperando' : `Hay *${pendientes - dentro}* esperando`} y ${porque}.`,
     }, { quoted: msg });
   }
 
@@ -1229,9 +1238,10 @@ async function cmdAutoAceptar(sock, msg, args, groupMeta) {
     text: '*Autoaccept encendido.*\n' +
       `Había *${pendientes}* esperando y he metido a *${hechas}*.` +
       (vetadas ? ` ${vetadas} en lista negra, rechazadas.` : '') +
+      (dentro ? ` ${dentro} ya estaban dentro.` : '') +
       // Las vetadas NO van en la proxima pasada: ya estan resueltas. Contarlas
       // como pendientes hacia que el bot prometiera volver a por ellas.
-      (hechas + vetadas < pendientes ? ` Las otras ${pendientes - hechas - vetadas} van en la próxima pasada.` : '') +
+      (hechas + vetadas + dentro < pendientes ? ` Las otras ${pendientes - hechas - vetadas - dentro} van en la próxima pasada.` : '') +
       '\n_No añado a nadie: solo abro a quien ya ha pedido entrar._',
   }, { quoted: msg });
 }
