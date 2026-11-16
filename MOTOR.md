@@ -492,6 +492,24 @@ preguntar nada a WhatsApp. Capa 154.
 
 ## El guardián
 
+**El respaldo del tier dueño** (16 nov). Con el bot en línea y admin, lo que
+toca al dueño es trabajo del bot, y el guardián antes ni miraba. Pero el bot
+puede estar conectado y no poder (en soporte, con el tope de acciones gastado,
+con la conexión medio colgada), y entonces lo dejaba para dentro de una hora.
+Ahora, si el aviso toca al tier dueño (le quitan el admin o lo echan), el
+guardián le da 3 s al bot (`ESPERA_RESPALDO`), vuelve a leer el grupo y, a
+quien le siga faltando el admin o no haya vuelto, se lo devuelve él. No
+castiga a nadie de respaldo: eso es del bot. La capa 176 pasa 19 casos con
+los avisos con la forma de Baileys rc14.
+
+**Al instante** (16 nov, «toca el techo»). Cuando le quitan el admin al bot,
+el guardián lo asciende con lo que trae el aviso (su @lid y su teléfono), sin
+leer antes la ficha del grupo. Con el bot caído hace lo mismo con el tier
+dueño: le devuelve el admin, o lo mete de vuelta si lo echaron, nada más
+llegar el aviso; la ficha se lee a la vez, solo para el castigo, que sale en
+paralelo con la devolución. Las tres guardas comparten una sola lectura de la
+ficha por aviso, y lo que se relee tras una espera se lee de nuevo.
+
 **Si se queda sin memoria, se despide antes** (8 nov). En la VPS el cuaderno
 (`data/guardianVidas.json`) tenía seis «arranca» seguidos, uno cada dos horas y
 pico, sin un final en medio: 31 reinicios en 59 h. Lo único que mata así a Node
@@ -1299,8 +1317,8 @@ guardián»). El guardián es otra cuenta, en los mismos grupos, y no importa
 qué huella tenga: se vincula como Android (`Browsers.android`, el mismo de
 `WA_DISPOSITIVO`) para que le llegue la foto entera. Envuelve `sock.ev.emit`
 como el bot y, de cada foto o vídeo de ver una vez de un grupo, la baja al
-llegar (de la red al disco, sin pasarla entera por memoria, una a la vez y
-con el tope de 24 MB) a `data/verUnaVez/<id>.bin`, que es donde el bot ya
+llegar (de la red al disco, sin pasarla entera por memoria, hasta tres a la
+vez y con el tope de 24 MB) a `data/verUnaVez/<id>.bin`, que es donde el bot ya
 busca su copia. El id es el mismo para todos los del grupo: el `/toimg` de
 quien responda la saca, la haya abierto o no. Mientras baja deja
 `<id>.pend`, y el bot espera hasta 25 s en vez de contestar. Barre la

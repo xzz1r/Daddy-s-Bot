@@ -580,6 +580,26 @@ if (!bot) {
         bien(`guardián: montón ${ult.monton} MB de ${ult.limite}` + (ritmo !== null ? ` · ${ritmo >= 0 ? '+' : ''}${ritmo} MB/h en las últimas ${horas.toFixed(1)} h` : ''), true);
       }
     } catch { /* sin medidas todavía */ }
+    // A QUIÉN PROTEGE Y SI PUEDE (16 nov). El dueño: «verifica que esté
+    // funcionando bien la protección a los números del admin». La línea que
+    // deja el guardián al conectar dice a quién repone (números tapados), y
+    // las que deja cuando le tocaba actuar y no pudo, dónde falla.
+    {
+      const logG = (sh('pm2 logs guardian --lines 3000 --nostream 2>/dev/null', 20000) || '').split('\n')
+        .map((l) => l.replace(/^\s*\d+\|[\w-]+\s*\|\s*/, '').trim());
+      const enLinea = logG.filter((l) => /guardián en línea/.test(l)).pop();
+      if (enLinea) {
+        // Sin números enteros: esta salida acaba pegada en chats.
+        const aQuien = enLinea.replace(/^.*guardián en línea[.,]?\s*/, '')
+          .replace(/(\d{2})\d{4,}(\d{4})/g, '$1···$2').slice(0, 220);
+        if (/al tier dueño no/.test(enLinea)) {
+          mal('el guardián no sabe quién es el dueño: con el bot fuera no le devuelve el admin a nadie del tier dueño',
+            'pon OWNER_NUMBER (y CO_OWNERS) en el .env y: pm2 restart guardian --update-env');
+        } else bien(`guardián: ${aQuien}`, true);
+      }
+      const noPudo = logG.filter((l) => /no soy admin ahí|NO he podido devolverle el admin|no pude hacer (promote|demote|add)/.test(l)).slice(-3);
+      if (noPudo.length) aviso('el guardián tuvo que proteger a alguien y no pudo', `en el log:\n        ${noPudo.map((l) => l.slice(0, 200)).join('\n        ')}`);
+    }
   }
 }
 

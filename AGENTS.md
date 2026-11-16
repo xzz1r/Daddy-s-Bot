@@ -99,6 +99,17 @@ evento, lo haya quitado quien lo haya quitado (también otro número del dueño
 o un aviso sin autor), con `URGENTE`: sin hacer cola, pero dentro del tope.
 No se vuelve a dejar para el repaso. Ver `MOTOR.md`; capa 155.
 
+**Y si el bot no puede, el guardián** (dueño, 16 nov: «verifica que esté
+funcionando bien la protección»). Con el bot caído, sin admin o degradado,
+el guardián devuelve el admin al bot y al tier dueño al momento. Con el bot
+en línea y admin, el trabajo es del bot, pero el bot puede estar conectado y
+no poder (soporte, tope): a los 3 s el guardián vuelve a mirar y, si al
+dueño le sigue faltando el admin (o no ha vuelto al grupo), se lo devuelve él;
+el castigo al autor sigue siendo del bot. Lo urgente sale sin leer antes la
+ficha del grupo: el aviso ya dice quién es (dueño, 16 nov: «toca el techo»).
+`npm run estado` enseña a quién protege el guardián y si alguna vez no pudo.
+Capa 176.
+
 ## Por privado, el aura es solo del dueño
 
 Lo pidió el dueño (11 nov): «solo yo puedo tener acceso a esos comandos al

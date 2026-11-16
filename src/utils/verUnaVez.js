@@ -104,7 +104,7 @@ async function esperarDelGuardian(ids) {
   if (!bajandoElGuardian(ids)) return null;
   const hasta = Date.now() + ESPERA_GUARDIAN_MS;
   while (Date.now() < hasta) {
-    await new Promise((r) => { setTimeout(r, 300); });
+    await new Promise((r) => { setTimeout(r, 150); });
     const listo = await leerDisco(ids);
     if (listo) return listo;
     if (!bajandoElGuardian(ids)) return leerDisco(ids);

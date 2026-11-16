@@ -21042,9 +21042,11 @@ const manda = async (quien, tipo, opciones) => {
         exige(hechos.length === 0, `el guardian degrada al dueño por vaciar su grupo: ${hechos.join(' ')}`);
 
         // e) Echar al dueño: el autor cae a la primera y el dueño vuelve con admin.
+        //    El dueño primero (16 nov, «toca el techo»): se le mete de vuelta
+        //    sin esperar a la ficha, y el castigo sale detrás.
         purga._reset(); montaEx();
         await echa([DUENO]);
-        exige(hechos.join(' ') === `demote:${ROGUE} add:${DUENO} promote:${DUENO}`,
+        exige(hechos.join(' ') === `add:${DUENO} promote:${DUENO} demote:${ROGUE}`,
           `echar al dueño con el bot fuera no se revierte (hizo: ${hechos.join(' ') || 'nada'})`);
 
         // f) Quien se va solo no cuenta como expulsion.
@@ -24388,11 +24390,18 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
       await G.alCambioDeAdmin(GR, [{ id: jid(ROGUE), phoneNumber: jid(ROGUE) }], 'demote', jid(D1));
       exige(hechos.length === 0, `el guardián devuelve el admin a quien el dueño se lo quitó y no es del tier dueño: ${hechos.join(' ')}`);
 
-      // Con el bot en línea y admin, es su trabajo: el guardián no pide nada.
+      // Con el bot en línea y admin, es su trabajo: el guardián le da su turno
+      // y, si al dueño le sigue faltando el admin, se lo devuelve él (el
+      // respaldo del 16 nov, capa 176). Aquí el bot no lo hace.
       fs.writeFileSync(latido, JSON.stringify({ conectado: true, ts: Date.now(), pid: process.pid }));
+      G._esperaRespaldo(20);
       monta();
       await G.alCambioDeAdmin(GR, [{ id: jid(D2), phoneNumber: jid(D2) }], 'demote', jid(D1));
-      exige(hechos.length === 0, `con el bot en línea y admin, el guardián también pide el ascenso: ${hechos.join(' ')}`);
+      exige(hechos.join(' ') === `promote:${D2}`, `con el bot en línea que no lo devuelve, el guardián tampoco (hizo: ${hechos.join(' ') || 'nada'})`);
+      monta(); meta.participants.find((q) => q.id === jid(D2)).admin = 'admin';
+      await G.alCambioDeAdmin(GR, [{ id: jid(D2), phoneNumber: jid(D2) }], 'demote', jid(D1));
+      exige(hechos.length === 0, `con el bot en línea que ya lo devolvió, el guardián lo pide otra vez: ${hechos.join(' ')}`);
+      G._esperaRespaldo(5000);
     } catch (e) {
       exige(false, `no pude probar el guardián: ${String(e.message).split('\n')[0]}`);
     } finally {
@@ -25766,6 +25775,13 @@ const r = {};
   G._volcarVerUnaVez();
   r.eventos = JSON.parse(fs.readFileSync(path.join(data, 'guardianVerUnaVez.json'), 'utf8')).map((x) => x.que);
   r.bajadas = bajadas;
+  // Hasta tres a la vez: cuatro fotos lentas, tres bajan juntas.
+  let activas = 0, maximo = 0;
+  G._verUnaVez({ descarga: async () => { activas++; maximo = Math.max(maximo, activas);
+    await new Promise((x) => setTimeout(x, 120)); activas--; return Readable.from([Buffer.alloc(4000, 3)]); } });
+  ev.emit('messages.upsert', { messages: ['P1', 'P2', 'P3', 'P4'].map((x) => foto(x + '174')), type: 'notify' });
+  await G._esperarFotos();
+  r.aLaVez = [maximo, ['P1', 'P2', 'P3', 'P4'].filter((x) => fs.existsSync(path.join(dir, x + '174.bin'))).length];
   V._usarDisco(dir);
   const cita = (id) => ({ key: { id: 'R' + id, remoteJid: '120363000000174@g.us' }, message: { extendedTextMessage: { text: '/toimg',
     contextInfo: { stanzaId: id, participant: '174@lid', quotedMessage: { viewOnceMessageV2: { message: { imageMessage: { mimetype: 'image/jpeg' } } } } } } } });
@@ -25803,6 +25819,7 @@ const r = {};
         exige(r.guardada === 5000 && r.bajadas === 1, `el guardián no deja la foto de ver una vez en data/verUnaVez/<id>.bin (${r.guardada} bytes, ${r.bajadas} bajada/s)`);
         exige(r.pend === true && r.pendFuera === true, 'el guardián no marca con .pend la foto que está bajando, o no quita la marca al terminar: el bot no sabe si esperar');
         exige(r.normal === false, 'el guardián guarda fotos que no son de ver una vez');
+        exige(JSON.stringify(r.aLaVez) === '[3,4]', `el guardián no baja hasta tres fotos a la vez, o se deja alguna: ${JSON.stringify(r.aLaVez)}`);
         exige(r.pasan === 2, 'el guardián se come mensajes al mirarlos: todos tienen que seguir su camino');
         exige(JSON.stringify(r.eventos) === JSON.stringify(['foto', 'guardada', 'solo el aviso', 'sin abrir']),
           `el guardián no apunta bien lo que le llega para npm run estado: ${JSON.stringify(r.eventos)}`);
@@ -25899,6 +25916,186 @@ const r = {};
       }
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     if (fallos === antes175) console.log(verde('   ✓ !visto no le contesta a nadie más que al dueño, y en un grupo se borra y le responde por privado'));
+  }
+
+  // ── 176. LA PROTECCIÓN DEL TIER DUEÑO, CASO A CASO (16 nov) ─────────────────
+  // El dueño: «verifica que esté funcionando bien la protección a los números
+  // del admin cuando el bot no esté activo o le quiten admin a este». El
+  // guardián de verdad, con los avisos con la forma de Baileys rc14 (objetos
+  // con el @lid en id) y las tres guardas a la vez, como su manejador: al bot
+  // degradado, con el bot caído, en línea sin admin, sin latido, el golpe
+  // doble, el dueño solo por su @lid, sin autor, un co-dueño, echar al dueño,
+  // el guardián sin admin y el ascenso a dedo. Y el respaldo: con el bot en
+  // línea y admin que no puede (soporte, tope), al dueño se lo devuelve el
+  // guardián; si el bot ya lo hizo, no toca nada. Y la velocidad («toca el
+  // techo»): lo urgente sale antes de leer la ficha, y las tres guardas leen
+  // una sola vez.
+  {
+    console.log('\n176. LA PROTECCIÓN DEL TIER DUEÑO, CASO A CASO');
+    const antes176 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'tier176-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const fs = require('fs'), path = require('path');",
+        "const G = require('./src/guardian');",
+        "const d = path.join(__dirname, 'data');",
+        "const GR = '120363000000000999@g.us';",
+        "// Números de prueba. Grupo LID: cada uno con su @lid y su teléfono.",
+        "const P = {",
+        "  dueno: { tel: '34600000001', lid: '900000000000001' },",
+        "  codueno: { tel: '34600000002', lid: '900000000000002' },",
+        "  bot: { tel: '34600000003', lid: '900000000000003' },",
+        "  guard: { tel: '34600000004', lid: '900000000000004' },",
+        "  rogue: { tel: '34600000005', lid: '900000000000005' },",
+        "  otro: { tel: '34600000006', lid: '900000000000006' },",
+        "};",
+        "const L = (k) => `${P[k].lid}@lid`, T = (k) => `${P[k].tel}@s.whatsapp.net`;",
+        "const latido = path.join(d, 'botLatido.json'), estado = path.join(d, 'state.json');",
+        "G._latidoBot(latido); G._estadoBot(estado); G._esperaAlBot(50); G._esperaRespaldo(80);",
+        "G._ficheroDueno(path.join(d, 'ownerJids.json'), path.join(d, 'lidsDuenos.json'));",
+        "let meta, hechos, conTel, orden = [];",
+        "function monta({ botAdmin = true, guardAdmin = true, admins = ['dueno', 'codueno'], antiadmin = true, telEnFicha = true } = {}) {",
+        "  fs.writeFileSync(estado, JSON.stringify({ antiAdminEnabled: antiadmin ? [GR] : [] }));",
+        "  conTel = telEnFicha;",
+        "  meta = { id: GR, addressingMode: 'lid', participants: Object.keys(P).map((k) => ({ id: L(k), ...(telEnFicha ? { phoneNumber: T(k) } : {}),",
+        "    admin: (k === 'bot' ? botAdmin : k === 'guard' ? guardAdmin : admins.includes(k)) ? 'admin' : null })) };",
+        "  hechos = []; orden = [];",
+        "}",
+        "const quien = (j) => Object.keys(P).find((k) => j === L(k) || j === T(k)) || j;",
+        "const sock = {",
+        "  user: { id: `${P.guard.tel}:5@s.whatsapp.net`, lid: `${P.guard.lid}:5@lid` },",
+        "  groupMetadata: async () => { orden.push('ficha'); await new Promise((r) => setTimeout(r, 15)); orden.push('ficha-lista'); return JSON.parse(JSON.stringify(meta)); },",
+        "  groupParticipantsUpdate: async (g, ids, que) => {",
+        "    orden.push(que);",
+        "    hechos.push(`${que}:${ids.map(quien).sort().join(',')}`);",
+        "    // Como WhatsApp: sin admin, el guardián recibe un 403 y no cambia nada.",
+        "    if (meta.participants.find((x) => x.id === L('guard'))?.admin !== 'admin') return ids.map((i) => ({ jid: i, status: '403' }));",
+        "    for (const id of ids) {",
+        "      const q = meta.participants.find((x) => x.id === id || x.phoneNumber === id);",
+        "      if (que === 'add' && !q) { meta.participants.push({ id: L(quien(id)), phoneNumber: T(quien(id)), admin: null }); continue; }",
+        "      if (q) q.admin = que === 'promote' ? 'admin' : que === 'demote' ? null : q.admin;",
+        "      if (que === 'remove' && q) meta.participants = meta.participants.filter((x) => x !== q);",
+        "    }",
+        "    return ids.map((i) => ({ jid: i, status: '200' }));",
+        "  },",
+        "};",
+        "G._sock(sock);",
+        "const bot = (como) => {",
+        "  if (como === 'sin latido') { fs.rmSync(latido, { force: true }); return; }",
+        "  fs.writeFileSync(latido, JSON.stringify({ conectado: como === 'vivo', ts: Date.now(), pid: process.pid }));",
+        "};",
+        "// La forma de verdad (Baileys rc14): objetos { id, phoneNumber, admin } con el @lid en id.",
+        "const part = (k, conPn = true) => ({ id: L(k), ...(conPn ? { phoneNumber: T(k) } : {}), admin: null });",
+        "// Lo que hace el manejador del guardián con cada evento: las tres a la vez.",
+        "async function evento(participants, action, author, authorPn) {",
+        "  await Promise.all([",
+        "    G.alDegradar(GR, participants, action, author),",
+        "    G.alCambioDeAdmin(GR, participants, action, author, authorPn),",
+        "    G.alExpulsar(GR, participants, action, author, authorPn),",
+        "  ]);",
+        "  return hechos.join(' ') || 'nada';",
+        "}",
+        "const casos = [];",
+        "const caso = async (nombre, prep, ev, espera) => {",
+        "  prep(); G._olvidarPurgas();",
+        "  const r = await ev();",
+        "  const ok = espera(r, meta, orden);",
+        "  casos.push(`${ok ? 'OK ' : 'MAL'} ${nombre}: ${r}`);",
+        "};",
+        "const adminDe = (k) => meta.participants.find((x) => x.id === L(k))?.admin === 'admin';",
+        "(async () => {",
+        "  process.env.OWNER_NUMBER = P.dueno.tel; process.env.CO_OWNERS = P.codueno.tel;",
+        "  process.env.GUARDIAN_DE = P.bot.tel; process.env.GUARDIAN_LID = P.bot.lid;",
+        "  fs.writeFileSync(path.join(d, 'lidsDuenos.json'), JSON.stringify([L('dueno'), L('codueno')]));",
+        "  // 1. Le quitan el admin al bot (bot vivo): el guardián se lo devuelve.",
+        "  await caso('degradan al bot (bot en línea)', () => { monta({ botAdmin: false }); bot('vivo'); },",
+        "    () => evento([part('bot', false)], 'demote', L('rogue'), T('rogue')), () => adminDe('bot'));",
+        "  // 1b. Al instante: el ascenso del bot sale sin leer antes la ficha del grupo.",
+        "  await caso('degradan al bot: asciende sin leer la ficha', () => { monta({ botAdmin: false }); bot('caido'); },",
+        "    () => evento([part('bot')], 'demote', L('rogue'), T('rogue')), (r, m, o) => o.indexOf('promote') >= 0 && !o.slice(0, o.indexOf('promote')).includes('ficha-lista') && o.filter((x) => x === 'ficha').length <= 1);",
+        "  // 3b. Al instante: al dueño se le devuelve antes de leer la ficha, y una sola lectura para las tres guardas.",
+        "  await caso('degradan al dueño, bot caído: devuelve antes de leer y lee una vez', () => { monta({ admins: ['codueno', 'rogue'] }); bot('caido'); },",
+        "    () => evento([part('dueno')], 'demote', L('rogue'), T('rogue')), (r, m, o) => o.indexOf('promote') >= 0 && !o.slice(0, o.indexOf('promote')).includes('ficha-lista') && o.filter((x) => x === 'ficha').length === 1 && adminDe('dueno') && !adminDe('rogue'));",
+        "  // 13b. Al instante: al dueño echado se le mete antes de leer la ficha.",
+        "  await caso('echan al dueño, bot caído: lo mete antes de leer', () => { monta({ admins: ['codueno', 'rogue'] }); bot('caido');",
+        "    meta.participants = meta.participants.filter((x) => x.id !== L('dueno')); },",
+        "    () => evento([part('dueno')], 'remove', L('rogue'), T('rogue')), (r, m, o) => o.indexOf('add') >= 0 && !o.slice(0, o.indexOf('add')).includes('ficha-lista') && adminDe('dueno') && !adminDe('rogue'));",
+        "  // 2. Igual con el bot caído.",
+        "  await caso('degradan al bot (bot caído)', () => { monta({ botAdmin: false }); bot('caido'); },",
+        "    () => evento([part('bot', false)], 'demote', L('rogue'), T('rogue')), () => adminDe('bot'));",
+        "  // 3. Bot caído: un admin le quita el admin al dueño. Se le devuelve y el autor cae.",
+        "  await caso('degradan al dueño, bot caído', () => { monta({ admins: ['codueno', 'rogue'] }); bot('caido'); },",
+        "    () => evento([part('dueno')], 'demote', L('rogue'), T('rogue')), () => adminDe('dueno') && !adminDe('rogue'));",
+        "  // 4. Lo mismo con !antiadmin apagado: al dueño se le devuelve igual.",
+        "  await caso('degradan al dueño, bot caído, antiadmin apagado', () => { monta({ admins: ['codueno', 'rogue'], antiadmin: false }); bot('caido'); },",
+        "    () => evento([part('dueno')], 'demote', L('rogue'), T('rogue')), () => adminDe('dueno'));",
+        "  // 5. Al co-dueño, igual.",
+        "  await caso('degradan al co-dueño, bot caído', () => { monta({ admins: ['dueno', 'rogue'] }); bot('caido'); },",
+        "    () => evento([part('codueno')], 'demote', L('rogue'), T('rogue')), () => adminDe('codueno') && !adminDe('rogue'));",
+        "  // 6. Bot en línea pero sin admin en ese grupo: actúa el guardián.",
+        "  await caso('degradan al dueño, bot en línea SIN admin', () => { monta({ botAdmin: false, admins: ['codueno', 'rogue'] }); bot('vivo'); },",
+        "    () => evento([part('dueno')], 'demote', L('rogue'), T('rogue')), () => adminDe('dueno') && !adminDe('rogue'));",
+        "  // 7. Bot en línea y admin que SÍ lo hace (en la espera del respaldo): el guardián no toca nada.",
+        "  await caso('degradan al dueño, bot en línea CON admin y lo devuelve', () => { monta({ admins: ['codueno', 'rogue'] }); bot('vivo');",
+        "    setTimeout(() => { for (const q of meta.participants) { if (q.id === L('dueno')) q.admin = 'admin'; if (q.id === L('rogue')) q.admin = null; } }, 20); },",
+        "    () => evento([part('dueno')], 'demote', L('rogue'), T('rogue')), (r) => r === 'nada');",
+        "  // 7b. Bot en línea y admin que NO puede (soporte, tope): el guardián se lo devuelve, sin castigar (eso es del bot).",
+        "  await caso('degradan al dueño, bot en línea CON admin que no puede', () => { monta({ admins: ['codueno', 'rogue'] }); bot('vivo'); },",
+        "    () => evento([part('dueno')], 'demote', L('rogue'), T('rogue')), (r) => adminDe('dueno') && r === 'promote:dueno');",
+        "  // 7c. Lo mismo quitándoselo otro número del dueño.",
+        "  await caso('el co-dueño se lo quita, bot en línea que no puede', () => { monta({ admins: ['codueno'] }); bot('vivo'); },",
+        "    () => evento([part('dueno')], 'demote', L('codueno'), T('codueno')), (r) => adminDe('dueno'));",
+        "  // 7d. Echan al dueño con el bot en línea que no puede: vuelve con admin.",
+        "  await caso('echan al dueño, bot en línea que no puede', () => { monta({ admins: ['codueno', 'rogue'] }); bot('vivo');",
+        "    meta.participants = meta.participants.filter((x) => x.id !== L('dueno')); },",
+        "    () => evento([part('dueno')], 'remove', L('rogue'), T('rogue')), () => adminDe('dueno'));",
+        "  // 7e. Ascenso a dedo con el bot en línea: es del bot, el guardián ni espera.",
+        "  await caso('ascenso a dedo, bot en línea CON admin', () => { monta({ admins: ['dueno', 'codueno', 'rogue', 'otro'] }); bot('vivo'); },",
+        "    () => evento([part('otro')], 'promote', L('rogue'), T('rogue')), (r) => r === 'nada');",
+        "  // 8. Sin latido (no se sabe del bot): espera su turno y actúa si sigue sin hacer.",
+        "  await caso('degradan al dueño, sin saber del bot', () => { monta({ admins: ['codueno', 'rogue'] }); bot('sin latido'); },",
+        "    () => evento([part('dueno')], 'demote', L('rogue'), T('rogue')), () => adminDe('dueno') && !adminDe('rogue'));",
+        "  // 9. El golpe doble: al bot y al dueño en el mismo aviso, con el bot en línea.",
+        "  await caso('degradan al bot Y al dueño a la vez', () => { monta({ botAdmin: false, admins: ['codueno', 'rogue'] }); bot('vivo'); },",
+        "    () => evento([part('bot'), part('dueno')], 'demote', L('rogue'), T('rogue')), () => adminDe('bot') && adminDe('dueno') && !adminDe('rogue'));",
+        "  // 10. El dueño llega SOLO por su @lid, sin teléfono en el aviso ni en la ficha.",
+        "  await caso('dueño solo por su @lid (lidsDuenos.json)', () => { monta({ admins: ['codueno', 'rogue'], telEnFicha: false }); bot('caido'); },",
+        "    () => evento([part('dueno', false)], 'demote', L('rogue')), () => adminDe('dueno'));",
+        "  // 11. Aviso sin autor: al dueño se le devuelve.",
+        "  await caso('degradan al dueño sin autor en el aviso', () => { monta({ admins: ['codueno'] }); bot('caido'); },",
+        "    () => evento([part('dueno')], 'demote', undefined), () => adminDe('dueno'));",
+        "  // 12. Otro número del dueño le quita el admin: se le devuelve sin castigar.",
+        "  await caso('el co-dueño le quita el admin al dueño', () => { monta({ admins: ['codueno'] }); bot('caido'); },",
+        "    () => evento([part('dueno')], 'demote', L('codueno'), T('codueno')), () => adminDe('dueno') && adminDe('codueno'));",
+        "  // 13. Echan al dueño con el bot caído: el autor cae y el dueño vuelve con admin.",
+        "  await caso('echan al dueño, bot caído', () => { monta({ admins: ['codueno', 'rogue'] }); bot('caido');",
+        "    meta.participants = meta.participants.filter((x) => x.id !== L('dueno')); },",
+        "    () => evento([part('dueno')], 'remove', L('rogue'), T('rogue')), () => adminDe('dueno') && !adminDe('rogue'));",
+        "  // 14. El guardián sin admin: no puede, y no revienta.",
+        "  await caso('degradan al dueño, guardián SIN admin (WhatsApp dice 403)', () => { monta({ guardAdmin: false, admins: ['codueno', 'rogue'] }); bot('caido'); },",
+        "    () => evento([part('dueno')], 'demote', L('rogue'), T('rogue')), () => !adminDe('dueno') && adminDe('rogue'));",
+        "  // 15. Ascenso a dedo con el bot caído y antiadmin: caen autor y ascendido.",
+        "  await caso('ascenso a dedo, bot caído', () => { monta({ admins: ['dueno', 'codueno', 'rogue', 'otro'] }); bot('caido'); },",
+        "    () => evento([part('otro')], 'promote', L('rogue'), T('rogue')), () => !adminDe('rogue') && !adminDe('otro'));",
+        "  console.log('R176' + JSON.stringify(casos));",
+        "  process.exit(0);",
+        "})().catch((e) => { console.log('R176' + JSON.stringify({ error: e.stack })); process.exit(0); });"
+      ].join('\n');
+      fs.writeFileSync(path.join(caja, 't176.js'), guion);
+      const out = spawnSync('node', ['t176.js'], { cwd: caja, encoding: 'utf8', timeout: 90000, env: { ...process.env, LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R176'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(r.length >= 22, `faltan casos: ${r.length}`);
+        for (const c of r) exige(c.startsWith('OK'), `el guardián falla un caso del tier dueño: ${c.slice(4)}`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes176) console.log(verde('   ✓ con el bot caído, sin admin o degradado, el guardián devuelve el admin al bot y al tier dueño; con el bot en línea que no puede, se lo devuelve igual'));
   }
 
 

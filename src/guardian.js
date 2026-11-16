@@ -623,11 +623,15 @@ async function alDegradar(groupJid, participants, action, author) {
   const mios = [sock?.user?.id, sock?.user?.lid].filter(Boolean).map(digitos);
   if (author && mios.some((m) => mismoNumero(m, digitos(author)))) return false;
 
-  let meta = null;
-  try { meta = await withTimeout(sock.groupMetadata(groupJid), TOPE_RED); }
-  catch (e) { logger.unaVez('guardian: ficha del grupo', e); }
-
-  const caidos = (participants || []).filter((p) => esElProtegido(p, meta));
+  // AL INSTANTE (16 nov, «toca el techo»). El aviso ya trae el @lid y el
+  // teléfono del bot (Baileys rc14): si con eso se le reconoce, se le asciende
+  // sin leer antes la ficha del grupo, que es un viaje entero a WhatsApp. La
+  // ficha solo se lee si el aviso no basta.
+  let caidos = (participants || []).filter((p) => esElProtegido(p, null));
+  if (!caidos.length) {
+    const meta = await fichaDelGrupo(groupJid);
+    caidos = (participants || []).filter((p) => esElProtegido(p, meta));
+  }
   if (!caidos.length) {
     // NO SE SALE EN SILENCIO. Este era el agujero: si la comparación fallaba
     // —y falló— no quedaba ni una línea en el log, así que desde fuera el
@@ -639,12 +643,14 @@ async function alDegradar(groupJid, participants, action, author) {
     return false;
   }
 
+  // Primero el ascenso; lo demás, mientras viaja.
+  const hecho = reponer(groupJid, caidos.map(idDe).filter(Boolean));
   logger.warn(`guardián: le han quitado el admin al bot en ${groupJid}. Reponiendo.`);
   // Se apunta el grupo: si el bot estaba admin aquí, el repaso de la próxima
   // reconexión tiene derecho a reponerlo sin preguntar.
   const vistos = leerVistos();
   if (!vistos[groupJid]) { vistos[groupJid] = Date.now(); guardarVistos(vistos); }
-  return reponer(groupJid, caidos.map(idDe).filter(Boolean));
+  return hecho;
 }
 
 // ─── EL ANTI-ADMIN, CUANDO EL BOT NO ESTA ───────────────────────────────────
@@ -802,9 +808,22 @@ function soyYo(p, meta) {
 }
 const deConfianza = (p, meta) => soyYo(p, meta) || esElProtegido(p, meta) || esDueno(p, meta);
 
-async function fichaDelGrupo(groupJid) {
-  try { return await withTimeout(sock.groupMetadata(groupJid), TOPE_RED); }
-  catch (e) { logger.unaVez('guardian: ficha del grupo', e); return null; }
+// UNA LECTURA POR AVISO (16 nov). Las tres guardas miran el mismo aviso a la
+// vez y cada una pedía la ficha del grupo: tres viajes a WhatsApp. Ahora la
+// que está en camino se comparte. Lo que se relee tras una espera va con
+// `fresca`: ahí hace falta lo de ahora, no lo de antes.
+const leyendo = new Map();
+function fichaDelGrupo(groupJid, { fresca = false } = {}) {
+  if (!fresca && leyendo.has(groupJid)) return leyendo.get(groupJid);
+  const p = (async () => {
+    try { return await withTimeout(sock.groupMetadata(groupJid), TOPE_RED); }
+    catch (e) { logger.unaVez('guardian: ficha del grupo', e); return null; }
+  })();
+  if (!fresca) {
+    leyendo.set(groupJid, p);
+    p.finally(() => { if (leyendo.get(groupJid) === p) leyendo.delete(groupJid); });
+  }
+  return p;
 }
 
 async function cambiarRangos(groupJid, ids, que) {
@@ -822,25 +841,52 @@ async function cambiarRangos(groupJid, ids, que) {
 // null y ni espera ni relee. Si no, devuelve la ficha del grupo con la que
 // actuar (null si no se pudo leer), el estado del bot y si el guardian es
 // admin ahi.
-async function leToca(groupJid, meta, que) {
+//
+// EL RESPALDO DEL TIER DUEÑO (16 nov). Con el bot en línea y admin, lo que
+// toca al dueño también es trabajo del bot, pero el bot puede estar conectado
+// y no poder: en soporte, con el tope de acciones gastado, con la conexión
+// medio colgada. Entonces lo dejaba «para dentro de una hora» y el dueño se
+// quedaba sin admin. Con `respaldo`, el guardián le da ESPERA_RESPALDO al
+// bot, vuelve a mirar el grupo y, si al dueño le sigue faltando, se lo
+// devuelve él. El castigo al autor sigue siendo cosa del bot.
+let ESPERA_RESPALDO = 3000;
+// `botGolpeado`: el mismo aviso le quitó el admin al bot. Ese aviso el bot lo
+// recibió sin admin y no lo va a deshacer, aunque cuando se lea la ficha el
+// guardián ya se lo haya devuelto: le toca al guardián, sin esperar.
+async function leToca(groupJid, meta, que, respaldo = false, botGolpeado = false) {
   const estado = estadoDelBot();
+  let deRespaldo = false;
   if (estado === 'desconocido') {
     // Sin latido no se sabe si el bot esta: se le deja su turno y se vuelve a
     // mirar el grupo, para hacer solo lo que siga sin hacer.
     await new Promise((r) => setTimeout(r, ESPERA_AL_BOT));
-    meta = await fichaDelGrupo(groupJid);
+    meta = await fichaDelGrupo(groupJid, { fresca: true });
   } else {
     if (!meta) meta = await fichaDelGrupo(groupJid);
     const bot = (meta?.participants || []).find((q) => esElProtegido(q, meta));
     // El bot esta y es admin aqui: es su trabajo, y lo hace el.
-    if (estado === 'vivo' && esAdminFicha(bot)) return null;
+    if (estado === 'vivo' && esAdminFicha(bot) && !botGolpeado) {
+      if (!respaldo) return null;
+      await new Promise((r) => setTimeout(r, ESPERA_RESPALDO));
+      meta = await fichaDelGrupo(groupJid, { fresca: true });
+      deRespaldo = true;
+    }
     // Y si no, al instante: esperar a un bot que no esta es dejar el grupo
     // abierto diez segundos para nada.
   }
   const yo = (meta?.participants || []).find((q) => soyYo(q, meta));
   const soyAdmin = esAdminFicha(yo);
   if (meta && !soyAdmin) logger.error(`guardián: habría que ${que} en ${groupJid} y no soy admin ahí`);
-  return { meta, estado, soyAdmin };
+  return { meta, estado, soyAdmin, deRespaldo };
+}
+
+// Los que siguen sin admin según la ficha recién leída. Sin ficha que los
+// reconozca, se va con el id del aviso: mejor un ascenso de más que uno menos.
+function sinAdminAun(personas, meta) {
+  return [...new Set((personas || []).map((p) => {
+    const q = fichaEn(p, meta);
+    return q ? (esAdminFicha(q) ? null : q.id) : idDe(p);
+  }).filter(Boolean))];
 }
 
 const comoVaElBot = (estado) => (estado === 'vivo' ? 'en linea pero sin admin ahi' : estado);
@@ -853,8 +899,23 @@ async function alCambioDeAdmin(groupJid, participants, action, author, authorPn)
     logger.unaVez('guardian: anti-admin apagado', 'no hay OWNER_NUMBER en el .env y sin saber quien manda revertiria al propio dueño');
     return null;
   }
+  // AL INSTANTE (16 nov, «toca el techo»). Con el bot caído, al tier dueño se
+  // le devuelve el admin nada más llegar el aviso, sin leer antes la ficha:
+  // se le devuelve siempre, lo haya quitado quien lo haya quitado, y el aviso
+  // ya trae su @lid y su teléfono. La ficha se lee a la vez, para lo demás (el
+  // castigo), y a quien ya se repuso aquí no se le vuelve a pedir.
+  const rapidos = action === 'demote' && estadoDelBot() === 'caido'
+    ? (participants || []).filter((p) => esDueno(p, null)) : [];
+  const idsRapidos = [...new Set(rapidos.map(idDe).filter(Boolean))];
+  const rapido = idsRapidos.length ? cambiarRangos(groupJid, idsRapidos, 'promote') : Promise.resolve([]);
   let meta = await fichaDelGrupo(groupJid);
+  const yaRepuestos = await rapido;
+  const formasRapidas = new Set(yaRepuestos.length && yaRepuestos.length >= idsRapidos.length
+    ? rapidos.flatMap(formasDe).map(digitos) : []);
+  const pendiente = (p) => !formasDe(typeof p === 'string' ? { id: p } : p).map(digitos).some((x) => formasRapidas.has(x));
+  if (yaRepuestos.length) logger.warn(`guardián: le quitaron el admin a un dueño en ${groupJid} con el bot caído; devuelto al momento a ${yaRepuestos.length}/${idsRapidos.length}`);
   const autor = { id: author, phoneNumber: authorPn };
+  const botGolpeado = action === 'demote' && (participants || []).some((p) => esElProtegido(p, meta));
   // SU PROPIA CUENTA QUITÁNDOLE EL ADMIN A UN DUEÑO (2 nov). El guardián no
   // lo hace nunca por su cuenta (al dueño no se le toca), así que es alguien
   // con ese móvil en la mano: el dueño lo probó así y nadie lo revertía. Se
@@ -865,16 +926,21 @@ async function alCambioDeAdmin(groupJid, participants, action, author, authorPn)
   // debe ser instantáneo». Eso solo lo devolvía el repaso del bot, cada seis
   // minutos. Con el bot fuera, lo devuelve el guardián al momento.
   if (action === 'demote' && (!author || deConfianza(autor, meta))) {
-    const duenos = (participants || []).filter((p) => esDueno(p, meta));
-    if (!duenos.length) return null;
-    const turno = await leToca(groupJid, meta, 'devolverle el admin al dueño');
+    const duenos = (participants || []).filter((p) => esDueno(p, meta) && pendiente(p));
+    if (!duenos.length) return yaRepuestos.length ? { quitados: [], repuestos: yaRepuestos } : null;
+    const turno = await leToca(groupJid, meta, 'devolverle el admin al dueño', true, botGolpeado);
     if (!turno || !turno.meta || !turno.soyAdmin) return turno ? { quitados: [], repuestos: [] } : null;
-    const repuestos = await cambiarRangos(groupJid, duenos.map(idDe).filter(Boolean), 'promote');
+    // Solo a quien le siga faltando: con el bot en línea, lo normal es que ya
+    // se lo haya devuelto él.
+    const faltan = sinAdminAun(duenos, turno.meta);
+    if (!faltan.length) return { quitados: [], repuestos: yaRepuestos };
+    const repuestos = await cambiarRangos(groupJid, faltan, 'promote');
     const quien = !author ? 'alguien (el aviso no dice quién)' : soyYo(autor, meta) ? 'mi propia cuenta' : 'un número de confianza';
-    logger.warn(`guardián: ${quien} le quitó el admin a un dueño en ${groupJid}; repuesto a ${repuestos.length}/${duenos.length}`);
-    return { quitados: [], repuestos };
+    logger.warn(`guardián: ${quien} le quitó el admin a un dueño en ${groupJid}; repuesto a ${repuestos.length}/${faltan.length}`
+      + (turno.deRespaldo ? ' (el bot estaba en línea y no lo devolvió)' : ''));
+    return { quitados: [], repuestos: [...yaRepuestos, ...repuestos] };
   }
-  if (deConfianza(autor, meta)) return null;
+  if (deConfianza(autor, meta)) return yaRepuestos.length ? { quitados: [], repuestos: yaRepuestos } : null;
 
   const encendido = antiadminEncendido(groupJid);
   // El bot y el guardian no entran nunca: al bot lo repone alDegradar al
@@ -891,21 +957,33 @@ async function alCambioDeAdmin(groupJid, participants, action, author, authorPn)
     quitar = [autor];
   }
 
-  const turno = await leToca(groupJid, meta, 'revertir un cambio de admin');
+  const tocaAlDueno = action === 'demote' && reponer.some((p) => esDueno(p, meta));
+  const turno = await leToca(groupJid, meta, 'revertir un cambio de admin', tocaAlDueno, botGolpeado);
   if (!turno) return null;
   ({ meta } = turno);
   const { estado } = turno;
   if (!meta || !turno.soyAdmin) return { quitados: [], repuestos: [] };
+  // De respaldo, solo se le devuelve el admin al dueño: lo demás es del bot.
+  if (turno.deRespaldo) {
+    const faltan = sinAdminAun(reponer.filter((p) => esDueno(p, meta)), meta);
+    if (!faltan.length) return { quitados: [], repuestos: [] };
+    const repuestos = await cambiarRangos(groupJid, faltan, 'promote');
+    logger.warn(`guardián: el bot estaba en línea y no le devolvió el admin al dueño en ${groupJid}; repuesto a ${repuestos.length}/${faltan.length}`);
+    return { quitados: [], repuestos };
+  }
 
   const aQuitar = quitar.map((p) => fichaEn(p, meta)).filter((q) => q && esAdminFicha(q) && !deConfianza(q, meta)).map((q) => q.id);
-  const aReponer = reponer.map((p) => fichaEn(p, meta)).filter((q) => q && !esAdminFicha(q)).map((q) => q.id);
-  if (!aQuitar.length && !aReponer.length) return { quitados: [], repuestos: [] };   // ya lo hizo el bot
+  const aReponer = reponer.filter(pendiente).map((p) => fichaEn(p, meta)).filter((q) => q && !esAdminFicha(q)).map((q) => q.id);
+  if (!aQuitar.length && !aReponer.length) return { quitados: [], repuestos: yaRepuestos };   // ya lo hizo el bot
 
-  const repuestos = await cambiarRangos(groupJid, [...new Set(aReponer)], 'promote');
-  const quitados = await cambiarRangos(groupJid, [...new Set(aQuitar)], 'demote');
+  // A la vez: devolver y quitar son dos peticiones independientes.
+  const [repuestos, quitados] = await Promise.all([
+    cambiarRangos(groupJid, [...new Set(aReponer)], 'promote'),
+    cambiarRangos(groupJid, [...new Set(aQuitar)], 'demote'),
+  ]);
   logger.warn(`guardián: el bot no estaba (${comoVaElBot(estado)}) y lo revierto yo en ${groupJid} (${action} de ${author}); `
-    + `repuestos ${repuestos.length}/${aReponer.length}, degradados ${quitados.length}/${aQuitar.length}`);
-  return { quitados, repuestos };
+    + `repuestos ${repuestos.length + yaRepuestos.length}/${aReponer.length + yaRepuestos.length}, degradados ${quitados.length}/${aQuitar.length}`);
+  return { quitados, repuestos: [...yaRepuestos, ...repuestos] };
 }
 
 // ─── LAS EXPULSIONES, TAMBIEN SIN EL BOT ────────────────────────────────────
@@ -938,6 +1016,16 @@ function apuntarPurga(groupJid, autor, cuantas) {
   return false;
 }
 
+// Mete al dueño de vuelta con su teléfono (un @lid no sirve para meterle) y le
+// devuelve el admin. Devuelve con qué entró, o null.
+async function meterDueno(groupJid, o) {
+  const tel = [o?.phoneNumber, o?.id].find((j) => String(j || '').endsWith('@s.whatsapp.net'));
+  if (!tel) return null;
+  const [dentro] = await cambiarRangos(groupJid, [tel], 'add');
+  if (dentro && (await cambiarRangos(groupJid, [dentro], 'promote')).length) return dentro;
+  return null;
+}
+
 async function alExpulsar(groupJid, participants, action, author, authorPn) {
   if (action !== 'remove' || !author) return null;
   if (!numerosDueno().length) return null;   // ya avisado en alCambioDeAdmin
@@ -947,28 +1035,49 @@ async function alExpulsar(groupJid, participants, action, author, authorPn) {
   const fuera = echados.filter((o) => !formasDe(o).map(digitos).some((x) => formasDe(autor).map(digitos).includes(x)));
   if (!fuera.length) return null;
 
+  // AL INSTANTE (16 nov, «toca el techo»). Con el bot caído, al dueño echado
+  // se le mete de vuelta y se le devuelve el admin sin esperar a la ficha del
+  // grupo, salvo que el aviso ya diga que lo echó alguien de confianza. La
+  // ficha se lee a la vez, para el castigo.
+  const rapidosEx = estadoDelBot() === 'caido' && !deConfianza(autor, null) ? fuera.filter((o) => esDueno(o, null)) : [];
+  const meterYa = Promise.all(rapidosEx.map((o) => meterDueno(groupJid, o)));
   let meta = await fichaDelGrupo(groupJid);
-  if (deConfianza(autor, meta)) return null;
+  const yaDentro = (await meterYa).filter(Boolean);
+  const formasDentro = new Set(yaDentro.length && yaDentro.length >= rapidosEx.length ? rapidosEx.flatMap(formasDe).map(digitos) : []);
+  const pendienteEx = (o) => !formasDe(o).map(digitos).some((x) => formasDentro.has(x));
+  if (yaDentro.length) logger.warn(`guardián: echaron al dueño en ${groupJid} con el bot caído; de vuelta con admin al momento ${yaDentro.length}/${rapidosEx.length}`);
+  if (deConfianza(autor, meta)) return yaDentro.length ? { quitados: [], repuestos: yaDentro } : null;
   const purga = apuntarPurga(groupJid, authorPn || author, fuera.length);
   const duenos = fuera.filter((o) => esDueno(o, meta));
   if (!purga && !duenos.length) return null;
 
-  const turno = await leToca(groupJid, meta, 'quitar el admin a quien echa gente');
+  const turno = await leToca(groupJid, meta, 'quitar el admin a quien echa gente', duenos.length > 0);
   if (!turno) return null;
   ({ meta } = turno);
   if (!meta || !turno.soyAdmin) return { quitados: [], repuestos: [] };
 
+  // De respaldo (el bot en línea no lo hizo), solo se mete al dueño de vuelta.
   const ficha = fichaEn(autor, meta);
-  const quitados = ficha && esAdminFicha(ficha) && !deConfianza(ficha, meta)
-    ? await cambiarRangos(groupJid, [ficha.id], 'demote') : [];
+  // El castigo sale ya; meter al dueño de vuelta va a la vez.
+  const quitando = !turno.deRespaldo && ficha && esAdminFicha(ficha) && !deConfianza(ficha, meta)
+    ? cambiarRangos(groupJid, [ficha.id], 'demote') : Promise.resolve([]);
   // El dueño vuelve con su telefono: un @lid no sirve para meterle.
-  const repuestos = [];
+  const repuestos = [...yaDentro];
   for (const o of duenos) {
-    if (fichaEn(o, meta)) continue;   // ya ha vuelto (lo metio el bot)
-    const tel = [o.phoneNumber, o.id].find((j) => String(j || '').endsWith('@s.whatsapp.net'));
-    if (!tel) continue;
-    const [dentro] = await cambiarRangos(groupJid, [tel], 'add');
-    if (dentro && (await cambiarRangos(groupJid, [dentro], 'promote')).length) repuestos.push(dentro);
+    if (!pendienteEx(o)) continue;   // ya lo metió el camino rápido
+    const vuelta = fichaEn(o, meta);
+    if (vuelta) {
+      // Ya ha vuelto (lo metió el bot). Si sigue sin admin, se le devuelve.
+      if (turno.deRespaldo && !esAdminFicha(vuelta) && (await cambiarRangos(groupJid, [vuelta.id], 'promote')).length) repuestos.push(vuelta.id);
+      continue;
+    }
+    const dentro = await meterDueno(groupJid, o);
+    if (dentro) repuestos.push(dentro);
+  }
+  const quitados = await quitando;
+  if (turno.deRespaldo) {
+    if (repuestos.length) logger.warn(`guardián: echaron al dueño en ${groupJid} y el bot, en línea, no lo devolvió; de vuelta ${repuestos.length}/${duenos.length}`);
+    return { quitados, repuestos };
   }
   logger.warn(`guardián: el bot no estaba (${comoVaElBot(turno.estado)}) y ${author} ${purga ? 'vaciaba el grupo' : 'echo al dueño'} en ${groupJid}; `
     + `degradado: ${quitados.length ? 'si' : 'NO'}, dueño de vuelta ${repuestos.length}/${duenos.length}`);
@@ -990,8 +1099,8 @@ async function alExpulsar(groupJid, participants, action, author, authorPn) {
 // bot espera a que termine en vez de contestar que no le llega.
 //
 // No la abre: bajar no manda ningún acuse, y el guardián no marca nada como
-// visto. Una descarga a la vez, de la red al disco sin pasar entera por la
-// memoria, con el mismo tope de tamaño, de vida y de carpeta que el bot.
+// visto. Hasta tres descargas a la vez, de la red al disco sin pasar enteras
+// por la memoria, con el mismo tope de tamaño, de vida y de carpeta que el bot.
 //
 // SOLO SI EL BOT ESTÁ EN ESTA MÁQUINA (su latido existe). El guardián puede
 // correr en el ordenador de otra persona, y ahí no guarda fotos de nadie.
@@ -1106,7 +1215,15 @@ function barrerFotos(ahora = Date.now()) {
   return borradas;
 }
 
-let colaFotos = Promise.resolve();
+// HASTA TRES A LA VEZ (16 nov, «toca el techo»). Bajan de la red al disco
+// sin pasar enteras por memoria, así que tres juntas no pesan: lo que manda
+// es la red, y una foto no espera a que termine el vídeo de antes.
+const A_LA_VEZ = 3;
+let bajando = 0;
+const turnos = [];
+const pedirTurno = () => new Promise((r) => { if (bajando < A_LA_VEZ) { bajando++; r(); } else turnos.push(r); });
+const soltarTurno = () => { const sig = turnos.shift(); if (sig) sig(); else bajando--; };
+const enVuelo = new Set();
 const enCola = new Set();
 function guardarFoto(id, { nodo, tipo }) {
   const nombre = nombreFoto(id);
@@ -1117,7 +1234,7 @@ function guardarFoto(id, { nodo, tipo }) {
   enCola.add(nombre);
   const pend = path.join(DIR_VER_UNA_VEZ, `${nombre}.pend`);
   try { fs.mkdirSync(DIR_VER_UNA_VEZ, { recursive: true }); fs.writeFileSync(pend, ''); } catch { /* sin marca, el bot no espera */ }
-  const p = colaFotos.then(() => bajarAFichero(nodo, tipo, ruta)).then(
+  const p = pedirTurno().then(() => bajarAFichero(nodo, tipo, ruta).finally(soltarTurno)).then(
     (bytes) => { apuntarVerUnaVez('guardada'); return bytes; },
     (e) => {
       apuntarVerUnaVez('no se pudo bajar');
@@ -1129,7 +1246,8 @@ function guardarFoto(id, { nodo, tipo }) {
     try { fs.rmSync(pend, { force: true }); } catch { /* da igual */ }
     try { barrerFotos(); } catch { /* barrer no tumba nada */ }
   });
-  colaFotos = p.then(() => {}, () => {});
+  enVuelo.add(p);
+  p.finally(() => enVuelo.delete(p));
   return p;
 }
 
@@ -1602,7 +1720,7 @@ if (require.main === module) {
   } else arrancar();
 }
 
-module.exports = { esDueno, lineaDuenos, _ficheroDueno: (f, g) => { FICHERO_DUENO = f; if (g) FICHERO_LIDS_DUENOS = g; _lidsDueno = { mtime: -1, lids: [] }; }, alDegradar, alCambioDeAdmin, alExpulsar, _olvidarPurgas: () => purgas.clear(), _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, _latidoBot: (f) => { LATIDO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _vigilarMemoria: vigilarMemoria, _pistaMuerteMuda: pistaMuerteMuda, _MEMORIA: MEMORIA, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR,
+module.exports = { esDueno, lineaDuenos, _ficheroDueno: (f, g) => { FICHERO_DUENO = f; if (g) FICHERO_LIDS_DUENOS = g; _lidsDueno = { mtime: -1, lids: [] }; }, alDegradar, alCambioDeAdmin, alExpulsar, _olvidarPurgas: () => purgas.clear(), _esperaAlBot: (ms) => { ESPERA_AL_BOT = ms; }, _esperaRespaldo: (ms) => { ESPERA_RESPALDO = ms; }, _estadoBot: (f) => { ESTADO_BOT = f; }, _latidoBot: (f) => { LATIDO_BOT = f; }, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _vigilarMemoria: vigilarMemoria, _pistaMuerteMuda: pistaMuerteMuda, _MEMORIA: MEMORIA, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR,
   // Ver una vez (16 nov).
   vigilarVerUnaVez, medioVerUnaVez, reponerClaves, barrerFotos, apartarSesionSiCambia,
   dispositivoDeseado, dispositivoDeSesion, navegadorDe, apuntarDispositivo, FICHERO_CODIGO,
@@ -1616,5 +1734,5 @@ module.exports = { esDueno, lineaDuenos, _ficheroDueno: (f, g) => { FICHERO_DUEN
     avisos.clear();
   },
   _volcarVerUnaVez: volcarVerUnaVez,
-  _esperarFotos: () => colaFotos,
+  _esperarFotos: () => Promise.all([...enVuelo]),
 };
