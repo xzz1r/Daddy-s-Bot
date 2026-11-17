@@ -12753,6 +12753,46 @@ const di=async(quien,t)=>{out.length=0;
     const deOtroPalabra = await correr({ texto: 'Welcome', citado: tipos.imagen, quien: OTRO63 });
     exige(deOtroPalabra.priv === 0, 'un miembro cualquiera disparó *!k* con una palabra suelta');
 
+    // ── 3b. LO DE VER UNA VEZ SALE DE LA COPIA (17 nov) ────────────────────
+    //
+    // «No funciona !k ni sus variantes Welcome y Diría algo». A este bot, de una
+    // foto de ver una vez, solo le llega el aviso: la cita viene sin clave. La
+    // foto la guarda el guardián en data/verUnaVez/<id>.bin, y *!k* tiene que
+    // sacarla de ahí, como /toimg. Y sin copia, «Esa foto no me llega.».
+    {
+      const V63 = require(path.join(R, 'src/utils/verUnaVez'));
+      const d63 = fs.mkdtempSync(path.join(os.tmpdir(), 'k63-'));
+      const dirV = path.join(d63, 'verUnaVez');
+      fs.mkdirSync(dirV);
+      V63._usarDisco(dirV);
+      try {
+        const sinClave = { viewOnceMessageV2: { message: { imageMessage: { mimetype: 'image/jpeg' } } } };
+        const foto = Buffer.alloc(2048, 7);
+        fs.writeFileSync(path.join(dirV, 'Q63.bin'), foto);
+        const salidas = [];
+        const sockV = { user: { id: BOT63 }, sendMessage: async (j, c) => { salidas.push({ j, c }); return {}; } };
+        for (const texto of ['!k', 'Welcome']) {
+          salidas.length = 0;
+          await k.cmdK(sockV, { key: { remoteJid: G63, participant: OWN63, fromMe: false, id: `KV63${texto}` },
+            message: { extendedTextMessage: { text: texto, contextInfo: { stanzaId: 'Q63', participant: OTRO63, quotedMessage: sinClave } } } },
+          meta63, texto === '!k');
+          const priv = salidas.filter((o) => !o.j.endsWith('@g.us'));
+          exige(priv.length === 1 && Buffer.isBuffer(priv[0].c.image) && priv[0].c.image.equals(foto),
+            `*!k* («${texto}») citando una foto de ver una vez sin clave no saca la copia que guardó el guardián: ${JSON.stringify(priv.map((o) => Object.keys(o.c)))}`);
+        }
+        salidas.length = 0;
+        await k.cmdK(sockV, { key: { remoteJid: G63, participant: OWN63, fromMe: false, id: 'KV63nada' },
+          message: { extendedTextMessage: { text: '!k', contextInfo: { stanzaId: 'SINCOPIA63', participant: OTRO63, quotedMessage: sinClave } } } },
+        meta63, true);
+        const aviso63 = salidas.filter((o) => !o.j.endsWith('@g.us')).map((o) => o.c.text || '');
+        exige(aviso63.length === 1 && aviso63[0] === V63.NO_ENTREGADA,
+          `*!k* sin copia de una foto de ver una vez no dice «${V63.NO_ENTREGADA}»: ${JSON.stringify(aviso63)}`);
+      } finally {
+        V63._usarDisco(path.join(R, 'data/verUnaVez'));
+        fs.rmSync(d63, { recursive: true, force: true });
+      }
+    }
+
     // ── 4. EL ARCHIVO CADUCADO SE VUELVE A PEDIR ───────────────────────────
     //
     // Lo de arriba pasaba con la caché de WhatsApp caliente. Esto es lo que
@@ -25895,6 +25935,10 @@ const r = {};
     const est174 = soloCodigo('scripts/estado.js');
     exige(/guardianVerUnaVez\.json/.test(est174) && /como Android tampoco le llega la foto/.test(est174),
       '`npm run estado` ya no dice si al guardián vinculado como Android le llegan las fotos');
+    // Y no se queda con avisos ya resueltos (17 nov): quedarse sin sesión de
+    // antes de vincularlo, o un 404/409 de !autoaccept de antes del arreglo.
+    exige(/const DE_VINCULAR = /.test(est174) && /resuelto/.test(est174) && /40\[49\]/.test(est174),
+      '`npm run estado` vuelve a sacar como fallo lo ya resuelto: el guardián sin sesión de antes de vincularlo, o un 404/409 de !autoaccept');
     const pk174 = JSON.parse(fs.readFileSync(path.join(R, 'package.json'), 'utf8'));
     exige(/vincularGuardian\.js/.test(pk174.scripts?.['vincular-guardian'] || ''), 'falta `npm run vincular-guardian`');
     // Si la vinculación no se completa, la sesión de antes vuelve sola: el

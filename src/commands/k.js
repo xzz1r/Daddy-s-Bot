@@ -5,6 +5,9 @@ const { isOwner, getSender, canonicalJid, bareJid } = require('../utils/wa');
 const { streamToBuffer, MAX_MEDIA_BYTES } = require('../utils/helpers');
 const logger = require('../utils/logger');
 const config = require('../config');
+// Lo que usan /toimg y /s para lo de ver una vez: la copia en memoria o en
+// disco (también la que guarda el guardián), esperando si se está bajando.
+const verUnaVez = require('../utils/verUnaVez');
 
 // !k — reenvía al privado del owner el archivo al que responde.
 //
@@ -245,13 +248,23 @@ async function cmdK(sock, msg, groupMeta, borrar = true) {
     }
     : { key: msg.key, message: medio.contenido };
 
+  // LO DE VER UNA VEZ, POR LA COPIA (17 nov). El dueño: «no funciona !k ni sus
+  // variantes Welcome y Diría algo». A este bot, de una foto de ver una vez,
+  // WhatsApp solo le manda el aviso vacío: la cita no trae con qué bajarla, y
+  // *!k* la bajaba por su cuenta y fallaba. Ahora va como /toimg: la copia en
+  // memoria o en disco —la que guarda el guardián vinculado como Android—, y
+  // solo si no la hay, la descarga de siempre.
+  const vista = verUnaVez.clasificar(citado ? ctx?.quotedMessage : msg.message);
   let buf;
   try {
-    buf = await bajarMedio(sock, sobre, medio);
+    buf = vista?.verUnaVez
+      ? await verUnaVez.bajar(sock, msg, vista, citado ? 'cita' : 'propio')
+      : await bajarMedio(sock, sobre, medio);
   } catch (e) {
     logger.warn(`!k: no pude descargar el ${medio.nombre}: ${e.message}`);
     return sock.sendMessage(destino, {
-      text: `No pude descargar ese ${medio.nombre}. WhatsApp ya no lo tiene o venía dañado.`,
+      text: e?.sinClaveEnCita || e?.noEntregada ? verUnaVez.NO_ENTREGADA
+        : `No pude descargar ese ${medio.nombre}. WhatsApp ya no lo tiene o venía dañado.`,
     }).catch(() => {});
   }
 

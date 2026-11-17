@@ -514,7 +514,17 @@ if (!bot) {
       const vidas = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data/guardianVidas.json'), 'utf8'));
       const finales = vidas.filter((v) => v.que !== 'arranca');
       const ultimo = finales[finales.length - 1];
-      if (ultimo) {
+      // QUEDARSE SIN SESIÓN NO ES MORIRSE, Y SI YA SE VINCULÓ ESTÁ RESUELTO
+      // (17 nov). Tras vincularlo como Android, estado seguía con un ✘ «se
+      // murió solo: esperando a que alguien pida vincular» de antes de
+      // vincularlo. Si el guardián arrancó después de ese final y lleva más de
+      // un minuto en línea, tiene sesión: no hay nada que arreglar.
+      const DE_VINCULAR = /pida vincular|sesión cerrada desde el teléfono/;
+      const resuelto = ultimo && DE_VINCULAR.test(ultimo.que) && env.status === 'online'
+        && Number(env.pm_uptime || 0) > ultimo.ts && Date.now() - Number(env.pm_uptime || 0) > 60 * 1000;
+      if (resuelto) {
+        bien(`guardián: vinculado de nuevo después de quedarse sin sesión (${new Date(ultimo.ts).toLocaleString('es-ES')})`);
+      } else if (ultimo) {
         const cerca = techo && ultimo.rss >= techo * 0.85;
         const cuando = new Date(ultimo.ts).toLocaleString('es-ES');
         if (/SIG/.test(ultimo.que) && cerca) {
@@ -538,7 +548,8 @@ if (!bot) {
           mal(`el guardián se murió solo: ${ultimo.que}${ultimo.detalle ? ` — ${ultimo.detalle}` : ''} (${cuando}, ${ultimo.rss} MB)`,
             linea ? `en el log queda: ${linea}` : 'pm2 logs guardian --err --lines 50   (el log de error está vacío)');
         } else bien(`guardián: el último final fue un ${ultimo.que} normal a ${ultimo.rss} MB`);
-        const solos = finales.filter((v) => !/SIG/.test(v.que)).length;
+        // Lo de vincular no cuenta: no es que se muera, es que no tiene sesión.
+        const solos = finales.filter((v) => !/SIG/.test(v.que) && !DE_VINCULAR.test(v.que)).length;
         if (solos > 1) aviso(`${solos} de los últimos ${finales.length} finales del guardián no fueron despliegues`, 'pm2 logs guardian --err --lines 50');
       }
       // LAS MUERTES SIN RASTRO (8 nov): dos «arranca» seguidos sin un final en
@@ -713,7 +724,7 @@ if (!bot) {
       const traia = d
         ? `el último (${u.motivo}): respondido desde ${d.app}, la cita traía ${d.envoltorio || 'nada'} · clave ${d.clave ? 'sí' : 'no'} · ruta ${d.ruta ? 'sí' : 'no'} · enlace ${d.enlace ? 'sí' : 'no'}${d.error ? ` · error: ${d.error}` : ''}`
         : 'pásale esta línea a quien mantenga el bot';
-      aviso(`!s / !toimg: ${fm.length} intento(s) en 24 h que no pudieron sacar la foto (${parte})`, traia);
+      aviso(`!s / !toimg / !k: ${fm.length} intento(s) en 24 h que no pudieron sacar la foto (${parte})`, traia);
     }
   } catch { /* sin datos */ }
   // Las claves de un solo uso del bot en el servidor (utils/clavesUnUso.js) y
@@ -789,7 +800,12 @@ if (!bot) {
   // le pedía al grupo, por WhatsApp, que mandara un `pm2 logs … | grep`; ahora
   // el motivo se apunta en data/autoaceptarFallos.json y se lee aquí.
   try {
-    const fa = require(path.join(RAIZ, 'src/utils/joinRequests')).fallosAutoaceptar(24);
+    // Los repasos cuyo único «fallo» fue 404 o 409 ya no lo son (16 y 17
+    // nov): la solicitud ya no existía o era de alguien que ya está dentro.
+    // Los apuntados antes de ese arreglo no se enseñan.
+    const fa = require(path.join(RAIZ, 'src/utils/joinRequests')).fallosAutoaceptar(24)
+      .filter((x) => x.sinJid || (x.caidos || []).length
+        || Object.keys(x.estados || {}).some((st) => !/^40[49]/.test(st)));
     if (fa.length) {
       const u = fa[fa.length - 1];
       const partes = [];
