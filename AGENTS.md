@@ -277,7 +277,11 @@ consultar en una semana. Ver `MOTOR.md` («Un número nuevo no pregunta en
 masa») y la capa 144. Debajo hay topes por hora y por día en el socket
 (`utils/ritmo.js`), más bajos los siete primeros días de un número: **no se
 suben para que algo quepa**; lo que no quepa se dice como «sin comprobar».
-Capa 145. Dentro del tope, quien escribe va primero y tiene reservado el 40 %;
+Capa 145. **Un purge grande no se pierde por el tope** (dueño, 17 nov: un
+`!purge` de 47 «no sacó a nadie»): el tope cuenta personas y 47 en una
+petición no cabían nunca. Ahora van de cinco en cinco; al saltar el tope se
+para, y lo que falta ya está vetado y lo sacan los repasos de la lista negra.
+Capa 177. Dentro del tope, quien escribe va primero y tiene reservado el 40 %;
 lo de fondo lleva la marca `FONDO`. Quien escribió sin poder comprobarse se
 repesca después, y al echar a una cuenta Business se borra su spam reciente
 (dueño, 8 nov). Desde el 9 nov los topes de mirar perfiles son los que eran

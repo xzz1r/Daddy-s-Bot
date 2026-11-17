@@ -57,6 +57,16 @@ const PAUSA_ONWA_MS = 1000;
 // las treinta cuentas; 30 se quedaba corto en el caso real (33) y encima los
 // trozos falsos del parser llenaban el cupo antes de llegar a los de verdad.
 const MAX_PURGE = 50;
+// POR TANDAS, Y LO QUE NO QUEPA SALE DESPUÉS (17 nov). El dueño, con un !purge
+// de 47 cuentas en INTERLUDE: «no surtió efecto y no sacó a nadie». Iban todas
+// en UNA petición, y el tope de expulsiones (30 personas por hora mientras el
+// número está en rodaje, utils/ritmo.js) cuenta personas: 47 no caben nunca, y
+// se rechazaba entera. Ahora van de cinco en cinco; cuando salta el tope se
+// para, y las que faltan ya están en la lista negra: el repaso de vetados que
+// siguen dentro (echarVetadosDentro, cada 6 minutos) las saca a medida que el
+// tope deja. El tope no se sube: protege al número.
+const TANDA = 5;
+const esTopeError = (e) => /tope (por hora|del día|diario)|TOPE_/i.test(String(e || ''));
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function etiquetasDe(hits) {
@@ -278,6 +288,7 @@ async function barrerGrupos(sock, grupos, cuentas, hacerAviso) {
   const fuera = [];
   const sinPermiso = [];
   const fallos = [];
+  const pendientes = [];
   let visto = 0;
 
   for (const [gJid, meta] of Object.entries(grupos || {})) {
@@ -311,21 +322,28 @@ async function barrerGrupos(sock, grupos, cuentas, hacerAviso) {
     }
 
     const ids = hits.map((h) => h.hit.p.id);
-    const r = await aplicarParticipantes(sock, gJid, ids, 'remove', meta);
-    if (r.ok.length) {
-      fuera.push(nombre);
-      if (r.fallidos.length) {
-        fallos.push(`${nombre} (parcial: ${r.fallidos.length})`);
+    let echados = 0, fallidos = 0, porque = null;
+    for (let i = 0; i < ids.length; i += TANDA) {
+      const r = await aplicarParticipantes(sock, gJid, ids.slice(i, i + TANDA), 'remove', meta);
+      echados += r.ok.length;
+      if (r.error) {
+        if (esTopeError(r.error)) { pendientes.push(`${nombre}: ${ids.length - i}`); porque = null; }
+        else { fallidos += ids.length - i; porque = r.error; }
+        break;
       }
-    } else {
-      const porque = r.error || r.fallidos[0]?.status || 'sin respuesta';
-      fallos.push(`${nombre} (${porque})`);
-      logger.warn(`purga: no pude expulsar de ${gJid}: ${porque}`);
+      fallidos += r.fallidos.length;
+      if (!porque && r.fallidos.length) porque = r.fallidos[0]?.status || 'sin respuesta';
+      if (i + TANDA < ids.length) await espera(PAUSA_MS);
+    }
+    if (echados) fuera.push(ids.length > 1 ? `${nombre}: ${echados}` : nombre);
+    if (fallidos) {
+      fallos.push(`${nombre}: ${fallidos}${porque ? ` (WhatsApp no deja: ${porque})` : ''}`);
+      logger.warn(`purga: no pude expulsar a ${fallidos} de ${gJid}: ${porque}`);
     }
     await espera(PAUSA_MS);
   }
 
-  return { fuera, sinPermiso, fallos, visto };
+  return { fuera, sinPermiso, fallos, visto, pendientes };
 }
 
 // Los que se quedan sin comprobar por el tope, en UNA linea (dueño, 18 oct):
@@ -420,7 +438,7 @@ async function cmdPurgaNumero(sock, msg, args, groupMeta) {
     if (hit) hit.suyas.forEach((f) => formas.add(f));
   }
 
-  const { fuera, sinPermiso, fallos, visto } = await barrerGrupos(
+  const { fuera, sinPermiso, fallos, visto, pendientes: aSalir } = await barrerGrupos(
     sock,
     grupos,
     [{ digitos, objetivo, formas }],
@@ -441,6 +459,7 @@ async function cmdPurgaNumero(sock, msg, args, groupMeta) {
       linea('Fuera', fuera) +
       linea('No pude: el bot no es admin', sinPermiso) +
       linea('Falló', fallos) +
+      linea('Sale en los próximos repasos', aSalir.map((x) => x.replace(/: \d+$/, ''))) +
       `\n\n_En lista negra como número virtual (${anotadas} forma(s) anotadas). Si vuelve a entrar, se le echa solo._`,
   }, { quoted: msg });
 }
@@ -671,7 +690,7 @@ async function cmdPurge(sock, msg, args, groupMeta) {
     }
   }
 
-  const { fuera, sinPermiso, fallos, visto } = await barrerGrupos(
+  const { fuera, sinPermiso, fallos, visto, pendientes: aSalir } = await barrerGrupos(
     sock,
     grupos,
     cuentas,
@@ -695,6 +714,8 @@ async function cmdPurge(sock, msg, args, groupMeta) {
       linea('Fuera', fuera) +
       linea('No pude: el bot no es admin', sinPermiso) +
       linea('Falló', fallos) +
+      linea('Salen en los próximos repasos', aSalir) +
+      (aSalir.length ? '\n_El número tiene un tope de expulsiones por hora. Ya están vetados: el bot los va sacando solo, unos pocos cada pocos minutos._' : '') +
       (errores.length ? `\n\n*No válidos*\n${errores.map((e) => `· ${e}`).join('\n')}` : '') +
       (sinComprobar ? `\n\n${lineaDelTope(sinComprobar)}` : '') +
       (saltados.length ? `\n\n*Omitidos*\n${saltados.map((d) => `· +${d}`).join('\n')}` : '') +
@@ -813,10 +834,14 @@ async function cmdPurgeAll(sock, msg, args, groupMeta) {
   }
 
   let fuera = 0;
+  let quedan = 0;
   const fallidos = [];
   for (let i = 0; i < objetivos.length; i += PURGEALL_TANDA) {
     const tanda = objetivos.slice(i, i + PURGEALL_TANDA).map((p) => p.id);
     const r = await aplicarParticipantes(sock, jid, tanda, 'remove', meta);
+    // El tope de expulsiones por hora: se para, y lo que falta ya está vetado
+    // y sale en los repasos (ver TANDA arriba).
+    if (r.error && esTopeError(r.error)) { quedan = objetivos.length - i; break; }
     fuera += r.ok.length;
     for (const f of r.fallidos) fallidos.push(f.jid);
     if (i + PURGEALL_TANDA < objetivos.length) await espera(PAUSA_MS);
@@ -829,10 +854,11 @@ async function cmdPurgeAll(sock, msg, args, groupMeta) {
       `*GRUPO VACIADO*\n\n` +
       `Fuera: *${fuera}* de ${objetivos.length}\n` +
       `Vetadas: *${vetados}* forma(s) de cuenta\n` +
+      (quedan ? `Salen en los próximos repasos: *${quedan}*. El número tiene un tope de expulsiones por hora; ya están vetados y el bot los va sacando solo.\n` : '') +
       (fallidos.length ? `\nNo pude sacar a ${fallidos.length}: ${fallidos.slice(0, 10).map((j) => `@${digitos(j)}`).join(', ')}${fallidos.length > 10 ? '…' : ''}\n_Suele ser quien creó el grupo: a ese no lo puede echar nadie._\n` : '') +
       `\n_El veto es global. Para readmitir a alguien: *!unban* su número._`,
     mentions: fallidos.slice(0, 10),
   }, { quoted: msg });
 }
 
-module.exports = { cmdPurgaNumero, cmdPurge, cmdPurgeAll, extractNumbers, avisoDePurge, avisoDeVeto, _conBanlist, _purgeallPendiente: purgeallPendiente };
+module.exports = { cmdPurgaNumero, cmdPurge, cmdPurgeAll, extractNumbers, avisoDePurge, avisoDeVeto, _conBanlist, _purgeallPendiente: purgeallPendiente, _barrerGrupos: barrerGrupos };
