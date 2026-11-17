@@ -376,9 +376,9 @@ async function aceptarPendientes(sock, grupo) {
   if (!lista || !lista.length) return { aprobados: 0, sinJid: 0, rechazados: 0 };
   const r = await aprobarLista(sock, grupo, lista);
   // Lo que se queda fuera sin estar vetado ni dentro ya: se apunta el porque.
-  if (lista.length - r.rechazados - r.aprobados - (r.yaDentro || 0) > 0) {
+  if (lista.length - r.rechazados - r.aprobados - (r.yaDentro || 0) - (r.retiradas || 0) > 0) {
     await apuntarFallo(grupo, {
-      pendientes: lista.length, aprobados: r.aprobados, yaDentro: r.yaDentro || 0, sinJid: r.sinJid, estados: r.estados, caidos: r.caidos,
+      pendientes: lista.length, aprobados: r.aprobados, yaDentro: r.yaDentro || 0, retiradas: r.retiradas || 0, sinJid: r.sinJid, estados: r.estados, caidos: r.caidos,
       ...(r.muestra ? { muestra: r.muestra } : {}),
     });
   }
@@ -389,6 +389,7 @@ async function aprobarLista(sock, grupo, lista) {
   let aprobados = 0, sinJid = 0, yaDentro = 0;
   let muestra = null;
   const porMirar = [];  // [jid, estado] con 409: ¿ya está dentro?
+  const retiradas = []; // con 404: la solicitud ya no existe
   const estados = {};   // lo que contesto WhatsApp por solicitud, si no fue 200
   const caidos = [];    // lotes enteros que fallaron, con el mensaje
   const jids = [];
@@ -440,7 +441,7 @@ async function aprobarLista(sock, grupo, lista) {
     if (i + POR_LOTE < vetados.length) await new Promise((r) => setTimeout(r, PAUSA_ENTRE_LOTES));
   }
 
-  if (!limpios.length) return { aprobados, sinJid, rechazados, yaDentro, estados, caidos, muestra };
+  if (!limpios.length) return { aprobados, sinJid, rechazados, yaDentro, retiradas: 0, estados, caidos, muestra };
 
   for (let i = 0; i < limpios.length; i += POR_LOTE) {
     const lote = limpios.slice(i, i + POR_LOTE);
@@ -511,10 +512,18 @@ async function aprobarLista(sock, grupo, lista) {
       } else registrarFallida(jid, estado);
     }
   }
-  return { aprobados, sinJid, rechazados, yaDentro, estados, caidos, muestra };
+  // EL 404: LA SOLICITUD YA NO EXISTE (17 nov). `npm run estado` del dueño:
+  // «1 con error 404 de WhatsApp». Quien la mandó la retiró (o caducó) entre
+  // que se listó y que se aprobó. No es un fallo: se olvida y ya.
+  for (const jid of retiradas) {
+    await olvidarSolicitud(grupo, jid);
+    logger.info(`autoaceptar: la solicitud de ${jid} en ${grupo} ya no existe (WhatsApp da 404)`);
+  }
+  return { aprobados, sinJid, rechazados, yaDentro, retiradas: retiradas.length, estados, caidos, muestra };
 
   function anotarFallida(jid, estado) {
     if (/^409/.test(String(estado))) { porMirar.push([jid, estado]); return; }
+    if (/^404/.test(String(estado))) { retiradas.push(jid); return; }
     registrarFallida(jid, estado);
   }
   function registrarFallida(jid, estado) {

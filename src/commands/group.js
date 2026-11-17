@@ -1200,13 +1200,15 @@ async function cmdAutoAceptar(sock, msg, args, groupMeta) {
   const hechas = r?.aprobados || 0;
   const vetadas = r?.rechazados || 0;
   const dentro = r?.yaDentro || 0;
+  const retiradas = r?.retiradas || 0;
 
-  // LAS QUE SON DE GENTE QUE YA ESTA DENTRO (16 nov). WhatsApp las sigue
-  // listando y al aprobarlas da 409; no son un fallo.
-  if (!hechas && !vetadas && dentro && dentro >= pendientes) {
+  // LAS QUE SON DE GENTE QUE YA ESTA DENTRO (16 nov), O QUE YA NO EXISTEN
+  // (17 nov). WhatsApp las sigue listando y al aprobarlas da 409 (ya es
+  // miembro) o 404 (la retiraron); no son un fallo.
+  if (!hechas && !vetadas && (dentro + retiradas) && dentro + retiradas >= pendientes) {
     return sock.sendMessage(jid, {
       text: '*Autoaccept encendido.*\n' +
-        'No hay nada que aprobar: ya está dentro.',
+        `No hay nada que aprobar: ${dentro ? 'ya está dentro' : 'la solicitud ya no existe'}.`,
     }, { quoted: msg });
   }
 

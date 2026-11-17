@@ -25624,6 +25624,22 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
       exige(/ya está dentro/i.test(dicho) && !/no he podido/i.test(dicho),
         `*!autoaccept* cuenta como fallo la solicitud de alguien que ya está dentro (409): «${dicho.slice(0, 100)}»`);
     }
+    // Y el 404 (17 nov): la solicitud ya no existe (la retiraron). Tampoco.
+    {
+      let dicho = '';
+      const s = {
+        user: { id: BOT172 },
+        groupRequestParticipantsList: async () => [{ jid: '91720000002@lid', request_method: 'invite_link' }],
+        groupRequestParticipantsUpdate: async (g, l) => l.map((j) => ({ jid: j, status: '404' })),
+        groupMetadata: async () => ({ id: G172, participants: parts172 }),
+        sendMessage: async (j, c) => { dicho = c.text || ''; return {}; },
+      };
+      await autoAcc172(s,
+        { key: { remoteJid: G172, participant: ADM172, fromMe: false, id: 'K172retirada' }, message: { conversation: 'x' } },
+        ['on'], { id: G172, participants: parts172 });
+      exige(/ya no existe/i.test(dicho) && !/no he podido/i.test(dicho),
+        `*!autoaccept* cuenta como fallo una solicitud que ya no existe (404): «${dicho.slice(0, 100)}»`);
+    }
     require(path.join(R, 'src/utils/state')).toggleAutoAceptar(G172, false);
     exige(require(path.join(R, 'src/utils/joinRequests')).fallosAutoaceptar(1).some((x) => x.grupo === G172),
       'el fallo de *!autoaccept* no se apunta: sin eso, `npm run estado` no puede decir por qué no entra nadie');
