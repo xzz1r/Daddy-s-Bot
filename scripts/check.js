@@ -2244,7 +2244,7 @@ const di=async(quien,texto,extra)=>{
     exige(require(path.join(R, 'src/handlers/messageHandler'))._listas.NEEDS_META.has('purge'),
       '!purge tiene que pedir metadata: sin ella isMainOwner no resuelve el LID del owner');
     const avisoAntes = pn.indexOf('await sock.sendMessage(gJid, payload)');
-    const kickDesp = pn.indexOf("aplicarParticipantes(sock, gJid, ids.slice(i, i + TANDA), 'remove'");
+    const kickDesp = pn.indexOf("aplicarParticipantes(sock, gJid, ids, 'remove'");
     exige(avisoAntes > 0 && kickDesp > avisoAntes,
       'el aviso de !p/!purge tiene que salir ANTES del kick: si no, no lo ven');
     // Aqui habia una guarda que exigia las palabras "no eres suficiente". El
@@ -23759,8 +23759,10 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
         exige(r.pfpLlamadas === 1 && r.pfpError === 'TOPE_HORA', `la foto de perfil reintenta contra un tope (${r.pfpLlamadas} llamadas) o lo tapa (${r.pfpError})`);
         exige(!r.pedidos.includes('34600014502@s.whatsapp.net'), '*!scan* vuelve a pedir el perfil de una cuenta comprobada como normal esta semana');
         exige(r.pedidos.includes('34600014503@s.whatsapp.net'), '*!scan* ya no mira a quien no se ha comprobado');
-        exige(r.purgados === 12 && r.lotes.length >= 3 && Math.max(...r.lotes) <= 5,
-          `la purga echa en lotes de ${JSON.stringify(r.lotes)} (y saca a ${r.purgados} de 12): cincuenta personas en una petición es lo que mira WhatsApp`);
+        // Desde el 17 nov el purge sale entero y al momento (orden del dueño:
+        // «que banee a todos al mismo tiempo»), en una petición por grupo.
+        exige(r.purgados === 12 && JSON.stringify(r.lotes) === '[12]',
+          `la purga no echa a todos de una vez: lotes ${JSON.stringify(r.lotes)}, fuera ${r.purgados} de 12`);
         exige(/Sin comprobar si son Business: \*1\*/.test(r.informe) && !/Sin señales destacadas/.test(r.informe),
           `*!scan* no dice a cuántos no pudo mirar, o los da por limpios: ${r.informe.replace(/\n/g, ' | ').slice(0, 200)}`);
       }
@@ -26047,41 +26049,43 @@ const r = {};
     if (fallos === antes175) console.log(verde('   ✓ !visto no le contesta a nadie más que al dueño, y en un grupo se borra y le responde por privado'));
   }
 
-  // ── 177. UN PURGE GRANDE NO SE PIERDE POR EL TOPE (17 nov) ─────────────────
+  // ── 177. LOS PURGES SALEN ENTEROS Y AL MOMENTO (17 nov) ────────────────────
   // El dueño, con un !purge de 47 cuentas: «no surtió efecto y no sacó a
-  // nadie». Iban todas en UNA petición y el tope de expulsiones (30 personas
-  // por hora con el número en rodaje) cuenta personas: no cabían nunca. Ahora
-  // van por tandas; al saltar el tope se para y lo que falta queda para los
-  // repasos de la lista negra. Y en el chat no sale el nombre de la función.
+  // nadie»: el tope de rodaje (30 personas por hora) no las dejaba pasar. Y
+  // luego: «es mejor que banee a todos al mismo tiempo e instantáneamente; de
+  // igual forma hay un número de repuesto». Los purges van como ORDEN del
+  // dueño: una petición por grupo, sin tope y sin cola. Lo demás del bot sigue
+  // con su tope. Con el ritmo de verdad, en rodaje.
   {
-    console.log('\n177. UN PURGE GRANDE NO SE PIERDE POR EL TOPE');
+    console.log('\n177. LOS PURGES SALEN ENTEROS Y AL MOMENTO');
     const antes177 = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
     const PN = require(path.join(R, 'src/commands/purgaNumero'));
-    const { TopeDiario } = require(path.join(R, 'src/utils/ritmo'));
+    const RT = require(path.join(R, 'src/utils/ritmo'));
     const BOT177 = '34600000177@s.whatsapp.net';
-    const gente = Array.from({ length: 12 }, (_, i) => `3460000${String(1770 + i).padStart(4, '0')}@s.whatsapp.net`);
+    const gente = Array.from({ length: 47 }, (_, i) => `3460000${String(1700 + i).padStart(4, '0')}@s.whatsapp.net`);
     const meta177 = { subject: 'INTERLUDE', participants: [{ id: BOT177, admin: 'admin' }, ...gente.map((id) => ({ id, admin: null }))] };
-    let pedidas = 0;
-    const sock177 = {
+    const llamadas = [];
+    const sock177 = RT.ponerRitmo({
       user: { id: BOT177 },
       sendMessage: async () => ({}),
-      groupParticipantsUpdate: async (g, ids) => {
-        pedidas += ids.length;
-        if (pedidas > 5) throw new TopeDiario('groupParticipantsUpdate', 30, 'hora');
-        return ids.map((jid) => ({ jid, status: '200' }));
-      },
-    };
-    const cuentas = gente.map((j) => ({ digitos: j.split('@')[0], formas: new Set([j]) }));
-    const r = await PN._barrerGrupos(sock177, { 'g177@g.us': meta177 }, cuentas, null);
-    exige(JSON.stringify(r.fuera) === '["INTERLUDE: 5"]', `con el tope a mitad, un purge grande no saca a los que caben: ${JSON.stringify(r.fuera)}`);
-    exige(JSON.stringify(r.pendientes) === '["INTERLUDE: 7"]', `lo que no cabe en el tope no queda dicho para los repasos: ${JSON.stringify(r.pendientes)}`);
-    exige(!r.fallos.length, `el tope sale como fallo: ${JSON.stringify(r.fallos)}`);
-    const src177 = soloCodigo('src/commands/purgaNumero.js');
-    exige(/Salen en los próximos repasos/.test(src177) && /const TANDA = 5/.test(src177),
-      '!purge vuelve a pedir todas las expulsiones de un grupo de golpe, o no dice que el resto sale en los repasos');
-    if (fallos === antes177) console.log(verde('   ✓ un purge grande saca a los que caben en el tope y deja el resto vetado para los repasos'));
+      groupParticipantsUpdate: async (g, ids) => { llamadas.push(ids.length); return ids.map((jid) => ({ jid, status: '200' })); },
+    }, RT.RITMOS, { enRodaje: () => true });
+    const t0 = Date.now();
+    const r = await PN._barrerGrupos(sock177, { 'g177@g.us': meta177 }, gente.map((j) => ({ digitos: j.split('@')[0], formas: new Set([j]) })), null);
+    const ms = Date.now() - t0;
+    exige(JSON.stringify(llamadas) === '[47]' && JSON.stringify(r.fuera) === '["INTERLUDE: 47"]' && !r.fallos.length && !r.pendientes.length,
+      `un !purge de 47 con el número en rodaje no los echa a todos en una petición: llamadas ${JSON.stringify(llamadas)}, ${JSON.stringify(r)}`);
+    exige(ms < 4000, `el !purge espera turno en la cola (${ms} ms): tiene que salir al momento`);
+    // Y lo que hace el bot por su cuenta sigue con el tope.
+    let frenado = false;
+    try { await sock177.groupParticipantsUpdate('g177@g.us', gente, 'remove'); } catch (e) { frenado = RT.esTope(e); }
+    exige(frenado, 'sin la orden del dueño, 47 expulsiones en rodaje ya no las frena el tope: el tope es para lo que hace el bot solo');
+    const src177 = soloCodigo('src/commands/purgaNumero.js') + soloCodigo('src/utils/purge.js');
+    exige((src177.match(/\{ orden: true \}/g) || []).length >= 3, 'algún purge (!purge, !p, !purgeall o el del !scan) ya no va como orden del dueño');
+    if (fallos === antes177) console.log(verde('   ✓ los purges echan a todos en una petición y al momento; lo demás del bot sigue con su tope'));
   }
+
 
   // ── 176. LA PROTECCIÓN DEL TIER DUEÑO, CASO A CASO (16 nov) ─────────────────
   // El dueño: «verifica que esté funcionando bien la protección a los números

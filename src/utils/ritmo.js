@@ -273,6 +273,15 @@ const FONDO = Object.freeze({ ritmoFondo: true });
 //   sock.groupParticipantsUpdate(grupo, [jid], 'promote', URGENTE)
 const URGENTE = Object.freeze({ ritmoUrgente: true });
 
+// Y LA ORDEN DEL DUEÑO, CON ESTO (17 nov). El dueño, tras un !purge de 47
+// que el tope del rodaje dejó en nada: «es mejor que banee a todos al mismo
+// tiempo e instantáneamente; de igual forma hay un número de repuesto». Lo que
+// él manda echar (!purge, !p, !purgeall y el purge del !scan) sale entero y al
+// momento: sin tope y sin cola. Lo que el bot hace por su cuenta sigue con su
+// tope. Es una decisión del dueño sobre su número: no se usa en nada más.
+//   sock.groupParticipantsUpdate(grupo, ids, 'remove', ORDEN)
+const ORDEN = Object.freeze({ ritmoOrden: true });
+
 // Cuántas veces se ha llegado a un tope, por hora y método: `npm run estado`
 // lo enseña. Es lo que dice si el anti-empresa tarda porque se acaba el cupo.
 let topesVistos = [];   // [{ h, metodos: { metodo: n } }]
@@ -333,6 +342,8 @@ function ponerRitmo(sock, ritmos = RITMOS, { enRodaje = null } = {}) {
       if (fondo) args = args.slice(0, -1);
       const urgente = !fondo && args.length > 0 && args[args.length - 1] === URGENTE;
       if (urgente) args = args.slice(0, -1);
+      const orden = !fondo && !urgente && args.length > 0 && args[args.length - 1] === ORDEN;
+      if (orden) { args = args.slice(0, -1); return original.apply(this, args); }
       const n = cfg.porPersona && Array.isArray(args[1]) ? Math.max(1, args[1].length) : 1;
       if (gastar && !gastar(n, fondo ? 1 - reserva : 1)) {
         apuntarTope(metodo);
@@ -352,5 +363,5 @@ function ponerRitmo(sock, ritmos = RITMOS, { enRodaje = null } = {}) {
   return sock;
 }
 
-module.exports = { ponerRitmo, crearRitmo, crearCola, crearTope, estadoCola, lineaCola, RITMOS, TopeDiario, esTope, FONDO, URGENTE, topesDelDia, apuntarTope, esperar,
+module.exports = { ponerRitmo, crearRitmo, crearCola, crearTope, estadoCola, lineaCola, RITMOS, TopeDiario, esTope, FONDO, URGENTE, ORDEN, topesDelDia, apuntarTope, esperar,
   _olvidarMedidas: () => { medidas = []; topesVistos = []; } };

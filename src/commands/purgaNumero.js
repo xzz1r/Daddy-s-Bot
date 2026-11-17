@@ -57,15 +57,14 @@ const PAUSA_ONWA_MS = 1000;
 // las treinta cuentas; 30 se quedaba corto en el caso real (33) y encima los
 // trozos falsos del parser llenaban el cupo antes de llegar a los de verdad.
 const MAX_PURGE = 50;
-// POR TANDAS, Y LO QUE NO QUEPA SALE DESPUÉS (17 nov). El dueño, con un !purge
-// de 47 cuentas en INTERLUDE: «no surtió efecto y no sacó a nadie». Iban todas
-// en UNA petición, y el tope de expulsiones (30 personas por hora mientras el
-// número está en rodaje, utils/ritmo.js) cuenta personas: 47 no caben nunca, y
-// se rechazaba entera. Ahora van de cinco en cinco; cuando salta el tope se
-// para, y las que faltan ya están en la lista negra: el repaso de vetados que
-// siguen dentro (echarVetadosDentro, cada 6 minutos) las saca a medida que el
-// tope deja. El tope no se sube: protege al número.
-const TANDA = 5;
+// TODOS A LA VEZ Y AL MOMENTO (17 nov). El dueño, con un !purge de 47 cuentas
+// en INTERLUDE: «no surtió efecto y no sacó a nadie». El tope de expulsiones
+// (30 personas por hora con el número en rodaje) cuenta personas y 47 no
+// cabían; se probó por tandas, y el dueño: «es mejor que banee a todos al mismo
+// tiempo e instantáneamente; de igual forma hay un número de repuesto». Así
+// que los purges van como ORDEN del dueño (utils/ritmo.js): una petición por
+// grupo, sin tope y sin cola. Si aun así WhatsApp corta, lo que falte ya está
+// vetado y lo sacan los repasos de la lista negra.
 const esTopeError = (e) => /tope (por hora|del día|diario)|TOPE_/i.test(String(e || ''));
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -323,17 +322,14 @@ async function barrerGrupos(sock, grupos, cuentas, hacerAviso) {
 
     const ids = hits.map((h) => h.hit.p.id);
     let echados = 0, fallidos = 0, porque = null;
-    for (let i = 0; i < ids.length; i += TANDA) {
-      const r = await aplicarParticipantes(sock, gJid, ids.slice(i, i + TANDA), 'remove', meta);
-      echados += r.ok.length;
-      if (r.error) {
-        if (esTopeError(r.error)) { pendientes.push(`${nombre}: ${ids.length - i}`); porque = null; }
-        else { fallidos += ids.length - i; porque = r.error; }
-        break;
-      }
+    const r = await aplicarParticipantes(sock, gJid, ids, 'remove', meta, { orden: true });
+    echados += r.ok.length;
+    if (r.error) {
+      if (esTopeError(r.error)) pendientes.push(`${nombre}: ${ids.length}`);
+      else { fallidos += ids.length; porque = r.error; }
+    } else {
       fallidos += r.fallidos.length;
-      if (!porque && r.fallidos.length) porque = r.fallidos[0]?.status || 'sin respuesta';
-      if (i + TANDA < ids.length) await espera(PAUSA_MS);
+      if (r.fallidos.length) porque = r.fallidos[0]?.status || 'sin respuesta';
     }
     if (echados) fuera.push(ids.length > 1 ? `${nombre}: ${echados}` : nombre);
     if (fallidos) {
@@ -759,7 +755,6 @@ async function cmdPurge(sock, msg, args, groupMeta) {
 // dirección segura del fallo.
 const purgeallPendiente = new Map();
 const PURGEALL_VIGENCIA = 60 * 1000;
-const PURGEALL_TANDA = 10;
 
 async function cmdPurgeAll(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
@@ -833,18 +828,15 @@ async function cmdPurgeAll(sock, msg, args, groupMeta) {
     vetados += await _banAccount(formas, 'purgeall', bareJid(sender));
   }
 
+  // Todos a la vez, como orden del dueño (ver ORDEN arriba).
   let fuera = 0;
   let quedan = 0;
   const fallidos = [];
-  for (let i = 0; i < objetivos.length; i += PURGEALL_TANDA) {
-    const tanda = objetivos.slice(i, i + PURGEALL_TANDA).map((p) => p.id);
-    const r = await aplicarParticipantes(sock, jid, tanda, 'remove', meta);
-    // El tope de expulsiones por hora: se para, y lo que falta ya está vetado
-    // y sale en los repasos (ver TANDA arriba).
-    if (r.error && esTopeError(r.error)) { quedan = objetivos.length - i; break; }
+  {
+    const r = await aplicarParticipantes(sock, jid, objetivos.map((p) => p.id), 'remove', meta, { orden: true });
+    if (r.error && esTopeError(r.error)) quedan = objetivos.length;
     fuera += r.ok.length;
-    for (const f of r.fallidos) fallidos.push(f.jid);
-    if (i + PURGEALL_TANDA < objetivos.length) await espera(PAUSA_MS);
+    if (!quedan) for (const f of r.fallidos) fallidos.push(f.jid);
   }
 
   logger.warn(`purgeall en ${jid}: ${fuera}/${objetivos.length} fuera, ${vetados} formas vetadas`);

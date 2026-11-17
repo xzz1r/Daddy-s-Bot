@@ -89,20 +89,12 @@ async function executePurge(sock, groupJid, detected, groupMeta) {
   // vetando desde hace dos commits, ese falso 200 no era un mensaje incorrecto
   // sino un veto a alguien que sigue sentado en el grupo. Medido: con la
   // respuesta vacia daba por expulsados a todos.
-  // EN TANDAS PEQUEÑAS (1 nov). Iba todo en UNA petición: cincuenta personas
-  // fuera de golpe, que es de lo que mira WhatsApp y algo que no hace nadie a
-  // mano. Cada tanda pasa por el ritmo de las expulsiones (utils/ritmo.js). Si
-  // la primera falla entera es que WhatsApp rechaza la llamada (o salta el
-  // tope): se dice como antes. Si falla una de después, lo que quede sale
-  // como no expulsado.
+  // TODOS A LA VEZ (17 nov): el purge lo manda el dueño, y lo quiere entero y
+  // al momento. Va como ORDEN (utils/ritmo.js): sin tope y sin cola.
   const ok = [];
-  for (let i = 0; i < stillHere.length; i += TANDA_PURGA) {
-    const tanda = stillHere.slice(i, i + TANDA_PURGA).map(d => d.kickId);
-    const r = await aplicarParticipantes(sock, groupJid, tanda, 'remove', groupMeta);
-    if (r.error) {
-      if (i === 0) return { status: 'error', message: r.error };
-      break;
-    }
+  {
+    const r = await aplicarParticipantes(sock, groupJid, stillHere.map(d => d.kickId), 'remove', groupMeta, { orden: true });
+    if (r.error) return { status: 'error', message: r.error };
     ok.push(...r.ok);
   }
 

@@ -61,7 +61,8 @@ function formasDe(jid, groupMeta) {
 // un hecho, que lo haga sobre `ok` y solo sobre `ok`.
 // `urgente`: no espera su hueco detrás de otras expulsiones (ver URGENTE en
 // utils/ritmo.js). Solo para devolverle el admin al tier dueño.
-async function aplicarParticipantes(sock, groupJid, ids, accion, groupMeta = null, { urgente = false } = {}) {
+// `orden`: una orden del dueño (los purges): sin tope y sin cola (ver ORDEN).
+async function aplicarParticipantes(sock, groupJid, ids, accion, groupMeta = null, { urgente = false, orden = false } = {}) {
   const pedidos = [...new Set((ids || []).filter(Boolean))];
   if (!pedidos.length) return { ok: [], fallidos: [], error: null };
 
@@ -69,6 +70,7 @@ async function aplicarParticipantes(sock, groupJid, ids, accion, groupMeta = nul
   try {
     const args = [groupJid, pedidos, accion];
     if (urgente) args.push(require('./ritmo').URGENTE);
+    else if (orden) args.push(require('./ritmo').ORDEN);
     res = await withTimeout(sock.groupParticipantsUpdate(...args), TOPE_PARTICIPANTES);
   } catch (err) {
     // La llamada entera fallo: NADIE cambio. Antes varios sitios se comian la
