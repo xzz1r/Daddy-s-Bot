@@ -378,7 +378,7 @@ const PERMISO_ENLACE = [
   'borrado. Ahórrate el numerito: sin el *!allow* de un admin, todo lo que pegues acaba en la puta basura.',
   'a la papelera. Ese link ha durado menos que tú en la cama. Pídele el *!allow* a un admin y luego hablamos.', // ROCKSTAR
   'fuera. Ese enlace le importa una mierda a todo el mundo menos a ti. Si tanto insistes, pídele el *!allow* a un admin.',
-  'quitado. Has confundido este grupo con tu OnlyFans. Pídele el *!allow* a un admin y, mientras tanto, la ropa puesta.', // ROCKSTAR
+  'quitado. Aquí se abre con permiso, como todo lo bueno. Pídele el *!allow* a un admin y, mientras tanto, las manos quietas.', // ROCKSTAR
   'ese enlace no lo quiere ver ni tu madre. Y aunque lo quisiera, hace falta el *!allow* de un admin. Ve y pídelo.',
   'fuera. Te falta permiso y te sobra morro. Pídele el *!allow* a un admin, y si te dice que no, es que no, como en todo.', // ROCKSTAR
   'borrado. Cada puto link que sueltas sin permiso te aleja más del *!allow*. Habla con un admin antes de seguir cavando.',

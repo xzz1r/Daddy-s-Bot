@@ -549,10 +549,10 @@ const OBJETIVO_DIA_CARTEL = [
 // aviso es fija (messageHandler); esto es lo que va detrás.
 const VER_UNA_VEZ = [
   'Borrado, gilipoyas.',
-  'Borrado. Esto no es OnlyFans: aquí se enseña una vez y gracias.', // ROCKSTAR
+  'Borrado. Lo tuyo aquí se enseña una vez, y quien se lo perdió que se lo imagine.', // ROCKSTAR
   'Borrado, anormal.',
   'Borrado. Nadie te quiere en su galería, mi niña.',
-  'Borrado. Si quieres que te guarden las fotos, cobra la suscripción como todo el mundo.', // ROCKSTAR
+  'Borrado. Aquí nada se ve dos veces gratis: si quieres repetir, te lo ganas.', // ROCKSTAR
   'Borrado. Guárdate tus fotos donde te quepan, reina.', // ROCKSTAR
   'Borrado. Ver una vez, como tus citas: una y no se repite.', // ROCKSTAR
   'Borrado. ¿Tanto te cuesta darle al puto 1, princesa?',

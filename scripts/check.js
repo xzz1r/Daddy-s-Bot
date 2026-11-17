@@ -25583,6 +25583,18 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     exige(r.fueraMarcadas === 0, `${r.fueraMarcadas} frases marcadas // ROCKSTAR están en dinámicas, !piropo, WINGMAN, acciones sexuales o acciones con dibujos: ahí no van`);
     exige(Array.isArray(RS.DIBUJOS) && RS.DIBUJOS.length >= 10, `scripts/rockstar.js no encuentra las acciones con dibujos (${(RS.DIBUJOS || []).length}): podría contar guarradas en acciones de series infantiles`);
     exige(r.total > 3000, `el contador de scripts/rockstar.js solo encuentra ${r.total} frases: ha dejado de leer los pools`);
+        // NO DA POR HECHO LO QUE MANDÓ (17 nov). El dueño, con «Esto no es
+    // OnlyFans» en el aviso de una foto sin ver una vez: «no debe asumir
+    // nada». El bot no sabe qué hay en la foto ni en el enlace: los avisos de
+    // fotos y de enlaces no lo pintan como contenido sexual.
+    {
+      const av171 = require(path.join(R, 'src/data/avisos.js'));
+      const al171 = fs.readFileSync(path.join(R, 'src/utils/antilink.js'), 'utf8');
+      const permiso171 = (al171.match(/const PERMISO_ENLACE = \[[\s\S]*?\n\];/) || [''])[0];
+      const ASUME = /onlyfans|suscripci|ropa puesta|desnud|tus fotos guarras|tu porno/i;
+      const malas = [...(av171.VER_UNA_VEZ || []), ...permiso171.split('\n')].filter((f) => ASUME.test(String(f)));
+      exige(malas.length === 0, `un aviso de foto o de enlace da por hecho que lo que mandó es sexual: ${malas.map((f) => String(f).trim().slice(0, 70)).join(' | ')}`);
+    }
     if (fallos === antes171) console.log(verde(`   ✓ ${r.marcadas} de ${r.total} frases (${r.pct.toFixed(1)} %) de doble sentido estilo Rockstar; objetivo ${RS.MINIMO} %`));
   }
 
