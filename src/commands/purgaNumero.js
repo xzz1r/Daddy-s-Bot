@@ -686,11 +686,14 @@ async function cmdPurge(sock, msg, args, groupMeta) {
     }
   }
 
+  // SIN ALERTA NI DESPEDIDA (dueño, 18 nov: «haz que con !purge no haya
+  // alerta ni despedida para esa peña»). Se les echa sin el aviso en el grupo,
+  // y el resumen no los menciona: no les llega nada. *!p* sigue con su aviso.
   const { fuera, sinPermiso, fallos, visto, pendientes: aSalir } = await barrerGrupos(
     sock,
     grupos,
     cuentas,
-    (hits) => avisoDePurge(hits),
+    null,
   );
 
   // Lista negra al final y siempre, aunque no estuvieran en ningún grupo.
@@ -700,9 +703,8 @@ async function cmdPurge(sock, msg, args, groupMeta) {
   }
 
   const linea = (t, l) => (l.length ? `\n\n*${t}* (${l.length})\n${l.map((x) => `· ${x}`).join('\n')}` : '');
-  const numsTxt = cuentas.map((c) => (c.usuario ? `@${c.usuario} (@${c.digitos})` : `@${c.digitos}`)).join(', ');
+  const numsTxt = cuentas.map((c) => (c.usuario ? `${c.usuario} (+${c.digitos})` : `+${c.digitos}`)).join(', ');
   return sock.sendMessage(jid, {
-    mentions: cuentas.map((c) => `${c.digitos}@s.whatsapp.net`),
     text:
       `*PURGE*\n\n` +
       `Cuentas: ${numsTxt}\n` +

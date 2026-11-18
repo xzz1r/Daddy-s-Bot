@@ -282,7 +282,9 @@ Capa 145. **Los purges, enteros y al momento** (dueño, 17 nov: un `!purge` de
 instantáneamente; de igual forma hay un número de repuesto»). `!purge`, `!p`,
 `!purgeall` y el purge del `!scan` van como `ORDEN` del dueño
 (`utils/ritmo.js`): una petición por grupo, sin tope y sin cola. Es la única
-excepción: lo que hace el bot por su cuenta sigue con su tope. Capa 177. Dentro del tope, quien escribe va primero y tiene reservado el 40 %;
+excepción: lo que hace el bot por su cuenta sigue con su tope. Capa 177. Y
+`!purge` no avisa ni se despide (dueño, 18 nov): sin la frase en el grupo y
+con el resumen sin mencionar a nadie. `!p` sigue con su aviso. Dentro del tope, quien escribe va primero y tiene reservado el 40 %;
 lo de fondo lleva la marca `FONDO`. Quien escribió sin poder comprobarse se
 repesca después, y al echar a una cuenta Business se borra su spam reciente
 (dueño, 8 nov). Desde el 9 nov los topes de mirar perfiles son los que eran

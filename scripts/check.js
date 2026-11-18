@@ -2488,17 +2488,12 @@ const di=async(quien,texto,extra)=>{
         // alguien—, no por lo que dice. Antes se buscaba la palabra
         // "suficiente" y al reescribir la frase estas tres guardas dejaron de
         // encontrar nada: no fallaban por un fallo, fallaban por la copia.
+        // SIN ALERTA NI DESPEDIDA (dueño, 18 nov: «con !purge no haya alerta
+        // ni despedida para esa peña»). Ni el aviso antes del kick ni el
+        // resumen mencionan a nadie: salen sin que les llegue nada.
         const esAviso = (x) => x.t === 'msg' && (x.mentions || []).length > 0;
-        const ordenG1 = timeline.filter((x) => x.jid === 'g1@g.us' || x.gJid === 'g1@g.us');
-        const iAviso = ordenG1.findIndex(esAviso);
-        const iKick = ordenG1.findIndex((x) => x.t === 'kick');
-        exige(iAviso >= 0 && iKick > iAviso,
-          'en el grupo el aviso de !purge no sale ANTES del kick');
-
-        const avisoLid = timeline.find((x) => x.jid === 'g2@g.us' && esAviso(x));
-        exige(Boolean(avisoLid), '!purge no aviso en el grupo LID (no encontro el @lid)');
-        exige(!avisoLid || avisoLid.mentions.includes('999@lid'),
-          '!purge avisa en el grupo LID sin mencionar el @lid: la mencion no le llega a quien va a caer');
+        exige(!timeline.some(esAviso),
+          `!purge vuelve a mencionar a los que echa (aviso o resumen): ${JSON.stringify(timeline.filter(esAviso).map((x) => x.jid))}`);
         exige(kicks.some((k) => k.gJid === 'g2@g.us' && k.ids.includes('999@lid')),
           '!purge no echo del grupo LID por el id del participante');
         exige(!kicks.some((k) => k.gJid === 'g3@g.us'),
