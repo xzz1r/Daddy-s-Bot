@@ -9,6 +9,7 @@
     "update": "bash scripts/actualizar.sh",
     "estado": "node scripts/estado.js",
     "vincular-guardian": "node scripts/vincularGuardian.js",
+    "vincular-bot": "node scripts/vincularBot.js",
     "economia": "node scripts/economia.js",
     "check": "node scripts/check.js",
     "placeholders": "node scripts/placeholders.js",

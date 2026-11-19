@@ -1368,6 +1368,9 @@ async function connectToWhatsApp() {
           try { previo = JSON.parse(fs.readFileSync(fichero, 'utf8')); } catch {}
           const desde = previo?.numero === numero && previo?.desde ? previo.desde : Date.now();
           await atomicWriteJson(fichero, { numero, lid, ts: Date.now(), desde });
+          // Y a la lista de números con los que se ha vinculado (npm run
+          // vincular-bot), para no tener que escribirlos nunca más.
+          require('./utils/numeroBot').recordarNumero(numero);
         }
       } catch (e) { logger.warn(`no pude anotar el numero del bot para el guardian: ${e.message}`); }
 

@@ -189,6 +189,16 @@ El bot sigue como navegador. `npm run estado` dice si al guardián le llegan.
 El guardián nunca sale en línea ni marca nada como visto o abierto. Capa
 174; ver `MOTOR.md`.
 
+## Vincular el bot sin escribir números
+
+Lo pidió el dueño (19 nov): «me toca los huevos pasarte los números
+manualmente para vincular nuevamente». El bot apunta cada número con el que
+conecta en `data/numerosVinculacion.json` (en la VPS, nunca en el
+repositorio). `npm run vincular-bot` cambia al otro número guardado (`-- 333`
+elige por dígitos, `-- +57…` uno nuevo, `-- lista` los enseña): para el bot,
+aparta la sesión (se mueve, no se borra), pide el código, espera a que se
+vincule y lo arranca; si no se completa, vuelve la sesión de antes. Capa 178.
+
 ## !visto: solo lo conoce el dueño
 
 Lo dijo el dueño (16 nov): «el comando /visto solo yo tengo conocimiento de

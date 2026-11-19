@@ -26080,6 +26080,42 @@ const r = {};
     exige((src177.match(/\{ orden: true \}/g) || []).length >= 3, 'algún purge (!purge, !p, !purgeall o el del !scan) ya no va como orden del dueño');
     if (fallos === antes177) console.log(verde('   ✓ los purges echan a todos en una petición y al momento; lo demás del bot sigue con su tope'));
   }
+  // ── 178. LOS NÚMEROS DE VINCULACIÓN SE GUARDAN SOLOS (19 nov) ──────────────
+  // El dueño: «me toca los huevos pasarte los números manualmente para vincular
+  // nuevamente». El bot apunta cada número con el que conecta (en data/, nunca
+  // en el repositorio) y `npm run vincular-bot` elige solo: el otro guardado,
+  // el que lleve unos dígitos o uno nuevo. Si no se completa, la sesión de antes
+  // vuelve a su sitio. En una carpeta aparte.
+  {
+    console.log('\n178. LOS NÚMEROS DE VINCULACIÓN SE GUARDAN SOLOS');
+    const antes178 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const d178 = fs.mkdtempSync(path.join(os.tmpdir(), 'vincularBot178-'));
+    try {
+      const NB = require(path.join(R, 'src/utils/numeroBot'));
+      NB._fichero(path.join(d178, 'numeroBot.json'), path.join(d178, 'numerosVinculacion.json'));
+      exige(NB.recordarNumero('573000001780') && !NB.recordarNumero('573000001780') && NB.numerosGuardados().length === 1,
+        'el bot no apunta el número con el que se vincula, o lo apunta dos veces');
+      NB._fichero(path.join(R, 'data/numeroBot.json'), path.join(R, 'data/numerosVinculacion.json'));
+      const VB = require(path.join(R, 'scripts/vincularBot'));
+      VB._prueba({ data: d178, shell: () => '' });
+      fs.writeFileSync(path.join(d178, 'numeroBot.json'), JSON.stringify({ numero: '573000001781' }));
+      const e = [VB.elegir([]).numero, VB.elegir(['1780']).numero, VB.elegir(['3000001782']).numero, Boolean(VB.elegir(['99']).error)];
+      exige(JSON.stringify(e) === JSON.stringify(['573000001780', '573000001780', '573000001782', true]),
+        `npm run vincular-bot no elige bien el número (el otro, por dígitos, uno nuevo con el 57, o dice que no lo tiene): ${JSON.stringify(e)}`);
+      fs.mkdirSync(path.join(d178, 'auth'));
+      fs.mkdirSync(path.join(d178, 'auth.antes-1'));
+      fs.writeFileSync(path.join(d178, 'auth.antes-1', 'creds.json'), '{}');
+      exige(VB.volver(path.join(d178, 'auth.antes-1')) && fs.existsSync(path.join(d178, 'auth', 'creds.json'))
+        && fs.readdirSync(d178).some((n) => n.startsWith('auth.fallida-')),
+      'si la vinculación no se completa, la sesión de antes no vuelve (o se borra la de a medias)');
+    } finally { fs.rmSync(d178, { recursive: true, force: true }); }
+    exige(/recordarNumero\(numero\)/.test(soloCodigo('src/bot.js')), 'el bot ya no apunta su número al conectar');
+    exige(/vincularBot\.js/.test(JSON.parse(fs.readFileSync(path.join(R, 'package.json'), 'utf8')).scripts?.['vincular-bot'] || ''), 'falta `npm run vincular-bot`');
+    exige(!/rmSync\([^)]*auth/.test(soloCodigo('scripts/vincularBot.js')), '`npm run vincular-bot` borra una sesión en vez de apartarla');
+    if (fallos === antes178) console.log(verde('   ✓ el bot guarda sus números y npm run vincular-bot elige solo, sin borrar ninguna sesión'));
+  }
+
 
 
   // ── 176. LA PROTECCIÓN DEL TIER DUEÑO, CASO A CASO (16 nov) ─────────────────
