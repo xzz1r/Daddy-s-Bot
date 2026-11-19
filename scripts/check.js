@@ -6456,7 +6456,11 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
       // hay cartel es ruido puro, y ademas delata que el mecanismo existe.
       const GV = '000000048@g.us';
       _decidido.delete(GV);
-      const vacio = await cartelDelDia(GV, { id: GV, participants: [{ id: '549199@s.whatsapp.net' }] });
+      // El único miembro es un número que ninguna capa usa. Con el 549199 (el
+      // bot de mentira de otras capas) falló en la VPS (19 nov): allí le había
+      // quedado aura de una pasada vieja, y el dueño de verdad cuenta como
+      // miembro de todos los grupos, así que salían dos y había cartel.
+      const vacio = await cartelDelDia(GV, { id: GV, participants: [{ id: '470000048999@s.whatsapp.net' }] });
       exige(vacio === null, 'el bot anuncia un cartel en un grupo donde no hay objetivo posible');
       // Y no puede gastar su franja: el dia que entre gente, tiene que salir.
       exige(!_decidido.has(GV) || !_decidido.get(GV).franja,
