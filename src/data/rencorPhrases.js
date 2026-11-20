@@ -92,45 +92,45 @@ const DUELO_REPITE = [
   '%V tenía desde %D para aprender, y hoy le vuelve a regalar el aura a %A. Ni con la lección pagada se entera de una mierda.',
   'Lo de %D contra %A no fue mala suerte. %V lo confirma hoy pagando otra vez, que perder es lo único que se le da de puta madre.',
   'Otra vez se lleva %A el aura de %V. %D fueron %C, y %V ha vuelto a ponerla en la mesa por gusto. Hay que ser gilipoyas.',
-  '%V no escarmienta ni pagando: ya perdió %C contra %A %D y hoy vuelve a pasar por caja con la sonrisa de gilipoyas puesta.',
+  '%V no escarmienta ni pagando: ya perdió %C contra %A %D y hoy vuelve a pasar por caja.',
   'Mismo duelo y mismo ganador que %D. %A cobra otra vez, y lo único nuevo es la miseria que le queda a %V.',
-  '%D %V aprendió que %A gana. Hoy se le ha olvidado y ha vuelto a pagar la clase, con memoria de pez y saldo de mierda.',
+  '%D %V aprendió que %A gana. Hoy se le ha olvidado y ha vuelto a pagar la clase, con memoria de pez.',
   '%V pierde otra vez contra %A. %D fueron %C, y la puta cabeza de %V sigue sin hacer la cuenta.',
   '%V perdió %C contra %A %D y hoy ha vuelto a pasar. Tira el aura a la basura por aburrimiento.',
   'Mismo final que %D, cuando fueron %C para %A. %V sigue sin entender contra quién juega, y paga cada vez por no tener ni puta idea.',
-  '%V pierde contra %A como %D, cuando se dejó %C. Firmar recibos de su propia ruina se le da de puta madre.',
-  '%D se quedó %A los %C de %V, y hoy se queda también con los de hoy. %V es su puto cajero automático.',
+  '%V pierde contra %A como %D, cuando se dejó %C. Firmar recibos se le da de maravilla.',
+  '%D se quedó %A los %C de %V, y hoy se queda también con los de hoy. %V es su cajero automático.',
   'Si perder %C contra %A %D no bastó, lo de hoy tampoco va a bastar. %V no aprende ni a hostias.',
 ];
 
 // %V le gano %C a %A la vez anterior y hoy gana %A.
 const DUELO_REVANCHA = [
-  '%D %V le quitó %C a %A. Hoy %A se lo cobra con intereses y %V se queda mirando la puta cuenta con cara de pasmarote.',
-  'Revancha servida. %A perdió %C contra %V %D y hoy le ha devuelto la hostia delante de todos.',
-  '%V ganó %D y se vino arriba de cojones. Hoy %A le ha bajado los humos y el saldo a la vez.',
-  '%V ganó %D y se lo creyó. Hoy %A le ha recordado que una vez es suerte y lo demás, el nivel de mierda de siempre.',
-  'Cobrada la deuda de %D. %A recupera lo suyo y a %V solo le queda una puta captura de cuando ganaba.',
-  'Hay victorias que se pagan después. La de %V sobre %A %D le ha salido hoy cara de cojones.',
+  '%D %V le quitó %C a %A. Hoy %A se lo cobra con intereses y %V se queda mirando la cuenta.',
+  'Revancha servida. %A perdió %C contra %V %D y hoy le ha devuelto el golpe delante de todos.',
+  '%V ganó %D. Hoy %A le ha bajado los humos y el saldo a la vez.',
+  '%V ganó %D y se lo creyó. Hoy %A le ha recordado que una vez es suerte y lo demás, el nivel de siempre.',
+  'Cobrada la deuda de %D. %A recupera lo suyo y a %V solo le queda el recuerdo de cuando ganaba.',
+  'Hay victorias que se pagan después. La de %V sobre %A %D le ha salido hoy bastante cara.',
   '%V pensó que lo de %D se iba a repetir. %A le ha quitado la idea, el aura y la tontería de una sola hostia.',
   '%D ganó %V contra %A. Hoy le toca pagar, callarse y meterse el orgullo por el culo.',
   'Lo de %D ya no cuenta. %A se cobra lo suyo y a %V le toca meterse sus putas fanfarronadas por donde le quepan.',
   'A %V le ha durado una mierda lo de %D. Hoy el duelo es de %A, y la cara de pasmo, de %V.',
-  '%A tenía pendiente lo de %D. Hoy lo tacha, y %V paga la diferencia con el culo escocido.',
-  '%V se llevó %C %D, hoy se lo lleva %A, y a %V se le ha acabado la puta fiesta.',
+  '%A tenía pendiente lo de %D. Hoy lo tacha, y %V paga la diferencia.',
+  '%V se llevó %C %D, hoy se lo lleva %A, y a %V se le ha acabado lo de presumir.',
 ];
 
 // %A lleva %N duelos seguidos ganados a %V (tres o mas, contando el de hoy).
 const DUELO_RACHA = [
   '%N de %N. %V ya no se bate con %A: le paga una puta mensualidad.',
-  'Las últimas %N son de %A. Cada vez que %V y %A se cruzan, %V acaba pagando y con la puta cara partida.',
-  'Con esta son %N. Lo más constante que tiene %V en su puta vida es perder contra %A.',
-  '%N seguidas contra la misma persona. %V no tiene mala suerte: tiene a %A delante y la cabeza llena de mierda.',
+  'Las últimas %N son de %A. Cada vez que %V y %A se cruzan, %V acaba pagando y con la cara partida.',
+  'Con esta son %N. Lo más constante que tiene %V en la vida es perder contra %A.',
+  '%N seguidas contra la misma persona. %V no tiene mala suerte, tiene a %A delante.',
   'Van %N duelos seguidos de %A contra %V. Para %V, retar a %A ya es pagar el impuesto de ser gilipoyas.',
   '%V lleva %N derrotas seguidas contra %A. A cualquiera le daría vergüenza, a %V le da igual.',
   'Ya son %N. %A cobra de %V con regularidad de nómina, y %V paga puntual, sin rechistar y sin una puta queja.',
-  'Racha de %N para %A. La anterior fue %D, y %V ha vuelto a comerse la hostia como si nada.',
-  'Otra, y van %N. %V se sienta delante de %A con la ilusión intacta y el saldo cada vez más en la mierda.',
-  '%A suma %N seguidas contra %V. Lo sensato sería apartarse, pero eso requiere un cerebro que %V perdió en otro puto duelo.',
+  'Racha de %N para %A. La anterior fue %D, y %V ha vuelto a caer como si nada.',
+  'Otra, y van %N. %V se sienta delante de %A con la ilusión intacta y el saldo cada vez más flaco.',
+  '%A suma %N seguidas contra %V. Lo sensato sería apartarse, pero eso requiere un cerebro que %V perdió en otro duelo.',
 ];
 
 // Al LANZAR el duelo, si esos dos ya se batieron otro dia. Aqui %A es quien
@@ -139,12 +139,12 @@ const DUELO_RACHA = [
 // Quien perdio aquella vez es quien reta ahora.
 const DUELO_PIDE = [
   '%V perdió %C contra %A %D y vuelve a retarle. Lo de aprender lo deja para otro día, y lo de tener vergüenza, para nunca.',
-  '%D %A le quitó %C a %V. Ahora %V quiere la revancha con la puta herida todavía abierta, y %A decide si le apetece cobrar otra vez.',
+  '%D %A le quitó %C a %V. Ahora %V quiere la revancha, y %A decide si le apetece cobrar otra vez.',
   'Precedente: %D ganó %A y se llevó %C. %V viene a por lo suyo con muchas ganas y ni puta idea.',
-  '%V todavía no ha digerido lo de %D. Reta a %A otra vez, a ver si esta vez le escuece menos el culo.',
-  'Ojo al historial. %D %A le ganó %C a %V, y %V ha decidido que aquella hostia no fue suficiente.',
-  '%V vuelve a por %A después de perder %C %D. Valor no le falta, lo que le falta es todo lo demás, empezando por el puto cerebro.',
-  'Lo de %D sigue escociendo. %V reta a %A y el grupo ya sabe cómo acaba esto: con %V pagando y lloriqueando de puta pena.',
+  '%V todavía no ha digerido lo de %D. Reta a %A otra vez, a ver si esta vez escuece menos.',
+  'Ojo al historial. %D %A le ganó %C a %V, y %V ha decidido que no fue suficiente.',
+  '%V vuelve a por %A después de perder %C %D. Valor no le falta, lo que le falta es todo lo demás.',
+  'Lo de %D sigue escociendo. %V reta a %A y el grupo ya sabe cómo acaba esto: con %V pagando y lloriqueando.',
   '%V busca la revancha de lo de %D, cuando %A le dejó %C más pobre. Se ve que la miseria le sabe a poco.',
   '%D se fueron %C de %V a %A. %V quiere recuperarlos, y lo más probable es que pague otra vez por gilipoyas.',
   'Revancha a la vista. %D se lo llevó %A, y %V apuesta a que la historia no se repite. La historia se va a descojonar.',
@@ -152,16 +152,16 @@ const DUELO_PIDE = [
 
 // Quien gano aquella vez es quien vuelve a retar.
 const DUELO_VUELVE = [
-  '%A ya le ganó %C a %V %D y vuelve a por más. Antes de aceptar, %V debería acordarse de la hostia que se llevó.',
+  '%A ya le ganó %C a %V %D y vuelve a por más. Antes de aceptar, %V debería acordarse de cómo acabó.',
   'Precedente: %D %A se llevó %C de %V. %V puede aceptar, o puede ahorrarse la vergüenza.',
-  '%A reta otra vez a %V. La última, %D, le salió a %V por %C, y todavía le escuece el puto saldo.',
-  'Historial entre estos dos: %D ganó %A. %V decide ahora si quiere repetir la lección o tener vergüenza por una puta vez.',
+  '%A reta otra vez a %V. La última, %D, le salió a %V por %C, y todavía se nota.',
+  'Historial entre estos dos: %D ganó %A. %V decide ahora si quiere repetir la lección.',
   '%A vuelve a por %V después de lo de %D. Rechazar sería lo más sensato que ha hecho %V en meses, y no lo va a hacer, porque es gilipoyas.',
-  '%D %A le dejó a %V %C más pobre. Hoy le propone repetir, y %V tiene la puta manía de decir que sí a todo.',
-  '%A no se ha cansado de ganarle a %V. Lo de %D fue solo el principio, y %V tiene pinta de cajero de mierda para rato.',
+  '%D %A le dejó a %V %C más pobre. Hoy le propone repetir, y %V tiene la mala costumbre de aceptar.',
+  '%A no se ha cansado de ganarle a %V. Lo de %D fue solo el principio, y %V tiene pinta de cajero para rato.',
   '%V ya le pagó %C a %A %D. Ahora %A pregunta si quiere pagar otra vez, y %V es lo bastante gilipoyas para pensárselo.',
   '%A reta a %V con lo de %D a favor. A %V le toca decidir si le queda orgullo o solo ganas de que le vuelvan a dar por culo.',
-  'Ojo, %V. %D saliste perdiendo contra %A, y viene a por más. Tú sabrás si te apetece otra hostia.',
+  'Ojo, %V. %D saliste perdiendo contra %A, y viene a por más.',
 ];
 
 // ─── !robo ───────────────────────────────────────────────────────────────────
@@ -171,68 +171,68 @@ const DUELO_VUELVE = [
 
 // %A ya le robo %C a %V y hoy le vuelve a robar.
 const ROBO_REINCIDE = [
-  '%A ya le robó %C a %V %D. Hoy vuelve a por más y %V sigue sin cerrar la puta puerta.',
-  'Reincidente. %A le robó %C a %V %D y hoy ha vuelto como quien vuelve a su casa. %V ya es su puta despensa.',
+  '%A ya le robó %C a %V %D. Hoy vuelve a por más y %V sigue sin cerrar la puerta.',
+  'Reincidente. %A le robó %C a %V %D y hoy ha vuelto como quien vuelve a su casa. %V ya es su despensa.',
   '%A ha vuelto a vaciarle los bolsillos a %V. %D ya se llevó %C, y %V los ha vuelto a llenar para que se los vacíen. Gilipoyez de manual.',
-  '%D fueron %C. Hoy %A repite con %V, que se lo vuelve a poner a huevo. Víctima de mierda.',
-  'A %V le vuelve a robar %A. Lo de %D, %C, no le enseñó una puta mierda.',
+  '%D fueron %C. Hoy %A repite con %V, que se lo vuelve a poner a huevo. Víctima profesional.',
+  'A %V le vuelve a robar %A. Lo de %D, %C, no le enseñó absolutamente nada.',
   '%A tiene a %V en la agenda desde %D. Hoy pasa a cobrar otra vez y %V sigue sin enterarse de una mierda.',
-  'Otra visita de %A al aura de %V. La anterior, %D, fueron %C, y %V la sigue dejando a la vista, servida en bandeja y sin una puta alarma.',
+  'Otra visita de %A al aura de %V. La anterior, %D, fueron %C, y %V la sigue dejando a la vista, servida en bandeja y sin una alarma.',
   'Hay víctimas y hay clientes fijos. %V es cliente fijo de %A desde %D, y no se ha dado de baja ni a hostias.',
-  '%V ya perdió %C con %A %D y no ha movido ni un dedo. Hoy vuelve a pagar por no levantar el puto culo de la silla.',
-  'De %V a %A, otra vez. %D ya se fueron %C por el mismo camino, y %V sigue sin poner ni una puta piedra.',
-  'Lo de %D no fue un despiste. %V se deja robar por %A cada vez que a %A le apetece, como un puto comedero.',
-  '%A vuelve a la víctima de %D. Si %V se deja robar así de fácil, para qué coño buscar otra.',
-  '%A ya le robó a %V %D y hoy ha vuelto a entrar sin llamar. %V tiene la puerta abierta y la puta cabeza de adorno.',
-  'Otro golpe de %A a %V. El anterior, %D, fueron %C, y %V sigue igual de a mano, con el bolsillo abierto y cara de panoli de mierda.',
+  '%V ya perdió %C con %A %D y no ha movido ni un dedo. Hoy vuelve a pagar por no levantar el culo de la silla.',
+  'De %V a %A, otra vez. %D ya se fueron %C por el mismo camino, y %V sigue sin poner ni una piedra.',
+  'Lo de %D no fue un despiste. %V se deja robar por %A cada vez que %A tiene hambre.',
+  '%A vuelve a la víctima de %D. Si %V se deja, para qué buscar otra.',
+  '%A ya le robó a %V %D y hoy ha vuelto a entrar sin llamar. %V tiene la puerta abierta y la cabeza de adorno.',
+  'Otro golpe de %A a %V. El anterior, %D, fueron %C, y %V sigue igual de a mano, con el bolsillo abierto y cara de panoli.',
   '%A le vuelve a robar a %V. Si %V se hubiera espabilado después de lo de %D, esto no pasaba, pero no espabila ni con una patada en el culo.',
-  'Después de lo de %D, %V sigue siendo el cajero de %A, y sin pedirle ni la puta tarjeta.',
+  'Después de lo de %D, %V sigue siendo el cajero de %A, y sin pedirle ni la tarjeta.',
 ];
 
 // %V le robo %C a %A la otra vez y hoy %A se lo devuelve.
 const ROBO_VENGANZA = [
-  '%D %V le robó %C a %A. Hoy %A se lo cobra, y %V descubre por el culo que esto funciona en las dos direcciones.',
+  '%D %V le robó %C a %A. Hoy %A se lo cobra, y %V descubre que esto funciona en las dos direcciones.',
   'Venganza servida. %V le quitó %C a %A %D y hoy le toca pagar a %V, con intereses y con jeta de imbécil incluida.',
-  '%V pensó que lo de %D le iba a salir gratis. %A acaba de pasarle la puta factura con recargo.',
-  '%A no olvida. %D %V le quitó %C, y hoy %A ha ido directo a por quien se los llevó. %V ya puede ir llorando a su puta casa.',
+  '%V pensó que lo de %D le iba a salir gratis. %A acaba de pasarle la factura.',
+  '%A no olvida. %D %V le quitó %C, y hoy %A ha ido directo a por quien se los llevó. %V ya puede ir llorando a su casa.',
   '%V se llevó %C de %A %D y se creyó a salvo. %A tiene buena memoria, y %V una cara de cemento armado que da asco.',
   'Devuelta la de %D. %V aprende hoy que robar a %A tenía letra pequeña, y que la letra pequeña te muerde el culo.',
-  '%D robó %V, hoy roba %A. %V ya puede ir contando lo que le queda, que es una puta miseria.',
-  '%A le saca a %V del bolsillo lo de %D, y le cobra hasta el susto y el cagazo.',
+  '%D robó %V, hoy roba %A. %V ya puede ir contando lo que le queda, que no es mucho.',
+  '%A le saca a %V del bolsillo lo de %D, y le cobra hasta el susto.',
   '%V creía que lo de %D estaba olvidado. %A solo esperaba el momento, y hoy le ha pasado la cuenta a hostias.',
   '%A le ha devuelto a %V el robo de %D. Con la misma mano y el doble de mala hostia.',
   'A %V lo de %D le ha salido caro. %A no ha olvidado ni una cifra, y %V lo está pagando con el culo apretado.',
   '%A tenía pendiente lo de %D. Hoy %V lo paga con cara de gilipoyas.',
-  'Lo de %D ya está devuelto: %V robó a %A y hoy %A le roba a %V. Cuentas en paz, y %V, a tomar por culo.',
-  'Cuentas saldadas. %V le robó %C a %A %D, y hoy %A se ha cobrado lo suyo y la propina por las putas molestias.',
+  'Lo de %D ya está devuelto: %V robó a %A y hoy %A le roba a %V. Cuentas en paz.',
+  'Cuentas saldadas. %V le robó %C a %A %D y hoy %A se ha cobrado lo suyo.',
 ];
 
 // %A ya le robo %C a %V otro dia y hoy le sale mal.
 const ROBO_SE_ACABA = [
-  'Lo de %D no se repite. %A volvió a por %V y esta vez se va sin un duro y con la cara roja de la hostia.',
+  'Lo de %D no se repite. %A volvió a por %V y esta vez se va sin un duro y con la cara roja.',
   'Se le acabó el chollo a %A. %D se llevó %C de %V, hoy se lleva el ridículo.',
-  '%A creyó que %V seguía tan a mano como %D. Ha pinchado en hueso, y el hueso le ha costado aura y la puta dignidad.',
+  '%A creyó que %V seguía tan a mano como %D. Ha pinchado en hueso y encima le ha costado aura.',
   '%A volvió a por %V, la misma víctima de %D, y se ha comido la puerta cerrada con la cara. Codicia de rata.',
-  'Hay golpes que salen una vez. El de %A a %V fue %D, y hoy %A paga la osadía con su puta aura.',
-  '%D %A le quitó %C a %V. Hoy intenta repetir y lo único que se lleva es la multa y una hostia en el orgullo.',
-  '%D le salió bien a %A. Hoy, contra %V, se ha dado de morros contra el puto suelo.',
-  'Lo de %D con %V se le subió a la cabeza a %A, y lo acaba de pagar caro de cojones.',
+  'Hay golpes que salen una vez. El de %A a %V fue %D, y hoy toca pagar la osadía.',
+  '%D %A le quitó %C a %V. Hoy intenta repetir y lo único que se lleva es la multa.',
+  '%D le salió bien a %A. Hoy, contra %V, se ha dado de bruces.',
+  'Lo de %D con %V se le subió a la cabeza a %A, y lo acaba de pagar.',
   '%A ha vuelto a por %V y esta vez se va con las manos vacías y el culo caliente. Lo de %D ya no se lo cree ni %A.',
-  'A %A le supo a gloria lo de %D con %V y ha vuelto a por más. Hoy %V le ha cerrado el grifo en toda la puta cara.',
+  'A %A le supo a gloria lo de %D con %V y ha vuelto a por más. Hoy %V le cierra el grifo.',
 ];
 
 // %V le robo %C a %A otro dia, y hoy %A intenta vengarse y le sale mal.
 const ROBO_NI_VENGARSE = [
   '%D %V le robó %C a %A. Hoy %A intenta vengarse y ni eso le sale, que ya hace falta ser inútil.',
-  'A %A le robó %V %D, y hoy le vuelven a salir las cuentas en rojo. No sirve ni para devolver una puta hostia.',
+  'A %A le robó %V %D y hoy le vuelven a salir las cuentas en rojo. Ni para vengarse sirve.',
   '%A quería devolverle a %V lo de %D. Se ha quedado con las ganas, con menos aura y con el ridículo de propina.',
   'Venganza fallida. %V se llevó %C de %A %D, y hoy %A encima paga la multa. Le roban y encima paga, menudo puto genio.',
   'Lo de %D con %V seguía sin cobrarse. %A lo intenta por fin, y la caga.',
   '%V le robó a %A %D, y hoy %A encima hace el ridículo intentando devolvérselo.',
   '%A fue a por %V con la rabia de %D y se ha estrellado. La rabia no roba sola, y la cabeza de %A tampoco ayuda una mierda.',
-  'Lo de %D sigue sin cobrarse. %A lo ha intentado hoy y %V ni se ha despeinado. Qué puta vergüenza de venganza.',
+  'Lo de %D sigue sin cobrarse. %A lo ha intentado hoy y %V ni se ha despeinado.',
   '%A perdió %C contra %V %D y hoy pierde también la venganza. No gana ni con motivos, ni con ganas, ni con la puta suerte de cara.',
-  '%V robó a %A %D y sigue durmiendo a pierna suelta. Visto lo de hoy, con toda la puta razón del mundo.',
+  '%V robó a %A %D y sigue durmiendo a pierna suelta. Visto lo de hoy, con razón.',
 ];
 
 // ─── !ship ───────────────────────────────────────────────────────────────────
