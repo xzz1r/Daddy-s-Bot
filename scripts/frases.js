@@ -156,7 +156,10 @@ const POOLS_MODO = args.includes('--pools');
 // 6, enlatado 113. Y el 20 nov el dueño lo hizo deshacer («solo parecen frases
 // de pajero, mal hechas y sin humor ni gracia»): las frases vuelven a las de
 // antes, y el techo con ellas.
-const TECHO = { nadie: 228, analogia: 6, coletilla: 7, eco: 0, molde: 65, enlatado: 122, roto: 0 };
+// Ese mismo 20 nov, al fortalecer las frases de dinámicas (aura, apuesta,
+// robo, esperas, duelo, rencor, tienda, bote, banco y cobro), con el taco
+// solo donde suena natural: nadie 188, analogía 3, enlatado 120.
+const TECHO = { nadie: 188, analogia: 3, coletilla: 7, eco: 0, molde: 65, enlatado: 120, roto: 0 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();
