@@ -101,6 +101,9 @@ async function cmdPlay(sock, msg, args, groupMeta) {
         // pudieron bajar (20 nov). Antes salía como «no la encontré», y con
         // «hotline bling» el grupo reescribió el nombre tres veces.
         'no-baja':       'No pude bajar esa canción ahora mismo. Prueba en un rato.',
+        // YouTube pide verificar la edad en todas las subidas que se probaron,
+        // también en la búsqueda del audio (20 nov). Reintentar no sirve.
+        'edad':          'YouTube pide verificar la edad para esa canción y así no la puedo bajar. Prueba con otra versión.',
         // Encontrada, pero WhatsApp no la deja pasar. Decir «no la encontré»
         // aquí manda a la persona a reescribir el nombre contra algo que no se
         // arregla escribiendo.

@@ -3546,7 +3546,9 @@ const di=async(quien,texto,extra)=>{
     // comando decide con ella. Adivinar con una expresion regular sobre el
     // mensaje daba siempre la misma rama, y con las keys secas el grupo leia «no
     // encontré esa canción» y reescribia el nombre contra un cupo inexistente.
-    exige(/err\.causa = e\.quota \? 'sin-cuota'/.test(dl), '!play ya no marca la causa «sin cupo» desde el propio error');
+    // Desde el 20 nov la cadena empieza por «no la encontré» y «no se pudo
+    // bajar», pero el cupo se sigue leyendo de su marca.
+    exige(/err\.causa = [^;]{0,900}e\.quota \? 'sin-cuota'/.test(dl), '!play ya no marca la causa «sin cupo» desde el propio error');
     exige(/e\.demasiadoGrande \? 'grande'/.test(dl), '!play ya no distingue «pesa demasiado» de «no la encontré»');
     exige(/\[err\.causa\]/.test(mu), '!play volvio a adivinar la causa del fallo por el texto del error');
 
@@ -16729,7 +16731,9 @@ const ok = (c, t) => { if (!c) quejas.push(t); };
   const iTry = codigo.indexOf('async function tryRapidApi');
   const cuerpoTry = codigo.slice(iTry, codigo.indexOf('\n}', iTry));
   ok(/buscarCandidatos\(query\)/.test(cuerpoTry), 'tryRapidApi ya no busca con buscarCandidatos');
-  const iBus = codigo.indexOf('async function buscarCandidatos');
+  ok(/buscarLista\(query\)/.test(codigo.slice(codigo.indexOf('async function buscarCandidatos'), codigo.indexOf('\n}', codigo.indexOf('async function buscarCandidatos')))),
+    'buscarCandidatos ya no busca con buscarLista');
+  const iBus = codigo.indexOf('async function buscarLista');
   const cuerpo = codigo.slice(iBus, codigo.indexOf('\n}', iBus));
   ok(/busquedaYtDlp\(query\)/.test(cuerpo), 'la búsqueda no llama al colchón de yt-dlp: sin él, un fallo del HTML deja *!play* muerto');
   ok(/buscarEnYouTube\(query\)/.test(cuerpo), 'y sigue llamando al HTML');
@@ -26174,7 +26178,7 @@ const r = {};
       exige(!malLeido, `un resultado se lee mal (duración, título, canal oficial o vistas): ${JSON.stringify(malLeido)}`);
     }
     exige(BC._leerVistas('2,1 mil millones de visualizaciones') === 2.1e9 && BC._leerVistas('2118 M') === 2118e6
-      && BC._leerVistas('298 mil visualizaciones') === 298e3 && BC._leerVistas('2.165.316.094 visualizaciones') === 2165316094
+      && BC._leerVistas('298 mil visualizaciones') === 298e3 && BC._leerVistas('216.531.609 visualizaciones') === 216531609
       && BC._leerVistas('1.2M views') === 1.2e6, 'las vistas no se leen en todas las formas en que YouTube las escribe');
     exige(BC.idDeEnlace('https://music.youtube.com/watch?v=uxpDa-c-4Mc&si=x') === 'uxpDa-c-4Mc' && BC.idDeEnlace('https://youtu.be/uxpDa-c-4Mc')
       === 'uxpDa-c-4Mc' && BC.idDeEnlace('hotline bling') === null, 'un enlace pegado (YouTube, YouTube Music, youtu.be) ya no se reconoce');
@@ -26199,6 +26203,10 @@ const r = {};
     // Con una palabra de más que no sale en ningún título, la canción es la misma.
     CASOS['hotline bling porfa'] = CASOS['hotline bling'];
     ESPERA['hotline bling porfa'] = ESPERA['hotline bling'];
+    // Un videoclip que pide verificar la edad (el de «WAP»): se elige el audio,
+    // y las reservas tampoco son el videoclip.
+    CASOS['wap cardi b'] = [["hsm4poTWjMs","Cardi B - WAP feat. Megan Thee Stallion [Official Music Video]","Cardi B",253,593000000,"av"],["Wc5IbN4xw70","Cardi B - WAP feat. Megan Thee Stallion [Official Audio]","Cardi B",188,374000000,"av"],["aK6Km0cc4X8","Cardi B - WAP (feat. Megan Thee Stallion) [Lyric Video]","Cardi B",188,491000,"av"],["ubKcvRBj3CM","WAP - Cardi B, Megan Thee Stallion | Lyric Video","Dark City Sounds",188,206000,""],["DqePOzTIILY","Cardi B - WAP (Lyrics) ft. Megan Thee Stallion","UPROXX Music",189,1100000,"v"],["ohD6cyB8RI4","Cardi B - WAP feat. Megan Thee Stallion [Official Lyric Video]","Cardi B",188,20000000,"av"],["NKh26pAhn3A","Cardi B - The Making of 'WAP' | Vevo Footnotes ft. Megan Thee St","Cardi B",255,10000000,"av"],["jelgdpCXlec","Cardi B - WAP feat. Megan Thee Stallion [Radio Edit]","Cardi B",188,12000000,"av"],["P__K1pS2vfk","Cardi B feat. Megan Thee Stallion - WAP | Lyrics","Dark City Sounds",188,129000,""],["RG4tK6vV1nI","Cardi B - WAP ft. Megan Thee Stallion (LYRICS)","Dark City Sounds",188,92000,""],["UzDcLrhZmvY","Cardi B - WAP (feat. Megan Thee Stallion) [Official Audio]","Cardi B",188,474000,"av"],["I-5e_J3LWS8","Cardi B - AH HA [Video Musical Oficial]","Cardi B",180,39000000,"av"],["07BLlZcLwq8","カーディ・B「WAP feat. ミーガン・ザ・スタリオン」日本語字幕付き動画【公式】","Warner Music Japan",253,444000,"v"],["Dw4suV6mcis","아직도 여전히 매운🌶 Cardi B(카디비) - WAP(feat. Megan Thee Stallion) [가사/해","김섭섭",196,6600000,""],["HyECsIBPaxk","Cardi B - Up (Lyrics)","Vibe Music",158,31000000,"v"],["OrZIQTNmfvI","Cardi B - Bongos feat. Megan Thee Stallion (Official VMA Perform","Cardi B",212,15000000,"av"]];
+    ESPERA['wap cardi b'] = [(c) => c.id !== 'hsm4poTWjMs' && BC.pareceAudio(c), (c) => BC.pareceAudio(c), 'el audio oficial, no el videoclip con verificación de edad'];
     for (const [consulta, [elige, reserva, que]] of Object.entries(ESPERA)) {
       const probar = BC.aProbar(BC.ordenar(consulta, filasA(CASOS[consulta])));
       exige(probar.length && elige(probar[0]), `«${consulta}» elige ${probar[0] ? `«${probar[0].titulo}» (${dur(probar[0].segundos)})` : 'nada'}: tenía que ser ${que}`);
@@ -26215,18 +26223,19 @@ const r = {};
       fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
       fs.writeFileSync(path.join(caja, 'pagina.html'), pagina(hb, true));
       const guion = [
-        "process.env.RAPIDAPI_KEY = 'k'.repeat(40);",
+        "process.env.RAPIDAPI_KEY = 'k'.repeat(40) + ',' + 'j'.repeat(40);",
         "const fs = require('fs'), path = require('path'), { Readable } = require('stream');",
         "const axios = require('axios');",
         "const HTML = fs.readFileSync(path.join(__dirname, 'pagina.html'), 'utf8');",
-        "let modo = '', llamadas = [], vacia = false;",
+        "let modo = '', llamadas = [], vacia = false, busquedas = [];",
         "axios.get = async (url) => {",
-        "  if (/youtube\\.com\\/results/.test(url)) return { data: vacia ? '<html></html>' : HTML };",
+        "  if (/youtube\\.com\\/results/.test(url)) { busquedas.push(decodeURIComponent((/search_query=([^&]*)/.exec(url) || [])[1] || '')); return { data: vacia ? '<html></html>' : HTML }; }",
         "  const m = /\\/dl\\?id=([\\w-]{11})/.exec(url);",
         "  if (m) {",
         "    llamadas.push(m[1]);",
         "    if (modo === 'cupo') { const e = new Error('HTTP 429'); e.response = { status: 429, data: { message: 'You have exceeded the MONTHLY quota' }, headers: {} }; throw e; }",
         "    if (modo === 'todos' || (modo === 'primero' && llamadas.length === 1)) return { data: { status: 'fail', msg: 'Video unavailable' } };",
+        "    if (modo === 'edad-todo' || (modo === 'edad' && m[1] === 'uxpDa-c-4Mc')) return { data: { status: 'fail', msg: 'Sign in to confirm your age' } };",
         "    return { data: { status: 'ok', link: 'https://cdn.invalid/' + m[1] + '.mp3', title: 'T ' + m[1], duration: 268 } };",
         "  }",
         "  if (/cdn\\.invalid/.test(url)) return { data: Readable.from([Buffer.alloc(4096, 1)]) };",
@@ -26235,12 +26244,19 @@ const r = {};
         "const DL = require('./src/utils/downloader');",
         "DL._conBusquedaYtDlp(async () => []);",
         "DL._usarFicheroFallos(path.join(__dirname, 'data', 'playFallos.json'));",
+        "const MEM = path.join(__dirname, 'data', 'playNoBajan.json');",
+        "const olvidar = async (que = {}) => { await DL._esperarNoBajan(); fs.writeFileSync(MEM, JSON.stringify(que)); DL._usarFicheroNoBajan(MEM); };",
         "(async () => {",
         "  const r = {};",
-        "  for (const m of ['primero', 'todos', 'cupo', 'nada']) {",
-        "    modo = m; llamadas = []; vacia = m === 'nada';",
-        "    try { const x = await DL.downloadAudio('hotline bling'); r[m] = { sale: x.title, llamadas }; if (x.soltar) await x.soltar(); }",
-        "    catch (e) { r[m] = { causa: e.causa, llamadas }; }",
+        "  for (const m of ['primero', 'repite', 'edad', 'edad-todo', 'todos', 'cupo', 'nada']) {",
+        "    // La memoria de vídeos que no bajan: se deja la de «primero» para «repite»;",
+        "    // en «edad», con la subida del audio de Drake Media ya recordada, la",
+        "    // siguiente al videoclip es otra resubida del videoclip.",
+        "    if (m === 'edad') await olvidar({ zt6aRKpf9T4: { ts: Date.now(), motivo: 'x' } });",
+        "    else if (m !== 'repite') await olvidar();",
+        "    modo = m === 'repite' ? 'ok' : m; llamadas = []; busquedas = []; vacia = m === 'nada';",
+        "    try { const x = await DL.downloadAudio('hotline bling'); r[m] = { sale: x.title, llamadas, busquedas }; if (x.soltar) await x.soltar(); }",
+        "    catch (e) { r[m] = { causa: e.causa, llamadas, busquedas }; }",
         "  }",
         "  await DL._esperarFallos();",
         "  r.apuntados = DL.fallosPlay(24).map((x) => x.causa || (x.salio && 'salio'));",
@@ -26252,19 +26268,27 @@ const r = {};
       const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
       if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
       else {
+        const ids = new Map(hb.map((c) => [c.id, c.titulo]));
         exige(r.primero.sale && r.primero.llamadas.length === 2 && r.primero.llamadas[0] === 'uxpDa-c-4Mc',
           `si la API no puede con el vídeo de Drake, no se prueba otra subida de la canción: ${JSON.stringify(r.primero)}`);
         exige(r.todos.causa === 'no-baja' && r.todos.llamadas.length === 3,
-          `si ninguna subida se puede bajar, el grupo no lee que se encontró y no se pudo bajar (causa «${r.todos.causa}», ${r.todos.llamadas.length} intentos)`);
-        const ids = new Map(hb.map((c) => [c.id, c.titulo]));
+          `si ninguna subida se puede bajar, el grupo no lee que se encontró y no se pudo bajar, o el mismo vídeo se repite con otra key del mismo servicio (causa «${r.todos.causa}», ${r.todos.llamadas.length} llamadas para 3 vídeos)`);
+        exige(r.repite.sale && r.repite.llamadas[0] !== 'uxpDa-c-4Mc',
+          `el vídeo que la API no pudo bajar se vuelve a probar el primero la vez siguiente, en vez de ir directo a otra subida: ${JSON.stringify(r.repite.llamadas)}`);
+        const audio = new Map(hb.map((c) => [c.id, BC.pareceAudio(c)]));
+        exige(r.edad.sale && r.edad.llamadas[0] === 'uxpDa-c-4Mc' && audio.get(r.edad.llamadas[1]) && r.edad.llamadas.length === 2,
+          `con el videoclip pidiendo la edad, lo siguiente no es un audio o una letra (o no sale): ${r.edad.llamadas.map((id) => ids.get(id)).join(' | ')}`);
+        exige(r['edad-todo'].causa === 'edad' && r['edad-todo'].busquedas.some((q) => /audio$/.test(q)) && r['edad-todo'].llamadas.length <= 5,
+          `si todo pide la edad, no se busca el audio o el grupo no lee que es por la edad: ${JSON.stringify(r['edad-todo'])}`);
         exige(r.todos.llamadas.every((id) => /drake/i.test(ids.get(id) || '')), `al probar otra subida se coló otra canción: ${r.todos.llamadas.map((id) => ids.get(id)).join(' | ')}`);
-        exige(r.cupo.causa === 'sin-cuota' && r.cupo.llamadas.length === 1, `sin cupo se siguen probando vídeos (o no se dice que es el cupo): ${JSON.stringify(r.cupo)}`);
+        exige(r.cupo.causa === 'sin-cuota' && r.cupo.llamadas.length <= 2 && new Set(r.cupo.llamadas).size === 1, `sin cupo se siguen probando vídeos (o no se dice que es el cupo): ${JSON.stringify(r.cupo)}`);
         exige(r.nada.causa === 'no-encontrada' && !r.nada.llamadas.length, `sin resultados no se dice «no encontré esa canción»: ${JSON.stringify(r.nada)}`);
-        exige(['salio', 'no-baja', 'sin-cuota', 'no-encontrada'].every((x) => r.apuntados.includes(x)),
+        exige(['salio', 'no-baja', 'sin-cuota', 'no-encontrada', 'edad'].every((x) => r.apuntados.includes(x)),
           `los !play que no salen no quedan apuntados para npm run estado: ${JSON.stringify(r.apuntados)}`);
       }
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     exige(/'no-baja':/.test(soloCodigo('src/commands/music.js')), '!play no tiene mensaje para la canción encontrada que no se pudo bajar: vuelve a decir «no la encontré»');
+    exige(/'edad':/.test(soloCodigo('src/commands/music.js')), '!play no dice que la canción pide verificar la edad: el grupo reintentaría para nada');
     exige(/playFallos\.json/.test(fs.readFileSync(path.join(R, 'scripts/estado.js'), 'utf8')), 'npm run estado ya no enseña los !play que no salieron');
     if (fallos === antes179) console.log(verde('   ✓ !play lee los resultados, elige la canción y, si la API no puede, prueba otra subida de la misma'));
   }

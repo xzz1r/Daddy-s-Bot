@@ -10,7 +10,7 @@ const config = require('../config');
 const { tempFile, cleanTemp, atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const { ffmpegPath, ffprobePath } = require('./ffmpeg');
 const { cacheKey } = require('./musicCache');
-const { ordenar, aProbar, buscarEnYouTube, leerSalidaYtDlp, idDeEnlace, resumen, CAMPOS_YTDLP } = require('./buscarCancion');
+const { ordenar, aProbar, buscarEnYouTube, leerSalidaYtDlp, idDeEnlace, resumen, pareceAudio, CAMPOS_YTDLP, FALLO_DE_EDAD } = require('./buscarCancion');
 const logger = require('./logger');
 
 // UNA SOLA FUENTE PARA !play: la API de terceros (RapidAPI), que extrae el
@@ -280,11 +280,48 @@ async function buscarConYtDlp(query) {
 // VPS yt-dlp está instalado y una prueba no puede depender de la red.
 let busquedaYtDlp = buscarConYtDlp;
 
-async function buscarCandidatos(query) {
-  // El enlace pegado a pelo: ese y ningún otro.
-  const id = idDeEnlace(query);
-  if (id) return [{ id, titulo: '', canal: '', segundos: null, vistas: 0, pos: 0 }];
+// ─── LOS VÍDEOS QUE LA API NO PUEDE BAJAR, RECORDADOS (20 nov) ──────────────
+//
+// Un vídeo que pide verificar la edad (o que la API no puede convertir por lo
+// que sea) falla igual cada vez. Se apunta tres días y, mientras, la búsqueda
+// lo pone el último: quien vuelva a pedir esa canción, con las palabras que
+// sea, va directo a la subida que sí sale, sin esperar al fallo. Solo entra lo
+// que la API dijo de ESE vídeo, nunca un fallo de red o de cupo.
+let ficheroNoBajan = path.join(__dirname, '../../data/playNoBajan.json');
+const NO_BAJAN_MS = 3 * 24 * 3600 * 1000;
+const MAX_NO_BAJAN = 300;
+let noBajan = null;   // id -> { ts, motivo }
+function cargarNoBajan() {
+  if (noBajan) return noBajan;
+  noBajan = new Map();
+  try {
+    const v = JSON.parse(fs.readFileSync(ficheroNoBajan, 'utf8'));
+    for (const [id, x] of Object.entries(v || {})) if (x && Date.now() - x.ts < NO_BAJAN_MS) noBajan.set(id, x);
+  } catch { /* la primera vez no hay fichero */ }
+  return noBajan;
+}
+function noBaja(id) {
+  const x = cargarNoBajan().get(id);
+  if (!x) return false;
+  if (Date.now() - x.ts > NO_BAJAN_MS) { noBajan.delete(id); return false; }
+  return true;
+}
+let guardadoNoBajan = Promise.resolve();
+function apuntarNoBaja(id, motivo) {
+  const m = cargarNoBajan();
+  m.delete(id);
+  m.set(id, { ts: Date.now(), motivo: String(motivo || '').slice(0, 80) });
+  while (m.size > MAX_NO_BAJAN) m.delete(m.keys().next().value);
+  guardadoNoBajan = guardadoNoBajan
+    .then(() => atomicWriteJson(ficheroNoBajan, Object.fromEntries(m)))
+    .catch((e) => logger.warn(`!play: no pude apuntar el vídeo que no baja: ${e.message}`));
+}
 
+// Los resultados de YouTube para un texto, sin ordenar: la página primero,
+// yt-dlp si la página no se deja leer y, lo último, el primer vídeo que nombre
+// la página, como se hacía antes (sin datos no se puede elegir, pero es mejor
+// que dejar el comando muerto).
+async function buscarLista(query) {
   let lista = [];
   let html = '';
   try {
@@ -296,14 +333,24 @@ async function buscarCandidatos(query) {
     if (html) logger.warn('!play: no pude leer los resultados de YouTube; pruebo con yt-dlp');
     lista = await busquedaYtDlp(query);
   }
-  // Lo último: el primer vídeo que nombre la página, como se hacía antes. Sin
-  // datos no se puede elegir, pero es mejor que dejar el comando muerto.
   if (!lista.length) {
     const m = /"videoId":"([\w-]{11})"/.exec(html);
     if (m) lista = [{ id: m[1], titulo: '', canal: '', segundos: null, vistas: 0, pos: 0 }];
   }
+  return lista;
+}
+
+async function buscarCandidatos(query) {
+  // El enlace pegado a pelo: ese y ningún otro.
+  const id = idDeEnlace(query);
+  if (id) return [{ id, titulo: '', canal: '', segundos: null, vistas: 0, pos: 0 }];
+
+  const lista = await buscarLista(query);
   if (!lista.length) return [];
-  const elegidos = aProbar(ordenar(query, lista));
+  // Lo que la API ya no pudo bajar estos días, al final: si queda otra subida
+  // de la canción, esa va primero.
+  const ordenados = ordenar(query, lista);
+  const elegidos = aProbar([...ordenados.filter((c) => !noBaja(c.id)), ...ordenados.filter((c) => noBaja(c.id))]);
   logger.info(`!play «${String(query).slice(0, 40)}» → ${resumen(elegidos[0])}${elegidos.length > 1 ? ` (+${elegidos.length - 1} de reserva)` : ''}`);
   return elegidos;
 }
@@ -361,6 +408,9 @@ async function rapidConvert(videoId, provider) {
       // misma canción puede salir.
       const err = new Error(data.msg || 'la API no pudo convertir el video');
       err.porElVideo = true;
+      // Pide verificar la edad (o iniciar sesión): la API no puede, ni hoy ni
+      // mañana, con ninguna key.
+      if (FALLO_DE_EDAD.test(err.message)) err.edad = true;
       throw err;
     }
     const POLL = [800, 1500];
@@ -487,7 +537,13 @@ async function convertirVideo(videoId) {
   let huboSinAcceso = false;
   let todasDeKey = true;
   let porElVideo = false;
+  let edad = false;
+  // Si un servicio ya dijo que ESE vídeo no, sus otras keys dirían lo mismo:
+  // se saltan, que cada intento son segundos y cupo. Una key de otro servicio
+  // (`key|host`) sí se prueba.
+  const dijeronQueNo = new Set();
   for (const i of ordenDeKeys()) {
+    if (dijeronQueNo.has(PROVIDERS[i].host)) continue;
     try {
       const r = await fetchFromProvider(videoId, PROVIDERS[i]);
       sinCuota.delete(i);   // respondió: sigue viva
@@ -498,7 +554,8 @@ async function convertirVideo(videoId) {
       if (err.ocupado) huboOcupado = true;
       if (err.sinAcceso) huboSinAcceso = true;
       if (!err.quota && !err.ocupado && !err.sinAcceso) todasDeKey = false;
-      if (err.porElVideo) porElVideo = true;
+      if (err.porElVideo) { porElVideo = true; dijeronQueNo.add(PROVIDERS[i].host); }
+      if (err.edad) edad = true;
       // "preview" y "pesa demasiado" son propiedad del vídeo (mismo videoId en
       // todas las keys): rotar repetiría la conversión para dar lo mismo,
       // gastando tiempo y cupo en todas. Se pasa al siguiente vídeo.
@@ -515,6 +572,7 @@ async function convertirVideo(videoId) {
   if (huboOcupado) fin.ocupado = true;
   if (huboSinAcceso && !huboCuota && !huboOcupado) fin.sinAcceso = true;
   if (porElVideo) fin.porElVideo = true;
+  if (edad) fin.edad = true;
   if (lastErr && todasDeKey) fin.deLasKeys = true;
   throw fin;
 }
@@ -538,8 +596,7 @@ async function tryRapidApi(query) {
   const intentos = [];
   const hasta = Date.now() + TOPE_INTENTOS_MS;
   let ultimo = null;
-  for (const c of candidatos) {
-    if (intentos.length && Date.now() > hasta) break;
+  const probar = async (c, cuantos) => {
     try {
       const r = await convertirVideo(c.id);
       if (intentos.length) {
@@ -549,10 +606,47 @@ async function tryRapidApi(query) {
       return r;
     } catch (err) {
       ultimo = err;
-      intentos.push({ id: c.id, titulo: String(c.titulo || '').slice(0, 80), motivo: String(err.message || '').slice(0, 120) });
-      // Si ninguna key pudo ni intentarlo, otro vídeo daría lo mismo.
-      if (err.deLasKeys) break;
-      logger.warn(`!play: ${resumen(c)} no se pudo bajar (${String(err.message).slice(0, 80)})${intentos.length < candidatos.length ? '; pruebo el siguiente' : ''}`);
+      intentos.push({ id: c.id, titulo: String(c.titulo || '').slice(0, 80), motivo: String(err.message || '').slice(0, 120), ...(err.edad ? { edad: true } : {}) });
+      // Lo que la API dijo de ESE vídeo se recuerda: la próxima vez, directo
+      // a otra subida.
+      if (err.porElVideo && !err.deLasKeys) apuntarNoBaja(c.id, err.message);
+      if (!err.deLasKeys) logger.warn(`!play: ${resumen(c)} no se pudo bajar (${String(err.message).slice(0, 80)})${intentos.length < cuantos ? '; pruebo el siguiente' : ''}`);
+      return null;
+    }
+  };
+
+  const cola = [...candidatos];
+  while (cola.length) {
+    if (intentos.length && Date.now() > hasta) break;
+    const r = await probar(cola.shift(), candidatos.length);
+    if (r) return r;
+    // Si ninguna key pudo ni intentarlo, otro vídeo daría lo mismo.
+    if (ultimo.deLasKeys) break;
+    // PIDE LA EDAD: lo que la pide es el videoclip, y una resubida del
+    // videoclip la pedirá también. Primero lo que no es el videoclip: el
+    // audio, la letra.
+    if (ultimo.edad) cola.sort((a, b) => Number(pareceAudio(b)) - Number(pareceAudio(a)));
+  }
+
+  // Y SI TODO LO PROBADO PEDÍA LA EDAD, una última búsqueda del audio de esa
+  // canción: entre los resultados normales podía no haber ninguna subida sin
+  // el videoclip. Solo audio o letra, de la misma duración que la canción, y
+  // dos como mucho. Esto solo pasa por aquí cuando ya ha fallado todo, así que
+  // a un *!play* normal no le cuesta nada.
+  if (intentos.length && intentos.every((x) => x.edad) && !ultimo.deLasKeys && !idDeEnlace(query) && Date.now() < hasta) {
+    // La búsqueda del audio solo trae más subidas: se ordenan con la consulta
+    // DE VERDAD, para que la canción siga siendo la misma (con «audio», el
+    // «(Audio)» de una versión de otro artista ganaría por la palabra).
+    const dur = candidatos[0].duracionCancion || null;
+    const cerca = (s) => dur == null || (s != null && Math.abs(s - dur) <= Math.max(25, 0.15 * dur));
+    const libres = ordenar(query, await buscarLista(`${query} audio`).catch(() => []))
+      .filter((c) => !intentos.some((x) => x.id === c.id) && !noBaja(c.id) && pareceAudio(c));
+    const extra = aProbar(libres).filter((c) => cerca(c.segundos)).slice(0, 2);
+    for (const c of extra) {
+      if (Date.now() > hasta) break;
+      const r = await probar(c, intentos.length + extra.length);
+      if (r) return r;
+      if (ultimo.deLasKeys) break;
     }
   }
   ultimo.intentos = intentos;
@@ -667,6 +761,8 @@ async function intentar(query) {
       // contra una via que no existe, y al dueño no le llega ninguna señal.
       : /sin RAPIDAPI_KEY/i.test(e.message || '') ? 'sin-via'
       : e.demasiadoGrande ? 'grande'
+      // Todo lo que se probó pedía verificar la edad: reintentar no sirve.
+      : e.edad && (e.intentos || []).length && e.intentos.every((x) => x.edad) ? 'edad'
       // La API contestó y dijo que ese vídeo no: no es el cupo, aunque alguna
       // key esté seca.
       : e.porElVideo ? 'no-baja'
@@ -779,6 +875,7 @@ module.exports = {
   _audioDuration: audioDuration, _duracionPorFfmpeg: duracionPorFfmpeg,
   _buscarCandidatos: buscarCandidatos, _buscarConYtDlp: buscarConYtDlp, fallosPlay,
   _conBusquedaYtDlp: (f) => { const antes = busquedaYtDlp; busquedaYtDlp = f; return () => { busquedaYtDlp = antes; }; },
+  _usarFicheroNoBajan: (f) => { ficheroNoBajan = f; noBajan = null; }, _esperarNoBajan: () => guardadoNoBajan, noBaja,
   _usarFicheroFallos: (f) => { ficheroFallos = f; }, _esperarFallos: () => colaFallos,
   downloadAudio, ordenDeKeys, sinCuota, PROVIDERS, _rapidConvert: rapidConvert,
   _repartoDe: repartoDe,

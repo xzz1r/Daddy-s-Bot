@@ -62,8 +62,12 @@ const RELLENO = new Set([
 ]);
 // Y las que a veces son relleno y a veces el título: «la canción» de J Balvin,
 // «Música Ligera», «Original Sin». Si salen en el título suman; si no, no
-// restan.
-const OPCIONALES = new Set(['video', 'clip', 'audio', 'full', 'cancion', 'song', 'music', 'musica', 'tema', 'original', 'version', 'ver']);
+// restan. Las de FORMATO («audio», «video») dicen cómo se quiere, no cuál: no
+// deciden qué resultados son la canción (con «hotline bling audio», las
+// subidas de Drake sin «audio» en el título siguen siendo Hotline Bling).
+const OPC_TITULO = new Set(['cancion', 'song', 'music', 'musica', 'tema', 'original']);
+const OPC_FORMATO = new Set(['video', 'clip', 'audio', 'full', 'version', 'ver']);
+const OPCIONALES = new Set([...OPC_TITULO, ...OPC_FORMATO]);
 
 // Las palabras de la consulta que deciden la canción, y las que pueden
 // ayudar. Si todo lo pedido es de las segundas («la canción»), mandan ellas.
@@ -169,7 +173,7 @@ function leerDuracion(texto) {
 }
 
 // Las vistas llegan escritas de muchas formas según el idioma y el formato de
-// la página: «2.165.316.094 visualizaciones», «2,1 mil millones», «2118 M»,
+// la página: «216.531.609 visualizaciones», «2,1 mil millones», «2118 M»,
 // «7,3 M», «298 mil», «1.2M views». Solo desempatan, así que basta con el
 // orden de magnitud.
 function leerVistas(texto) {
@@ -332,6 +336,34 @@ function canalOficial(c) {
   return { topic, oficial: Boolean(c.artista || topic || vevo) };
 }
 
+// ─── LA VERIFICACIÓN DE EDAD (20 nov) ─────────────────────────────────────────
+//
+// El dueño: «¿y si el canal oficial pide verificación de edad?». La API de
+// conversión no inicia sesión en YouTube, así que con un vídeo que pide la
+// edad no puede. Y no se puede saber de antemano: la página de resultados no
+// lo marca (el resultado de un vídeo con edad trae exactamente los mismos
+// campos que uno sin ella), oEmbed contesta igual a los dos, y la API del
+// reproductor, desde una IP de centro de datos como la VPS, contesta «confirma
+// que no eres un bot» a todo. Medido el 20 nov.
+//
+// Lo que pide la edad es el VIDEOCLIP, casi nunca el audio: el audio oficial,
+// la letra o la subida de un fan no la piden. Así que:
+//
+//   · entre las subidas de una canción ya se prefiere el audio limpio, y un
+//     videoclip que dice «explicit» resta un poco más;
+//   · si la API dice que no por la edad, las reservas que van primero son las
+//     que no son el videoclip (downloader, `pareceAudio`).
+const EDAD_PROBABLE = /\b(explicit|explicito|explicita|uncensored|sin censura|nsfw)\b|18\s?\+|\+\s?18/i;
+// Lo que dice la API cuando el vídeo pide la edad (o iniciar sesión).
+const FALLO_DE_EDAD = /\b(age|ages|edad|sign in|signin|log ?in|login|confirm|inappropriate|restricted|restringid[oa]|adult|mature)\b/i;
+const ES_VIDEOCLIP = /\b(official video|video oficial|official music video|music video|videoclip|clip oficial)\b/;
+const SIN_IMAGEN = /\b(audio|visualizer|visualizador|lyric|lyrics|letra|letras|traduccion|traducida|subtitulado|sub)\b/;
+// La canción sin el videoclip: el audio, la letra, el «- Topic».
+function pareceAudio(c) {
+  const t = normalizar(c.titulo).replace(/\b(lyric video|video lyric|lyrics video)\b/g, 'lyric');
+  return canalOficial(c).topic || (SIN_IMAGEN.test(t) && !ES_VIDEOCLIP.test(t));
+}
+
 // ─── QUÉ RESULTADOS SON LA MISMA CANCIÓN ──────────────────────────────────────
 //
 // Con «god's plan» salen trece subidas de la de Drake y una de otro artista
@@ -372,8 +404,8 @@ function agrupar(datos, pedidas) {
   // palabras opcionales («la canción j balvin»: «Mi Gente» encaja con
   // «balvin» pero no es LA canción), y sin variantes que nadie ha pedido: un
   // «slowed» con muchas vistas no decide cuál es la canción.
-  const maxOpc = Math.max(0, ...datos.filter((d) => d.encaja).map((d) => d.opc));
-  const entra = (d) => d.encaja && d.opc >= maxOpc && !d.sinPedir.length;
+  const maxOpc = Math.max(0, ...datos.filter((d) => d.encaja).map((d) => d.opcTitulo));
+  const entra = (d) => d.encaja && d.opcTitulo >= maxOpc && !d.sinPedir.length;
   const cuantas = new Map();   // palabra -> en cuántos resultados sale
   datos.forEach((d) => {
     d.propias = entra(d) ? palabrasDeGrupo(d.c, pedidas, d.oficial) : new Set();
@@ -433,7 +465,7 @@ function ordenar(consulta, candidatos) {
   const { estrictas: pedidas, opcionales } = palabrasDeConsulta(consulta);
   // La frase entera, con sus artículos: «la bachata» está en «La Bachata -
   // Manuel Turizo» y no en «Bailando Bachata».
-  const frase = palabras(consulta).filter((p) => !RELLENO.has(p)).join(' ');
+  const frase = palabras(consulta).filter((p) => !RELLENO.has(p) && !OPC_FORMATO.has(p)).join(' ');
   const pideVariantes = new Set(variantesDe(consulta));
   const pideLargo = pideVariantes.has('bucle') || pideVariantes.has('mezcla');
 
@@ -443,8 +475,10 @@ function ordenar(consulta, candidatos) {
     const { topic, oficial } = canalOficial(c);
     const toks = [...palabras(c.titulo), ...palabras(c.canal)];
     const faltan = pedidas.filter((q) => parecido(q, toks) === 0 && !toks.some((t, i) => t + (toks[i + 1] || '') === q)).length;
-    const opc = opcionales.filter((q) => parecido(q, toks) >= 0.85).length;
-    return { c, cob: cobertura(pedidas, c.titulo, c.canal), opc, faltan, variantes, sinPedir: variantes.filter((v) => !pideVariantes.has(v)), topic, oficial };
+    const enTitulo = opcionales.filter((q) => parecido(q, toks) >= 0.85);
+    const opc = enTitulo.length;
+    const opcTitulo = enTitulo.filter((q) => OPC_TITULO.has(q)).length;
+    return { c, cob: cobertura(pedidas, c.titulo, c.canal), opc, opcTitulo, faltan, variantes, sinPedir: variantes.filter((v) => !pideVariantes.has(v)), topic, oficial };
   });
 
   // «Encajar» es relativo al que más encaja: con una palabra de más que no
@@ -493,6 +527,10 @@ function ordenar(consulta, candidatos) {
       p -= Math.min(5, 1.2 * rel);
     }
     p += 3 * Math.max(0, 1 - (c.pos || 0) / 10);
+
+    // El videoclip «explícito» es el que suele pedir la edad, y con eso la API
+    // no puede. Entre ese y el audio de la misma canción, el audio.
+    if (EDAD_PROBABLE.test(String(c.titulo || '').normalize('NFKD')) && !pareceAudio(c)) { p -= 3; motivos.push('edad?'); }
 
     let castigo = 0;
     for (const v of sinPedir) castigo += VARIANTES.find((x) => x.tipo === v).castigo;
@@ -573,8 +611,8 @@ function resumen(c) {
 }
 
 module.exports = {
-  ordenar, aProbar, buscarEnYouTube, leerResultados, leerSalidaYtDlp, idDeEnlace, resumen,
-  CAMPOS_YTDLP, MAX_INTENTOS, MIN_SEGUNDOS, MAX_SEGUNDOS,
+  ordenar, aProbar, buscarEnYouTube, leerResultados, leerSalidaYtDlp, idDeEnlace, resumen, pareceAudio,
+  CAMPOS_YTDLP, MAX_INTENTOS, MIN_SEGUNDOS, MAX_SEGUNDOS, FALLO_DE_EDAD,
   _normalizar: normalizar, _palabrasDeConsulta: palabrasDeConsulta, _cobertura: cobertura,
   _leerVistas: leerVistas, _leerDuracion: leerDuracion, _variantesDe: variantesDe,
 };

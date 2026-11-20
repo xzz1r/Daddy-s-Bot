@@ -151,7 +151,7 @@ if (!fs.existsSync(envPath)) {
     let fp = [];
     try { fp = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data/playFallos.json'), 'utf8')); } catch { fp = []; }
     fp = (Array.isArray(fp) ? fp : []).filter((x) => x && x.ts >= Date.now() - 24 * 3600000);
-    const POR = { 'no-baja': 'encontrada pero no se pudo bajar', 'no-encontrada': 'no salió nada en YouTube', 'sin-cuota': 'sin cupo', ocupado: 'el servicio iba saturado', red: 'fallo de red', grande: 'pesa más de 16 MB' };
+    const POR = { 'no-baja': 'encontrada pero no se pudo bajar', 'no-encontrada': 'no salió nada en YouTube', 'sin-cuota': 'sin cupo', ocupado: 'el servicio iba saturado', red: 'fallo de red', grande: 'pesa más de 16 MB', edad: 'YouTube pide verificar la edad en todas las subidas' };
     const fallidas = fp.filter((x) => x.causa);
     const salvadas = fp.filter((x) => x.salio);
     const intentos = (x) => (x.intentos || []).slice(0, 3).map((i) => `«${i.titulo || i.id}» → ${i.motivo}`).join('; ');

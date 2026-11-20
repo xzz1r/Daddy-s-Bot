@@ -99,6 +99,9 @@ todos los resultados y elige por lo pedido, la misma canción entre sus
 subidas, el canal del artista, la duración y las variantes no pedidas. Si la
 API no puede con un vídeo, prueba otra subida de la misma canción, nunca otra.
 «No la encontré» solo cuando no salió nada; los fallos van a `npm run estado`.
+Si el vídeo pide verificar la edad (la API no puede), se pasa a un audio o una
+letra de la misma canción y el vídeo se recuerda tres días para no esperar al
+fallo otra vez; a un `!play` normal no le cuesta nada (dueño, 20 nov).
 Ver `MOTOR.md`; capa 179.
 
 ## Al tier dueño, el admin de vuelta al momento

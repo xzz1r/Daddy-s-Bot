@@ -1243,7 +1243,29 @@ no se prueba otro vídeo. Y el grupo lee «no la encontré» solo si no salió
 nada; si se encontró y no se pudo bajar, lo dice así. Lo que no salió, y lo
 que salió con otra subida, queda en `data/playFallos.json` y sale en
 `npm run estado`. yt-dlp sigue de colchón para buscar y trae los mismos datos.
-Capa 179.
+
+**La verificación de edad** (dueño, 20 nov: «¿y si el canal oficial pide
+verificación de edad?»). La API de conversión no inicia sesión en YouTube y con
+esos vídeos no puede. No se puede saber antes de probar: la búsqueda no lo
+marca (el resultado trae los mismos campos), oEmbed contesta igual y la API
+del reproductor, desde una IP de centro de datos como la VPS, dice «confirma
+que no eres un bot» a todo (medido el 20 nov). Lo que pide la edad es el
+videoclip, casi nunca el audio, así que:
+
+- el motor ya prefiere el audio oficial o la letra al videoclip, y un videoclip
+  «explicit» resta un poco más («wap cardi b» elige el audio oficial);
+- si la API dice que no por la edad, lo siguiente que se prueba es un audio o
+  una letra, no otra subida del videoclip, y el vídeo no se repite con otra key
+  del mismo servicio;
+- cada vídeo que la API no pudo bajar se recuerda tres días
+  (`data/playNoBajan.json`): la siguiente vez se va directo a la subida que sí
+  sale, sin esperar al fallo;
+- si todo lo probado pedía la edad, una búsqueda más del audio (ordenada con la
+  consulta de verdad, para no cambiar de canción) y, si tampoco, el grupo lee
+  que YouTube pide la edad, no «prueba en un rato».
+
+A un `!play` normal nada de esto le cuesta tiempo: todo pasa después de un
+fallo o es una consulta a la memoria. Capa 179.
 
 ## Multimedia
 
