@@ -1088,6 +1088,13 @@ recuadro de la cita lleva dentro el texto del mensaje citado, o sea el enlace,
 justo después de haberlo borrado. Se menciona a quien lo pidió, que es lo que
 hacía falta de la cita.
 
+Durante un tiempo se volvió a citar, para que se viera de quién era el vídeo, y
+el dueño lo quitó el 20 nov con la captura de un `!ig`: «¿qué sentido tiene
+eliminar el mensaje si sigue ahí?». El @ de quien lo pidió va en el pie del
+vídeo o de la foto (con el texto del tuit debajo, si lo hay) y en el aviso de
+«Bajando…», que tampoco cita (`progreso.sinCita`). Una búsqueda (`!pin gatos`)
+no se borra, así que sigue citando. Capas 50, 74 y 124.
+
 **El freno no es el precio.** Son ocho segundos por persona, porque hay dos
 huecos de descarga para todo el bot y los comparte con `!play`: sin eso, uno
 pegando enlaces seguidos deja al grupo sin música y sin acciones.

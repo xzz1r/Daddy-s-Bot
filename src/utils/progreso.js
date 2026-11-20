@@ -36,7 +36,8 @@ const activos = new Map();   // id del mensaje del comando -> seguimiento
 function textoDe(s) {
   const lleva = Math.max(1, Math.round((Date.now() - s.t0) / 1000));
   const queda = s.terminaHacia ? Math.round((s.terminaHacia - Date.now()) / 1000) : 0;
-  return `⏳ ${s.etapa}…\n`
+  const quien = s.mencion ? `@${String(s.mencion).split('@')[0]} · ` : '';
+  return `⏳ ${quien}${s.etapa}…\n`
     + `_Lleva ${lleva} s${queda >= 5 ? `; quedan unos ${queda} s` : ''}. `
     + 'Ya está en marcha: no hace falta pedirlo otra vez._';
 }
@@ -53,7 +54,10 @@ function mostrar(s) {
   s.mostrando = true;
   enFila(s, async () => {
     if (s.acabado) return;
-    const enviado = await s.sock.sendMessage(s.jid, { text: textoDe(s) }, { quoted: s.msg });
+    // Sin cita si el comando ya no está (ver sinCita): se nombra a quien lo pidió.
+    const enviado = s.mencion
+      ? await s.sock.sendMessage(s.jid, { text: textoDe(s), mentions: [s.mencion] })
+      : await s.sock.sendMessage(s.jid, { text: textoDe(s) }, { quoted: s.msg });
     s.clave = enviado?.key || null;
   });
   const siguiente = () => {
@@ -77,7 +81,7 @@ function actualizar(s) {
   enFila(s, async () => {
     try {
       if (s.acabado || !s.clave) return;
-      await s.sock.sendMessage(s.jid, { text: textoDe(s), edit: s.clave });
+      await s.sock.sendMessage(s.jid, { text: textoDe(s), edit: s.clave, ...(s.mencion ? { mentions: [s.mencion] } : {}) });
     } finally { s.editando = false; }
   });
 }
@@ -118,6 +122,18 @@ function etapa(msg, texto, segundos = null) {
   else if (segundos > 0 && segundos * 1000 > s.tras) mostrar(s);
 }
 
+// EL COMANDO SE HA BORRADO. Lo pidió el dueño (20 nov), con la captura de un
+// *!ig*: el bot borra el enlace y luego lo cita, y el recuadro de la cita lleva
+// dentro el texto del citado, o sea el enlace. «¿Qué sentido tiene eliminar el
+// mensaje si sigue ahí?» Quien lo borra lo dice aquí, y el aviso deja de citar
+// y nombra a quien lo pidió. Se llama al borrar, antes de los seis segundos del
+// aviso, así que el aviso sale ya sin cita.
+function sinCita(msg, quien) {
+  const s = activos.get(msg?.key?.id);
+  if (!s || s.acabado || !quien) return;
+  s.mencion = quien;
+}
+
 // Se acaba bien o mal: se paran los relojes y el aviso, si salio, se borra.
 async function terminar(msg) {
   const id = msg?.key?.id;
@@ -142,4 +158,4 @@ async function terminar(msg) {
   else s.fila.then(borrar);
 }
 
-module.exports = { empezar, etapa, terminar, AVISO_TRAS_MS, CADA_MS, AZAR_MS, PRESENCIA_CADA_MS, _activos: activos };
+module.exports = { empezar, etapa, sinCita, terminar, AVISO_TRAS_MS, CADA_MS, AZAR_MS, PRESENCIA_CADA_MS, _activos: activos };

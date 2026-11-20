@@ -10117,11 +10117,11 @@ const di=async(quien,t)=>{out.length=0;
         // (sin enlace, en espera, sin saldo) contestan citandolo, y citar a un
         // muerto no se entiende.
         //
-        // Y LO QUE SE MANDA DESPUES SI CITA. Aqui se comprobaba lo contrario:
-        // que no citara, porque el recuadro de la cita enseña el enlace que se
-        // acaba de borrar. El dueño lo decidio al reves y la razon es mejor —la
-        // cita es lo que dice de QUIEN es el video, y con tres personas pidiendo
-        // a la vez una mencion no lo resuelve— asi que la capa mide ahora eso.
+        // Y LO QUE SE MANDA DESPUES NO LO CITA (dueño, 20 nov). Se llego a
+        // exigir la cita, para que se viera de quien era el video, y el dueño lo
+        // cambio con la captura de un *!ig*: el recuadro de la cita lleva
+        // dentro el enlace que se acaba de borrar. De quien es lo dice el @ en
+        // el pie del video, con su mencion.
         {
           const G2 = `12036300000000${Math.floor(Math.random() * 900 + 100)}@g.us`;
           const YO2 = `3460000${Math.floor(Math.random() * 9000 + 1000)}@s.whatsapp.net`;
@@ -10135,8 +10135,10 @@ const di=async(quien,t)=>{out.length=0;
           exige(!!borrado && borrado.c.delete.id === 'MSGRED1',
             'el comando con el enlace se queda en el grupo: era justo lo que se venía a quitar');
           const media = con.find((x) => x.c.video || x.c.image);
-          exige(!!media && !!media.o && media.o.quoted && media.o.quoted.key?.id === 'MSGRED1',
-            'el vídeo no cita el comando: en un grupo con tres peticiones a la vez, nadie sabe cuál es el suyo');
+          exige(!!media && !media.o?.quoted,
+            'el vídeo cita el comando que se acaba de borrar: el recuadro de la cita vuelve a enseñar el enlace');
+          exige(!!media && String(media.c.caption || '').startsWith(`@${YO2.split('@')[0]}`) && (media.c.mentions || []).includes(YO2),
+            'el vídeo no lleva en el pie el @ de quien lo pidió: con tres peticiones a la vez, nadie sabe cuál es el suyo');
 
           // Y sin enlace NO se borra nada: ese mensaje no se ha ejecutado.
           const sin = [];
@@ -14529,7 +14531,9 @@ const ficheroDe = async (ext) => {
       const o = await lanzar('!x https://x.com/a/status/15', { fichero: f, tipo: 'video', ext: 'mp4', bytes: 9000 });
       exige(o.some((x) => x.c.delete), 'el comando con el enlace se queda puesto: era justo lo que se venia a quitar');
       const v = o.find((x) => x.c.video);
-      exige(!!v && v.o && v.o.quoted, 'el video no cita el comando: con tres peticiones a la vez nadie sabe cual es el suyo');
+      exige(!!v && !(v.o && v.o.quoted), 'el video cita el comando que se acaba de borrar: el recuadro vuelve a enseñar el enlace');
+      exige(!!v && /^@\d+$/.test(String(v.c.caption || '')) && (v.c.mentions || []).length === 1,
+        'el video no lleva en el pie el @ de quien lo pidio: con tres peticiones a la vez nadie sabe cual es el suyo');
     }
 
     // ── Y AHORA LAS DOS REGLAS DE DENTRO, CONTRA FICHEROS DE VERDAD ────
@@ -14928,7 +14932,8 @@ const ficheroDe = async (ext) => {
 
       const f2 = await ficheroDe('mp4'); basura.push(f2);
       const o3 = await lanzar('!x https://x.com/a/status/22', { fichero: f2, tipo: 'video', ext: 'mp4', bytes: 9000 });
-      exige(!o3.some((x) => x.c.caption !== undefined), 'se manda un pie vacio cuando el tuit no trae texto');
+      exige(o3.filter((x) => x.c.caption !== undefined).every((x) => /^@\d+$/.test(x.c.caption)),
+        'cuando el tuit no trae texto, el pie lleva algo mas que el @ de quien lo pidio');
     }
 
   } catch (e) {
@@ -21540,6 +21545,27 @@ const manda = async (quien, tipo, opciones) => {
       exige(ya && /quedan unos \d+ s/.test(ya.c.text),
         `un ajuste de minuto y pico no avisa hasta los seis segundos, o no dice cuánto queda (${ya ? ya.c.text : 'nada'})`);
       await progreso.terminar(largo);
+
+      // Y SI EL COMANDO SE HA BORRADO, EL AVISO NO LO CITA (dueño, 20 nov): el
+      // recuadro de la cita enseñaría el enlace que redes acaba de quitar. Nombra
+      // a quien lo pidió, también al editarse.
+      log.length = 0;
+      const borradoYa = { key: { id: 'CAPA124-4', remoteJid: '000000124@g.us' } };
+      const quien124 = '34600012400@s.whatsapp.net';
+      progreso.empezar(sock, borradoYa, { texto: 'Bajando lo de Instagram', tras: 30, cada: 60, azar: 5 });
+      progreso.sinCita(borradoYa, quien124);
+      await dormir(60);
+      const sinCita = log.find((l) => l.c && l.c.text && !l.c.edit);
+      exige(sinCita && !(sinCita.o && sinCita.o.quoted),
+        'el aviso de «Bajando…» cita el comando que se acaba de borrar: el recuadro vuelve a enseñar el enlace');
+      exige(sinCita && sinCita.c.text.includes('@34600012400') && (sinCita.c.mentions || []).includes(quien124),
+        `el aviso sin cita no nombra a quien lo pidió (${sinCita ? sinCita.c.text : 'nada'})`);
+      progreso.etapa(borradoYa, 'Subiéndolo a WhatsApp');
+      await dormir(40);
+      const editado2 = log.find((l) => l.c && l.c.edit && /Subiéndolo/.test(l.c.text));
+      exige(editado2 && editado2.c.text.includes('@34600012400') && (editado2.c.mentions || []).includes(quien124),
+        'al editarse, el aviso sin cita pierde el @ de quien lo pidió');
+      await progreso.terminar(borradoYa);
     }
 
     // 2) ENCHUFADO.

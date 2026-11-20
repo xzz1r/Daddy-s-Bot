@@ -91,6 +91,12 @@ recodificar**, también el HEVC (solo se le cambia la caja a `hvc1`); con
 cambia por una copia peor (capa 84). Las herramientas lentas avisan con
 `espera` en su fila (`utils/progreso.js`). Capas 96 y 124.
 
+**Sin cita al enlace borrado** (dueño, 20 nov: «¿qué sentido tiene eliminar el
+mensaje si sigue ahí?»). El bot borra el `!tt`, `!ig`, `!x` o `!pin` que lleva
+enlace, y lo que manda después no lo cita: el recuadro de la cita enseñaba el
+enlace. El @ de quien lo pidió va en el pie del vídeo o de la foto, y en el
+aviso de «Bajando…». Una búsqueda sin enlace sigue citando. Capas 50, 74 y 124.
+
 ## !play: la canción, no el primer vídeo
 
 Lo pidió el dueño (20 nov), con «!play hotline bling» → «No encontré esa

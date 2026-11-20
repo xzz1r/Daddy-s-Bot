@@ -227,18 +227,19 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
   // en esas el mensaje tiene que seguir ahi: la respuesta va citandolo, y citar
   // a un muerto no se entiende.
   //
-  // Y SE SIGUE CITANDO, aunque el mensaje citado ya no este.
+  // Y LO QUE SALE DESPUES YA NO LO CITA (dueño, 20 nov). Se llego a citar a
+  // proposito, para que se viera de quien era el video, y el dueño lo cambio
+  // con la captura de un *!ig*: el recuadro de la cita lleva dentro el texto
+  // del citado, asi que el enlace que se acababa de borrar volvia a salir
+  // debajo del video. «¿Que sentido tiene eliminar el mensaje si sigue ahi?»
   //
-  // Aqui lo quite: el recuadro de la cita lleva dentro el texto del citado, asi
-  // que citar el comando vuelve a enseñar el enlace justo despues de borrarlo.
-  // El dueño lo decidio al reves, y tiene razon en lo que importa: la cita es
-  // lo que dice DE QUIEN es el video, y en un grupo donde tres personas piden a
-  // la vez eso no lo resuelve una mencion. El enlace del recuadro no se lo va a
-  // copiar nadie letra por letra.
+  // Lo de quien es lo dice ahora el @ en el pie del video o de la foto, que es
+  // lo que se pidio: «que simplemente ponga el arroba de la persona que lo
+  // pidio». El aviso de «Bajando…» tampoco cita (progreso.sinCita), y los de
+  // error ya iban con mencion.
   //
-  // La mencion se queda solo para los avisos de error, donde no hay video que
-  // colgar de la cita y lo unico que hace falta es que le llegue el aviso a
-  // quien lo pidio.
+  // Una busqueda (*!pin gatos*) no se borra, asi que sigue citando: ahi el
+  // recuadro no enseña ningun enlace y la cita dice lo que se busco.
   //
   // Y SOLO SI HAY ENLACE QUE BORRAR. Un *!pin gatos* no tiene ninguno, asi que
   // borrarlo no quita nada del grupo: deja un «este mensaje fue eliminado por
@@ -249,7 +250,11 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
     sock.sendMessage(jid, {
       delete: { remoteJid: jid, fromMe: Boolean(msg.key.fromMe), id: msg.key.id, participant: quien },
     }).catch(() => {});
+    progreso.sinCita(msg, quienCanon);
   }
+  // Lo que va colgado del comando: la cita si sigue ahí, el @ si se ha borrado.
+  const citar = !url;
+  const firma = url ? `@${String(quienCanon).split('@')[0]}` : '';
 
   // El reloj ya está cogido desde antes del cobro (ver arriba). De aquí no se
   // sale sin ocupar un hueco de descarga: el enlace es bueno, la plataforma
@@ -352,7 +357,7 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
       const fotos = lote.filter((m) => m.tipo === 'imagen').length;
       padre = await sock.sendMessage(jid, {
         album: { expectedImageCount: fotos, expectedVideoCount: lote.length - fotos },
-      }, { quoted: msg }).catch((e) => {
+      }, citar ? { quoted: msg } : {}).catch((e) => {
         // Si el album no sale, no se pierde el comando: van sueltas.
         logger.warn(`${plataforma}: no pude abrir el album (${e.message}); las mando sueltas`);
         return null;
@@ -371,7 +376,9 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
     // album. Y WhatsApp corta los pies muy largos con un «ver mas», asi que se
     // recorta antes: un tuit puede llevar cuatro mil caracteres.
     let pieTuit = String(traido.texto || '').trim();
-    if (pieTuit.length > TOPE_PIE) pieTuit = `${pieTuit.slice(0, TOPE_PIE - 1).trimEnd()}…`;
+    // El @ de quien lo pidió va delante del texto, y cuenta para el tope.
+    const topePie = TOPE_PIE - (firma ? firma.length + 2 : 0);
+    if (pieTuit.length > topePie) pieTuit = `${pieTuit.slice(0, topePie - 1).trimEnd()}…`;
 
     // ─── Y SI LA BUSQUEDA SE HA DADO LA VUELTA, SE DICE ───────────────────
     //
@@ -393,7 +400,9 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
       // un MP4 sin pista de audio, que es como X sirve los GIF. Con
       // gifPlayback WhatsApp lo pone en bucle y sin controles, igual que se ve
       // en la propia red; sin el llega como un clip mudo con boton de play.
-      const pie = (primero && pieTuit) ? { caption: pieTuit } : {};
+      // El @ de quien lo pidió va delante, y el texto del tuit debajo.
+      const textoPie = primero ? [firma, pieTuit].filter(Boolean).join('\n\n') : '';
+      const pie = textoPie ? { caption: textoPie, ...(firma ? deQuien : {}) } : {};
       primero = false;
 
       // ─── UN GIF NECESITA MINIATURA Y TAMAÑO; UN VIDEO NO ───────────────
@@ -438,7 +447,7 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
       // La cita solo en la primera cuando no hay album: colgar las cinco del
       // mismo mensaje repite el recuadro cinco veces.
       const extra = padre?.key ? { albumParentKey: padre.key } : {};
-      const opciones = (!padre && ids.length === 0) ? { quoted: msg } : {};
+      const opciones = (citar && !padre && ids.length === 0) ? { quoted: msg } : {};
       // UNA SUBIDA PARADA NO PUEDE DEJAR EL COMANDO COLGADO. Baileys sube sin
       // limite de tiempo si no se le pide: una conexion que se queda muda a
       // medio video espera lo que tarde el sistema en rendirse, que son
