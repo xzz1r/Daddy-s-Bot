@@ -21,35 +21,35 @@ function fraseCooldown(especifico, clave, mix = 0.18) {
 // apuesta, asalto ni canción.
 const GENERICO = [
   'Tu ansiedad no es urgencia de nadie más. Trágatela como todo el mundo.',
-  'Impaciente. Si en la cama tienes la misma prisa, ya sabemos por qué nadie repite contigo.', // ROCKSTAR
+  'Impaciente. Si esperar fuera un trabajo, ya te habrían echado, como de los demás.',
   'Ni un respiro te das, como si callarte un rato te fuera a matar. A ti no te mata. Al grupo, sí.',
-  'Repites y encima pones «??». A un bot no se le mete prisa, y a la gente en la cama tampoco: apúntatelo.', // ROCKSTAR
+  'Repites y encima pones «??». Hay que ser gilipoyas para meterle prisa a un bot.',
   'Repetirlo no acelera nada, animal. Solo te hace más pesado.',
-  'No te aguantas ni diez segundos sin volver a pedirlo. Diez segundos, que para ti ya es una sesión larga.', // ROCKSTAR
+  'No te aguantas ni diez segundos sin volver a pedirlo.',
   'Miserable y con prisa, la peor mezcla. Corres para llegar antes a ningún sitio.',
-  'Vuelves antes de que se apague la pantalla. Con esa prisa, a quien se acuesta contigo no le da tiempo ni a quitarse los zapatos.', // ROCKSTAR
+  'Vuelves antes de que se apague la pantalla. Tienes prisa de imbécil.',
   'Acabas de usarlo, y el grupo entero te ha visto. Espera un poco, pequeña.',
   'Paciencia y criterio bajo mínimos, cabrón, y la paciencia es lo mejor que tienes.',
-  'Otra vez tú, con el mismo comando y sin esperar. Repetir tan seguido solo tiene gracia en la cama, y ni ahí te sale.', // ROCKSTAR
+  'Otra vez tú, con el mismo comando y sin esperar. El reloj no se salta.',
   'Ni se te ha enfriado el cabreo y ya estás otra vez encima, ansias. El título de pesado es tuyo.',
   'El grupo entero te está viendo spamear el comando, qué vergüenza ajena.',
   'Aquí se espera y punto. Que a ti se te haga eterno es un defecto de fábrica.',
-  'Aguanta como los demás, pesado. Aguantar, ya lo sé, no es lo tuyo.', // ROCKSTAR
+  'Aguanta como los demás, pesado. No eres especial ni en esto.',
   'Te dan un descanso gratis y lo vives como una condena. Patético es echar de menos un comando.',
   'Te dura menos la calma que un visto en entregado. Qué asco de pulso, muñeca.',
-  'Lo aporreas como si fuera la puerta del baño de una discoteca con dos dentro. No se abre.', // ROCKSTAR
-  'Patético: lo pides con unas ganas que ya quisiera alguien en tu cama.', // ROCKSTAR
+  'Escribes como quien golpea una puerta cerrada. Sigue cerrada.',
+  'Lo pides como si te fuera la vida en ello, patético, y no te va nada.',
   'El bot no te tiene manía, pesado. Es que eres quien más da por culo.',
   'Repites a ver si a la fuerza te hace caso alguien. No te lo hacen ni en tu casa.',
-  'Lo pides como quien gime para que acaben pronto. Y no acaba antes.', // ROCKSTAR
+  'Lo pides como quien pide auxilio. Y no se te ha caído nada encima.',
   'Ni un crío pide con tu frecuencia. Y el crío tiene la excusa de ser un crío.',
   'El bot no se cansa. El grupo sí, y de ti, cabrón, más que de nadie.',
   'Toda tu puta vida resumida en no saber esperar diez segundos, pequeña.',
-  'Impaciente de mierda. El comando ya salió y tú ya quieres otro, sin dejar ni recuperar el aliento.', // ROCKSTAR
+  'Impaciente de mierda. El comando ya salió y tú ya estás pidiendo el siguiente.',
   'Insistir antes de tiempo es tu deporte, y ni en eso ganas, paquete.',
   'Cada intento tuyo confirma que este es el punto más alto de tu día.',
-  'Escribir el comando dos veces no lo hace salir antes. Apretar más fuerte tampoco, ni aquí ni en ningún sitio.', // ROCKSTAR
-  'Los demás eligiendo qué decir y tú pidiendo lo mismo otra vez, como en la cama: misionero y repetir.', // ROCKSTAR
+  'Escribir el comando dos veces no lo hace salir antes. Sale igual y a ti te deja el doble de gilipoyas.',
+  'Los demás eligiendo qué decir y tú eligiendo el mismo comando otra vez. Prioridades de basura.',
 ];
 
 // !aura — tirada, 10 min. El más visto. Adicción al dado.
@@ -94,7 +94,7 @@ const AURA_APOSTAR = [
   'Ni el más enganchado vuelve tan rápido. Y mira que aquí hay competencia.',
   'Tu urgencia por volver vale más para el bote que para tu bolsillo, tieso.',
   'Otra ya, otra ya. Es lo único que dices, y las tres horas siguen sin cumplirse.',
-  'La casa te recomienda no correrte dos veces seguidas. Vuelve en tres horas, con más aguante.',
+  'Esto no es una máquina de tabaco. Ni para ti, que vienes con la ansiedad por delante.',
   'La mesa olvida rápido y tú vuelves más rápido todavía, con hambre de perder. Gana la mesa, siempre.',
   'La cabeza te arde, animal. Con ese calentón te apuestas hasta los calzoncillos.',
   'No te falta suerte, animal. Te falta la capacidad de estarte en el sitio.',
@@ -112,7 +112,7 @@ const AURA_APOSTAR = [
   'Las tres horas no han pasado. Tu saldo sigue donde lo dejaste, sin respirar.',
   'Quieres volver a la mesa ya. Así empieza todo el que acaba sin nada, muñeca.',
   'Otra apuesta ahora sería pura rabia por la anterior, ludópata de mierda. Te tocan tres horas, ni un minuto menos.',
-  'Tres horas de periodo refractario. Más de lo que aguantas tú en la cama, eso sí.',
+  'Ya has jugado, y la mesa te ha ganado. Vuelve cuando te toque.',
   'El dado no tiene prisa. Tú tienes demasiada y así se pierde, chiquitina.',
   'La partida acabó para ti hace un rato, y sigues en la silla agarrando la ficha como un yonqui.',
   'Apostar a esta velocidad es donar tu aura a plazos, y el siguiente plazo aún no toca.',
@@ -292,34 +292,34 @@ const ROBO_GUARDIA = [
 
 // !play — 7 segundos. Cortas, secas, spam de DJ.
 const PLAY = [
-  'Impaciente. Ni siete segundos de atención tienes, ni siete minutos de aguante.', // ROCKSTAR
-  'Pides otra sin que acabe la anterior, imbécil. Así no se escucha nada, ni se termina nada, como en tus noches.', // ROCKSTAR
+  'Impaciente. Ni siete segundos de atención tienes.',
+  'Pides otra sin que acabe la anterior, imbécil. Así no se escucha nada.',
   'Acabas de pedir. Son siete segundos y no los aguantas, mi niña.',
   'El DJ no te vio la puta mano. Te vio el spam.',
-  'No dejas sonar ni el estribillo. Tú siempre vas directo al final, y así te va.', // ROCKSTAR
-  'La anterior ni ha sonado y ya estás aquí. Ni preliminares le dejas a una canción.', // ROCKSTAR
+  'No dejas sonar ni el puto estribillo y ya estás pidiendo la siguiente.',
+  'La anterior ni ha sonado y ya estás aquí. Ansiedad pura, sin disimulo.',
   'Se te ha llenado el cupo de impaciencia antes que el de canciones.',
-  'Cambias de canción antes de que acabe ninguna, como cambias de ligue: sin llegar al final de nada.', // ROCKSTAR
-  'Eres un ansias: te tragas las canciones enteras y sin masticar, y eso no es un cumplido.', // ROCKSTAR
+  'Cambias de canción antes de que te acabe ninguna. Piénsalo, animal.',
+  'Eres un ansias: tragas canciones a bocados y no masticas ninguna.',
   'Este comando tiene cola y tú no tienes paciencia. Adivina quién espera.',
   'Siete segundos. Es el único fade-out que se le exige a un cero a la izquierda como tú.',
   'Estás tratando !play como si fuera un sticker, y es un puto tema entero.',
-  'Pides canciones más rápido de lo que se pueden escuchar. Esa velocidad, en la cama, no te la aplaude nadie.', // ROCKSTAR
+  'Pides canciones más rápido de lo que se pueden escuchar. Patético.',
   'La canción ni ha arrancado y tú ya pides otra. Esa prisa de inútil no la adelanta.',
   'Aún no ha empezado la canción y ya estás pidiendo otra. Oído de basura.',
-  'Esa urgencia tuya no la tiene ni quien busca ligue a la hora de cerrar el bar.', // ROCKSTAR
+  'Esa urgencia tuya no la tiene ni quien pide la última antes de cerrar el bar.',
   'Una canción entra y tú ya empujas otra. Ni una cola de canciones sabes respetar, joder.',
-  'Otra canción y la anterior sin terminar. Dejar las cosas a medias ya es tu firma, en la música y en la cama.', // ROCKSTAR
+  'Otra canción y la anterior sin terminar. Ni la música te aguanta.',
   'Pides canciones como si hubiera premio por pedir más. No lo hay, y das el coñazo igual.',
-  'La cola va a su ritmo. El tuyo es el de alguien que acaba en un minuto y pregunta si ha estado bien.', // ROCKSTAR
+  'La cola va a su ritmo. El tuyo es el de alguien que no sabe esperar ni un minuto.',
   'Nadie ha pedido tu banda sonora, y encima la quieres a trozos, chiquitina.',
   'Te toca esperar a que acabe. Eso que suena es música, no una notificación.',
   'Ni esperas los siete segundos y ya pides otra. Tu gusto musical es la impaciencia.',
   'El comando no va más rápido porque lo aprietes más. Lo único que sube es tu ridículo, mi niña.',
   'Pides música para el grupo y el grupo solo oye tus prisas.',
-  'Deja respirar a la canción, que no todo es ir a saco. Eso también te lo dicen en la cama.', // ROCKSTAR
+  'Deja respirar a la canción. A ti también te vendría bien.',
   'Otra vez. El grupo ya distingue tus peticiones por lo pesadas que son.',
-  'Si tanto te gusta la música, déjala sonar. La lista para follar no se pone a saltos.', // ROCKSTAR
+  'Si tanto te gusta la música, déjala sonar. Si no, apaga y calla.',
   'Cambias de canción cada dos por tres y a eso lo llamas tener gusto.',
   'La música aquí va por turnos, como en el colegio. Espera el tuyo.',
 ];

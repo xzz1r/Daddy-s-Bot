@@ -70,9 +70,9 @@ const ROB_WIN = [
 
 const ROB_FAIL = [
   '%A falló y pagó. %V ni levantó la vista del teléfono.',
-  'Con el calentón que traía, %A ha terminado en dos segundos contra %V, sin nada y pagando. Le pasa a menudo.',
+  '%A quiso jugar a ladrón y el juego le cobró la entrada. Cara, para lo poco que duró.',
   '%V sigue a lo suyo sin enterarse. %A sigue pagando multas como quien paga el alquiler.',
-  '%A le ha metido mano a %V y %V ni lo ha notado. La multa es por tocar, y por hacerlo tan mal.',
+  '%A, si robar fuera un examen, %V sería el aprobado y tú la hoja en blanco.',
   '%A ha intentado robar a %V y se lleva una multa y un apodo nuevo.',
   'Robaste tan mal, %A, que %V debería cobrarte por el espectáculo.',
   '%V está exactamente igual. %A está exactamente peor.',

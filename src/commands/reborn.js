@@ -12,13 +12,13 @@ const { pickFresh } = require('../utils/helpers');
 // entrada, no una respuesta.
 const ANUNCIOS = [
   '*PAPI HA RESUCITADO.*\n\nEstaba ocupado en asuntos que no están a vuestro nivel. Se acabó el recreo: el grupo vuelve a tener dueño.',
-  '*HE VUELTO.*\n\nMe fui a atender asuntos más grandes que este chat, y los atendí como se merecían: con calma y hasta el final. Ahora todos a vuestro sitio, que aquí mando yo.', // ROCKSTAR
+  '*HE VUELTO.*\n\nMe fui a arreglar cosas más grandes que este chat, y las arreglé. Ahora todos a vuestro sitio, que aquí mando yo.',
   '*PAPI ESTÁ DE VUELTA.*\n\nNo me fui: estaba ocupado. Bajad la voz, enderezad la espalda y recordad quién manda aquí.',
   '*RESUCITADO.*\n\nOs dejo dos días y esto parece un puto patio de colegio. Ya podéis ir dejando de hacer el gilipoyas.',
-  '*HA VUELTO EL QUE MANDA.*\n\nAsuntos cerrados, agenda libre. Toda mi atención vuelve a estar encima de vosotros, y ya sabéis que encima es donde mejor trabajo. Comportaos.', // ROCKSTAR
-  '*PAPI HA REGRESADO.*\n\nOs hacía falta alguien que mande, aunque nadie lo diga. Cada uno a su puesto, y a su postura, que se acabó la anarquía.', // ROCKSTAR
+  '*HA VUELTO EL QUE MANDA.*\n\nAsuntos cerrados, agenda libre. Toda mi atención vuelve a estar encima de vosotros. Comportaos.',
+  '*PAPI HA REGRESADO.*\n\nOs hacía falta alguien que mande, aunque nadie lo diga. Cada uno a su puesto, que se acabó la anarquía.',
   '*ATENCIÓN AL GRUPO.*\n\nPapi ha vuelto de sus asuntos. Lo que hayáis hecho mientras tanto, ya lo sé. Todo.',
-  '*DE VUELTA AL TRONO.*\n\nAlguno ya se estaba sentando en él, ¿eh? Levanta el culo, que ese sitio tiene dueño, y está calentito por algo.', // ROCKSTAR
+  '*DE VUELTA AL TRONO.*\n\nAlguno ya se estaba sentando en él, ¿eh? Levanta el culo, que ese sitio tiene dueño.',
 ];
 
 async function cmdReborn(sock, msg) {

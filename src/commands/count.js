@@ -8,197 +8,197 @@ const { aviso, avisoPermiso } = require('../utils/helpers');
 let MEMBER_PHRASES = [
   [
     'Escribes y el grupo se despierta. Eso no lo da el tiempo libre, lo da una puta gracia que no se aprende.',
-    'Número uno porque cuando hablas tú, contesta todo el mundo, y alguno contesta por privado y con foto.', // ROCKSTAR
-    'Aquí se viene a leerte a ti. El resto pone los stickers, y alguien se guarda tus audios para escucharlos a solas.', // ROCKSTAR
+    'Número uno porque cuando hablas tú, contesta todo el mundo. Carisma a espuertas.',
+    'Aquí se viene a leerte a ti. El resto pone los stickers.',
     'Si mañana te callas, esto es un puto cementerio con notificaciones. El grupo respira por ti.',
-    'Eres el motivo por el que la gente abre el chat, y más de uno lo abre en la cama con la luz apagada.', // ROCKSTAR
+    'Eres el motivo por el que la gente abre el chat. Los demás son el motivo por el que lo cierra.',
     'Tienes el don de que hasta tus tonterías se lean enteras. Oro, y con todo el puto mérito.',
-    'Llegas tú y la conversación sube de temperatura, y se nota desde el primer mensaje.', // ROCKSTAR
+    'Llegas tú y la conversación sube de nivel, y se nota desde el primer mensaje.',
     'Cualquier tema que tocas se convierte en el tema. Eso no se gana escribiendo mucho, se gana siendo tú.',
     'El grupo lo sostienes tú, y con una gracia que ya quisieran los de abajo.',
-    'Oro. Medio grupo te lee con las ganas con las que se ve una serie de las que se ven con cascos.', // ROCKSTAR
+    'Oro. Medio grupo te lee con las mismas ganas con las que se ve una serie.',
     'Hay quien escribe mucho y hay a quien se lee. Tú eres las dos cosas, y eso jode a todo el ranking.',
     'Tú pones el ritmo y el grupo lo sigue. Los demás llegan tarde a cada tema.',
-    'Te mandan audios para que opines y fotos para que no opines. El trono te lo dan ellos.', // ROCKSTAR
+    'Te mandan audios para que opines y te citan para darte la razón. El trono te lo dan ellos.',
     'Sin ti esto es un grupo de avisos. Contigo es el mejor puto sitio del móvil.',
     'En lo más alto, y no por pesadez: la gente te busca. Eso no lo consigue cualquiera con un pulgar.',
-    'Pones un «buenos días» y te contestan veinte, y dos te lo repiten por privado con otras intenciones.', // ROCKSTAR
-    'Escribes como quien tiene la sala en el bolsillo, y medio grupo querría estar en ese bolsillo.', // ROCKSTAR
+    'Pones un «buenos días» y te contestan veinte. A otros no les contestan ni un audio de diez minutos.',
+    'Escribes como quien tiene la sala en el bolsillo, y la tienes.',
     'El primer puesto se gana a base de horas. Tú lo has ganado a base de gracia, y las horas te han sobrado.',
     'Entras tú, sueltas dos tonterías y el chat se enciende. Eso es carisma de cojones.',
     'Lo que cuentas tú acaba repitiéndose en otros grupos. Eres la fuente, y lo sabe todo el mundo.',
-    'Medio grupo escribe para ver si le contestas tú. En cabeza, con séquito y con más de una proposición sin leer.', // ROCKSTAR
-    'Tienes ese imán: hablas y aparecen todos, y alguno aparece ya con la ropa a medio quitar.', // ROCKSTAR
+    'Medio grupo escribe para ver si le contestas tú. En cabeza, y con séquito.',
+    'Tienes ese puto imán: hablas y aparecen todos.',
     'Las mejores conversaciones de la semana las empezaste tú. Las malas también, pero esas las salvaste.',
     'Número uno del grupo. Los demás ponen mensajes, tú pones el ambiente.',
-    'Cuando tú escribes, el grupo entero escribe detrás. *Carisma de primer puesto: puede provocar sudores, escalofríos y fantasías.*', // ROCKSTAR
+    'Cuando tú escribes, el grupo entero se pone a escribir detrás. Eso es mandar en un chat.',
     'Nadie te gana a mensajes y nadie te gana a gracia. Lo segundo es lo que de verdad jode.',
     'Una tarde sin escribir y ya hay tres mensajes preguntando dónde coño te has metido.',
-    'Tú conviertes un «jaja» en tres horas de conversación, y una de esas horas acaba en privado y sin ropa.', // ROCKSTAR
+    'Tú conviertes un «jaja» en tres horas de conversación. Un puto don.',
     'Te leen hasta los que juran que no te leen. Ese primer puesto es carisma puro.',
     'Hablas y el resto se calla a escuchar. En un grupo de WhatsApp eso es un puto milagro.',
   ],
   [
     'Plata, y la gracia del podio la pones tú. El marcador cuenta mensajes, no lo que se ríe la gente contigo.',
-    'Plata. Quien va primero escribe más, pero los suspiros del grupo llevan tu firma.', // ROCKSTAR
+    'Plata. Quien va primero escribe más, pero las risas del grupo llevan tu firma.',
     'Medio grupo te prefiere antes que a quien va arriba, y eso el marcador no lo sabe contar.',
-    'Segundo puesto, y la mitad de las fantasías del grupo esta semana las has protagonizado tú.', // ROCKSTAR
+    'Segundo puesto, y la mitad de las mejores frases de la semana las has puesto tú.',
     'Cuando hablas, el chat se para a leerte. El segundo puesto se te queda corto de cojones.',
-    'Tienes la plata y un carisma de oro, de los que acaban con alguien pidiéndote el número a las tantas.', // ROCKSTAR
+    'Tienes la plata y un carisma de oro. El ranking es un poco gilipoyas, no te lo tomes a mal.',
     'Puesto dos. Escribes menos que quien va primero y se te contesta igual, que es lo que de verdad cuenta.',
-    'Plata con estilo: no te hace falta inundar el chat para que alguien se moje.', // ROCKSTAR
+    'Plata con estilo: no te hace falta inundar el chat para que se note que estás.',
     'Quien va primero llena el grupo. Tú lo haces gracioso. Elige cuál de las dos cosas vale más.',
     'Segundo lugar, y medio grupo te prefiere. Eso no sale en el marcador, pero sale en las respuestas.',
-    'Tus mensajes se citan más que los de quien va primero. Plata en el ranking, oro en las capturas que se guardan para luego.', // ROCKSTAR
+    'Tus mensajes se citan más que los de quien va primero. Plata en el ranking, oro en las capturas.',
     'Cada mensaje que mandas tú vale por tres de los de abajo.',
     'Hay quien sube a base de horas. Tú has subido a base de que te quieran leer.',
-    'Medalla de plata, y cuando tardas en contestar, alguien pregunta por ti mordiéndose el labio.', // ROCKSTAR
+    'Medalla de plata, y cuando tardas en contestar, alguien pregunta por ti.',
     'Plata. Tienes la chispa que le falta a medio grupo y te sobra para repartir.',
-    'Quien va arriba gana en cantidad. Tú, en que la gente fantasea contigo.', // ROCKSTAR
-    'Segundo puesto con fans. Hay gente que abre el chat solo para ver qué has dicho, y lo lee tumbada.', // ROCKSTAR
+    'Quien va arriba gana en cantidad. Tú, en que la gente se descojona contigo.',
+    'Segundo puesto con fans. Hay gente que abre el chat solo para ver qué has dicho tú.',
     'Escribes algo menos que quien va primero y caes el doble de bien. Plata de puta madre.',
-    'Plata. Te contestan antes de que acabes de escribir, que es como se nota a quien se desea.', // ROCKSTAR
+    'Plata. Te contestan antes de que acabes de escribir, que es como se nota a quien se espera.',
     'Plata. Tienes la gracia de quien no necesita ganar para ser de quien más se habla.',
     'Cuando arrancas un tema, quien va primero se apunta. Quien manda en la conversación eres tú.',
-    'Tienes un carisma que no cabe en la plata, ni en ninguna cama de noventa.', // ROCKSTAR
+    'Tienes un carisma que no cabe en la plata. El marcador no sabe medir eso.',
     'En plata, y el grupo lo sabe: sin tus mensajes esto sería la mitad de divertido.',
     'No tienes el oro porque no te hace falta. Con la plata ya te tienen ganado.',
-    'Segundo puesto y ni un mensaje de relleno: te leen enteros, y alguno te imagina diciéndolos al oído.', // ROCKSTAR
+    'Segundo puesto y ni un mensaje de relleno: te leen todo lo que escribes.',
     'Plata, y la gente te contesta antes que a quien va arriba. Eso es lo que no sale en la tabla.',
     'Segundo lugar. Te faltan mensajes, y gracia te sobra a montones.',
     'El segundo puesto lo da escribir. Que te contesten con ganas lo da cómo escribes, y en eso vas sobrado.',
-    'Cuando sueltas tú una de las tuyas, el chat se queda una hora comentándola y alguien la noche entera pensándola.', // ROCKSTAR
+    'Cuando sueltas tú una de las tuyas, el chat se queda una hora comentándola.',
     'Plata, y bien puesta: te has hecho un hueco en este grupo a base de ser la hostia.',
   ],
   [
     'Tienes el bronce, y una gracia que no cabe en el tercer escalón.',
-    'Podio. No escribes más que nadie, pero cuando escribes alguien se tiene que abanicar.', // ROCKSTAR
+    'Podio. No escribes más que nadie, pero cuando escribes se nota que has llegado.',
     'Podio. Cada mensaje que mandas tú pesa más que diez de los de abajo.',
-    'Bronce con calidad: poco relleno, mucho que leer y algo que imaginar.', // ROCKSTAR
+    'Bronce con calidad: tú pones poco relleno y mucho que leer.',
     'En el podio, y medio chat se ríe contigo. Eso vale más que la medalla.',
-    'Estás en el podio porque te leen, y porque hay quien te lee y luego necesita un minuto a solas.', // ROCKSTAR
+    'Estás en el podio porque te leen, y eso vale más que cualquier cifra.',
     'Tercer puesto, y cada vez que apareces tú el grupo se anima. Carisma del bueno.',
-    'Bronce. Cuando hablas, la gente para a leerte, y alguno se queda pensando en tu boca.', // ROCKSTAR
+    'Bronce. Cuando hablas, la gente para a leerte, y eso no lo consigue cualquiera.',
     'Tercer escalón, y sin ti el podio sería un aburrimiento de cojones.',
     'Te has metido en el podio con gracia, que es la forma más difícil de subir.',
-    'Bronce. Pocas frases tuyas se quedan sin respuesta, y ninguna sin que alguien suspire.', // ROCKSTAR
+    'Bronce. Pocas frases tuyas se quedan sin respuesta.',
     'Bronce en mensajes y oro haciendo reír. El marcador mide mal.',
-    'Podio, y en tu escalón la gente se lo pasa tan bien que alguien ha pedido habitación.', // ROCKSTAR
+    'Podio, y en tu escalón la gente se lo pasa de puta madre.',
     'Tercer puesto. Tienes el don de entrar a una conversación muerta y resucitarla.',
-    'Bronce bien ganado: cuando escribes, el chat sube un punto, y la temperatura dos.', // ROCKSTAR
+    'Bronce bien ganado: cuando escribes, el chat sube un punto.',
     'Bronce, y la gente te cita, te contesta y te busca. Lo de arriba es cuestión de horas.',
     'Bronce. Tienes más tirón con veinte mensajes que otros con doscientos.',
-    'Estás en el podio y se nota: sin ti, la mitad de los temas no arrancan, y la otra mitad no se calienta.', // ROCKSTAR
+    'Estás en el podio y se nota: sin ti, la mitad de los temas no arrancan.',
     'Podio con estilo. Haces menos ruido que nadie y más gracia que casi todos.',
-    'Bronce. Tus audios se escuchan enteros, y alguno se escucha con cascos y en la cama.', // ROCKSTAR
+    'Bronce. Tus audios se escuchan enteros, y aquí eso es un puto honor.',
     'Tercer escalón, y medio grupo te prefiere a los de arriba. Las medallas no lo cuentan todo.',
-    'Podio, y te lo has ganado siendo de lo más divertido del chat y de lo más deseado por privado.', // ROCKSTAR
+    'Podio, y te lo has ganado siendo de lo más divertido que hay en este chat.',
     'Puesto tres. Los dos de arriba escriben más, y lo tuyo se recuerda igual de bien.',
     'Bronce. Con el carisma que tienes, el podio se te queda pequeño.',
     'Tercera plaza, y cada vez que entras alguien escribe «ya estabas tardando». En este chat te tienen contado.',
     'Bronce. Tienes la gracia de quien no necesita ganar para caer de puta madre.',
     'En el podio por méritos: aquí nadie se cansa de leerte.',
-    'Tercer puesto, con una chispa que se nota en cada mensaje y que prende donde no debe.', // ROCKSTAR
+    'Tercer puesto, y con una chispa que se nota en cada mensaje.',
     'Bronce. El grupo sería más soso sin ti, y lo sabe todo el mundo.',
-    'Bronce sacado a base de risas de verdad, y de algún gemido de los que se escapan leyéndote.', // ROCKSTAR
+    'Bronce sacado a base de risas, y de las de verdad, no de compromiso.',
   ],
 ];
 
 let ADMIN_PHRASES = [
   [
     'La placa y el trono. Mandas y encima eres quien más gracia tiene. Eso no es justo para el resto.',
-    'Admin y número uno. Te hacen caso por el cargo y te desean por el carisma, y lo segundo es lo que manda.', // ROCKSTAR
+    'Admin y número uno. Te hacen caso por el cargo y te leen por el carisma, y lo segundo es lo que manda.',
     'Primer puesto con placa. El grupo gira a tu alrededor y no hace falta que pongas orden: te siguen.',
-    'Si algún día te vas, este grupo se queda mudo, sin ley y con muchas fantasías sin dueño.', // ROCKSTAR
+    'Si algún día te vas, este grupo se queda mudo y sin ley a la vez.',
     'La placa te la dieron. El primer puesto te lo ha dado el grupo, que no para de contestarte.',
-    'Mandas tú, y a más de uno le pone que mandes.', // ROCKSTAR
+    'Mandas tú y encima das ejemplo, que es lo que más jode a los de abajo.',
     'Admin número uno. Cuando dices algo en serio, el chat deja de hacer el gilipoyas en el acto.',
-    'Cuando hablas, se te escucha por las dos cosas: por la placa y por las ganas que despiertas.', // ROCKSTAR
-    'Tienes el botón de expulsar y casi nunca te hace falta. Con tu gracia, la gente se porta bien, o mal si se lo pides.', // ROCKSTAR
+    'Cuando hablas, se te escucha por las dos cosas: por la placa y porque eres la hostia.',
+    'Tienes el botón de expulsar y casi nunca te hace falta. Con tu gracia, la gente se porta sola.',
     'Tú mandas a base de carisma, que es como se manda de verdad.',
-    'El grupo va a tu ritmo, y hay quien querría ir a tu ritmo en otro sitio.', // ROCKSTAR
+    'El grupo va a tu ritmo, y tu ritmo es de puta madre.',
     'Con cargo o sin él, ese primer puesto sería tuyo igual, y eso es lo que da rabia.',
     'Quien diga que los admins no hacen nada, que te mire a ti y se calle la puta boca.',
-    'Tu autoridad se mide en mensajes, y tu atractivo, en los privados que no contestas.', // ROCKSTAR
+    'Tu autoridad se mide en mensajes, y en eso no te gana nadie.',
     'Admin, y quien más mueve este grupo. La placa es un detalle: te seguirían igual sin ella.',
-    'Los demás admins te miran y toman apuntes, y alguno se queda solo mirando.', // ROCKSTAR
+    'Los demás admins te miran y toman apuntes.',
     'Mandas y encima te ríen las gracias de verdad, no por la placa. Ahí se ve quién manda por carisma.',
-    'Pones orden con una frase y te ríes con la siguiente, y con la tercera alguien ya se ha puesto.', // ROCKSTAR
+    'Pones orden con una frase y te ríes con la siguiente, y el chat te sigue en las dos.',
     'Tienes la placa y el carisma a la vez, y usas los dos de puta madre.',
     'Admin de guardia y número uno del ranking. Este grupo existe porque tú no lo sueltas.',
-    'Te hacen caso a la primera, que con este grupo es una hazaña, y hay quien obedecería cualquier cosa que le pidieras.', // ROCKSTAR
+    'Te hacen caso a la primera, que con este grupo es una hazaña de cojones.',
     'Admin en la cima. Hablas y se acaba la discusión, porque tienes razón y además gracia.',
     'Nadie escribe más que tú y nadie modera mejor. Si quieres corona, pídela, que te la dan.',
     'Hasta los que expulsas te echan de menos. Oro con placa, y con motivo.',
-    'Tienes poder sobre todo el chat, y el chat encantado. Hay quien se dejaría esposar.', // ROCKSTAR
+    'Tienes poder sobre todo el chat, y el chat encantado. Eso no lo consigue ni un político.',
     'Moderas sin que se note y animas sin que te lo pidan. Admin de verdad, y en lo más alto.',
     'El grupo sabe a quién hacer caso, y te lo hace a ti sin rechistar.',
-    'Admin en lo alto. Tienes el grupo bajo control, y más de uno querría estar bajo otra cosa tuya.', // ROCKSTAR
+    'Admin en lo alto. Tienes el grupo bajo control y encima te lo pasas bien con él.',
     'Lo que tú mandas se cumple y lo que tú escribes se celebra. Oro, joder, y con razón.',
     'Tienes la placa y el micrófono, y el grupo entero encantado de escucharte.',
   ],
   [
-    'Tú mandas con una gracia que no se aprende, y que a más de uno le hace obedecer con gusto.', // ROCKSTAR
+    'Tú mandas con una gracia que no se aprende ni de coña.',
     'Puesto dos y admin. Quien va primero escribe más, pero cuando hay que poner orden, el grupo te mira a ti.',
-    'Tienes el cargo, el respeto, la plata y una lista de gente esperando a que le des órdenes en privado.', // ROCKSTAR
+    'Tienes el cargo, el respeto y la plata. El oro, cuando te apetezca.',
     'Admin número dos. Te hacen caso a la primera, y eso vale más que cien mensajes.',
-    'Moderas con estilo y escribes con gracia, y hay quien desearía que le moderaras a solas.', // ROCKSTAR
+    'Moderas con estilo y escribes con gracia, y eso el ranking no te lo sabe contar.',
     'Quien va primero lleva la conversación. Tú llevas el grupo entero, que pesa bastante más.',
-    'Cuando hablas tú, se acaba el cachondeo y empieza otro, más callado y por privado.', // ROCKSTAR
+    'Cuando hablas tú, se acaba el cachondeo y nadie se queja. Plata con placa.',
     'Admin y plata. Te hacen caso por la placa y te buscan por cómo hablas, que es lo difícil.',
-    'Mandas sin gritar y te hacen caso igual. Plata en mensajes, oro en lo que se imaginan cuando mandas.', // ROCKSTAR
+    'Mandas sin gritar y te hacen caso igual. Plata en mensajes, oro en autoridad.',
     'Tienes la plata, y el grupo funciona porque tú lo sujetas, aunque el marcador no lo diga.',
     'En plata, y quien manda de verdad aquí eres tú. Quien va primero escribe más, tú decides más.',
-    'Pones tú orden y el chat se endereza en dos mensajes, y alguno suspira con cada aviso tuyo.', // ROCKSTAR
+    'Pones tú orden y el chat se endereza en dos mensajes. Admin en plata.',
     'Moderas y animas a la vez. Pocos admins saben hacer las dos cosas, y tú las haces de puta madre.',
     'Plata y placa. Hay admins que solo borran mensajes. Tú das motivos para leerlos.',
-    'Medalla de plata, y en cada discusión todos te quieren de su lado, y alguno encima.', // ROCKSTAR
+    'Medalla de plata, y en cada discusión todos te quieren de su lado.',
     'Admin con gracia, cosa rara en este grupo. Plata, y porque quieres.',
-    'Tu placa no la discute nadie, y hay quien la ha imaginado puesta sin nada más.', // ROCKSTAR
+    'Tu placa no la discute nadie, y tu carisma tampoco. El oro llegará cuando te dé la gana.',
     'Escribes algo menos que quien va primero y mandas tú mucho más. Plata con cargo.',
     'El grupo te hace caso sin que saques la placa. Eso es autoridad de la buena.',
-    'Segundo puesto, y a ti acude la gente cuando hay lío, y alguno cuando hay ganas.', // ROCKSTAR
+    'Segundo puesto, y a ti acude la gente cuando hay lío. El ranking se queda corto contigo.',
     'Plata. Moderas sin dar la brasa, y la gente te lo agradece leyéndote.',
     'Admin y plata. Si quien va primero es la voz del grupo, tú eres la cabeza.',
-    'Pones una norma y se cumple, sueltas un chiste y se ríen, y si guiñas un ojo, se desnudan.', // ROCKSTAR
+    'Pones una norma y se cumple, sueltas un chiste y se ríen. Plata de lujo.',
     'Puesto dos con placa. Tienes ese carisma que hace que hasta los expulsados te den la razón.',
-    'Plata, y con tu nombre de guardia las broncas duran la mitad y los suspiros el doble.', // ROCKSTAR
+    'Plata, y con tu nombre de guardia las broncas duran la mitad.',
     'Admin número dos, y más de uno te lee antes que a quien va arriba. El cargo te lo dieron, los lectores te los has ganado tú.',
     'Mandas y encima caes bien. Casi nunca van juntas, y en ti sí.',
-    'Plata con placa. Te sobra autoridad y te sobra gracia, y a quien te lee le sobra la ropa.', // ROCKSTAR
+    'Plata con placa. Te sobra autoridad y te sobra gracia, solo te faltan horas.',
     'Cuando tú cierras un tema, se queda cerrado, y nadie se mosquea.',
     'Si el grupo votara, el oro te lo llevabas tú. Admin en plata.',
   ],
   [
     'Escribes lo justo, y cada mensaje que mandas tú pone el grupo en su sitio.',
-    'Bronce y admin. No te hace falta inundar el chat: con aparecer, la gente se porta, y alguno se acalora.', // ROCKSTAR
+    'Bronce y admin. No te hace falta inundar el chat: con aparecer, la gente se porta.',
     'Tú estás en el podio con placa, que ya es más de lo que hace la mayoría de admins.',
-    'Bronce y cargo. Moderas con mano izquierda, y por lo que se cuenta, la derecha tampoco la tienes nada mal.', // ROCKSTAR
+    'Bronce y cargo. Moderas con mano izquierda y encima te ríes con todos.',
     'Cuando hablas tú, el grupo sabe que va en serio. Bronce con placa.',
-    'Admin y bronce. Te leen con respeto y te contestan con unas ganas que no son solo de hablar.', // ROCKSTAR
+    'Admin y bronce. Te leen con respeto y te contestan con ganas. Combinación de puta madre.',
     'Podio y cargo. Se nota que mandas y se nota que te lo pasas bien. Eso es saber llevar un grupo.',
-    'Bronce con placa. Los dos de arriba escriben más, pero a quien se imagina el grupo de noche es a ti.', // ROCKSTAR
+    'Bronce con placa. Los dos de arriba escriben más, pero a quien escucha el grupo es a ti.',
     'Tercera plaza, y con una autoridad que no necesita mensajes para notarse.',
     'Tú eres admin, escribes de verdad y estás en el podio. Aquí eso no lo consigue casi nadie.',
-    'Moderas sin ruido y apareces con gracia. Con tu placa el grupo va recto, y alguna noche se tuerce pensando en ti.', // ROCKSTAR
+    'Moderas sin ruido y apareces con gracia. Con tu placa el grupo va recto y encima se ríe.',
     'Tercer escalón con placa. Te hacen caso a la primera, que es lo que importa.',
-    'Podio con placa. Tu presencia se nota hasta cuando no escribes, y se echa de menos en sitios que no son el chat.', // ROCKSTAR
+    'Podio con placa. Tu presencia se nota hasta cuando no escribes.',
     'Bronce y admin. Pones paz en las broncas y luego eres quien más se ríe. Eso es llevar un grupo con dos cojones.',
-    'Puesto tres con cargo. Si el grupo hiciera un sorteo de citas, saldrías en todas las papeletas.', // ROCKSTAR
+    'Puesto tres con cargo. Si el grupo tuviera consejo, tu voto valdría por dos.',
     'Cuando entras tú, entras para algo, y el chat lo nota desde el primer mensaje.',
     'Podio y placa. El grupo te respeta sin que tengas que recordarle quién manda.',
-    'Das tú una opinión y medio grupo cambia la suya, y la otra mitad se cambia de ropa interior.', // ROCKSTAR
+    'Das tú una opinión y medio grupo cambia la suya. Bronce con autoridad.',
     'Eres admin, vas en el podio y caes mejor que nadie. Eso no se ve todos los días.',
     'Mandas tú poco y bien, que es como mejor se manda.',
-    'Bronce. Cuando el grupo se descontrola, todos esperan a que aparezcas tú, y alguno espera algo más.', // ROCKSTAR
+    'Bronce. Cuando el grupo se descontrola, todos esperan a que aparezcas tú.',
     'Tienes carisma para dar y regalar, y lo usas para que esto funcione. Admin en el podio.',
-    'Tercer puesto con placa. Hay admins a los que se obedece por miedo; a ti, por ganas.', // ROCKSTAR
+    'Tercer puesto con placa. Hay admins a los que se obedece por miedo. A ti, porque tienes razón.',
     'Tú escribes con cabeza y moderas con gracia. Pocos admins saben hacerlo.',
-    'Podio con placa. Tus avisos se leen y se cumplen, y hay quien se porta mal solo para recibir uno.', // ROCKSTAR
+    'Podio con placa. Tus avisos se leen y se cumplen, que en este grupo tiene un mérito de cojones.',
     'Bronce. Tienes la placa, el podio y la simpatía del grupo. El oro es lo de menos.',
     'Admin en bronce. El grupo sabe que estás, y con eso basta para que vaya bien.',
     'Moderas tú desde el podio, que es desde donde se ve todo.',
-    'Admin en el podio. No necesitas levantar la voz: te leen igual, y si la bajas, mejor.', // ROCKSTAR
+    'Admin en el podio. No necesitas levantar la voz: te leen igual.',
     'El tercer puesto con cargo no te lo regala nadie, y te lo has ganado con estilo.',
   ],
 ];
@@ -213,74 +213,74 @@ let ADMIN_PHRASES = [
 const DISTANCIA = {
   primeroJusto: [
     'Vas en cabeza por %G. Te lo pelean porque todo el mundo quiere tu sitio, y no es para menos.',
-    'Arriba del todo, por %G. Te pisan los talones porque todo el mundo quiere estar encima de ti.', // ROCKSTAR
+    'Arriba del todo, por %G. Te pisan los talones, pero la gracia sigue siendo tuya.',
     'Lideras por %G. Te echas una tarde de las tuyas y el margen se dispara.',
-    'Oro con %G de ventaja. Ajustado, y a ti lo ajustado te sienta de puta madre.', // ROCKSTAR
+    'Oro con %G de ventaja. Ajustado, pero el trono te sienta de puta madre.',
     'Vas arriba por %G, y cada uno de esos mensajes se ha leído entero.',
     'En cabeza por %G. Cuando te pongas en serio, a quien va detrás no le quedan ni las migas.',
-    'Tienes %G de margen en lo alto. Poco, pero tú con poco haces maravillas, y hay quien lo sabe por experiencia.', // ROCKSTAR
+    'Tienes %G de margen en lo alto. Poco, pero tú con poco haces mucho.',
     'Número uno por %G. Quien va detrás aprieta porque te tiene de ejemplo.',
     'Te llevas el oro por %G. Justo, pero oro, y nadie te lo ha regalado.',
-    'En lo alto por %G. Te persiguen porque eres a quien hay que ganar, y alguno solo por pillarte.', // ROCKSTAR
+    'En lo alto por %G. Te persiguen porque eres a quien hay que ganar.',
   ],
   primeroHolgado: [
     'Le sacas %G a quien va detrás. Este grupo es tuyo, y lo sabes tú y lo sabe todo el mundo.',
-    'Vas en cabeza con %G de ventaja. El resto se pelea por la plata, y por un hueco en tu cama.', // ROCKSTAR
+    'Vas en cabeza con %G de ventaja. El resto se pelea por la plata mientras tú llevas el grupo.',
     'Número uno por %G. A esa distancia, el grupo ya lleva tu nombre.',
     'Le has metido %G a quien te sigue. Eso no se remonta en una tarde.',
-    'Tienes el trono con %G de foso alrededor. Nadie te lo toca, aunque ganas de tocarte no le faltan a medio grupo.', // ROCKSTAR
+    'Tienes el trono con %G de foso alrededor. Nadie te lo va a tocar.',
     'Te podrías callar un mes y seguirías en cabeza por %G. No lo vas a hacer, y eso es lo que asusta.',
     'Vas %G por delante de quien te sigue. Llevas el grupo a cuestas, y lo llevas de puta madre.',
-    'Número uno, con %G de distancia sobre el resto. Tú pones la fiesta, y la fiesta acaba donde tú digas.', // ROCKSTAR
+    'Número uno, con %G de distancia sobre el resto. Tú pones la fiesta, y el grupo entero se apunta.',
     'Llevas %G de ventaja, y una así solo la saca quien es la hostia. O sea, tú.',
-    'En cabeza con %G de colchón. Aquí mandas tú, y en ese colchón se quiere meter medio grupo.', // ROCKSTAR
+    'En cabeza con %G de colchón. Aquí mandas tú y todo el mundo lo tiene asumido.',
   ],
   segundoCerca: [
     'Estás a %G del primer puesto. Con la gracia que tienes, el trono es cuestión de una tarde.',
-    'Plata, a %G del número uno. El oro lo tienes a tiro, y tú, cuando te pones encima de algo, no lo sueltas.', // ROCKSTAR
+    'Plata, a %G del número uno. El oro lo tienes a tiro, así que dispara.',
     'Te quedan %G para pasar a quien va primero. Una noche inspirada y mañana mandas tú.',
     'Plata a %G del oro. El grupo ya te ve arriba, solo falta que lo diga el marcador.',
-    'Estás a %G de quien va primero, y ya te nota en la nuca. En otro contexto, sería lo mejor de su noche.', // ROCKSTAR
+    'Estás a %G de quien va primero, y ya te nota en la nuca. Eso es presión de la buena.',
     'Vas en plata, a %G. Un par de mensajes de los tuyos y le quitas el puesto.',
-    'Te separan %G de quien va primero, y a esa distancia ya se nota tu respiración.', // ROCKSTAR
+    'Te separan %G de quien va primero, y en gracia ya le has pasado hace tiempo.',
     'A %G del oro. Lo tienes al alcance y todo el grupo lo sabe.',
     'Vas en plata, pisándole los talones a quien va primero: %G y nada más.',
-    'Tienes la plata, a %G. Te falta un suspiro para el trono, y suspiros sacas tú a montones.', // ROCKSTAR
+    'Tienes la plata, a %G. Te falta un suspiro para un trono que ya es medio tuyo.',
   ],
   segundoLejos: [
     'Quien va primero te saca %G en mensajes. En carisma no te saca ni uno.',
-    'Te quedas a %G del oro, y es distancia de horas: en lo que se hace de noche no te gana nadie.', // ROCKSTAR
+    'Te quedas a %G del oro, y es distancia de horas, no de gracia.',
     'Segundo puesto, a %G del oro. Ni falta que te hace: con lo que escribes ya te tienen ganado.',
     'Te faltan %G para el primer puesto. Quien va primero tiene los mensajes, y a ti te sobra chispa, princesa.',
-    'Tienes la plata, a %G. El grupo te lee igual que a quien va primero, y te imagina más.', // ROCKSTAR
+    'Tienes la plata, a %G. El grupo te lee igual que a quien va primero, y te cita más.',
     'Medalla de plata a %G del número uno. Para ser de quien más se habla no te hace falta el oro.',
-    'A %G del primer puesto. Escribes menos y se te desea igual, y eso el marcador no lo resta.', // ROCKSTAR
+    'A %G del primer puesto. Escribes menos y se te cita igual, y eso el marcador no lo resta.',
     'Te quedan %G hasta el oro, y la plata te luce de puta madre mientras tanto.',
     'Estás a %G del primer puesto, y las risas del grupo también te las llevas tú.',
-    'Te sacan %G desde el primer puesto, y en lo que importa a puerta cerrada estás a la misma altura o por encima.', // ROCKSTAR
+    'Te sacan %G desde el primer puesto, y en calidad estás a la misma altura.',
   ],
   terceroCerca: [
     'Estás a %G de la plata. Un empujón y te la quedas.',
-    'Tienes el bronce, a %G de la plata. Eso lo recuperas con una sola de tus noches inspiradas.', // ROCKSTAR
+    'Tienes el bronce, a %G de la plata. Eso lo recuperas con una sola de las tuyas.',
     'Te faltan %G para el segundo puesto. Con la gracia que tienes, la plata es cuestión de días.',
     'Bronce, a %G de quien va arriba. La plata la tienes a tiro de piedra.',
-    'Te quedas a %G del segundo puesto. Una tarde inspirada y subes, como subes la temperatura de cualquier chat.', // ROCKSTAR
+    'Te quedas a %G del segundo puesto. Una tarde inspirada y subes.',
     'Bronce por los pelos: quien va arriba te saca %G y nada más.',
-    'Estás a %G de la plata, y quien va arriba ya te nota en la nuca. Le está empezando a gustar.', // ROCKSTAR
+    'Estás a %G de la plata, y quien va arriba ya te nota en la nuca.',
     'Vas en bronce a %G de la plata, y subiendo, que se te nota con ganas.',
-    'Te separan %G de la plata. Un par de temas de los tuyos, de los que ponen colorado al grupo, y se acabó.', // ROCKSTAR
+    'Te separan %G de la plata. Un par de temas de los tuyos y se acabó.',
     'Te quedan %G para la plata. A este ritmo, la semana que viene te la cuelgas, muñeca.',
   ],
   terceroLejos: [
     'Vas a %G de la plata, y estás en el podio con todo el mérito.',
-    'Tienes el bronce, a %G de la plata. Poco volumen y cada mensaje con su golpe de cadera.', // ROCKSTAR
+    'Tienes el bronce, a %G de la plata. Poco volumen y cada mensaje con su golpe.',
     'Te faltan %G para la plata, y te da igual: el grupo te tiene en lo alto.',
-    'Estás a %G de la plata. Escribes menos, y lo tuyo se nota el doble, sobre todo en quien te lee de madrugada.', // ROCKSTAR
+    'Estás a %G de la plata. Escribes menos, y lo tuyo se nota el doble.',
     'Te quedas %G por detrás de la plata, con el podio bien sujeto y sin intención de soltarlo.',
     'Tienes el bronce, y la plata a %G. Tú a lo tuyo, que lo tuyo es caer de puta madre, reina.',
-    'Estás a %G de la plata. Los de arriba ponen volumen, tú pones ganas, de las que se contagian.', // ROCKSTAR
+    'Estás a %G de la plata. Los de arriba ponen volumen, tú pones gracia.',
     'Vas en bronce, a %G de la plata, y tienes tú el carisma de los dos de arriba juntos.',
-    'Te sacan %G desde la plata. Da igual: en el podio estás tú, con los pies bien plantados y medio grupo a tus pies.', // ROCKSTAR
+    'Te sacan %G desde la plata. Da igual: en el podio estás tú, con los pies bien plantados.',
     'Bronce a %G de quien va arriba, y con tirón de sobra para recortarlo en una tarde.',
   ],
 };

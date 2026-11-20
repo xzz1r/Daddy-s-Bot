@@ -28,35 +28,35 @@ const HIGH_MIN = 700;
 // ═══════════════════════════════════════════════════════════════════════════
 
 let PARASITO = [
-  '%N, %MSG mensajes. El grupo no para de hablar y tú has aportado lo que dura un polvo con prisas.', // ROCKSTAR
+  '%N, %MSG mensajes. El grupo no para de hablar y tú has aportado lo que cabe en una tarde aburrida.',
   '%MSG mensajes, %N. Eso lo escribe cualquiera en una discusión de media hora. Tú has tardado toda tu estancia aquí.',
-  '%N, %MSG mensajes. Escribes menos en el grupo que en el buscador de incógnito, y allí escribes cosas peores.', // ROCKSTAR
+  '%N, %MSG mensajes. Para encontrar algo tuyo en el chat hay que subir tanto que da pereza.',
   'Con %MSG mensajes, %N, tu nombre aparece en la lista de miembros y en poco más.',
-  '%MSG mensajes, %N. Si mañana te vas, lo único que cambia es el número de miembros, y ni ese miembro se echaba de menos.', // ROCKSTAR
+  '%MSG mensajes, %N. Si mañana te vas, lo único que cambia en el grupo es el número de miembros.',
   '%N, %MSG mensajes. Ni quien te añadió se acuerda ya de para qué lo hizo.',
-  '%MSG mensajes, %N. Entras, miras y te vas sin decir nada, como en el sex shop del polígono.', // ROCKSTAR
+  '%MSG mensajes, %N. Firmas la asistencia de vez en cuando y te vas sin decir nada que valga.',
   '%N, %MSG mensajes. Hablas tan poco que cuando escribes algo el grupo piensa que te han robado el móvil, princesa.',
   '%MSG mensajes, %N. Ocupas una plaza que alguien con ganas de hablar usaría mejor, gorrón de mierda.',
-  '%N, %MSG mensajes. Todo lo que has aportado cabe en un mensaje subido de tono, y ni eso has mandado.', // ROCKSTAR
+  '%N, %MSG mensajes. Todo lo que has aportado al grupo cabe en una captura y sobra pantalla.',
   'Con %MSG mensajes, %N, eres la persona que todos tienen agregada y nadie sabría describir.',
-  '%N, %MSG mensajes. Para lo poco que escribes, mejor manda fotos, que es lo único que el grupo esperaría de ti.', // ROCKSTAR
+  '%N, %MSG mensajes. Para lo que escribes, podrías mandar señales de humo. Llegarían antes y dirían lo mismo: nada.',
   '%MSG mensajes, %N. El chat se mueve, se ríe, se pelea, y tú en la puta esquina con los brazos cruzados.',
   '%N, %MSG mensajes. Cuando apareces nadie sabe a qué vienes, y tú tampoco.',
-  '%N, %MSG mensajes. Callarte no te da misterio ni morbo: en la cama tampoco funciona.', // ROCKSTAR
+  '%N, %MSG mensajes. Callarte no te da misterio: te convierte en un mueble con wifi.',
   '%MSG mensajes, %N. Estás en el grupo como quien va a una fiesta a no hablar con nadie y a quedarse junto a la comida, pequeña.',
   '%N, %MSG mensajes. Aquí quien no escribe no existe, y tú llevas mucho tiempo sin existir.',
   '%N con %MSG mensajes. Un número así no se consigue por timidez. Se consigue porque todo te importa una mierda.',
-  '%MSG mensajes, %N. Si el grupo cobrara por estar, te irías, como te vas de todas las camas antes del desayuno.', // ROCKSTAR
+  '%MSG mensajes, %N. Si el grupo cobrara por estar, serías quien primero se larga.',
   '%N, %MSG mensajes. Lo más largo que has escrito aquí es tu nombre de perfil.',
-  '%MSG mensajes, %N. No aportas temas, no aportas risas y no aportas ni un mal calentón.', // ROCKSTAR
+  '%MSG mensajes, %N. No aportas temas, no aportas risas y no aportas ni una puta pelea.',
   '%N, %MSG mensajes. Te llevas la diversión de los demás sin dejar ni las gracias. Gorronería de nivel olímpico.',
   'Con %MSG mensajes, %N, tienes el perfil de quien entra en los grupos a hacer bulto, y el encargo lo cumples de maravilla.',
-  '%N, %MSG mensajes. El día que escribas algo, el grupo va a pensar que te han hackeado la cuenta para mandar porno.', // ROCKSTAR
+  '%N, %MSG mensajes. El día que escribas algo, el grupo va a pedir que te presentes.',
   '%MSG mensajes, %N. Si el silencio fuera aura, estarías forrado. No lo es, y estás en la ruina.',
-  '%N, %MSG mensajes. Mucho mirar y poco mojarte, cagón, que el grupo no es un escaparate.', // ROCKSTAR
-  '%N, %MSG mensajes. Si te vas, el grupo se entera por la lista, como se enteró tu ex de que habías terminado: tarde y sin notar diferencia.', // ROCKSTAR
+  '%N, %MSG mensajes. Mucho mirar y poco mojarte, cagón, que el grupo no es un escaparate.',
+  '%N, %MSG mensajes. Si te mueres, el grupo se entera por la esquela, no porque te eche en falta.',
   '%MSG mensajes, %N. A estas alturas callarte ya es tu único talento.',
-  '%N, %MSG mensajes. Estás de adorno en el grupo, y en la cama de alguien no has estado ni de adorno.', // ROCKSTAR
+  '%N, %MSG mensajes. Te tienen de adorno en el grupo y ni siquiera te han elegido.',
   '%N, %MSG mensajes. Vienes, cotilleas y te piras sin decir ni una palabra, como un turista barato.',
 ];
 
@@ -66,33 +66,33 @@ let PARASITO = [
 
 let INTERMEDIO = [
   '%N, %MSG putos mensajes. Suficiente para que te saluden, poco para que te inviten a nada que importe.',
-  '%N, %MSG mensajes. Llevas tiempo de sobra aquí y lo único que has dejado es una mancha pequeñita.', // ROCKSTAR
+  '%N, %MSG mensajes. Llevas tiempo de sobra aquí y lo único que has dejado es una mancha pequeñita.',
   '%MSG mensajes, %N. Normal de cojones: nadie te señala ni para bien ni para mal, y ahí te pudres.',
-  '%MSG mensajes, %N. Sales en la foto de grupo, en la segunda fila, que es donde se ponen los que no ligan en ninguna boda.', // ROCKSTAR
+  '%MSG mensajes, %N. Sales en la foto de grupo pero en la segunda fila, sin sonreír. Presente en el registro, ausente en la puta memoria de todos.',
   'Con %MSG mensajes, %N, cumples con lo mínimo y ahí te plantas. Lo mínimo, en tu caso, es todo lo que vas a dar nunca.',
-  '%N, %MSG mensajes. Relleno de calidad: si faltas una semana, alguien lo nota el domingo, como un rollo de verano: bien, pero sin más.', // ROCKSTAR
+  '%N, %MSG mensajes. Relleno de calidad: si faltas una semana, alguien lo nota el domingo.',
   '%MSG mensajes, %N. Hablas lo bastante para que te conozcan y lo justo para que no te recuerden.',
-  '%N, %MSG mensajes. En la tabla, como en la cama: siempre en el medio, siempre en la misma postura.', // ROCKSTAR
+  '%N, %MSG mensajes. Estás en la mitad de la tabla, que es donde se aparca a la gente que ni molesta ni suma.',
   'Con %MSG mensajes, %N, entras en el tema cuando ya está masticado y opinas con la discusión fría, chiquitina.',
-  '%N, %MSG mensajes. Opinas y el grupo sigue a lo suyo, como quien sigue durmiendo cuando le tocas la espalda a las tantas.', // ROCKSTAR
+  '%N, %MSG mensajes. Opinas, el grupo sigue con lo suyo y tu frase se queda sin un «jaja» debajo.',
   '%MSG mensajes, %N. Apareces, dices algo correcto y te vas. Correcto es lo peor que se puede ser aquí.',
-  '%N, %MSG mensajes. Aquí dentro eres un «ah, sí, también está», que es lo mismo que dicen de ti en los tríos.', // ROCKSTAR
+  '%N, %MSG mensajes. Aquí dentro eres un «ah, sí, también está», y ni eso con seguridad.',
   '%MSG mensajes, %N. Das para un meme al mes, cuando los que llevan el grupo dan para uno al día.',
-  '%N, %MSG mensajes. Lo que escribes se lee de pasada, como unos preliminares con prisa, y lo entierra el siguiente meme.', // ROCKSTAR
+  '%N, %MSG mensajes. Lo que escribes se lee de pasada y lo entierra el siguiente puto meme.',
   '%N con %MSG mensajes. Tienes lo suficiente para opinar y ninguna opinión que alguien cite.',
-  '%MSG mensajes, %N. Estás en el grupo con un pie dentro y el otro quién sabe dónde, y la mano, mejor no preguntar.', // ROCKSTAR
+  '%MSG mensajes, %N. Estás en el grupo con un pie dentro y el otro quién sabe dónde.',
   '%N, %MSG mensajes. A medio camino entre aportar y hacer bulto, y sin prisa por llegar a ninguno de los dos.',
-  '%MSG mensajes, %N. Das lo justo para que no se quejen, ni un mensaje más. En la cama dicen que igual.', // ROCKSTAR
+  '%MSG mensajes, %N. Das la cara lo justo para que no te echen de menos, ni un mensaje más.',
   '%N, %MSG mensajes. El grupo te tiene en la lista de «ya aparecerá»: apareces, pero no pesas.',
   'Con %MSG mensajes, %N, sueltas un «jaja» de vez en cuando y te vas. Ni frío ni calor: bulto.',
-  '%N, %MSG mensajes. Escribes lo suficiente para que tu silencio no alarme, y gimes lo suficiente para que no pregunten.', // ROCKSTAR
+  '%N, %MSG mensajes. Escribes lo suficiente para que tu silencio no alarme a nadie.',
   '%MSG mensajes, %N. Vas en el pelotón, que es un sitio cómodo para no ganar nunca una puta mierda.',
   '%N, %MSG mensajes. Te llega el chiste, contestas con un emoji flojo y el grupo ya está en el siguiente, pequeña.',
   '%N, %MSG mensajes. Tus mensajes ocupan sitio, pero los de arriba ocupan el grupo.',
-  '%MSG mensajes, %N. El número de quien entra al grupo cuando se aburre del porno.', // ROCKSTAR
+  '%MSG mensajes, %N. El número de alguien que viene cuando se aburre de todo lo demás.',
   '%N, %MSG mensajes. Si mañana subes o bajas, nadie mira el ranking para comprobarlo.',
   '%N con %MSG mensajes. Buen ritmo para no destacar en nada, y lo estás clavando.',
-  '%MSG mensajes, %N. El grupo no te debe nada y tú no le debes nada. Empate a cero, que es como acaban tus citas.', // ROCKSTAR
+  '%MSG mensajes, %N. El grupo no te debe nada y tú no le debes nada. Empate a cero, que es el resultado más triste.',
   '%N, %MSG mensajes. Hablas cuando hay tema, pero el tema nunca eres tú.',
   '%N, %MSG mensajes. Los de arriba te quedan lejos y los fantasmas te guardan el sitio.',
 ];
@@ -109,31 +109,31 @@ let INTERMEDIO = [
 
 const RELEVANTE = [
   '%N, %MSG mensajes. El grupo anda porque tú andas, y lo llevas con una soltura que da gusto.',
-  '%MSG mensajes, %N. El día que no escribes, el chat se queda en silencio y alguien te busca por privado con ganas.', // ROCKSTAR
-  '%N con %MSG mensajes. Sostienes el grupo, y se te ve tan a gusto encima que hay quien quiere probar debajo.', // ROCKSTAR
+  '%MSG mensajes, %N. El día que no escribes, el chat se queda en silencio y alguien pregunta por ti.',
+  '%N con %MSG mensajes. Sostienes el grupo, y encima se te ve a gusto haciéndolo.',
   'Con %MSG mensajes, %N, eres el puto pilar de este grupo, y los pilares no se discuten.',
-  'Con %MSG mensajes, %N, no hay conversación buena en la que no aparezcas, ni fantasía del grupo en la que no salgas.', // ROCKSTAR
-  '%MSG mensajes, %N. Cuando tú hablas el resto responde, y alguno obedece con gusto. Eso, cabrón, es tener el mando.', // ROCKSTAR
+  'Con %MSG mensajes, %N, no hay conversación buena en la que no aparezcas.',
+  '%MSG mensajes, %N. Cuando tú hablas el resto responde, y eso, cabrón, es tener el mando.',
   '%N con %MSG mensajes. Escribes sin esperar a que te pregunten, y ese descaro mantiene esto vivo, mi niña.',
   '%MSG mensajes, %N. Con ese volumen y esa constancia, nadie discute tu puto peso en el grupo.',
-  '%N con %MSG mensajes. Los temas buenos de esta semana llevan tu nombre, y los sueños húmedos de alguno, también.', // ROCKSTAR
+  '%N con %MSG mensajes. Los temas buenos de esta semana llevan tu nombre en el primer mensaje.',
   '%N con %MSG mensajes. El resto del grupo reacciona a lo que sueltas tú, y eso no lo consigue cualquiera.',
-  'Con %MSG mensajes, %N, si un día te callas se va a notar, y hay quien lo notaría en la cama.', // ROCKSTAR
+  'Con %MSG mensajes, %N, si un día te callas se va a notar, y no poco.',
   '%MSG mensajes, %N. Has escrito más de lo que escribe un fantasma en toda su vida, y cada mensaje ha sumado.',
-  '%N con %MSG mensajes. Entras al chat y en cinco minutos todo el mundo está contestándote, y alguno sudando.', // ROCKSTAR
+  '%N con %MSG mensajes. Entras al chat y en cinco minutos todo el mundo está contestándote.',
   'Con %MSG mensajes, %N, el grupo depende de ti, y has hecho que eso parezca fácil.',
   '%MSG mensajes, %N. Has hecho de la cantidad una puta virtud, y cada mensaje tuyo tiene respuesta.',
-  '%N con %MSG mensajes. El chat va a tu ritmo, y quien quiera seguirte tiene que correrse. Correr, perdón.', // ROCKSTAR
+  '%N con %MSG mensajes. El chat va a tu ritmo, y quien quiera seguirte tiene que correr.',
   '%N, %MSG mensajes. En los puentes desaparece todo el mundo menos tú, y el chat sigue vivo por tu culpa.',
   'Con %MSG mensajes, %N, aparecer cada día lo haces de cine, reina.',
   '%N, %MSG mensajes. Si dejas de escribir esto se hunde, así que ni se te ocurra.',
-  '%N con %MSG mensajes. El grupo ya da por hecho que vas a estar, y tú cumples siempre, en el chat y donde haga falta.', // ROCKSTAR
+  '%N con %MSG mensajes. El grupo ya da por hecho que vas a estar, y no fallas ni un día.',
   'Con %MSG mensajes, %N, este chat sigue respirando porque no dejas de escribir.',
-  '%MSG mensajes, %N. En el grupo pesas, y cada conversación que arrancas acaba con alguien acalorado.', // ROCKSTAR
+  '%MSG mensajes, %N. En el grupo pesas, lo dice el número y lo dice cada conversación que arrancas.',
   'Con %MSG mensajes, %N, has dejado el listón donde el resto no llega.',
-  '%MSG mensajes, %N. Sin ti el grupo se enfría, y contigo se pone a mil, y no solo el grupo.', // ROCKSTAR
+  '%MSG mensajes, %N. Sin ti el grupo baja de revoluciones, y contigo no hay quien lo pare.',
   'Con %MSG mensajes, %N, cuando el chat se queda callado, eres quien lo arranca.',
-  '%N, %MSG mensajes. El resto tiene el visto, tú tienes el hilo, y más de uno te dejaría tirar de él hasta el final.', // ROCKSTAR
+  '%N, %MSG mensajes. El resto tiene el visto, tú tienes el hilo, y el hilo manda.',
   '%N, %MSG mensajes. Eres la razón de que este grupo no sea un cementerio, muñeca.',
   '%MSG mensajes, %N. Si un día te pierdes, el grupo va a ir a buscarte por privado en menos de una hora.',
   '%N, %MSG mensajes. Cuando este grupo se mueve, tu nombre está en medio, y no es casualidad.',

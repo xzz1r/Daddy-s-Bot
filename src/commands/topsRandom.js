@@ -32,35 +32,35 @@ const MIN_MENSAJES = 1;
 // Único marcador: {N} = cuántos salen.
 const CIERRES = [
   'Los {N} de la vergüenza, servidos en bandeja de mierda.',
-  'Ahí tenéis la lista de hoy, los {N} de turno: lo más cerca de un trío que vais a estar.', // ROCKSTAR
-  '{N} nombres, y ni juntándoos a todos sale un polvo decente.', // ROCKSTAR
+  'Ahí tenéis la mierda que ha escupido el bot hoy. Los {N} de turno.',
+  '{N} nombres y ni una puta excusa entre todos.',
   'Enhorabuena, gilipoyas. Sois {N} y os jodéis igual.',
   'El bot ha meado esta lista y os ha tocado a los {N}.',
   'Sois {N} de mierda, repartíos la vergüenza como podáis.',
-  '{N} nombres, cero dignidad y ni un orgasmo entre todos este mes.', // ROCKSTAR
-  'Que os folle un pez, los {N}. El bot ya cumplió.', // ROCKSTAR
+  '{N} nombres, cero dignidad y ni una hostia de sorpresa.',
+  'Que os folle un pez, los {N}. El bot ya cumplió.',
   'Coño, sois {N} y ninguno se libra del ridículo.',
   'El azar os ha cagado encima a los {N}. De nada.',
-  'Sois {N} y ninguno tiene ya dónde esconderse, ni debajo de las sábanas.', // ROCKSTAR
+  'Sois {N} y ninguno tiene ya dónde esconderse.',
   'El bot no perdona: {N} nombres y a joderse todos.',
-  'Menuda cuadrilla, los {N}: si os juntáis, sale la orgía más triste del mundo.', // ROCKSTAR
+  'Menuda cuadrilla de mierda, los {N} que han salido.',
   'Que os aproveche el bochorno, hatajo de cabrones.',
   'Sois carne de cachondeo grupal, los {N}.',
-  'Ahí os quedáis, los {N}, con el culo al aire.', // ROCKSTAR
+  'Ahí os quedáis, los {N}, con el culo al aire.',
   'El bot ha hablado: los {N}, y que os den por saco.',
   'Sois {N}. Sois mierda de hoy. Mañana otra tanda de mierda.',
-  'Ahí quedáis los {N}, sin ropa delante del grupo, y nadie aplaude.', // ROCKSTAR
+  'Ahí quedáis los {N}, con nombre, apellido y el grupo mirando.',
   '{N} menciones de golpe. Ya no se puede disimular.',
-  'Los {N}, en fila y a la vista, como en un casting porno que no va a ver nadie.', // ROCKSTAR
+  'Los {N}, en fila y a la vista. El orden da igual, la vergüenza es la misma.',
   'Sois {N} y os ha tocado por sorteo. Ni el sorteo os quería.',
-  'Los {N} de hoy, servidos en bandeja, y ninguno con pinta de postre.', // ROCKSTAR
+  'Los {N} de hoy, servidos. Los demás, que no se rían tan alto.',
   '{N} nombres metidos en el mismo saco, y el saco huele.',
   'El título da igual. Lo que se va a recordar es que os tocó a vosotros, los {N}.',
-  'En el cartel, los {N}, como en la puerta de un club de intercambio al que no entra nadie.', // ROCKSTAR
+  'En el cartel, los {N}. A partir de ahora, esto es lo que se recuerda de vosotros.',
   'Tanta gente en el grupo y han salido justo estos {N}. Qué puntería.',
   'Reclamad lo que queráis, los {N}. El bot se limpia el culo con eso.',
   'Apuntados con arroba, los {N}. Así no se escapa ni uno.',
-  'Enhorabuena a los {N}: es la primera vez que alguien os elige sin alcohol de por medio.', // ROCKSTAR
+  'Enhorabuena a los {N}: es lo más cerca de un premio que vais a estar en la vida.',
 ];
 
 function rellenar(plantilla, picked) {

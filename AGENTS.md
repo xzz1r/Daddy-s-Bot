@@ -348,27 +348,17 @@ variables. Lo que hace falta para arreglarlo va al log y a `npm run estado`
 el chat se dice lo que pasa, con palabras. Y si algo se puede aplicar sin
 reiniciar, se aplica: `!visto` cambia la presencia al momento. Capa 172.
 
-## Doble sentido guarro estilo Rockstar: el 40 % del bot
+## El doble sentido «estilo Rockstar»: DESHECHO
 
-Lo pidió el dueño (16 nov): «al menos un 40 %» de las frases, «en todo el
-bot, menos en las frases de dinámicas». Cómo escribe Rockstar está en
-`GUIA.md` («El refuerzo: cómo escribe Rockstar»): la guarrada la dice la
-marca con voz de anuncio, dentro del vocabulario de su producto, por
-insinuación y sin dar por hecho el cuerpo ni la pareja. Cada frase así
-lleva `// ROCKSTAR` al final de su línea, y `npm run rockstar` dice cuánto
-lleva el bot. No cuentan las dinámicas del aura (tirar, apostar, robar,
-duelos, dar, bote, tienda, asaltos, banco y sus esperas), ni `!piropo`,
-WINGMAN y las acciones sexuales, que se quedan como están. Una frase nueva
-entra sacando una floja, y los apelativos no se pierden por el camino.
+El dueño lo pidió el 16 nov («al menos un 40 %» de las frases) y lo hizo
+deshacer el 20 nov: «solo parecen frases de pajero, mal hechas y sin humor ni
+gracia». Las frases volvieron a las de antes del 16 nov (los cinco commits de
+ese día, con el arreglo del 17 que iba sobre ellas), con el techo de `npm run
+frases` de entonces; `npm run rockstar` y su regla del 40 % ya no existen. No
+se vuelve a hacer sin que el dueño lo pida otra vez.
 
-Llegó al 40 % el mismo 16 nov, y la capa 171 ya no deja bajar de ahí. **Las
-acciones con dibujos no llevan ni una** (las de `DIBUJOS` en
-`src/commands/acciones.js`): un tercio de sus gifs sale de series infantiles.
-Quedan fuera de la cuenta, y la capa falla si alguna lleva la marca. Tampoco
-cuentan la diana del día, los veredictos de dinero y robos de `!caso` ni las
-líneas del aura de `!social`. Los avisos siguen con sus topes (90
-caracteres, 84 los de rango, `MAL_ESCRITO` contra la cabeza): la guarrada
-cabe dentro, no los alarga.
+Lo que se queda es suyo del 17 nov: los avisos de fotos y de enlaces no dan
+por hecho que lo que se mandó es sexual («no debe asumir nada»). Capa 171.
 
 ## La peña activa se halaga, sin veneno
 

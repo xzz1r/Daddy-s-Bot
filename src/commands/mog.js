@@ -23,11 +23,11 @@ function rollMog(aIsOwner, aIsAdmin, bIsOwner, bIsAdmin) {
 let MOG_PHRASES = [
   'Se acabó para %L antes de empezar: %M nació ya ascendido y %L vino de relleno.',
   '%M enseña el perfil y la nariz baja recta. %L se gira y el tabique torcido le jode hasta el DNI.',
-  '%L creyó que tenía alguna oportunidad, y ese fue su primer error; el segundo, nacer con esa cara. %M ni sudó, y eso que a %M se le da bien sudar en compañía.', // ROCKSTAR
+  '%L creyó que tenía alguna oportunidad, y ese fue su primer error; el segundo, nacer con esa cara. %M ni sudó.',
   '%M aprieta la mandíbula y se le marca. %L aprieta y le tiembla la papada, que es lo único que %L tiene marcado.',
-  'A %M le abren la puerta, la cama y lo que haga falta por la cara. A %L le cobran hasta la entrada.', // ROCKSTAR
+  'A %M le perdonan todo por la cara. A %L le cobran hasta lo que no ha hecho, por la misma razón.',
   'La cara de %M es simétrica. La de %L parece montada con piezas de dos personas, y las dos feas.',
-  '%L sale en los foros como ejemplo de nacer perdiendo. %M sale en las fantasías de medio grupo.', // ROCKSTAR
+  '%L es el caso de estudio que los foros usan para explicar qué significa nacer perdiendo. %M es la portada.',
   'En la lotería genética %M se llevó el bote. A %L le tocó la deformidad de consolación.',
   'Canthal tilt negativo, midface de jirafa, jawline desaparecida. %L es el catálogo completo del subhuman. %M es la referencia opuesta.',
   'La mandíbula de %M moggea sola a %L entero. %L no tiene mandíbula, tiene una sugerencia de mandíbula.',
@@ -36,21 +36,21 @@ let MOG_PHRASES = [
   '%M tiene la mandíbula en escuadra. A %L se le deshace en el cuello y el espejo se lo recuerda cada mañana.',
   '%M se hace la foto desde abajo y sale bien igual. %L lo intenta y la cámara le hace un TAC de las fosas nasales.',
   'El canthal tilt positivo de %M destruye a %L antes de abrir la boca. %L tiene mirada de derrota permanente.',
-  'Ojos de depredador contra ojos de quien acaba de perder en público y lo sabe. %M caza y se lleva la presa a casa; %L huye y vuelve sin compañía.', // ROCKSTAR
-  '%L tiene los ojos tan caídos que parece que la genética lloró al hacerlo. %M tiene la mirada que abre puertas y desabrocha botones.', // ROCKSTAR
+  'Ojos de depredador contra ojos de quien acaba de perder en público y lo sabe. %M caza, %L huye.',
+  '%L tiene los ojos tan caídos que parece que la genética lloró al hacerlo. %M tiene la mirada que abre puertas.',
   'Tercio medio divino en %M. El de %L es tan largo que no entra en el encuadre ni en la decencia.',
-  'Altura y espalda se las llevó %M. A %L le queda decir que tiene buena personalidad, que es lo que se dice de quien no se lleva nadie a la cama.', // ROCKSTAR
-  '%M tiene la percha con la que se nace ganando, y con la que se liga sin abrir la boca. %L, ni abriéndola.', // ROCKSTAR
+  'Altura y espalda se las llevó %M. A %L le queda decir que tiene buena personalidad.',
+  '%M tiene la percha con la que se nace ganando. %L tiene la que hace que le cedan el asiento por lástima.',
   '%L necesita rinoplastia, genioplastia, lefort III y un milagro para llegar a donde %M empieza recién levantado.',
-  'A %M le aguantan la mirada por gusto y le piden el número por lo mismo. A %L se la apartan a la primera, por higiene.', // ROCKSTAR
+  'A %M le aguantan la mirada por gusto. A %L se la apartan a la primera, por higiene.',
   'No hay filtro, ángulo ni luz que meta a %L en el universo de %M. La física se rinde antes que %L.',
   '%L es la razón por la que existe la palabra subhuman, y %M, la de Chad.',
   'Moggeo total e inapelable: %M ni miró, y %L no se recupera de esta con un cambio de tema.',
-  'Este mog se queda fijado en el grupo. %M de fondo de pantalla de medio grupo, y %L de ejemplo de lo que nadie quiere llevarse a la cama.', // ROCKSTAR
+  'Este mog se queda fijado en el grupo. %M de leyenda y %L de ejemplo de lo que nadie quiere ser.',
   '%L puede ir al gym, leer libros y trabajar la actitud. Seguiría siendo %L. El óseo no se levanta a press.',
-  '%L cree que juega en otra liga. %L ni juega: le dejan sujetar las chaquetas mientras %M se va con alguien.', // ROCKSTAR
-  'Cuando %M entra a un sitio la temperatura sube y alguien se desabrocha un botón. Cuando %L entra nadie levanta la vista. Presencia genética.', // ROCKSTAR
-  '%M es la persona con la que todos quieren hablar, y algo más, sin saber por qué. %L, la que todos confunden con el perchero.', // ROCKSTAR
+  '%L cree que juega en otra liga. %L ni juega: le dejan pintar las rayas del campo.',
+  'Cuando %M entra a un sitio la temperatura cambia. Cuando %L entra nadie levanta la vista. Presencia genética.',
+  '%M es la persona con la que todos quieren hablar sin saber por qué. %L, la que todos confunden con el mobiliario.',
 ];
 
 async function cmdMog(sock, msg, groupMeta) {

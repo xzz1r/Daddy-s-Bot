@@ -25576,37 +25576,36 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
     if (fallos === antes170) console.log(verde('   ✓ con el búfer real de Baileys, el aviso vacío ya no pisa a la foto de ver una vez: llega, se guarda y /toimg la saca'));
   }
 
-  // ── 171. EL DOBLE SENTIDO ESTILO ROCKSTAR NO SE PIERDE (16 nov) ─────────────
-  // El dueño: «al menos un 40 %» de las frases, en todo el bot menos en las
-  // dinámicas del aura. Cada una lleva `// ROCKSTAR` (scripts/rockstar.js). Se
-  // escribió por tandas y llegó al 40 % el mismo día. Desde ahí no baja ni del
-  // 40 % ni del suelo de marcas, y ninguna marca va a parar a lo que no cuenta:
-  // dinámicas, !piropo, WINGMAN, acciones sexuales y, sobre todo, las acciones
-  // que sacan dibujos de series infantiles (DIBUJOS en src/commands/acciones.js).
+  // ── 171. LOS AVISOS NO DAN POR HECHO LO QUE SE MANDÓ (17 nov) ────────────
+  // Aquí vivía la regla del doble sentido «estilo Rockstar» en el 40 % del
+  // bot (16 nov). El dueño la hizo deshacer el 20 nov: «solo parecen frases de
+  // pajero, mal hechas y sin humor ni gracia». Las frases volvieron a las de
+  // antes, y no queda ninguna marcada: si vuelven, que sea porque él lo pide.
+  //
+  // Lo que se queda es suyo del 17 nov, con «Esto no es OnlyFans» en el aviso
+  // de una foto sin ver una vez: «no debe asumir nada». El bot no sabe qué
+  // hay en la foto ni en el enlace: los avisos no lo pintan como sexual.
   {
-    console.log('\n171. EL DOBLE SENTIDO ESTILO ROCKSTAR NO SE PIERDE');
+    console.log('\n171. LOS AVISOS NO DAN POR HECHO LO QUE SE MANDÓ');
     const antes171 = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
-    const RS = require(path.join(R, 'scripts/rockstar.js'));
-    const r = RS.medir();
-    exige(r.marcadas >= RS.SUELO, `quedan ${r.marcadas} frases de doble sentido estilo Rockstar y había ${RS.SUELO}: alguien las ha quitado`);
-    exige(r.pct >= RS.MINIMO, `el doble sentido estilo Rockstar ha bajado al ${r.pct.toFixed(1)} % y el dueño lo quiere en el ${RS.MINIMO} % como mínimo: faltan ${Math.ceil((RS.MINIMO / 100) * r.total) - r.marcadas} frases`);
-    exige(r.fueraMarcadas === 0, `${r.fueraMarcadas} frases marcadas // ROCKSTAR están en dinámicas, !piropo, WINGMAN, acciones sexuales o acciones con dibujos: ahí no van`);
-    exige(Array.isArray(RS.DIBUJOS) && RS.DIBUJOS.length >= 10, `scripts/rockstar.js no encuentra las acciones con dibujos (${(RS.DIBUJOS || []).length}): podría contar guarradas en acciones de series infantiles`);
-    exige(r.total > 3000, `el contador de scripts/rockstar.js solo encuentra ${r.total} frases: ha dejado de leer los pools`);
-        // NO DA POR HECHO LO QUE MANDÓ (17 nov). El dueño, con «Esto no es
-    // OnlyFans» en el aviso de una foto sin ver una vez: «no debe asumir
-    // nada». El bot no sabe qué hay en la foto ni en el enlace: los avisos de
-    // fotos y de enlaces no lo pintan como contenido sexual.
-    {
-      const av171 = require(path.join(R, 'src/data/avisos.js'));
-      const al171 = fs.readFileSync(path.join(R, 'src/utils/antilink.js'), 'utf8');
-      const permiso171 = (al171.match(/const PERMISO_ENLACE = \[[\s\S]*?\n\];/) || [''])[0];
-      const ASUME = /onlyfans|suscripci|ropa puesta|desnud|tus fotos guarras|tu porno/i;
-      const malas = [...(av171.VER_UNA_VEZ || []), ...permiso171.split('\n')].filter((f) => ASUME.test(String(f)));
-      exige(malas.length === 0, `un aviso de foto o de enlace da por hecho que lo que mandó es sexual: ${malas.map((f) => String(f).trim().slice(0, 70)).join(' | ')}`);
-    }
-    if (fallos === antes171) console.log(verde(`   ✓ ${r.marcadas} de ${r.total} frases (${r.pct.toFixed(1)} %) de doble sentido estilo Rockstar; objetivo ${RS.MINIMO} %`));
+    const av171 = require(path.join(R, 'src/data/avisos.js'));
+    const al171 = fs.readFileSync(path.join(R, 'src/utils/antilink.js'), 'utf8');
+    const permiso171 = (al171.match(/const PERMISO_ENLACE = \[[\s\S]*?\n\];/) || [''])[0];
+    exige(Boolean(permiso171) && (av171.VER_UNA_VEZ || []).length > 0, 'no encuentro los avisos de fotos (VER_UNA_VEZ) o de enlaces (PERMISO_ENLACE) para mirarlos');
+    const ASUME = /onlyfans|suscripci|ropa puesta|desnud|tus fotos guarras|tu porno/i;
+    const malas = [...(av171.VER_UNA_VEZ || []), ...permiso171.split('\n')].filter((f) => ASUME.test(String(f)));
+    exige(malas.length === 0, `un aviso de foto o de enlace da por hecho que lo que mandó es sexual: ${malas.map((f) => String(f).trim().slice(0, 70)).join(' | ')}`);
+    const marcadas = [];
+    (function mirar(dir) {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        const f = path.join(dir, e.name);
+        if (e.isDirectory()) mirar(f);
+        else if (/\.js$/.test(e.name) && /\/\/.*\bROCKSTAR\b/.test(fs.readFileSync(f, 'utf8'))) marcadas.push(path.relative(R, f));
+      }
+    })(path.join(R, 'src'));
+    exige(!marcadas.length, `vuelven a salir frases marcadas // ROCKSTAR, y el dueño las hizo quitar el 20 nov: ${marcadas.join(', ')}`);
+    if (fallos === antes171) console.log(verde('   ✓ los avisos de fotos y enlaces no dan por hecho lo que se mandó, y no queda el doble sentido «estilo Rockstar»'));
   }
 
   // ── 172. LO TÉCNICO NO SALE AL CHAT (16 nov) ─────────────────────────────

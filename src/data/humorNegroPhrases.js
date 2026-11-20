@@ -22,20 +22,20 @@ const HUMOR_NEGRO = [
   // (humor negro, cerebro, cara que no de asco, aguante) y QUIEN SOBRA (piel
   // de cristal, cabeza corta, cara que da vergüenza, quien pida que se borre
   // un chiste). Filo dentro de la frase, no pegado al final.
-  'Aquí se entra con estómago para un chiste de muerto, cabeza para pillarlo y una cara que no dé asco ni a oscuras. Fallar en dos de tres se nota en el primer mensaje.', // ROCKSTAR
+  'Aquí se entra con estómago para un chiste de muerto, cabeza para pillarlo y una cara que no dé asco. Fallar en dos de tres se nota en el primer mensaje.',
   'Se busca quien se ría de la muerte y devuelva otro chiste peor. Quien se rompa con el primero, que se quede con el pañuelo: aquí no hay consuelo ni de coña.',
   'Aquí el chiste de cáncer se contesta con otro peor. Quien venga a que le respeten el tema sagrado ha entendido mal el puto grupo.',
   'Si un chiste de tu abuela en el ataúd te deja la tarde hecha mierda, este grupo te la va a dejar así a diario. Aguante, o abstención.',
   'Nadie pide perdón por una gracia. Quien necesite disculpas, que se las pida al psicólogo y deje de ensuciar el chat con el drama.',
   'Piel de cristal, aquí se raja en el primer mensaje. El grupo se ríe de quien acaba de entrar antes de saber el nombre, y con razón.',
-  'Hace falta cerebro para pillar la mitad. Quien no llegue, que finja, como finge otras cosas: el silencio delata antes que cualquier insulto.', // ROCKSTAR
-  'La foto de perfil también se juzga, como en Tinder pero con más mala leche. Si la tuya da asco, que la gracia lo compense, porque compasión aquí no hay ni de puta coña.', // ROCKSTAR
+  'Hace falta cerebro para pillar la mitad. Quien no llegue, que se ría igual: el silencio delata antes que cualquier insulto, y da vergüenza ajena.',
+  'La foto de perfil también se juzga. Si la tuya da asco, que la gracia lo compense, porque compasión aquí no hay ni de puta coña.',
   'Humor que duele y se dice a la cara. El audio de «eso no tiene gracia» es de pringado, y aquí se nota al segundo.',
-  'Aquí todo va rápido menos lo que tiene que ir despacio. Quien tarde tres mensajes en pillar una ironía sobra, y el grupo lo va a dejar en ridículo sin avisar.', // ROCKSTAR
+  'Se ríe rápido y se piensa rápido. Quien tarde tres mensajes en pillar una ironía sobra, y el grupo lo va a dejar en ridículo sin avisar.',
   'Ni dios, ni la muerte, ni la comunidad de nadie se salva del chiste. Si buscabas un sitio donde no te tocaran tu tema, te has equivocado de grupo.',
-  'Gente seria, de la que explica un chiste en un audio y folla con calcetines: basura de chat. Se busca quien devuelva otro peor, no quien llore por privado.', // ROCKSTAR
+  'Gente seria, de la que explica un chiste en un audio: basura de chat. Se busca quien devuelva otro peor, no quien llore por privado.',
   'Si alguien hace un chiste de tu madre en la UCI, se contesta preguntando la hora del entierro. Quien pida que lo borren, a la puta calle.',
-  'Entra quien aguanta que le digan a la cara lo que el espejo ya dijo, y lo que dijo su ex de la cama. Quien solo sepa ofenderse, que se ofenda en otro sitio: aquí estorba.', // ROCKSTAR
+  'Entra quien aguanta que le digan a la cara lo que el espejo ya dijo. Quien solo sepa ofenderse, que se ofenda en otro sitio: aquí estorba.',
   'Si hay que explicar el chiste, ya se ha perdido. Aquí no se explica una mierda, y se va a notar igual.',
 ];
 

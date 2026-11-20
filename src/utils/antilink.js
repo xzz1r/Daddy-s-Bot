@@ -372,41 +372,41 @@ function clasificarMensaje(message, quien = null) {
 // permiso a un admin, que es la salida que tiene.
 const PERMISO_ENLACE = [
   'borrado. ¿Quién coño te dio permiso? Nadie. Ve a un admin, pídele el *!allow* y traga lo que te conteste sin rechistar.',
-  'eliminado. Sueltas links como quien enseña fotos guarras sin que nadie las haya pedido. Pídele el *!allow* a un admin.', // ROCKSTAR
+  'eliminado. Sueltas links como si mandaras tú. No mandas una mierda: pídele el *!allow* a un admin.',
   'ese enlace no vale nada sin permiso. Baja el tono, baja la cabeza y suplícale a un admin que te ponga el *!allow*.',
   'ese link a tomar por culo. El permiso se llama *!allow*, lo dan los admins, y tu cara dura no cuela como mérito.',
   'borrado. Ahórrate el numerito: sin el *!allow* de un admin, todo lo que pegues acaba en la puta basura.',
-  'a la papelera. Ese link ha durado menos que tú en la cama. Pídele el *!allow* a un admin y luego hablamos.', // ROCKSTAR
+  'a la papelera. Ese link ha durado menos que tu credibilidad aquí. Pídele el *!allow* a un admin y luego hablamos.',
   'fuera. Ese enlace le importa una mierda a todo el mundo menos a ti. Si tanto insistes, pídele el *!allow* a un admin.',
-  'quitado. Aquí se abre con permiso, como todo lo bueno. Pídele el *!allow* a un admin y, mientras tanto, las manos quietas.', // ROCKSTAR
+  'quitado. Has confundido este grupo con tu perfil. Pídele el *!allow* a un admin y mientras tanto cállate y observa.',
   'ese enlace no lo quiere ver ni tu madre. Y aunque lo quisiera, hace falta el *!allow* de un admin. Ve y pídelo.',
-  'fuera. Te falta permiso y te sobra morro. Pídele el *!allow* a un admin, y si te dice que no, es que no, como en todo.', // ROCKSTAR
+  'fuera. Te falta permiso y te sobra morro. Pídele el *!allow* a un admin y acepta con la boca cerrada que te diga que no.',
   'borrado. Cada puto link que sueltas sin permiso te aleja más del *!allow*. Habla con un admin antes de seguir cavando.',
-  'quitado. Aquí no se mete nada sin permiso, y menos lo tuyo. Pídele el *!allow* a un admin.', // ROCKSTAR
+  'quitado. No eres especial ni te lo van a poner fácil. Pídele el *!allow* a un admin, traga el no y vuelve a probar.',
   'quitado. Sueltas links con una confianza que no te has ganado. Pídele el *!allow* a un admin y baja el humo.',
-  'ese link a la basura. Sin el *!allow* de un admin, lo que pegas aquí dura lo que tardas tú en acabar.', // ROCKSTAR
+  'ese link a la basura. Sin el *!allow* de un admin, lo que pegas aquí dura lo que tardo en verlo.',
   'borrado. El *!allow* lo da un admin, no tus santos cojones.',
-  'fuera. Ese enlace no lo iba a abrir nadie, ni con unas copas encima. El *!allow* se lo pides a un admin.', // ROCKSTAR
+  'fuera. Ese enlace no lo iba a abrir nadie, y ahora ya ni existe. El *!allow* se lo pides a un admin.',
   'eliminado. Has pegado el enlace sin leerte ni una puta norma. El *!allow* lo da un admin, que ni te conoce.',
-  'a la papelera. Ese enlace no lo pidió nadie, como tus fotos en el espejo del baño. Si tanto te importa, pídele el *!allow* a un admin.', // ROCKSTAR
-  'quitado. Aquí los enlaces pasan por un admin, y tú, jeta, te has colado por detrás. Pide el *!allow*.', // ROCKSTAR
-  'borrado. Tus enlaces sin *!allow* no los ve nadie, como lo que llevas debajo de la ropa. Pídeselo a un admin.', // ROCKSTAR
+  'a la papelera. Ese enlace no lo pidió nadie. Si tanto te importa, pídele el *!allow* a un admin.',
+  'quitado. Aquí los enlaces pasan por un admin, y tú, jeta, te has colado por detrás. Pide el *!allow*.',
+  'borrado. Tus enlaces sin *!allow* no los ve nadie, como tus historias. Pídeselo a un admin.',
   'fuera. El enlace se queda fuera hasta que un admin te dé el *!allow*, y tú detrás si insistes.',
-  'ese enlace no ha llegado ni a cargar. Gatillazo de link: sin el *!allow* de un admin, así acaban todos.', // ROCKSTAR
+  'ese enlace no ha llegado ni a cargar. Sin el *!allow* de un admin, así acaban todos.',
   'eliminado, y con testigos. Pídele el *!allow* a un admin si no quieres que esto se repita delante de todos.',
   'borrado. Lo que ha visto el grupo es que te pasas las normas por el culo. El *!allow* lo da un admin.',
   'quitado. Sin el *!allow* aquí no pega nadie, y tú no lo tienes. Arrástrate hasta un admin.',
-  'fuera. Has tardado más en copiar el link que yo en borrarlo, y aun así menos que tu último polvo. El *!allow* te lo da un admin.', // ROCKSTAR
+  'fuera. Has tardado más en copiar el link que yo en borrarlo. El *!allow* te lo da un admin.',
   'a tomar viento el enlace. Los admins reparten el *!allow*, y a ti todavía no te ha tocado.',
-  'borrado. Pegas enlaces como un spammer de los de Viagra. El *!allow* está en manos de un admin.', // ROCKSTAR
+  'borrado. Pegas enlaces como un spammer de los de Viagra. El *!allow* está en manos de un admin.',
   'eliminado. Si quieres compartir cosas, el *!allow* se lo pides a un admin, y si te dice que no, te jodes.',
   'fuera. Enlace pegado sin *!allow* y delante de todo el grupo. Ve a un admin.',
-  'quitado. Te crees que el grupo es un tablón de contactos de los de antes. Pídeles el *!allow* a los admins.', // ROCKSTAR
+  'quitado. Te crees que el grupo es tu tablón de anuncios, y el tablón lo llevan los admins. Pídeles el *!allow*.',
   'ese link se ha ido por donde vino. El *!allow* no aparece solo: se lo pides a un admin.',
   'borrado. Los que pegan enlaces aquí tienen el *!allow* de un admin. Tú tienes prisa, que no es lo mismo.',
-  'fuera, y ni lo has disfrutado, como casi todo lo que haces deprisa. Pídele el *!allow* a un admin antes del siguiente intento.', // ROCKSTAR
+  'fuera, y ni lo has disfrutado. Pídele el *!allow* a un admin antes del siguiente intento.',
   'eliminado. Mandar links sin el *!allow* de un admin sale caro: te lo acabo de borrar en tu cara.',
-  'a la papelera. El permiso se pide antes, cagaprisas, no después, como en la cama. Ve a un admin a por el *!allow*.', // ROCKSTAR
+  'a la papelera. El *!allow* se pide antes de pegar, cagaprisas, no después. Ve a un admin.',
   'quitado. Pegar y rezar no cuela. Cuela el *!allow*, y lo reparten los admins, no Dios.',
   'borrado. Me la suda lo que fuera: sin *!allow*, tu enlace no se queda. Pídeselo a un admin.',
   'fuera. Te han visto pegarlo y me han visto borrarlo. Lo siguiente, con el *!allow* de un admin.',

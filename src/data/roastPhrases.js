@@ -37,211 +37,211 @@ const HEADERS = [
 
 const CLOSERS = [
   '_Lo tuyo no tiene cura. Apáñatelas._',
-  '_Y lo ha visto el grupo entero, como tu última foto sin ropa._', // ROCKSTAR
+  '_Y lo ha visto el grupo entero, que es lo que jode._',
   '_Llora si quieres. No cambia nada._',
-  '_No hay segunda parte, como en tus citas._', // ROCKSTAR
+  '_No hay segunda parte porque no hace falta._',
   '_Jode la verdad, y la tuya más._',
-  '_Y no hay ni una línea de ahí arriba que puedas discutir, ni con la boca llena._', // ROCKSTAR
+  '_Y no hay ni una línea de ahí arriba que puedas discutir._',
   '_Guárdate la excusa. Aquí no te la compra ni Dios._',
   '_Ahí queda eso. Que te jodan._',
   '_Esto no se arregla ni con dinero, y en aura tampoco vas sobrado._',
-  '_Se cierra el tema. No queda nada que rascar, y a ti tampoco te rasca nadie._', // ROCKSTAR
+  '_Se cierra el tema. No queda una mierda que rascar._',
   '_Hecho mierda y con público delante. Siguiente._',
-  '_Queda escrito, como tus mensajes guarros: para siempre y con captura._', // ROCKSTAR
+  '_Queda escrito. Esto ya es tuyo para siempre._',
   '_Puedes borrar el chat. El grupo no lo va a olvidar._',
   '_Si te ha dolido, es que era verdad._',
-  '_No respondas, que lo empeoras. La boca, para otras cosas._', // ROCKSTAR
+  '_No respondas, que lo empeoras._',
   '_Siguiente víctima, que esta ya no da más._',
-  '_Léelo otra vez despacio, como te gusta que te lo hagan. Sigues siendo tú._', // ROCKSTAR
+  '_Léelo otra vez despacio. Sigues siendo tú._',
   '_El grupo toma nota. Tú, a tragar._',
-  '_Queda archivado en tu expediente, junto a tu historial de incógnito._', // ROCKSTAR
+  '_Queda archivado en tu expediente._',
   '_Nadie va a salir a defenderte. Ni tu sombra._',
-  '_Ya puedes cambiarte la foto. Ni en ropa interior te iba a servir._', // ROCKSTAR
-  '_Esto es lo suave. Lo duro te lo guardo para el privado._', // ROCKSTAR
+  '_Ya puedes cambiarte la foto. No va a servir._',
+  '_Esto es lo suave. Lo demás no se puede escribir._',
   '_Respira hondo, que mañana sigues siendo igual de mierda._',
   '_Ni tu madre lo discutiría._',
   '_Aquí se acaba esto, pero tu ridículo sigue._',
   '_Hay cosas que no tienen vuelta. Tú eres una._',
-  '_Que alguien te pase un pañuelo. Uno limpio, que de los otros ya tienes._', // ROCKSTAR
+  '_Que alguien le pase un pañuelo._',
   '_Firmado y sellado. Sin derecho a réplica._',
-  '_Aplausos, que te has dejado hacer de todo, como siempre._', // ROCKSTAR
+  '_Aplausos para la víctima, que se ha dejado._',
   '_Mañana se te olvida. Al grupo, no._',
 ];
 
 const COMBINED_INACTIVE = [
   '%N, tu bio dice «%B» y en el grupo no dices nada. Escribes más en tu perfil que aquí.',
   'Con «%B» en la bio y casi nada escrito aquí, %N, tienes más frase de presentación que presencia.',
-  '%N, para la bio sí tuviste tiempo y para el grupo no. Todo preliminares y nada de lo otro.', // ROCKSTAR
+  '%N, para la bio sí tuviste tiempo y para el grupo no. Te importamos una mierda.',
   '«%B», dice %N en su perfil. En el grupo no dice ni eso.',
-  '%N, tienes una bio para venderte y un historial de mensajes que no compra nadie, ni en rebajas ni a oscuras.', // ROCKSTAR
-  'Te has currado la bio, %N, y aquí eres un fantasma. Mucho envoltorio, y nadie lo ha desenvuelto nunca.', // ROCKSTAR
+  '%N, tienes una bio para venderte y un historial de mensajes que no compra nadie.',
+  'Te has currado la bio, %N, y aquí eres un fantasma. Todo fachada y ni una puerta.',
   '%N, tu bio es lo más largo que has escrito cerca de este grupo. Y ni siquiera es para el grupo.',
   'Pones «%B» para que te conozcan, %N, y luego no hablas con nadie. ¿Para quién coño es la bio?',
-  '%N, tu nombre suena a alguien, tu bio suena a alguien, y en el grupo no suenas tú. Ni gimiendo.', // ROCKSTAR
-  'Bio con pretensiones y participación de cadáver, %N. Mucho perfil para tan poco uso.', // ROCKSTAR
+  '%N, tu nombre suena a alguien, tu bio suena a alguien, y en el grupo no suena nadie.',
+  'Bio con pretensiones y participación de cadáver, %N. Mucho perfil para tan poca vida.',
   '%N, «%B». Con lo poco que escribes, la bio es lo único tuyo que ha leído el grupo, chiquitina.',
-  '%N, te presentas con «%B» y luego desapareces, como en tus rollos de una noche.', // ROCKSTAR
+  '%N, te presentas con «%B» y luego desapareces. Tarjeta de visita de una empresa que no existe.',
   'Tanto cuidado con la bio, %N, y en el grupo ni un buenos días. Prioridades de fantasma.',
   '%N, si en el grupo escribieras la mitad de lo que presume tu bio, alguien sabría quién eres.',
-  '%N, tu bio es el escaparate y el grupo es el almacén cerrado. Nadie ha visto el género, ni ha pedido probárselo.', // ROCKSTAR
+  '%N, tu bio es el escaparate y el grupo es el almacén cerrado. Nadie ha visto el género.',
   '«%B». Bonita frase, %N, lástima que sea la única que tienes.',
   '%N, tienes más palabras en el perfil que en el chat. Eres un anuncio sin producto.',
   'Ni tu bio te salva, %N. Pone «%B» y aquí nadie ha visto nada que se le parezca, muñeca.',
   '%N, tanto «%B» para luego callarte como una puta tumba cada vez que el grupo habla.',
-  '%N, en la bio te vendes y en el grupo te escondes, como quien se pone lencería para dormir sin compañía.', // ROCKSTAR
+  '%N, en la bio te vendes y en el grupo te escondes. Dos trabajos a media jornada y los dos mal hechos.',
   'Tu bio trae más información sobre ti que todo lo que has escrito aquí, %N. Y la bio tampoco dice gran cosa.',
   '%N, nadie en el grupo sabría repetir tu bio. Ni una puta frase tuya, porque no hay ninguna.',
-  '%N, perfil completo y participación vacía, como quien se baja Tinder solo para mirar.', // ROCKSTAR
+  '%N, perfil completo y participación vacía. Te has apuntado al grupo solo para salir en la lista.',
   '«%B», %N. Eso lo escribe alguien que luego no aparece cuando se habla de verdad.',
-  '%N, tu bio promete mucho y el grupo sigue esperando, como quien espera que le devuelvas la llamada después del polvo.', // ROCKSTAR
-  '%N, se nota que la bio la escribiste un día de calentón. Ese calentón no ha vuelto a pasar por aquí.', // ROCKSTAR
+  '%N, tu bio promete a alguien con cosas que decir. En el grupo no ha aparecido todavía.',
+  '%N, se nota que la bio la escribiste un día de ganas. Ese día no ha vuelto a pasar por aquí.',
   'Con esa bio y ese silencio, %N, eres un letrero de «abierto» en una tienda cerrada.',
   '%N, más orgullo en la bio que mensajes en el grupo. Y el orgullo tampoco es mucho.',
   '%N, «%B» en el perfil y cero ganas en el grupo. El grupo se queda con lo segundo.',
-  '%N, tu bio es la única conversación que has empezado, y la tienes contigo, como casi todo lo que haces por las noches.', // ROCKSTAR
+  '%N, tu bio es la única conversación que has empezado, y la tienes contigo.',
 ];
 
 const COMBINED_ACTIVE = [
   '%N, escribes lo suficiente como para que el grupo te conozca. Por eso nadie entiende la bio: «%B».',
-  'Das la cara en el grupo, %N, y eso se respeta. La bio, «%B», parece escrita después de un polvo malo.', // ROCKSTAR
+  'Das la cara en el grupo, %N, y eso se respeta. La bio, «%B», ya no tanto.',
   '%N, el grupo te lee y aun así nadie se ha atrevido a decirte que tu bio es una vergüenza. Ya está dicho.',
   '%N, en el chat tienes presencia y en el perfil pones «%B». Una de las dos cosas te está dejando fatal, pequeña.',
-  'Aquí se te nota, %N, y con razón. Lo que no se explica nadie es «%B», ni con dos copas y la luz apagada.', // ROCKSTAR
+  'Aquí se te nota, %N, y con razón. Lo que no se explica nadie es «%B».',
   '%N, sostienes conversaciones que otros abandonan, y luego abres tu perfil y escribes «%B». Qué desperdicio.',
-  'Hablas y apareces, y eso pone, %N. Tu bio lo baja todo en una línea.', // ROCKSTAR
+  'Hablas y apareces, y eso está bien, %N. Tu bio te lo tira a la basura en una línea.',
   '%N, con lo que escribes en el grupo te has ganado un nombre. La bio se encarga de que ese nombre dé risa.',
-  '%N, sabemos cómo hablas porque hablas mucho. Por eso sabemos que «%B» lo escribiste en una mala racha de cama.', // ROCKSTAR
+  '%N, sabemos cómo hablas porque hablas mucho. Por eso sabemos que «%B» no lo escribiste en un buen día.',
   'Llevas mensajes de sobra en el grupo, %N. Ninguno tan malo como tu bio.',
   '%N, en el grupo eres de lo que se lee. Tu bio, «%B», es de lo que se salta, reina.',
-  '%N, aquí te leen en serio hasta que alguien abre tu perfil, lee la bio y se le baja el calentón de golpe.', // ROCKSTAR
+  '%N, aquí te leen en serio hasta que alguien abre tu perfil, lee la bio y se le pasa de golpe.',
   'Nadie discute que estás, %N. Lo que se discute es quién te dejó poner «%B».',
-  'En el grupo pones a la gente, %N. Con «%B» en la bio, se le quitan las ganas.', // ROCKSTAR
+  '%N, tu actividad en el grupo aprueba con nota. El examen de la bio lo suspendes con «%B».',
   '%N, tanto hablar en el grupo y para la bio te has quedado sin nada bueno que decir.',
-  '%N, tus frases se citan en el grupo. Tu bio solo se cita para cortar el rollo cuando la cosa se calienta.', // ROCKSTAR
+  '%N, tus frases se citan en el grupo. Tu bio solo se cita para reírse de ti.',
   'Tu nombre sale en las conversaciones del grupo, %N. Tu bio no debería salir en ninguna.',
-  '%N, el grupo te necesita más de lo que admite. Tu bio necesita un exorcismo, o un buen revolcón.', // ROCKSTAR
+  '%N, el grupo te necesita más de lo que admite. Tu bio necesita un exorcismo.',
   '%N, das más vida al grupo que tu bio a tu perfil. Y tu bio es «%B», así que el listón estaba en el suelo.',
-  '%N, aquí escribes como alguien que tiene algo que decir. En la bio, como alguien que lleva un año sin que le toquen.', // ROCKSTAR
+  '%N, aquí escribes como alguien que tiene algo que decir. En la bio, como alguien que no.',
   '%N, te has ganado el sitio en el grupo a base de aparecer. La bio te lo quita a base de «%B».',
   'De ti se puede decir que no eres un fantasma, %N. De tu bio, que es una mierda.',
-  '%N, si tu bio escribiera la mitad de bien que tú en el grupo, ligarías el doble.', // ROCKSTAR
+  '%N, si tu bio escribiera la mitad de bien que tú en el grupo, esto no haría falta.',
   'Apareces por aquí más que mucha gente, %N, y te presentas peor que nadie: «%B».',
   '%N, nadie en el grupo diría que eres un cero. Tu bio lo intenta.',
   '%N, tu nombre ya dice poco y tu bio dice «%B». Menos mal que en el grupo hablas tú.',
   '%N, lo que escribes en el grupo tiene gracia. Lo que escribiste en la bio también, pero de la otra.',
-  '%N, aquí te ganas el respeto mensaje a mensaje y en la bio lo regalas, como quien se baja los pantalones en la primera cita.', // ROCKSTAR
+  '%N, aquí te ganas el respeto mensaje a mensaje y en la bio lo regalas.',
   '%N, en el grupo cuentas. En la bio cuentas «%B», que no es lo mismo.',
-  '%N, eres de la gente que sostiene esto, y tienes la bio de quien no sostiene ni una conversación en la cama.', // ROCKSTAR
+  '%N, eres de la gente que sostiene esto, y aun así tienes la bio de quien no sostiene ni el móvil.',
 ];
 
 const NAME_ONLY = [
   '%N. Sale tu nombre y al grupo se le quitan las putas ganas de hablar.',
   '%N. Tu nombre salta en el chat y no promete nada bueno, princesa.',
   'Se te menciona, %N, y en el grupo se hace ese silencio que huele a hostia.',
-  '%N. Hay nombres que suenan a alguien, y el tuyo suena a gemido fingido.', // ROCKSTAR
+  '%N. Hay nombres que suenan a alguien, y el tuyo suena a relleno.',
   '%N, ver tu nombre en una notificación hace que la gente suelte el móvil.',
-  'Nadie tiene tu nombre en favoritos, %N, ni en la lista de llamadas de madrugada.', // ROCKSTAR
-  '%N. Si tu nombre saliera en un sorteo de citas, la gente pediría repetirlo.', // ROCKSTAR
+  'Nadie tiene tu nombre en favoritos, %N. Ni por equivocación.',
+  '%N. Si tu nombre saliera en un sorteo, la gente pediría repetirlo.',
   '%N, hay nombres que abren puertas. El tuyo las cierra en la cara.',
   'Pon a %N en un grupo nuevo y en una hora hay alguien preguntando quién le ha añadido.',
-  '%N. Tu nombre se escribe rápido y se olvida más rápido todavía, como tus polvos.', // ROCKSTAR
+  '%N. Tu nombre se escribe rápido y se olvida más rápido todavía.',
   'Cuando sale %N en la lista de quién ha leído el mensaje, nadie se alegra.',
-  '%N, tu nombre es el último que se elige, para los equipos y para el «verdad o reto».', // ROCKSTAR
-  '%N. Ver tu nombre encima de un mensaje largo es motivo para no leerlo; encima de una foto, para no abrirla.', // ROCKSTAR
+  '%N, tu nombre es el que nadie elige para los equipos. Se lo quedan por sorteo.',
+  '%N. Ver tu nombre encima de un mensaje largo es motivo suficiente para no leerlo.',
   'A %N se le menciona poco, y cuando se le menciona es para esto.',
-  '%N. El nombre de alguien que se va de la cama y nadie se acuerda de cómo se llamaba.', // ROCKSTAR
+  '%N. El nombre de alguien que se presenta y nadie se queda con la cara.',
   '%N. Si te cambiaras de nombre mañana, el grupo tardaría una semana en enterarse, y le daría igual.',
   '%N, con ese nombre podrías ser cualquiera. Y lo eres: cualquiera.',
   'Leer %N en una mención es la señal de que el roast va a ser fácil.',
-  '%N. Ese nombre nadie lo grita en la cama; como mucho, lo confunden con otro.', // ROCKSTAR
-  '%N, tu nombre es de los que se guardan en la agenda como «no contestar después de las doce».', // ROCKSTAR
+  '%N. Ese nombre nadie lo grita en una fiesta; lo susurran cuando te vas.',
+  '%N, tu nombre es de esos que nadie guarda en la agenda.',
   'Quien busca a %N en el chat solo encuentra stickers y audios de mierda.',
   '%N, tu nombre no lo conoce nadie fuera de este grupo, y aquí lo aguantan por pena.',
   '%N. Alguien eligió ese nombre con ilusión, y luego llegaste tú y la ilusión se fue a tomar por culo, muñeca.',
   '%N. Ni el nombre te salió con gracia, y eso que te lo eligieron otros.',
-  '%N, tu nombre suena a disculpa. A «perdón, ¿ya has acabado?».', // ROCKSTAR
-  'Aparece %N y el grupo hace lo que hace con los anuncios de webcams: pasar de largo y fingir que no lo ha visto.', // ROCKSTAR
+  '%N, tu nombre suena a disculpa. A «perdón, ¿quién eras?».',
+  'Aparece %N y el grupo hace lo que hace con la publicidad: pasar de largo.',
   '%N. Tu nombre solo sirve para abrir roasts como este.',
   '%N, tu nombre se escribe con desgana y se lee con la misma cara de asco.',
-  '%N. Si tu nombre fuera un comando, nadie lo usaría dos veces, igual que a ti.', // ROCKSTAR
+  '%N. Si tu nombre fuera un comando, nadie lo usaría dos veces.',
   '%N, te llamas así y encima te comportas así. Doble condena.',
 ];
 
 const BIO_EMPTY = [
   'Bio en blanco. Tienes un sitio para decir quién eres y has decidido que no hace falta. Nadie te lo va a discutir, reina.',
-  'Ni una palabra en la bio. Hasta para venderte te da pereza, y en la cama dicen lo mismo.', // ROCKSTAR
+  'Ni una palabra en la bio. Hasta para venderte te da pereza.',
   'Descripción vacía. Así te ahorras que la gente se ría de lo que pondrías.',
-  'Sin bio. Te ha faltado imaginación hasta para mentir, y eso que en la cama finges de maravilla.', // ROCKSTAR
+  'Sin bio. Te ha faltado imaginación hasta para mentir.',
   'La bio en blanco es lo mejor que has escrito. Sin faltas, sin chorradas y sin ti.',
-  'Bio vacía. Quien te busca se lleva la misma impresión que quien te ve sin ropa: ninguna.', // ROCKSTAR
+  'Bio vacía. Quien te busca se lleva la misma impresión que cuando hablas: ninguna.',
   'No tienes bio. Tampoco tienes nada que poner, así que te ha salido gratis.',
-  'Perfil sin descripción. Quien entra a mirarte sale igual que entró, sin que le hayas hecho sentir nada.', // ROCKSTAR
+  'Perfil sin descripción. Quien entra a mirarte sale igual que entró.',
   'Hasta la gente que pone «disponible» se ha esforzado más que tú, mi niña.',
-  'Bio vacía: ni una frase de taza, ni un emoji, ni un melocotón. No tienes nada.', // ROCKSTAR
+  'Bio vacía: ni una frase de taza, ni un emoji, ni una fecha. No tienes nada.',
   'Sin descripción. El grupo te conoce y ni así se le ocurre qué pondría ahí.',
   'La bio está vacía porque cuando te preguntas quién eres, se te cuelga el móvil.',
   'Donde iría tu bio hay un hueco en blanco. Lo mismo que aportas al grupo, joder.',
-  'No has puesto bio. Normal: para poner a alguien primero hay que tener algo.', // ROCKSTAR
+  'No has puesto bio. Normal: para poner algo primero hay que tener algo.',
   'Sin bio. Tu perfil tiene la personalidad de un número de teléfono, porque es lo que es.',
-  'Bio vacía. Tú lo llamas misterio, como lo de no quitarte la camiseta, y aquí lo llamamos pereza.', // ROCKSTAR
+  'Bio vacía. Tú lo llamas misterio y aquí lo llamamos pereza de mierda.',
   'Ni una palabra sobre ti. Si ni a ti te interesa, imagínate al resto.',
   'La descripción en blanco te va a juego: nadie la lee porque no hay nada y a ti igual.',
-  'Ni bio. El mínimo de WhatsApp es poner una frase, y no llegas ni al mínimo, como en todo lo que se hace tumbado.', // ROCKSTAR
+  'Ni bio. El mínimo de WhatsApp es poner una frase, y no llegas ni al mínimo.',
   'Sin bio. No te has molestado ni en copiar una frase de otro, que es lo que hace todo el mundo.',
-  'Tu perfil no tiene nada que contar y ni lo disimula. Igualito que tú cuando te quitas la ropa.', // ROCKSTAR
+  'Tu perfil no tiene nada que contar y ni lo disimula. Igualito que tú cuando abres la boca.',
   'Ni para presumir de algo que no tienes te ha dado la cabeza: la bio, vacía.',
   'Sin descripción. Si alguien quiere saber de ti, que te pregunte, aunque nadie lo va a hacer.',
-  'Tu bio no dice nada. Como tú en el grupo, y en la cama, ni un gemido.', // ROCKSTAR
+  'Tu bio no dice nada. Como tú en el grupo.',
   'Hasta el campo de descripción ha tirado la toalla contigo: ni una línea.',
 ];
 
 const BIO_FULL = [
   '«%B». Eso pusiste en la bio, %N, con todo el tiempo del mundo para pensarlo, y encima lo pensaste.',
-  '%N, tu bio dice «%B». Dilo en voz alta delante del grupo, a ver si aguantas más que en la cama.', // ROCKSTAR
+  '%N, tu bio dice «%B». Dilo en voz alta delante del grupo, a ver cuánto aguantas sin que se rían.',
   'Tu bio es «%B», %N. La gente se pone eso para parecer interesante. Tú lo tienes para confirmar lo contrario.',
-  '«%B». %N ha pensado eso, lo ha escrito y le ha dado a guardar. Tres errores seguidos, como en su última noche.', // ROCKSTAR
+  '«%B». %N ha pensado eso, lo ha escrito y le ha dado a guardar. Tres errores seguidos.',
   '%N lleva «%B» en la bio. Alguien le tenía que haber quitado el móvil.',
-  '%N, «%B». Es lo primero que lee quien abre tu perfil, y lo segundo que hace es cerrarlo y quitarse las ganas.', // ROCKSTAR
+  '%N, «%B». Es lo primero que lee quien abre tu perfil, y lo segundo que hace es cerrarlo.',
   'Con «%B» en la bio, %N, ya no hacía falta roast. Te lo has hecho tú.',
   '%N, tu bio dice «%B» y tu historial en el grupo dice otra cosa. Adivina a cuál se cree todo el mundo.',
   '«%B». %N quería que eso se supiera, y ahora se sabe que es gilipoyas.',
   '%N, has tenido todas las palabras del idioma a tu disposición y has elegido «%B». Puntería de gilipoyas.',
-  'La bio de %N: «%B». Alguien debería revisarle el perfil antes de que alguien se lo encuentre en Tinder.', // ROCKSTAR
+  'La bio de %N: «%B». Alguien debería revisarle el perfil antes de que lo vea más gente.',
   '%N, «%B» no te describe, te delata.',
-  '%N se ha puesto «%B» de bio y se ha quedado a gusto, como quien acaba antes que nadie.', // ROCKSTAR
-  '«%B». Con esa bio, %N, cualquiera que te hable ya sabe lo que se va a encontrar: poca cosa y mucha pose, y no de las del kamasutra.', // ROCKSTAR
+  '%N se ha puesto «%B» de bio y se ha quedado a gusto. El grupo, no tanto.',
+  '«%B». Con esa bio, %N, cualquiera que te hable ya sabe lo que se va a encontrar: poca cosa y mucha pose.',
   '%N, la bio que tienes, «%B», es lo más elaborado que has producido. Y es una mierda.',
   '«%B», dice la bio de %N. Si eso es lo que te define, el grupo te ha estado sobreestimando.',
-  '%N, «%B». Escribir eso y dejarlo puesto requiere una falta de vergüenza que ya quisieran en el porno amateur.', // ROCKSTAR
+  '%N, «%B». Escribir eso y dejarlo puesto requiere una falta de vergüenza que ya quisiera más de uno.',
   'Tu bio, %N, dice «%B». Nadie te lo había pedido y aun así lo has contado, chiquitina.',
-  '%N, pusiste «%B» para que la gente fantaseara contigo, y lo ha hecho, pero de risa.', // ROCKSTAR
+  '%N, pusiste «%B» para que la gente pensara algo de ti, y lo ha pensado. No te va a gustar.',
   '«%B». Esa bio la ha visto el grupo, %N, y nadie ha tenido valor de decírtelo, así que te lo digo yo.',
-  '%N, con «%B» en la bio has convertido tu perfil en un anticonceptivo.', // ROCKSTAR
+  '%N, con «%B» en la bio has convertido tu perfil en un aviso para los demás.',
   'La bio de %N es «%B». Con eso ya se sabe todo lo que hay que saber, y sobra la mitad.',
   '%N, «%B». Lo has puesto para que se lea y se lee, sobre todo en capturas al grupo de al lado.',
   '%N, has resumido tu vida en «%B». Te ha sobrado espacio porque tampoco había más, pequeña.',
-  '«%B». %N, hay silencios que ponen más que eso.', // ROCKSTAR
+  '«%B». %N, hay silencios que te habrían dejado mejor.',
 ];
 
 const OWNER_ROAST = [
   '%N, la gente se esfuerza por caerte mal y no le sale. Hasta en eso ganas.',
-  '%N, a lo tuyo lo llaman suerte quienes no lo tienen. Cabrón con talento, y por lo que se oye, no solo en el chat.', // ROCKSTAR
+  '%N, a lo tuyo lo llaman suerte quienes no lo tienen. Cabrón con talento.',
   '%N, cada vez que abres la boca alguien tiene que tragarse el orgullo, y siempre es el resto.',
-  '%N, qué asco da alguien que siempre tiene la respuesta a mano. Y con esa mano, cabrón, el grupo te odia y te desea a partes iguales.', // ROCKSTAR
+  '%N, qué asco da alguien que siempre tiene la respuesta a mano. El grupo te odia un poco por eso, cabrón.',
   '%N, cuando hablas se calla todo el mundo. No por respeto: por miedo a quedar mal a tu lado.',
-  '%N, lo que a otros les cuesta, tú lo haces sin despeinarte. En la cama, dicen, despeinas tú.', // ROCKSTAR
+  '%N, lo que a otros les cuesta, tú lo haces sin despeinarte. Insufrible.',
   '%N, tu problema es que no fallas. Y el del grupo es tener que aguantarte sin poder decirte nada.',
-  '%N, siempre te sales con la tuya, y lo peor es que te lo ganas. Chulería con fundamento, y con fans en privado.', // ROCKSTAR
+  '%N, siempre te sales con la tuya, y lo peor es que te lo ganas. Chulería con fundamento.',
   '%N, das envidia de la mala. De la que no se cura hablando mal de ti, porque no hay por dónde.',
-  'Mírate, %N, con esa calma que da rabia mientras los demás van corriendo, y que en la cama dicen que se agradece.', // ROCKSTAR
+  'Mírate, %N, con esa calma que da rabia mientras los demás van corriendo.',
   '%N, hablas poco y cuando hablas se acaba la discusión. Qué manía de tener la última palabra, y encima buena.',
   '%N, el grupo te busca cuando algo se tuerce y encima lo arreglas. Qué pesadez de persona.',
   '%N, no se te puede roastear bien porque no das material. Eso ya es una provocación.',
-  '%N, la seguridad con la que vas por la vida debería estar prohibida. Sobre todo porque te sale bien, también sin ropa.', // ROCKSTAR
+  '%N, la seguridad con la que vas por la vida debería estar prohibida. Sobre todo porque te sale bien.',
   'Lo que jode de %N no es el ego. Es que el ego tiene razón.',
-  '%N, tienes a medio grupo pendiente de lo que dices. La otra mitad, de lo que haces cuando no escribes.', // ROCKSTAR
+  '%N, tienes a medio grupo pendiente de lo que dices. La otra mitad hace como que no.',
   '%N, cabrón con estrella. Todo lo que tocas funciona y encima te ríes de lo que no.',
-  '%N, otros se imponen a gritos y tú ni lo necesitas. A ti te gritan, pero de otra manera.', // ROCKSTAR
+  '%N, otros se imponen a gritos y tú ni lo necesitas. Insoportable.',
   '%N, ni tus enemigos pueden decir nada malo de ti sin quedar en ridículo. Mala suerte para ellos.',
   '%N, el único defecto que se te conoce es que no se te conoce ninguno. Menudo hijo de puta.',
 ];

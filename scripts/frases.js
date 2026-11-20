@@ -152,9 +152,11 @@ const POOLS_MODO = args.includes('--pools');
 // grupo», el cierre de «no tienes acceso» y el «habla más» del aura): nadie 232.
 // Y el 13 nov, en el barrido de lo cursi y lo que no se entendía (222
 // frases reescritas en el sitio): nadie 228, molde 65, enlatado 122.
-// Y el 16 nov, con el doble sentido estilo Rockstar en el 40 % del bot (más de
-// mil frases reescritas o marcadas): nadie 217, coletilla 6, enlatado 113.
-const TECHO = { nadie: 217, analogia: 6, coletilla: 6, eco: 0, molde: 65, enlatado: 113, roto: 0 };
+// El 16 nov, con el doble sentido estilo Rockstar, bajó a nadie 217, coletilla
+// 6, enlatado 113. Y el 20 nov el dueño lo hizo deshacer («solo parecen frases
+// de pajero, mal hechas y sin humor ni gracia»): las frases vuelven a las de
+// antes, y el techo con ellas.
+const TECHO = { nadie: 228, analogia: 6, coletilla: 7, eco: 0, molde: 65, enlatado: 122, roto: 0 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();
