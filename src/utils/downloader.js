@@ -7,9 +7,10 @@ const axios = require('axios');
 // que devuelva una API de fuera puede apuntar al metadata del VPS.
 const { urlSegura, DestinoProhibido } = require('./redSegura');
 const config = require('../config');
-const { tempFile, cleanTemp } = require('./helpers');
+const { tempFile, cleanTemp, atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const { ffmpegPath, ffprobePath } = require('./ffmpeg');
 const { cacheKey } = require('./musicCache');
+const { ordenar, aProbar, buscarEnYouTube, leerSalidaYtDlp, idDeEnlace, resumen, CAMPOS_YTDLP } = require('./buscarCancion');
 const logger = require('./logger');
 
 // UNA SOLA FUENTE PARA !play: la API de terceros (RapidAPI), que extrae el
@@ -249,54 +250,62 @@ async function cleanupPartials(baseName) {
 
 // ── Vía 1: API de terceros (RapidAPI, YouTube en IP limpia) ───────────────────
 
-// Resuelve una búsqueda a un videoId de YouTube scrapeando la página de
-// resultados (una simple página web; NO es la API de extracción que sufre el
-// bot-check, así que esto sí funciona desde datacenter). null si falla.
-async function searchYouTubeId(query) {
-  const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&sp=EgIQAQ%253D%253D`;
-  const res = await axios.get(url, {
-    timeout: 8000,
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-      'Accept-Language': 'es',
-    },
-  });
-  const m = String(res.data).match(/"videoId":"([\w-]{11})"/);
-  return m ? m[1] : null;
-}
-
-// ─── Y SI EL HTML NO DA EL ID, SE LO PEDIMOS A YT-DLP ───────────────────────
+// ─── QUÉ VÍDEOS SE PRUEBAN (20 nov) ─────────────────────────────────────────
 //
-// Medido, 21 busquedas desde un datacenter —de una palabra, con acentos, y
-// escritas como escribe la gente—: el scrape acerto 21 de 21 en 676 ms de
-// media. Asi que se queda como via principal; cambiarla por esto seria pagar
-// tres veces mas por el mismo resultado (2064 ms de media, y en las 6 que se
-// compararon devolvio EXACTAMENTE el mismo video).
+// Antes esto devolvía el PRIMER `"videoId"` del HTML de resultados, fuera lo
+// que fuera, y la API convertía ese o nada. Con «!play hotline bling», tres
+// veces y con el artista, el grupo leyó «No encontré esa canción». Ahora se
+// leen los veinte resultados y se ordenan por lo que de verdad dice que es la
+// canción (utils/buscarCancion.js), y se devuelven el mejor y, detrás, las
+// otras subidas de la MISMA canción por si la API no puede con él.
 //
-// Pero el scrape depende de que YouTube siga escribiendo `"videoId"` en su HTML,
-// y el dia que lo mueva de sitio esto deja de encontrar nada SIN AVISAR A NADIE.
-// Antes ese fallo caia a SoundCloud; ahora no hay a donde caer, asi que aqui
-// esta el colchon: dos segundos, y *!play* sigue vivo.
-//
-// Solo resuelve el ID. La descarga la sigue haciendo la API, que es lo que
-// evita el bot-check del datacenter.
-async function idPorYtDlp(query) {
+// La página de resultados va primero: medido en su día, 676 ms de media frente
+// a los 2 s de yt-dlp por el mismo vídeo. yt-dlp se queda de colchón por si
+// YouTube cambia la página y deja de leerse, y trae los mismos datos (título,
+// canal, duración, vistas), así que se elige igual de bien.
+async function buscarConYtDlp(query) {
   try {
     const out = await ytdlp(
-      ['--no-warnings', '--flat-playlist', '--print', 'id', `ytsearch1:${String(query).replace(/["\r\n]/g, ' ').trim()}`],
+      ['--no-warnings', '--flat-playlist', '--print', CAMPOS_YTDLP, `ytsearch10:${String(query).replace(/["\r\n]/g, ' ').trim()}`],
       25000,
     );
-    const id = String(out || '').trim().split('\n')[0];
-    return /^[\w-]{11}$/.test(id) ? id : null;
+    return leerSalidaYtDlp(out);
   } catch (e) {
-    logger.info(`!play: yt-dlp tampoco resolvió el id (${e.message.slice(0, 60)})`);
-    return null;
+    logger.info(`!play: yt-dlp tampoco pudo buscar (${e.message.slice(0, 60)})`);
+    return [];
   }
 }
 
-function extractVideoId(query) {
-  const m = /(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/.exec(query);
-  return m ? m[1] : null;
+// Por una variable, para que la puerta lo pruebe sin salir a YouTube: en la
+// VPS yt-dlp está instalado y una prueba no puede depender de la red.
+let busquedaYtDlp = buscarConYtDlp;
+
+async function buscarCandidatos(query) {
+  // El enlace pegado a pelo: ese y ningún otro.
+  const id = idDeEnlace(query);
+  if (id) return [{ id, titulo: '', canal: '', segundos: null, vistas: 0, pos: 0 }];
+
+  let lista = [];
+  let html = '';
+  try {
+    ({ lista, html } = await buscarEnYouTube(query));
+  } catch (e) {
+    logger.warn(`!play: la búsqueda de YouTube falló (${String(e.message).slice(0, 60)}); pruebo con yt-dlp`);
+  }
+  if (!lista.length) {
+    if (html) logger.warn('!play: no pude leer los resultados de YouTube; pruebo con yt-dlp');
+    lista = await busquedaYtDlp(query);
+  }
+  // Lo último: el primer vídeo que nombre la página, como se hacía antes. Sin
+  // datos no se puede elegir, pero es mejor que dejar el comando muerto.
+  if (!lista.length) {
+    const m = /"videoId":"([\w-]{11})"/.exec(html);
+    if (m) lista = [{ id: m[1], titulo: '', canal: '', segundos: null, vistas: 0, pos: 0 }];
+  }
+  if (!lista.length) return [];
+  const elegidos = aProbar(ordenar(query, lista));
+  logger.info(`!play «${String(query).slice(0, 40)}» → ${resumen(elegidos[0])}${elegidos.length > 1 ? ` (+${elegidos.length - 1} de reserva)` : ''}`);
+  return elegidos;
 }
 
 // Pide el MP3 a un proveedor RapidAPI. La API es asíncrona: puede responder
@@ -348,7 +357,11 @@ async function rapidConvert(videoId, provider) {
       return { link: data.link, title: data.title || 'Sin título', duration: Number(data.duration) || null };
     }
     if (status === 'fail' || status === 'error') {
-      throw new Error(data.msg || 'la API no pudo convertir el video');
+      // La API dice que ESE vídeo no: es cosa del vídeo, y otra subida de la
+      // misma canción puede salir.
+      const err = new Error(data.msg || 'la API no pudo convertir el video');
+      err.porElVideo = true;
+      throw err;
     }
     const POLL = [800, 1500];
     await sleep(POLL[i] ?? 2500); // processing / in queue
@@ -397,18 +410,29 @@ async function downloadUrlToFile(url, dest, tope = MAX_BYTES) {
   });
 }
 
+// Lo que dice que el fallo es de ESE vídeo y no de la key: otra subida de la
+// misma canción puede salir, pero otra key con el mismo vídeo no.
+const delVideo = (err) => { err.porElVideo = true; return err; };
+
 async function fetchFromProvider(videoId, provider) {
   const { link, title, duration } = await rapidConvert(videoId, provider);
-  if (duration != null && duration < MIN_FULL_SECONDS) throw new Error('preview');
+  if (duration != null && duration < MIN_FULL_SECONDS) throw delVideo(new Error('preview'));
 
   const baseName = `audio_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   const dest = path.join(TEMP_DIR, `${baseName}.mp3`);
   try {
-    await downloadUrlToFile(link, dest);
+    try {
+      await downloadUrlToFile(link, dest);
+    } catch (err) {
+      // Pesa demasiado, o el enlace que dio la API no sirve (4xx).
+      const st = err.response?.status;
+      if (err.demasiadoGrande || (st >= 400 && st < 500 && st !== 429)) delVideo(err);
+      throw err;
+    }
     const stat = await fs.stat(dest);
-    if (stat.size < 1024) throw new Error('Archivo vacío');
+    if (stat.size < 1024) throw delVideo(new Error('Archivo vacío'));
     const dur = await audioDuration(dest);
-    if (dur != null && dur < MIN_FULL_SECONDS) throw new Error('preview');
+    if (dur != null && dur < MIN_FULL_SECONDS) throw delVideo(new Error('preview'));
     const safeTitle = String(title).replace(/[\r\n]/g, ' ').slice(0, 90).trim() || 'Sin título';
     return { filePath: dest, title: safeTitle, mimetype: 'audio/mpeg', ext: 'mp3' };
   } catch (err) {
@@ -450,18 +474,10 @@ function ordenDeKeys() {
   return [...vivas, ...secas];
 }
 
-async function tryRapidApi(query) {
-  if (!PROVIDERS.length) throw new Error('sin RAPIDAPI_KEY');
-  // El enlace pegado a pelo primero, luego el HTML —que es el rapido— y por
-  // ultimo yt-dlp, que solo entra cuando el HTML no ha dado nada.
-  let videoId = extractVideoId(query);
-  if (!videoId) videoId = await searchYouTubeId(query).catch(() => null);
-  if (!videoId) {
-    logger.warn('!play: el HTML de YouTube no dio el id; pruebo con yt-dlp');
-    videoId = await idPorYtDlp(query);
-  }
-  if (!videoId) throw new Error('no se encontró el video');
-
+// Un vídeo, por todas las keys. Lanza con `deLasKeys` si ninguna pudo ni
+// intentarlo (sin cupo, saturadas, sin acceso): entonces otro vídeo daría lo
+// mismo y no se prueba.
+async function convertirVideo(videoId) {
   let lastErr = null;
   // Se recuerda si ALGUNA key se quedo sin cupo, no solo la ultima. Sin esto,
   // dos keys seca y una tercera que falla por otra cosa daba un error sin
@@ -469,6 +485,8 @@ async function tryRapidApi(query) {
   let huboCuota = false;
   let huboOcupado = false;
   let huboSinAcceso = false;
+  let todasDeKey = true;
+  let porElVideo = false;
   for (const i of ordenDeKeys()) {
     try {
       const r = await fetchFromProvider(videoId, PROVIDERS[i]);
@@ -479,11 +497,12 @@ async function tryRapidApi(query) {
       if (err.quota) huboCuota = true;
       if (err.ocupado) huboOcupado = true;
       if (err.sinAcceso) huboSinAcceso = true;
-      // "preview" es propiedad del vídeo (mismo videoId en todas las keys):
-      // rotar repetiría la conversión para el mismo id y volvería a dar preview,
-      // gastando tiempo en todas las keys. Es terminal para RapidAPI → que el
-      // caller lo de por perdido.
-      if (err.message === 'preview') break;
+      if (!err.quota && !err.ocupado && !err.sinAcceso) todasDeKey = false;
+      if (err.porElVideo) porElVideo = true;
+      // "preview" y "pesa demasiado" son propiedad del vídeo (mismo videoId en
+      // todas las keys): rotar repetiría la conversión para dar lo mismo,
+      // gastando tiempo y cupo en todas. Se pasa al siguiente vídeo.
+      if (err.message === 'preview' || err.demasiadoGrande) break;
       if (err.quota) {
         sinCuota.set(i, Date.now());
         logger.warn(`!play: key ${i + 1}/${PROVIDERS.length} sin cuota; pasa al final de la cola`);
@@ -495,7 +514,75 @@ async function tryRapidApi(query) {
   if (huboCuota) fin.quota = true;
   if (huboOcupado) fin.ocupado = true;
   if (huboSinAcceso && !huboCuota && !huboOcupado) fin.sinAcceso = true;
+  if (porElVideo) fin.porElVideo = true;
+  if (lastErr && todasDeKey) fin.deLasKeys = true;
   throw fin;
+}
+
+// Tope para probar otro vídeo: pasado esto, quien pidió la canción lleva
+// demasiado esperando y se le dice lo que pasa.
+const TOPE_INTENTOS_MS = 60000;
+
+async function tryRapidApi(query) {
+  if (!PROVIDERS.length) throw new Error('sin RAPIDAPI_KEY');
+  const candidatos = await buscarCandidatos(query);
+  if (!candidatos.length) {
+    const err = new Error('no se encontró el video');
+    err.noEncontrada = true;
+    throw err;
+  }
+
+  // SI LA API NO PUEDE CON UNO, EL SIGUIENTE, y solo de la misma canción
+  // (buscarCancion.aProbar). Antes era ese vídeo o nada, y con la canción más
+  // famosa del mundo el grupo leía «no encontré esa canción».
+  const intentos = [];
+  const hasta = Date.now() + TOPE_INTENTOS_MS;
+  let ultimo = null;
+  for (const c of candidatos) {
+    if (intentos.length && Date.now() > hasta) break;
+    try {
+      const r = await convertirVideo(c.id);
+      if (intentos.length) {
+        logger.info(`!play: salió con ${resumen(c)} después de ${intentos.length} que no se pudieron bajar`);
+        apuntarFalloPlay({ consulta: query, intentos, salio: { id: c.id, titulo: String(c.titulo || '').slice(0, 80) } });
+      }
+      return r;
+    } catch (err) {
+      ultimo = err;
+      intentos.push({ id: c.id, titulo: String(c.titulo || '').slice(0, 80), motivo: String(err.message || '').slice(0, 120) });
+      // Si ninguna key pudo ni intentarlo, otro vídeo daría lo mismo.
+      if (err.deLasKeys) break;
+      logger.warn(`!play: ${resumen(c)} no se pudo bajar (${String(err.message).slice(0, 80)})${intentos.length < candidatos.length ? '; pruebo el siguiente' : ''}`);
+    }
+  }
+  ultimo.intentos = intentos;
+  throw ultimo;
+}
+
+// ─── POR QUÉ NO SALIÓ, APUNTADO PARA `npm run estado` (20 nov) ──────────────
+//
+// Del «No encontré esa canción» de «hotline bling» no quedaba nada que mirar
+// salvo el log. Ahora cada *!play* que no sale —y cada uno que salió con otra
+// subida porque la primera no se pudo bajar— se apunta aquí con lo que se
+// probó y lo que contestó la API, y `npm run estado` lo enseña.
+let ficheroFallos = path.join(__dirname, '../../data/playFallos.json');
+const MAX_FALLOS = 30;
+let colaFallos = Promise.resolve();
+function apuntarFalloPlay(dato) {
+  colaFallos = colaFallos.then(async () => {
+    try {
+      const previos = await readJsonOrEnoent(ficheroFallos, []);
+      const lista = [...(Array.isArray(previos) ? previos : []), { ts: Date.now(), ...dato, consulta: String(dato.consulta || '').slice(0, 60) }].slice(-MAX_FALLOS);
+      await atomicWriteJson(ficheroFallos, lista);
+    } catch (e) { logger.warn(`!play: no pude apuntar el fallo: ${e.message}`); }
+  });
+  return colaFallos;
+}
+function fallosPlay(horas = 24) {
+  const desde = Date.now() - horas * 3600000;
+  let v = [];
+  try { v = JSON.parse(fs.readFileSync(ficheroFallos, 'utf8')); } catch { v = []; }
+  return (Array.isArray(v) ? v : []).filter((x) => x && x.ts >= desde);
 }
 
 // ── yt-dlp: el lanzador, compartido con redes.js ─────────────────────────────
@@ -567,19 +654,29 @@ async function intentar(query) {
     const err = new Error('No se encontró la canción completa');
     // Por la MARCA, no por el texto. Ver la nota de arriba: adivinar la causa
     // con una expresion regular sobre el mensaje daba siempre la misma rama.
-    err.causa = e.quota ? 'sin-cuota'
-      : e.ocupado ? 'ocupado'
-      : e.sinAcceso ? 'sin-via'
-      : e.demasiadoGrande ? 'grande'
+    //
+    // «NO LA ENCONTRÉ» SOLO SI NO SE ENCONTRÓ (20 nov). Era lo que salía por
+    // defecto, y con «hotline bling» la canción estaba la primera en YouTube:
+    // lo que fallaba era bajarla. Decir «no la encontré» manda a reescribir el
+    // nombre contra algo que no se arregla escribiendo.
+    err.causa = e.noEncontrada ? 'no-encontrada'
       // SIN KEY NO ES «NO LA ENCONTRE». Es que no hay por donde buscarla, y con
       // el respaldo quitado eso deja de ser una rareza: si la key caduca o se
       // borra del .env, TODOS los *!play* contestan lo mismo. Decir «no encontré
       // esa canción» ahi manda al grupo a reescribir el nombre una y otra vez
       // contra una via que no existe, y al dueño no le llega ninguna señal.
       : /sin RAPIDAPI_KEY/i.test(e.message || '') ? 'sin-via'
+      : e.demasiadoGrande ? 'grande'
+      // La API contestó y dijo que ese vídeo no: no es el cupo, aunque alguna
+      // key esté seca.
+      : e.porElVideo ? 'no-baja'
+      : e.quota ? 'sin-cuota'
+      : e.ocupado ? 'ocupado'
+      : e.sinAcceso ? 'sin-via'
       : /red|network|timeout|ECONN|ENOTFOUND|socket/i.test(e.message || '') ? 'red'
-      : 'no-encontrada';
+      : 'no-baja';
     logger.warn(`!play: no pude traer «${String(query).slice(0, 40)}» (${e.message}); causa: ${err.causa}`);
+    if (err.causa !== 'sin-via') apuntarFalloPlay({ consulta: query, causa: err.causa, intentos: e.intentos || [], motivo: String(e.message || '').slice(0, 120) });
     throw err;
   }
 }
@@ -680,7 +777,9 @@ async function downloadAudio(query) {
 module.exports = {
   anunciarFuente,
   _audioDuration: audioDuration, _duracionPorFfmpeg: duracionPorFfmpeg,
-  _idPorYtDlp: idPorYtDlp, _searchYouTubeId: searchYouTubeId,
+  _buscarCandidatos: buscarCandidatos, _buscarConYtDlp: buscarConYtDlp, fallosPlay,
+  _conBusquedaYtDlp: (f) => { const antes = busquedaYtDlp; busquedaYtDlp = f; return () => { busquedaYtDlp = antes; }; },
+  _usarFicheroFallos: (f) => { ficheroFallos = f; }, _esperarFallos: () => colaFallos,
   downloadAudio, ordenDeKeys, sinCuota, PROVIDERS, _rapidConvert: rapidConvert,
   _repartoDe: repartoDe,
   _conBajador: (f) => { const antes = bajarUna; bajarUna = f; return () => { bajarUna = antes; }; },

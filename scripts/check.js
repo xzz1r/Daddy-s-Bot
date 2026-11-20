@@ -16723,11 +16723,17 @@ const ok = (c, t) => { if (!c) quejas.push(t); };
   //
   // Los numeros que justifican el orden estan medidos y escritos en su commit:
   // 21 de 21 aciertos y 676 ms el HTML, 2064 ms yt-dlp para el MISMO video.
+  //
+  // Desde el 20 nov la búsqueda es buscarCandidatos (lee y puntúa los
+  // resultados en vez de coger el primer id), y el orden sigue siendo el mismo.
   const iTry = codigo.indexOf('async function tryRapidApi');
-  const cuerpo = codigo.slice(iTry, codigo.indexOf('\n}', iTry));
-  ok(/idPorYtDlp\(query\)/.test(cuerpo), 'tryRapidApi llama al colchón de yt-dlp: sin él, un fallo del HTML deja *!play* muerto');
-  ok(/searchYouTubeId\(query\)/.test(cuerpo), 'y sigue llamando al HTML');
-  ok(cuerpo.indexOf('searchYouTubeId(query)') < cuerpo.indexOf('idPorYtDlp(query)'),
+  const cuerpoTry = codigo.slice(iTry, codigo.indexOf('\n}', iTry));
+  ok(/buscarCandidatos\(query\)/.test(cuerpoTry), 'tryRapidApi ya no busca con buscarCandidatos');
+  const iBus = codigo.indexOf('async function buscarCandidatos');
+  const cuerpo = codigo.slice(iBus, codigo.indexOf('\n}', iBus));
+  ok(/busquedaYtDlp\(query\)/.test(cuerpo), 'la búsqueda no llama al colchón de yt-dlp: sin él, un fallo del HTML deja *!play* muerto');
+  ok(/buscarEnYouTube\(query\)/.test(cuerpo), 'y sigue llamando al HTML');
+  ok(cuerpo.indexOf('buscarEnYouTube(query)') < cuerpo.indexOf('busquedaYtDlp(query)'),
      'el HTML se prueba ANTES que yt-dlp: al revés se pagarían 3x por el mismo resultado');
 
   console.log('CAPA83:' + JSON.stringify(quejas));
@@ -26118,6 +26124,149 @@ const r = {};
     exige(/vincularBot\.js/.test(JSON.parse(fs.readFileSync(path.join(R, 'package.json'), 'utf8')).scripts?.['vincular-bot'] || ''), 'falta `npm run vincular-bot`');
     exige(!/rmSync\([^)]*auth/.test(soloCodigo('scripts/vincularBot.js')), '`npm run vincular-bot` borra una sesión en vez de apartarla');
     if (fallos === antes178) console.log(verde('   ✓ el bot guarda sus números y npm run vincular-bot elige solo, sin borrar ninguna sesión'));
+  }
+
+  // ── 179. !play ELIGE LA CANCIÓN, NO EL PRIMER VÍDEO (20 nov) ───────────────
+  // El dueño, con «!play hotline bling» → «No encontré esa canción» tres
+  // veces, también con el artista: «corrige el motor de búsqueda, muchas veces
+  // es poco preciso; hazlo lo más preciso posible». Se cogía el primer
+  // `"videoId"` del HTML, y si la API no podía con ESE vídeo no había otro.
+  // Ahora se leen los resultados (los dos formatos de página y de resultado,
+  // sin anuncios), se puntúan, y si la API no puede con el mejor se prueba otra
+  // subida de la MISMA canción. Con búsquedas reales recortadas, sin red.
+  {
+    console.log('\n179. !play ELIGE LA CANCIÓN, NO EL PRIMER VÍDEO');
+    const antes179 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const BC = require(path.join(R, 'src/utils/buscarCancion'));
+    const CASOS = {"hotline bling":[["uxpDa-c-4Mc","Drake - Hotline Bling","Drake",296,2170000000,"av"],["zt6aRKpf9T4","Drake - Hotline Bling (Official Audio)","Drake Media",268,3440000,""],["LxxnSDmGUc4","Drake - Hotline Bling (Lyrics)","Lyrics Of The Song",223,13400000,""],["2N2BAeAM8Vg","Drake - Hotline Bling // Lyrics + Español //  Video Oficial","BrunoTraductor Official",296,715000,"v"],["q-jeSuFWGDM","Billie Eilish - hotline bling (Audio)","BillieEilishVEVO",129,5830000,""],["ficRVhCvIj0","Drake - Hotline Bling (Lyrics)","Popular Music",270,1010000,"v"],["o5n3Z8T9rgc","Drake – Hotline Bling (Lyrics)","Music Lyrics channel",268,8050,""],["KYHBv5miIqQ","Drake- Hotline Bling (Official Audio)","FUEGO 95.9",233,6100000,""],["EQNM0PFaRAM","Billie Eilish - Hotline Bling (Music Video)","MR EILISH PRODUCTIONS",193,71900,""],["TJ6VvBWckXA","Drake - Hotline Bling (Lyrics)  | 1 Hour Loop Lyrics Time","Lyrics Time",3856,459,""],["sDaFCqvQVmI","Drake – Hotline Bling (Lyrics)","Timeless Music",271,18000,"v"],["RcDs12xp5rk","Billie Eilish - Hotline Bling (Instrumental/TikTok Version Loope","TikTokTunes",250,8390000,"v"],["cOU6y8vAUA8","Drake - Hotline Bling (Lyrics)","LyricFM",268,27500,""],["1IrQN4M-HG8","Drake - Hotline Bling","in5initebeats",264,219000,""],["HH7XPLijqxw","Hotline Bling - Billie Eilish [Español/Inglés]","imferse - ",135,4650000,"v"],["s7DgiSaMXSA","Drake - Hotline Bling [4K] [60FPS]","4KD",296,6240,""]],"god s plan":[["xpVfcZ0ZcFM","Drake - God's Plan","Drake",357,1730000000,"av"],["ScfgOVJiu_I","God's Plan - Drake (Lyrics) 🎶","Premier Lyrics",173,7720000,""],["pPKx-fon1nY","Drake - God's Plan (Lyric Video)","Rap City",200,87800000,"v"],["hxP74FKlA-Y","Drake - Gods Plan (432hz)","TranscedenceRealm",199,1430000,""],["J9XVincsyRU","Drake - God's Plan","Young Money Entertainment",200,34900,""],["mddFKeYaD3Q","drake - god's plan﹝slowed + reverb﹞","Chovies",233,12300000,""],["9TincgwjtmA","Drake - God's Plan (Official Music Video)","The Recordings LLC",255,209000,""],["XUqRem0W8L8","Drake - God's Plan (Official Video)","OVO Sound",356,79600000,"v"],["2paP2cMLghU","LLEFLIGHT - GOD'S PLAN (Visualizer) (Prod. Kiro) | RICO POR SIEM","Lleflight",211,1810000,"av"],["rSbxm4c7D6M","Drake - God’s Plan (Clean)","Sir Sammy",201,11200000,"v"],["NJNnylM9BnM","Drake - God's Plan (Lyrics)","Cloud Vibes",199,82700,""],["CUw-QzNQRJI","7 señales de que estás luchando contra el plan de Dios","Building Mindset ",1360,40500,"v"],["6bHNvXbwvBA","Drake - God's Plan // Lyrics + Español // Video Official","BrunoTraductor Official",316,600000,"v"],["xaBvUxSJ_HA","Gods Plan 1 Hour - Drake","Lyrical Labs",3781,86200,""],["XJwNrNUQSH0","Trusting God's Plan [1 Hour]","Godseekers",3713,323000,"v"],["eSu8egNTkLU","Drake - God's Plan (sped up)","AJ",167,5920000,""]],"monaco bad bunny":[["_PJvpq8uOZM","BAD BUNNY - MONACO (Official Video) | nadie sabe lo que va a pas","Bad Bunny",440,252000000,"av"],["QxPeRC82Uo0","Bad Bunny - Monaco (Letra/Lyrics) | nadie sabe lo que va a pasar","STACION",267,49100000,""],["6-EKG8fSy5A","Bad Bunny – MONACO (Letra)","Latin City",267,6680000,"v"],["YBi7d3wav5Q","BAD BUNNY - MONACO (Audio) | nadie sabe lo que va a pasar mañana","Xixer",268,203000,"av"],["vOzHbrYHpQ0","LAGOS & Danny Ocean - Mónaco (Video Oficial)","LAGOS",214,248000000,"av"],["p38WgakuYDo","Bad Bunny - Moscow Mule (Video Oficial) | Un Verano Sin Ti","Bad Bunny",253,853000000,"av"],["c5wXFxiLabI","BAD BUNNY - NO ME QUIERO CASAR (Visualizer) | nadie sabe lo que ","Bad Bunny",226,144000000,"av"],["TmKh7lAwnBI","BAD BUNNY x JHAY CORTEZ - DÁKITI (Video Oficial)","Bad Bunny",214,1820000000,"av"],["eLULZIDY_XU","Bad Bunny - MONACO Lyrics English Translation - Spanish and Engl","Learn Spanish with Music &",248,291000,""],["Cr8K88UcO0s","Bad Bunny - Tití Me Preguntó (Video Oficial) | Un Verano Sin Ti","Bad Bunny",291,1130000000,"av"],["D2s3caDFGv4","Neymar Jr • MONACO - BAD BUNNY • Skills & Goals 2013/23 |HD","N10JRHD",267,89800,""],["9NGgLhEVCUk","BAD BUNNY - TÚ NO METES CABRA (Video Oficial)","Bad Bunny",174,561000000,"av"],["CUYrEiymUMY","Arcangel x Bad Bunny X Dj Luian X Mambo Kingz - Tu No Vive Asi [","Hear This Music",277,1580000000,"v"],["aZIOlPGq8AI","Bad Bunny - Monaco (Clean Version)","Dj Junerx",39,29900,""],["TeTCICvfzs0","Bad Bunny - MONACO (Letra/Lyrics)","Monday",268,2910000,""],["PGJ43zaam_0","BAD BUNNY - BOOKER T (Video Oficial)","Bad Bunny",174,380000000,"av"]],"la bachata":[["TiM_TFpT_DE","La Bachata - MTZ Manuel Turizo | Video Oficial","Manuel Turizo",195,1010000000,"av"],["D6Ju9CyOB-I","Manuel Turizo - La Bachata","LatinHype",163,170000000,""],["dsLjyLn859g","Chayanne - Bailando Bachata (Official Video)","Chayanne",196,688000000,"av"],["nEd7mXPQ688","Manuel Turizo - La Bachata (Letra/Lyrics)","7clouds",162,11800000,"v"],["BWO1xu64B8M","MIX BACHATA 2026 | ENGANCHADO BACHATA 2026 (ROMEO SANTOS, PRINCE","MI SEÑOR DJ MIX",3006,2590000,""],["Qg7l-_SAjjU","NO LE QUITE LA BACHATA A LA BACHATA","Grupo Extra",157,781000,"av"],["6KibGmX6vYY","3.. ANTHONY SANTOS – CORAZÓN CULPABLE – BACHATA – COJELO AHÍ","Anthony Santos",363,86900000,"av"],["GqdpOy8OxQw","El Chaval de la Bachata - Donde están esos amigos EN VIVO","El Chaval de la Bachata",271,104000000,"av"],["n3ASD82kIbk","❤️ BACHATA NUEVA 2026 | Éxitos Románticos para Bailar | Smooth C","Bachata Flow Mix",7437,559000,"av"],["OzIX4G1jUQE","🎧 Bachata 2026 – La Experiencia Suprema de Amor y Pasión 💎🎶","BACHATA AE",3555,550000,"av"],["bB2tiWfuQts","Xtreme - Te Extraño (Bachata Version) | Visualizer","XtremeVEVO",213,20000000,"v"],["P2EaDD2G0G0","Romeo Santos, Prince Royce - La Última Bachata (Official Lyric V","Romeo Santos y Prince Royc",272,12700000,"av"],["tmM4V-Rn39A","Dalvin La Melodia, El Blachy - Alma Rota (Video Oficial)","Dalvin La Melodia y El Bla",249,40800000,"av"],["-ndCEcPdPHE","MIX BACHATA 2024 I PRINCE ROYCE FT AVENTURA I DJ LUCHO CUBA ❤️🔥","DJ LUCHO CUBA",2022,23900000,""],["8zcZC4HVr68","Romeo Santos, El Chaval de la Bachata - Canalla (Official Video)","Romeo Santos",229,188000000,"av"],["VC6-lXh7nKY","Dalvin La Melodía, El Blachy - Alma Rota (Bachata) ","ZaikesRD",246,416000,""]],"perro negro":[["O2lC_oBI7DU","BAD BUNNY ft. FEID - PERRO NEGRO (Visualizer) | nadie sabe lo qu","Bad Bunny",163,136000000,"av"],["KmpPRmuiF8M","Bad Bunny, Feid - PERRO NEGRO (Letra)","Latin City",163,5700000,"v"],["5cnZAgzkETI","José Alfredo Jiménez - El Perro Negro (Letra / Lyrics)","José Alfredo Jiménez",150,8400000,"av"],["a6tgD_CsYTQ","Bad Bunny ft. Feid - Perro Negro (Letra/Lyrics) | nadie sabe lo ","STACION",163,175000000,""],["HDdMb4LG6PI","Bad Bunny Ft. Feid - Perro Negro (Audio Oficial)","Temazos de Reggaeton & Tra",163,50000,""],["O37D9GY4f10","Grupo Exterminador - El Perro Negro","Grupo Exterminador",207,3400000,"av"],["BDMNojRLmm4","Bad Bunny, Feid - Perro Negro (Clean Version)","Dj Junerx",39,8100,""],["fBLvUjvpB5g","BAD BUNNY ft. FEID - PERRO NEGRO (Letra/Lyrics)","B.E.J.O",165,818000,""],["TQF60gwYAHA","Antonio Aguilar  El perro negro   YouTube","serguio urtubia",169,2100000,""],["rZCjppR08JE","Perro Negro, GeezyDee - Garulleo (Video Oficial)","Club Perro Negro, GeezyDee",167,89000,"av"],["WpqZMty8J-8","Perro Negro (EXTENDED) - Bad Bunny x Feid // DJ Sanchez","DJ Sánchez",191,80000,""],["xUgEpRhHYFk","BAD BUNNY ft. FEID - PERRO NEGRO (𝒔𝒍𝒐𝒘𝒆𝒅 + 𝒓𝒆𝒗𝒆𝒓𝒃)","B L V C K",177,54000,""],["XwliHKLzqRc","Feid - Perro Negro","Lollapalooza Chile",157,1100000,""],["8wi76z66nBQ","PERRO NEGRO ‐ Bad Bunny ft. Feid - Lyrics - nadie sabe lo que va","Lyrics & Music ",163,2000,""],["Fq9Bww-ZEos","Película: perro negro","Oscar Rojas",417,837000,""],["wGYS3IyGvd0","José Alfredo Jiménez - El Perro Negro (Cover Audio)","José Alfredo Jiménez",152,1100000,"av"]],"titi me pregunto":[["Cr8K88UcO0s","Bad Bunny - Tití Me Preguntó (Video Oficial) | Un Verano Sin Ti","Bad Bunny",291,1130000000,"av"],["qBUKfQRbzuk","Bad Bunny - Tití Me Preguntó (La Letra / Lyrics)","BagOnly",244,24800000,"v"],["1ZJCDGUGc1o","Titi Me Pregunto - Bad Bunny (Audio/Estudio) 2022","JRMUSIC",244,3470000,""],["QpKkNIT84GY","Bad Bunny - Tití Me Preguntó (360° Visualizer) | Un Verano Sin T","Bad Bunny",244,116000000,"av"],["RYVQzis2_9Y","Bad Bunny - Titi Me Preguntó (Live at Super Bowl Halftime Show)","Jambelgel",80,563000,""],["2u-SkUyZxnI","Tití Me Preguntó, ,  (Mix Lyric) - Bad Bunny, ,","Viva Music",244,1420,""],["lEUp_GnayoY","🎵Tití Me Preguntó - Bad Bunny - Ozuna, Shakira, Bad Bunny","Música Letra",1239,146000,""],["nLQ0pVPEMVE","Bad Bunny - Tití Me Preguntó (Audio)","Luis Fernando Flores",245,507000,""],["a9xxDXRQ0-w","Bad Bunny - Tití Me Preguntó (Lyrics)","BagOnly",244,20700000,"v"],["7wrygQo95J8","Bad Bunny - Tití Me Preguntó (La Letra / Lyrics)","Roy Lyrics",243,984,""],["HVqKdh9etDw","Bad Bunny - Tití Me Preguntó (La Letra / Lyrics)","Letras Rojas",244,167000,"v"],["ALdOm-dT3Dg","Titi Me Preguntó (Un Verano Sin Ti) - Bad Bunny [Bass Boosted]","Latin Bass Boosted",243,82400,""],["-AGteGnm6k8","Tití Me Preguntó - Bad Bunny  (Letra/Lyrics)","CharMusica",242,149000,""],["5gLZ74Arnqk","Bad Bunny - Tití Me Preguntó | Un Verano Sin Ti (Estás en la dis","ARIEL",241,56200,""],["tjTYUXcOoUo","Bad Bunny - Tití Me Preguntó (Letra)","Rap Samurai",242,3520000,"v"],["cxuSELQCJzU","Tití Me Preguntó - Bad Bunny (Clean Version)","Lyrics Editor",245,145000,""]],"blinding lights":[["4NRXx6U8ABQ","The Weeknd - Blinding Lights (Official Video)","The Weeknd",263,1080000000,"av"],["fHI8X4OXluQ","The Weeknd - Blinding Lights (Official Audio)","The Weeknd",204,886000000,"av"],["XwxLwG2_Sxk","The Weeknd - Blinding Lights (Lyrics)","7clouds",200,159000000,"v"],["iDVKMdnvgl8","the weeknd - blinding lights (slowed + reverb)","PLAYYYPRETEND",232,26800000,""],["BwX8OS4cegU","The Weeknd - Blinding Lights (Lyrics)","7clouds Indie",201,1470000,""],["ewfdRy5jfF8","The Weeknd - Blinding Lights (Live On The 2020 MTV VMAs)","The Weeknd",199,51100000,"av"],["Uj3uJp6DK5k","The Weeknd - Blinding Lights (Extended Version)","Extended Version",642,50200000,""],["-_4bx6yX5Ck","The Weeknd - Blinding Lights (Extended 20 Minute Loop)","IDMaxDi",1170,41300000,""],["VxikmfreAec","The Weeknd - Blinding Lights (live at SoFi Stadium, After Hours ","ATMDaidai",255,1490000,""],["JaOgQQKG_Ls","Blinding Lights by The Weeknd","ButenkoDV",205,20600000,""],["sveiX_mA9A4","The Weeknd: \"Blinding Lights\"","The Late Show with Stephen",219,3800000,"v"],["Soly0ne467M","The Weeknd ft. ROSALÍA - Blinding Lights [Remix] (Official Lyric","The Weeknd",215,51900000,"av"],["DFulMvsb6Y0","The Weeknd - Blinding Lights (Cover by Loi)","loimusic",147,21000000,"av"],["VJYpyC1SNPc","The Weeknd - Blinding Lights (Live On Jimmy Kimmel Live! / 2020)","The Weeknd",215,15800000,"av"],["upA6xWZ2e_s","The Weeknd - Blinding Lights (Lyrics)","Ignite",203,173000,""],["Wwa1W0BHuB0","MARVEL | Blinding Lights","madxthing",193,5500000,""]],"blinding lights slowed":[["iDVKMdnvgl8","the weeknd - blinding lights (slowed + reverb)","PLAYYYPRETEND",232,26800000,""],["1i-ku0ugaS8","the weeknd - blinding lights [slowed + reverb + extreme visuals]","nighttmuse",247,2550000,""],["iHFfnaKZocE","the weeknd - blinding lights (slowed + reverb)","i n s o m n i o",238,58200,""],["j5KxrUOTwSg","the weeknd   blinding lights 𝙎𝙐𝙋𝙀𝙍 slowed in the 𝟖𝟎𝐬 w  ","Hanamura-ya",290,44500,""],["jYKNmgsu3Ow","Ｂｌｉｎｄｉｎｇ　ｌｉｇｈｔｓ　ｓｌｏｗｅｄ　＆　ｒｅｖｅｒｂ　ｖａｐｏｒｗａｖｅ　ｓｔｙｌｅ　ゟぼリ内オぎ亜","ULTRAFIED",351,291000,""],["dPF49aPIGVQ","The weeknd - Blinding lights (Slowed)","Crimson Demon",223,1440000,""],["DrvGWTAIbCo","The Weeknd - Blinding Lights [slowed] Lyrics","LyricFM",232,38900,""],["strlmxfWvU4","the weeknd - blinding lights [slowed + reverb] (remix)","finalDRAAFT",220,79300,""],["P5yqlv-u1H0","the weeknd - blinding lights (slowed & reverb)","ND",242,32000,"av"],["q2jNIO8qT5U","The Weeknd - Blinding Lights ( Slowed + Reverb + Echo )","Mister SilentBoi",240,7170,""],["OQt9YzIb5Bo","the weeknd - blinding lights ( slowed + reverb )","slowed and reverb ",240,39900,""],["xKZbmz2ngEI","The Weeknd - blinding lights (slowed + reverb)","altaïr",236,77400,""],["DIxVb_r0xWs","the weeknd - blinding lights (slowed + lyrics)","𝙚𝙙𝙖.",247,2590,""],["V2dIdRjr2Y4","The Weeknd - Blinding Lights (Slowed+Reverb)","Marlin Music ",219,230000,""],["lcltPhkoXig","The Weeknd - Blinding Lights (Slowed To Perfection) 432hz","JuicyG",229,76800,""],["-xm9dtjMXqo","the weeknd ~ blinding lights ﾉ slowed + reverb ﾉ","rum world",252,119000,"v"]],"goteo remix":[["3haLtS0vZ6I","DUKI, Ronny J, Capo Plaza, Pablo Chill-E, C.R.O - Goteo Remix (V","Duki",280,38400000,"av"],["FRthkpJ_NFo","DUKI - Goteo (Video Oficial)","Duki",185,211000000,"av"],["-HJSt6RlgDc","DUKI, Ronny J, Capo Plaza, Pablo Chill-E, C.R.O - Goteo Remix (V","Emir Gamer",280,629,""],["6q6D0hvzC-A","Duki, Ronny J, Capo Plaza, Pablo Chill-E ,C.R.O - GOTEO REMIX ( ","TTI",281,770,""],["NRSg5-VWr14","Goteo (Remix) - DUKI (𝙎𝙡𝙤𝙬𝙚𝙙 + 𝙍𝙚𝙫𝙚𝙧𝙗)","clayton",344,16800,""],["mdSW-SSLrmo","DUKI - Goteo Remix C.R.O, Ronny J, Pablo Chill-E, Capo Plaza (Mu","The_Wolf",279,2290,""],["KTzssDzHrX0","Duki, Khea, C.R.O, Pablo Chill-E, Ronny J, Capo Plaza - Goteo re","Trap argentino",337,360,""],["l2N2W9mwfag","REACCIÓN A \"GOTEO REMIX\" - DUKI, Ronny J, Capo Plaza, Pablo Chil","Coscu",615,1140000,"v"],["zfOWgUgTYbA","Duki x Khea x Ronny J x Capo Plaza x Pablo Chill-E x C.R.O - Got","VEDMA!_743",341,85100,""],["rxLqTBa_u7s","Neymar Jr - Goteo Remix ● DUKI, Ronny J, Capo Plaza, Pablo Chill","ᴄʀɪꜱꜱɢᴀʟᴀ",281,10700,""],["8sv4CKWNHuo","Solita x Goteo - Bad Bunny ft Duki (Kyomi Mashup)","Kyomi Beats",307,28900,"av"],["aIOL8iN1ckE","GOTEO REMIX - DUKI, KHEA, C.R.O","LHDR",201,5740,""],["iWpnu0Q1qYQ","Goteo Remix - Duki, RONNY J, Pablo Chill E, Capo Plaza, C R O   ","lbewayne",279,814,""],["6GDpIUYFYKI","GOTEO REMIX (Duki) by Diode Perfect","Diode Perfect",175,12000,"av"],["gJKiFGwMR4c","GOTEO REMIX - DUKI ft. Bad Bunny, Myke Towers, C.R.O, Ronny J, C","WORLD MUSIC",431,1680,""],["Wh7zDlTg1jg","Duki -Goteo Remix- ft.Paulo Londra, YsY A, C.R.O, KHEA","Mood Urban ",285,1670,""]],"hotline bling billie eilish":[["q-jeSuFWGDM","Billie Eilish - hotline bling (Audio)","BillieEilishVEVO",129,5830000,""],["RcDs12xp5rk","Billie Eilish - Hotline Bling (Instrumental/TikTok Version Loope","TikTokTunes",250,8390000,"v"],["VpEITQDQRec","Billie Eilish - hotline (edit)","Billie Eilish",61,19500000,"av"],["rwZfOfRlJW0","hotline bling by billie eilish  [ thunderstorms | 루프 ]","Shnyx",1646,4300000,""],["HH7XPLijqxw","Hotline Bling - Billie Eilish [Español/Inglés]","imferse - ",135,4650000,"v"],["7UVoCmolAPI","billie eilish - hotline bling 1 hour / looped instrumental","Listen a lot ",3703,1750000,""],["UQKV7NesKxI","Billie Eilish - Hotline Bling (instrumental a slowed)","dnkv",404,775000,""],["8jWgbnXBEPQ","Billie Eilish - Hotline Bling [HD] lyrics","CLAUD",129,15000000,""],["lBg-bld9TU0","𝘽𝙞𝙡𝙡𝙞𝙚 𝙀𝙞𝙡𝙞𝙨𝙝 - 𝙃𝙤𝙩𝙡𝙞𝙣𝙚 𝘽𝙡𝙞𝙣𝙜 (𝙎𝙡𝙤𝙬\ud835","Kane Asur ",455,10900000,""],["6QStvjUz5hI","Billie Eilish - Hotline Bling Cover (Lyrics)","Unique Vibes",244,2190000,"v"],["EQNM0PFaRAM","Billie Eilish - Hotline Bling (Music Video)","MR EILISH PRODUCTIONS",193,71900,""],["Eg5rX8oaNr0","Hotline Bling Billie Eilish cover instrumental Looped best part ","The Brain Seeker",705,20000,""],["hDbhRWgUPxk","Hotline Bling/Party Favor- Billie Eilish LIVE","Hailey",286,5030000,""],["8oE9ZgDyVTs","Billie Eilish Hotline Bling (Official Music Video)","Top YouTube Music (T.Y.T.M",125,2140,""],["Fv5pysjFQoY","𝙃𝙤𝙩𝙡𝙞𝙣𝙚 𝘽𝙡𝙞𝙣𝙜 - 𝘽𝙞𝙡𝙡𝙞𝙚 𝙀𝙞𝙡𝙞𝙨𝙝 𝙘𝙤𝙫𝙚𝙧","sloRain",3600,174000,""],["uxpDa-c-4Mc","Drake - Hotline Bling","Drake",296,2170000000,"av"]],"tusa":[["tbneQDc2H3I","KAROL G, Nicki Minaj - Tusa (Official Video)","KAROL G",204,1670000000,"av"],["F1vVR51ZINs","Tusa (Letra/Lyrics) - Karol G, Nicki Minaj","Fans Music",195,9530000,"av"],["m7Vu7e9Deh0","Karol G - Tusa - Festival Internacional de la Canción de Viña de","FESTIVALDEVINACHILE",275,10300000,""],["-ovJzWCQUqg","BIZDIN TUSA & SAPARIE CLUB (3-ші бөлім) ФИНАЛ","Jandos Samalbekov",3546,291000,""],["moqyhRiRWQQ","Integracion Casanova - La Tusa (Video Oficial)","Integración CASANOVA",317,11600000,"av"],["XCGTvK2nAjc","Tusa  Karol G, Nicki Minaj Version 1 HORA","Girk RapZ",3672,819,""],["HND7qHLpyUI","KAROL G, Nicki Minaj - Tusa (Official Lyric Video)","KAROL G",203,37600000,"av"],["7mOXKh2lfv0","Karol G - Tusa (Solo Version) + {Descarga}","Master Solos",144,79100,""],["OncpI5sW0Tk","KAROL G, Nicki Minaj - Tusa (Letra)","Urban Heartbeat",202,562000,""],["ZEvhzK7lbEY","KAROL G, Nicki Minaj - Tusa (Audio)","Conmigo No Cuentas",201,312000,""],["kkTLtvHmrxQ","Karol G, Nicki Minaj – Tusa (Audio Oficial)","MUNDO REGGAETON",204,5050000,""],["FwRsFQQRZkM","Grupo Firme  - Tusa - (Video Oficial)","Grupo Firme",171,24600000,"av"],["Awq8IuWj4yE","Karol G, Nicki Minaj – Tusa (slowed + reverb) & good sound 🔊","ty wazowski",222,71900,""],["xBTG_IrR8-s","Karol G - Tusa (Solo Versión)","Erickills",184,274000,""],["9gu0roNTZP0","Tusa || KAROL G, Nicki Minaj (Lyrics)","Xabian.j",202,8250000,"v"],["lzXprpJFANY","KAROL G, Nicki Minaj - Tusa (Letra)","JOVA",201,71000,""]],"despasito":[["kJQP7kiw5Fk","Luis Fonsi - Despacito ft. Daddy Yankee","Luis Fonsi",282,9180000000,"av"],["tQDV9WzHcds","Luis Fonsi - Despacito (Letra / Lyrics) ft. Daddy Yankee","Musica Milagrosa",241,9040000,""],["gm3-m2CFVWM","Luis Fonsi ‒ Despacito (Lyrics / Lyric Video) ft. Daddy Yankee","Taz Network",241,80300000,"v"],["EUJ0HA31EBk","[4K 원테이크] 포레스텔라 - DESPACITO [불후의 명곡2 전설을 노래하다/Immortal Songs 2] ","KBS 레전드 케이팝",292,37800000,""],["-bCoFRsKpww","Erika Ender & Roberto Carlos - Despacito (En Vivo)","Erika Ender",288,108000000,"av"],["Q4a9uwV4nmo","Despacito - Luis Fonsi (ft. Daddy Yankee) - Marlon Alves Dance M","Marlon Alves Music",238,125000000,"av"],["UeE6xFECt6E","Luis Fonsi - Despacito (Letra / Lyrics) feat. Daddy Yankee","TikTokHymn",229,2630000,"v"],["2TzIBedPhPg","Luis Fonsi - Despacito ft. Daddy Yankee (Letra)","Keller Lyrics",229,2480000,"v"],["1Tx_pPB2mU8","Luis Fonsi - Despacito (Letra/Lyrics) ft. Daddy Yankee","Odilon Huamani",253,22000000,"v"],["DWir_XczIE8","Luis Fonsi, Despacito ft,Daddy Yankee (Official Video)","DJ DY",282,76700000,"av"],["72UO0v5ESUo","Luis Fonsi, Daddy Yankee - Despacito (Audio) ft. Justin Bieber","Luis Fonsi",229,694000000,"av"],["EY40HO8Flpc","Luis Fonsi ‒ Despacito (Lyrics / Lyric Video) ft. Daddy Yankee","M4ylife",889,31200000,""],["j6JxMLjvCG0","Despacito | Latin Afro House Remix | Club DJ Mix | Groovy Beats","Groovy Beat",772,2980000,"av"],["O0CkZwOHFJQ","Luis Fonsi, Daddy Yankee - Despacito (Letra)","Big Star",229,2600000,""],["pfRUwmC8DZ8","Luis Fonsi - Despacito ft. Daddy Yankee (Letra)","Latin Holic",229,246000,""],["5VnTtEz1osM","Despacito","Radio Son Cubano",333,486000,""]]};
+    const filasA = (filas) => filas.map(([id, titulo, canal, segundos, vistas, f], pos) => ({ id, titulo, canal, segundos, vistas,
+      artista: f.includes('a'), verificado: f.includes('v'), enDirecto: f.includes('d'), pos }));
+    const dur = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    // Una página de resultados como la de YouTube: un anuncio delante, una
+    // estantería de «otros vieron» en medio y los resultados en los dos
+    // formatos (el clásico y el `lockupViewModel` nuevo).
+    const videoRenderer = (c) => ({ videoRenderer: { videoId: c.id, title: { runs: [{ text: c.titulo }] }, ownerText: { runs: [{ text: c.canal }] },
+      lengthText: { simpleText: dur(c.segundos) }, viewCountText: { simpleText: `${c.vistas.toLocaleString('es-ES')} visualizaciones` },
+      ownerBadges: c.artista ? [{ metadataBadgeRenderer: { style: 'BADGE_STYLE_TYPE_VERIFIED_ARTIST' } }] : c.verificado ? [{ metadataBadgeRenderer: { style: 'BADGE_STYLE_TYPE_VERIFIED' } }] : [] } });
+    const lockup = (c) => ({ lockupViewModel: { contentId: c.id, contentType: 'LOCKUP_CONTENT_TYPE_VIDEO',
+      contentImage: { thumbnailViewModel: { overlays: [{ thumbnailBottomOverlayViewModel: { badges: [{ thumbnailBadgeViewModel: { text: dur(c.segundos) } }] } }] } },
+      metadata: { lockupMetadataViewModel: { title: { content: c.titulo }, metadata: { contentMetadataViewModel: { metadataRows: [{ metadataParts: [
+        { text: { content: c.canal }, ...(c.artista ? { icon: { name: 'AUDIO_BADGE', accessibilityLabel: 'Canal oficial de artista' } } : c.verificado ? { icon: { accessibilityLabel: 'Verificada' } } : {}) },
+        { text: { content: `${Math.round(c.vistas / 1e6)} M` }, accessibilityLabel: `${c.vistas.toLocaleString('es-ES')} visualizaciones` },
+      ] }] } } } } } });
+    const pagina = (lista, clasica) => {
+      const items = [{ adSlotRenderer: { content: { videoId: 'ANUNCIO0000' } } },
+        ...lista.map((c, i) => (i === 2 ? [{ shelfRenderer: { content: { verticalListRenderer: { items: [{ videoRenderer: { videoId: 'ESTANTERIA0' } }] } } } }, i % 2 ? lockup(c) : videoRenderer(c)] : [i % 2 ? lockup(c) : videoRenderer(c)])).flat()];
+      const datos = { contents: { twoColumnSearchResultsRenderer: { primaryContents: { sectionListRenderer: { contents: [{ itemSectionRenderer: { contents: items } }] } } } } };
+      return clasica ? `<script>var ytInitialData = ${JSON.stringify(datos)};</script>`
+        : `<script id="yt-initial-data" type="application/json">${JSON.stringify(datos)}</script>`;
+    };
+
+    // 1. LA PÁGINA, en los dos formatos, sin el anuncio ni la estantería.
+    const hb = filasA(CASOS['hotline bling']);
+    for (const clasica of [true, false]) {
+      const leidos = BC.leerResultados(pagina(hb, clasica));
+      exige(leidos.length === hb.length && leidos[0].id === hb[0].id && !leidos.some((c) => /ANUNCIO|ESTANTERIA/.test(c.id)),
+        `la página de resultados (${clasica ? 'var ytInitialData' : 'yt-initial-data'}) no se lee entera o se cuela el anuncio: ${leidos.map((c) => c.id).slice(0, 4).join(',')}`);
+      const malLeido = leidos.find((c, i) => c.segundos !== hb[i].segundos || c.titulo !== hb[i].titulo || c.artista !== hb[i].artista
+        || Math.abs(Math.log10((c.vistas || 1) / (hb[i].vistas || 1))) > 0.1);
+      exige(!malLeido, `un resultado se lee mal (duración, título, canal oficial o vistas): ${JSON.stringify(malLeido)}`);
+    }
+    exige(BC._leerVistas('2,1 mil millones de visualizaciones') === 2.1e9 && BC._leerVistas('2118 M') === 2118e6
+      && BC._leerVistas('298 mil visualizaciones') === 298e3 && BC._leerVistas('2.165.316.094 visualizaciones') === 2165316094
+      && BC._leerVistas('1.2M views') === 1.2e6, 'las vistas no se leen en todas las formas en que YouTube las escribe');
+    exige(BC.idDeEnlace('https://music.youtube.com/watch?v=uxpDa-c-4Mc&si=x') === 'uxpDa-c-4Mc' && BC.idDeEnlace('https://youtu.be/uxpDa-c-4Mc')
+      === 'uxpDa-c-4Mc' && BC.idDeEnlace('hotline bling') === null, 'un enlace pegado (YouTube, YouTube Music, youtu.be) ya no se reconoce');
+
+    // 2. LO QUE SE ELIGE, con búsquedas reales. Las reservas son siempre la
+    //    misma canción: ni la de otro artista que se llama igual, ni una
+    //    variante que nadie ha pedido.
+    const ESPERA = {
+      'hotline bling': [(c) => c.id === 'uxpDa-c-4Mc', (c) => /drake/i.test(c.titulo), 'la de Drake, no la de Billie Eilish'],
+      'god s plan': [(c) => /drake/i.test(c.titulo) && Math.abs(c.segundos - 200) <= 5, (c) => /drake/i.test(c.titulo), 'la de Drake de 3:20, ni la de LLEFLIGHT ni el vídeo de seis minutos'],
+      'monaco bad bunny': [(c) => /monaco/i.test(c.titulo) && c.segundos < 300, (c) => /monaco/i.test(c.titulo), 'MONACO sin la intro de cine, no «Moscow Mule»'],
+      'la bachata': [(c) => c.id === 'TiM_TFpT_DE', (c) => /turizo/i.test(c.titulo), 'la de Manuel Turizo, no «Bailando Bachata»'],
+      'perro negro': [(c) => /bad bunny/i.test(c.titulo), (c) => /bad bunny/i.test(c.titulo), 'la de Bad Bunny, no la ranchera'],
+      'titi me pregunto': [(c) => c.segundos === 244, (c) => c.segundos === 244, 'la canción de 4:04, no el vídeo con intro'],
+      'blinding lights': [(c) => c.id === 'fHI8X4OXluQ', (c) => /weeknd/i.test(c.titulo), 'el audio oficial'],
+      'blinding lights slowed': [(c) => /slowed/i.test(c.titulo), (c) => /slowed/i.test(c.titulo), 'el slowed que se pide'],
+      'goteo remix': [(c) => /remix/i.test(c.titulo) && /duki/i.test(c.canal), (c) => /remix/i.test(c.titulo), 'el remix oficial'],
+      'hotline bling billie eilish': [(c) => /billie/i.test(c.titulo), (c) => /billie/i.test(c.titulo), 'la de Billie Eilish, que es la que se pide'],
+      tusa: [(c) => c.id === 'tbneQDc2H3I', (c) => /karol/i.test(c.titulo), 'la de KAROL G, no «Par-Tusa»'],
+      despasito: [(c) => /despacito/i.test(c.titulo) && /fonsi/i.test(c.titulo), (c) => /despacito/i.test(c.titulo), 'Despacito, con la errata'],
+    };
+    // Con una palabra de más que no sale en ningún título, la canción es la misma.
+    CASOS['hotline bling porfa'] = CASOS['hotline bling'];
+    ESPERA['hotline bling porfa'] = ESPERA['hotline bling'];
+    for (const [consulta, [elige, reserva, que]] of Object.entries(ESPERA)) {
+      const probar = BC.aProbar(BC.ordenar(consulta, filasA(CASOS[consulta])));
+      exige(probar.length && elige(probar[0]), `«${consulta}» elige ${probar[0] ? `«${probar[0].titulo}» (${dur(probar[0].segundos)})` : 'nada'}: tenía que ser ${que}`);
+      const mala = probar.slice(1).find((c) => !reserva(c));
+      exige(!mala, `«${consulta}» deja de reserva otra canción: «${mala && mala.titulo}»`);
+    }
+
+    // 3. CUANDO LA API NO PUEDE CON UN VÍDEO, en una caja: la búsqueda y la
+    //    API, fingidas.
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'play179-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data')); fs.mkdirSync(path.join(caja, 'temp'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      fs.writeFileSync(path.join(caja, 'pagina.html'), pagina(hb, true));
+      const guion = [
+        "process.env.RAPIDAPI_KEY = 'k'.repeat(40);",
+        "const fs = require('fs'), path = require('path'), { Readable } = require('stream');",
+        "const axios = require('axios');",
+        "const HTML = fs.readFileSync(path.join(__dirname, 'pagina.html'), 'utf8');",
+        "let modo = '', llamadas = [], vacia = false;",
+        "axios.get = async (url) => {",
+        "  if (/youtube\\.com\\/results/.test(url)) return { data: vacia ? '<html></html>' : HTML };",
+        "  const m = /\\/dl\\?id=([\\w-]{11})/.exec(url);",
+        "  if (m) {",
+        "    llamadas.push(m[1]);",
+        "    if (modo === 'cupo') { const e = new Error('HTTP 429'); e.response = { status: 429, data: { message: 'You have exceeded the MONTHLY quota' }, headers: {} }; throw e; }",
+        "    if (modo === 'todos' || (modo === 'primero' && llamadas.length === 1)) return { data: { status: 'fail', msg: 'Video unavailable' } };",
+        "    return { data: { status: 'ok', link: 'https://cdn.invalid/' + m[1] + '.mp3', title: 'T ' + m[1], duration: 268 } };",
+        "  }",
+        "  if (/cdn\\.invalid/.test(url)) return { data: Readable.from([Buffer.alloc(4096, 1)]) };",
+        "  throw new Error('la prueba no sale a la red: ' + url);",
+        "};",
+        "const DL = require('./src/utils/downloader');",
+        "DL._conBusquedaYtDlp(async () => []);",
+        "DL._usarFicheroFallos(path.join(__dirname, 'data', 'playFallos.json'));",
+        "(async () => {",
+        "  const r = {};",
+        "  for (const m of ['primero', 'todos', 'cupo', 'nada']) {",
+        "    modo = m; llamadas = []; vacia = m === 'nada';",
+        "    try { const x = await DL.downloadAudio('hotline bling'); r[m] = { sale: x.title, llamadas }; if (x.soltar) await x.soltar(); }",
+        "    catch (e) { r[m] = { causa: e.causa, llamadas }; }",
+        "  }",
+        "  await DL._esperarFallos();",
+        "  r.apuntados = DL.fallosPlay(24).map((x) => x.causa || (x.salio && 'salio'));",
+        "  console.log('R179' + JSON.stringify(r)); process.exit(0);",
+        "})().catch((e) => { console.log('R179' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 90000, env: { ...process.env, LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R179'));
+      const r = linea ? JSON.parse(linea.slice(4)) : { error: `sin respuesta: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      if (r.error) exige(false, `no pude probarlo: ${String(r.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige(r.primero.sale && r.primero.llamadas.length === 2 && r.primero.llamadas[0] === 'uxpDa-c-4Mc',
+          `si la API no puede con el vídeo de Drake, no se prueba otra subida de la canción: ${JSON.stringify(r.primero)}`);
+        exige(r.todos.causa === 'no-baja' && r.todos.llamadas.length === 3,
+          `si ninguna subida se puede bajar, el grupo no lee que se encontró y no se pudo bajar (causa «${r.todos.causa}», ${r.todos.llamadas.length} intentos)`);
+        const ids = new Map(hb.map((c) => [c.id, c.titulo]));
+        exige(r.todos.llamadas.every((id) => /drake/i.test(ids.get(id) || '')), `al probar otra subida se coló otra canción: ${r.todos.llamadas.map((id) => ids.get(id)).join(' | ')}`);
+        exige(r.cupo.causa === 'sin-cuota' && r.cupo.llamadas.length === 1, `sin cupo se siguen probando vídeos (o no se dice que es el cupo): ${JSON.stringify(r.cupo)}`);
+        exige(r.nada.causa === 'no-encontrada' && !r.nada.llamadas.length, `sin resultados no se dice «no encontré esa canción»: ${JSON.stringify(r.nada)}`);
+        exige(['salio', 'no-baja', 'sin-cuota', 'no-encontrada'].every((x) => r.apuntados.includes(x)),
+          `los !play que no salen no quedan apuntados para npm run estado: ${JSON.stringify(r.apuntados)}`);
+      }
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    exige(/'no-baja':/.test(soloCodigo('src/commands/music.js')), '!play no tiene mensaje para la canción encontrada que no se pudo bajar: vuelve a decir «no la encontré»');
+    exige(/playFallos\.json/.test(fs.readFileSync(path.join(R, 'scripts/estado.js'), 'utf8')), 'npm run estado ya no enseña los !play que no salieron');
+    if (fallos === antes179) console.log(verde('   ✓ !play lee los resultados, elige la canción y, si la API no puede, prueba otra subida de la misma'));
   }
 
 

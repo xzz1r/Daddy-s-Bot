@@ -1212,6 +1212,39 @@ ellos tienen que seguir cayendo.
 
 ---
 
+## `!play`: qué vídeo es la canción (20 nov)
+
+El dueño, con «!play hotline bling» → «No encontré esa canción» tres veces:
+«hazlo lo más preciso posible». Se cogía el primer `"videoId"` del HTML de
+resultados, sin mirar el título, el canal ni la duración, y si la API no podía
+con ese vídeo no había otro.
+
+Ahora `utils/buscarCancion.js` lee los veinte resultados (la página viene en
+dos formatos, `videoRenderer` y `lockupViewModel`, y los dos se leen; los
+anuncios y las estanterías no cuentan) y los puntúa:
+
+- **Lo pedido manda**, en el título o en el canal (en los «- Topic» el artista
+  solo está ahí), con erratas. Una palabra que no sale en ninguna parte resta
+  fuerte: «monaco bad bunny» no es «Moscow Mule».
+- **La misma canción se reconoce entre sus subidas**: las palabras que no son
+  las pedidas (el artista, el disco) juntan los resultados, y gana la canción
+  que más vistas suma. Así «hotline bling» es la de Drake y no la de Billie
+  Eilish, y «god's plan» no es la de otro artista que se llama igual.
+- **Del artista y limpia**: canal oficial, VEVO o «- Topic», y entre lo suyo
+  el audio antes que el vídeo. La duración de verdad es en la que coinciden
+  más subidas, y la que se aleja (intros, versiones extendidas, acelerados sin
+  avisar) resta.
+- **Sin variantes que nadie ha pedido** (en vivo, cover, remix, slowed, 8D,
+  karaoke, una hora en bucle, reacción…). Si se piden, suman.
+
+Si la API no puede con el mejor, se prueban hasta dos más **de la misma
+canción** (mismo grupo, misma duración, sin variantes), nunca otra. Sin cupo
+no se prueba otro vídeo. Y el grupo lee «no la encontré» solo si no salió
+nada; si se encontró y no se pudo bajar, lo dice así. Lo que no salió, y lo
+que salió con otra subida, queda en `data/playFallos.json` y sale en
+`npm run estado`. yt-dlp sigue de colchón para buscar y trae los mismos datos.
+Capa 179.
+
 ## Multimedia
 
 Stickers, `!play` y `!toimg`. Sin frases: no es terreno de contenido. Una cosa del motor que conviene saber: todo lo que llama a ffmpeg

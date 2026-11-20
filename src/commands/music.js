@@ -97,6 +97,10 @@ async function cmdPlay(sock, msg, args, groupMeta) {
         'ocupado':       'El servicio de descargas va saturado ahora mismo. Prueba en un minuto.',
         'red':           'No pude descargar la canción: fallo de red. Intenta de nuevo.',
         'no-encontrada': 'No encontré esa canción. Prueba con otro nombre o añade el artista.',
+        // Encontrada, pero ni ella ni las otras subidas de la misma canción se
+        // pudieron bajar (20 nov). Antes salía como «no la encontré», y con
+        // «hotline bling» el grupo reescribió el nombre tres veces.
+        'no-baja':       'No pude bajar esa canción ahora mismo. Prueba en un rato.',
         // Encontrada, pero WhatsApp no la deja pasar. Decir «no la encontré»
         // aquí manda a la persona a reescribir el nombre contra algo que no se
         // arregla escribiendo.

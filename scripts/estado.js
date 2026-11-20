@@ -144,6 +144,28 @@ if (!fs.existsSync(envPath)) {
   const cortas = keys.filter(k => k.length < 30).length;
   if (cortas) mal(`${cortas} de las keys parece incompleta (menos de 30 caracteres)`, 'revisa que no falte ningún trozo al pegarla');
 
+  // !play QUE NO SALIÓ (20 nov): qué se pidió, qué vídeos se probaron y qué
+  // contestó la API. Del «No encontré esa canción» de «hotline bling» no
+  // quedaba nada que mirar salvo el log.
+  try {
+    let fp = [];
+    try { fp = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data/playFallos.json'), 'utf8')); } catch { fp = []; }
+    fp = (Array.isArray(fp) ? fp : []).filter((x) => x && x.ts >= Date.now() - 24 * 3600000);
+    const POR = { 'no-baja': 'encontrada pero no se pudo bajar', 'no-encontrada': 'no salió nada en YouTube', 'sin-cuota': 'sin cupo', ocupado: 'el servicio iba saturado', red: 'fallo de red', grande: 'pesa más de 16 MB' };
+    const fallidas = fp.filter((x) => x.causa);
+    const salvadas = fp.filter((x) => x.salio);
+    const intentos = (x) => (x.intentos || []).slice(0, 3).map((i) => `«${i.titulo || i.id}» → ${i.motivo}`).join('; ');
+    if (fallidas.length) {
+      const u = fallidas[fallidas.length - 1];
+      aviso(`!play: ${fallidas.length} canción(es) sin salir en 24 h; la última, «${u.consulta}»: ${POR[u.causa] || u.causa}${intentos(u) ? ` (${intentos(u)})` : ''}`,
+        'pásale esta línea a quien mantenga el bot');
+    }
+    if (salvadas.length) {
+      const u = salvadas[salvadas.length - 1];
+      bien(`!play: ${salvadas.length} salieron con otra subida de la misma canción porque la primera no se pudo bajar (la última, «${u.consulta}»: ${intentos(u)})`);
+    }
+  } catch { /* sin datos */ }
+
   // ─── EL TIER, CON SUS NUMEROS ENMASCARADOS ────────────────────────────
   //
   // «OWNER_NUMBER configurado» era todo lo que decia esto, y no vale para la

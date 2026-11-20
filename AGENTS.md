@@ -91,6 +91,16 @@ recodificar**, también el HEVC (solo se le cambia la caja a `hvc1`); con
 cambia por una copia peor (capa 84). Las herramientas lentas avisan con
 `espera` en su fila (`utils/progreso.js`). Capas 96 y 124.
 
+## !play: la canción, no el primer vídeo
+
+Lo pidió el dueño (20 nov), con «!play hotline bling» → «No encontré esa
+canción»: «hazlo lo más preciso posible». `src/utils/buscarCancion.js` lee
+todos los resultados y elige por lo pedido, la misma canción entre sus
+subidas, el canal del artista, la duración y las variantes no pedidas. Si la
+API no puede con un vídeo, prueba otra subida de la misma canción, nunca otra.
+«No la encontré» solo cuando no salió nada; los fallos van a `npm run estado`.
+Ver `MOTOR.md`; capa 179.
+
 ## Al tier dueño, el admin de vuelta al momento
 
 Lo pidió el dueño (9 nov): «todo debe ser instantáneo». Cuando le quitan el
