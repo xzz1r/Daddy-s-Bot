@@ -375,8 +375,9 @@ pena». El bot lo ve, lo decide y echa él («te he visto», «me das asco», «
 echo por el asco que me das») o lo dice en impersonal («se ha decidido»). En
 `!kick` ya no es «te echan»: es «te echo». Quedan fuera las escenas de las
 acciones (ahí el grupo es parte de lo que pasa) y el halago que cuenta cómo le
-contesta la peña a quien escribe. Cuatro de los ejemplos intocables del dueño
-en `!aura` todavía hablan así; no se tocan sin que él lo diga. GUIA, regla 11;
+contesta la peña a quien escribe. Cuatro de los ejemplos «intocables» de
+`!aura` todavía hablan así («El grupo ni parpadeó», «Todos han tomado nota»…):
+el dueño dice que no son suyos, pero que se quedan (21 nov). GUIA, regla 11;
 capa 180.
 
 ## La peña activa se halaga, sin veneno
