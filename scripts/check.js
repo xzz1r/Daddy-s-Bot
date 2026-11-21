@@ -24062,7 +24062,10 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
         "bot._avisarSinDescifrar({ key: { remoteJid: G, participant: Q, id: 'C4' }, messageStubType: 2, message: { conversation: 'x' } });",
         "bot._avisarSinDescifrar({ key: { remoteJid: G, participant: Q, id: 'C5' }, messageStubType: 27 });",
         "const r = B.sinDescifrar(24);",
-        "console.log('R149' + JSON.stringify({ n: r.length, grupo: r[0] && r[0].grupo, quien: r[0] && r[0].quien, estados: B.resumen(24) }));",
+        // El reenvío de C1 se abre: queda como abierto, una vez, y C2 sigue cerrado (21 nov).
+        "const ab = [B.marcarAbierto('C1'), B.marcarAbierto('C1'), B.marcarAbierto('C9')];",
+        "const r2 = B.sinDescifrar(24);",
+        "console.log('R149' + JSON.stringify({ n: r.length, grupo: r[0] && r[0].grupo, quien: r[0] && r[0].quien, estados: B.resumen(24), ab, abiertos: r2.filter((x) => x.abierto).map((x) => x.id) }));",
         "process.exit(0);",
       ].join('\n');
       const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 30000,
@@ -24074,7 +24077,12 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
         exige(r.n === 2 && r.grupo === '120363000000149001' && r.quien === '91490000111',
           `de dos mensajes de grupo sin descifrar se apuntan ${r.n} (${r.grupo}/${r.quien}); un privado, uno descifrado u otro aviso no cuentan`);
         exige(r.estados === null, 'un mensaje sin descifrar cuenta como estado detectado: el resumen de estados no puede mezclarlos');
+        exige(JSON.stringify(r.ab) === '[true,false,false]' && JSON.stringify(r.abiertos) === '["C1"]',
+          `el reenvío que se abre no queda marcado como abierto (o se marca otro): ${JSON.stringify({ ab: r.ab, abiertos: r.abiertos })}`);
       }
+    exige(/bitacoraEstados\.marcarAbierto\(msg\.key\.id\)/.test(bot149),
+      'el bot ya no marca como abierto el reenvío de un mensaje que no se pudo descifrar: el estado contaría como perdidos los que llegaron tarde');
+    exige(/!x\.abierto/.test(est149), 'npm run estado vuelve a contar como perdidos los mensajes que se abrieron al reenviarse');
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     if (fallos === antes149) console.log(verde('   ✓ un mensaje de grupo sin descifrar se apunta aparte, y npm run estado dice si no llegó ninguna historia'));
   }

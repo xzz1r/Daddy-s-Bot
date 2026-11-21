@@ -118,7 +118,36 @@ function apuntarSinDescifrar({ grupo, quien, id = '', motivo = '', noEnviado = '
     if (historia) x.historia = String(historia).slice(0, 60);
     v.push(x);
     guardarCifrados(v);
+    if (x.id) pendientes().add(x.id);
   } catch { /* la bitácora no puede tirar el bot */ }
+}
+
+// Y SI LUEGO SE ABRE (21 nov). El dueño, con 35 «sin descifrar» en el estado:
+// «¿no podrías solucionar eso?». Baileys pide el reenvío a quien lo mandó (con
+// las claves del bot, ver scripts/parche-baileys-reintento.js), y el reenvío
+// llega con el MISMO id y ya se abre: el mensaje no se ha perdido, solo llegó
+// tarde. Se marca aquí para que `npm run estado` cuente los que se pierden de
+// verdad y no los que solo tropezaron a la primera. Los ids pendientes viven
+// en memoria: mirar cada mensaje que llega no lee el disco.
+let idsPendientes = null;
+function pendientes() {
+  if (!idsPendientes) {
+    const desde = Date.now() - 48 * 3600000;
+    idsPendientes = new Set(leerCifrados().filter((x) => x.id && !x.abierto && x.ts >= desde).map((x) => x.id));
+  }
+  return idsPendientes;
+}
+function marcarAbierto(id) {
+  try {
+    const k = String(id || '').slice(0, 40);
+    if (!k || !pendientes().has(k)) return false;
+    pendientes().delete(k);
+    const v = leerCifrados();
+    let hay = false;
+    for (const x of v) if (x.id === k && !x.abierto) { x.abierto = Date.now(); hay = true; }
+    if (hay) guardarCifrados(v);
+    return hay;
+  } catch { return false; }
 }
 function sinDescifrar(horas = 24) {
   const desde = Date.now() - horas * 3600000;
@@ -157,6 +186,6 @@ function rescates(horas = 24) {
 }
 
 module.exports = {
-  apuntar, resumen, RESULTADOS, apuntarSinDescifrar, sinDescifrar, apuntarRescate, rescates,
+  apuntar, resumen, RESULTADOS, apuntarSinDescifrar, sinDescifrar, marcarAbierto, apuntarRescate, rescates,
   _FICHERO: FICHERO, _FICHERO_CIFRADOS: FICHERO_CIFRADOS, _FICHERO_RESCATES: FICHERO_RESCATES,
 };

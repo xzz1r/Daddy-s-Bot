@@ -2644,6 +2644,9 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
         avisarSolicitudNueva(msg);
         avisarSinDescifrar(msg);
       }
+      // El reenvío de uno que no se pudo abrir llega con el mismo id: se
+      // apunta como abierto, que no se ha perdido (21 nov).
+      if (msg?.message && String(msg.key?.remoteJid || '').endsWith('@g.us')) bitacoraEstados.marcarAbierto(msg.key.id);
     }
     // LO QUE LLEGO MIENTRAS EL BOT NO ESTABA TAMBIEN SE MODERA.
     //

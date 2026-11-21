@@ -615,7 +615,10 @@ antes, por uno de dos sitios que no dejaban rastro:
 
 - **llega cifrada y Baileys no la abre**: entrega un aviso CIPHERTEXT vacío.
   Ahora se apunta en `data/gruposSinDescifrar.json`, sale en el log («mensaje
-  de grupo sin descifrar») y en `npm run estado`;
+  de grupo sin descifrar») y en `npm run estado`. Baileys pide el reenvío a
+  quien lo mandó, y si el reenvío se abre (llega con el mismo id) se marca
+  como abierto: el estado solo avisa de los que no se abrieron ni así (21
+  nov, capa 149);
 - **no llega**: `npm run estado` dice «ninguna detectada en 24 h». Con una
   historia subida en ese rato, eso quiere decir que WhatsApp no se la entrega
   al bot.

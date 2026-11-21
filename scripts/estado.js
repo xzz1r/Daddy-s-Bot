@@ -661,7 +661,12 @@ if (!bot) {
   // Eso dice qué falla sin abrir el log. Nada de esto depende del teléfono del
   // número: el bot se arregla solo desde la VPS (claves de un solo uso y
   // reintento con claves, ver más abajo).
-  const cifrados = sinDescifrar ? sinDescifrar(24) : [];
+  // Los que se abrieron al reenviarse (21 nov) no se han perdido: llegaron
+  // tarde. El aviso es por los que siguen cerrados.
+  const todosCifrados = sinDescifrar ? sinDescifrar(24) : [];
+  const abiertos = todosCifrados.filter((x) => x.abierto).length;
+  const cifrados = todosCifrados.filter((x) => !x.abierto);
+  if (abiertos) bien(`${abiertos} mensaje(s) de grupo en 24 h no se abrieron a la primera y sí al reenviarse: no se perdió ninguno de esos`, true);
   if (cifrados.length) {
     const quienes = [...new Set(cifrados.map((x) => `+${x.quien}`))].slice(0, 5).join(', ');
     const historias = cifrados.filter((x) => x.historia).length;
@@ -669,7 +674,7 @@ if (!bot) {
     const motivos = {};
     for (const x of cifrados) if (x.motivo) motivos[x.motivo] = (motivos[x.motivo] || 0) + 1;
     const top = Object.entries(motivos).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([m, n]) => `${n}× «${m}»`).join(', ');
-    aviso(`${cifrados.length} mensaje(s) de grupo en 24 h que el bot no pudo descifrar (${quienes})` + (top ? `: ${top}` : ''),
+    aviso(`${cifrados.length} mensaje(s) de grupo en 24 h que el bot no pudo descifrar ni al reenviarse (${quienes})` + (top ? `: ${top}` : ''),
       enElLog('sin descifrar'));
     if (historias) bien(`${historias} de ellos traían la marca de historia en la cabecera: se castigan sin abrirlos`, true);
     if (noEnviados.length) {
