@@ -8,6 +8,7 @@ const config = require('../config');
 // Lo que usan /toimg y /s para lo de ver una vez: la copia en memoria o en
 // disco (también la que guarda el guardián), esperando si se está bajando.
 const verUnaVez = require('../utils/verUnaVez');
+const miniatura = require('../utils/miniatura');
 
 // !k — reenvía al privado del owner el archivo al que responde.
 //
@@ -275,12 +276,19 @@ async function cmdK(sock, msg, groupMeta, borrar = true) {
   // Cada tipo se manda como lo que es. Un sticker reenviado como sticker se ve
   // igual que en el grupo; una imagen con pie lleva de quién era, que es lo
   // único que hace falta para luego buscarla.
+  //
+  // Y CON LO QUE TRAIA EL ORIGINAL (21 nov): su miniatura, su tamaño, su
+  // duracion y, en una nota de voz, su onda (utils/miniatura.js). Sin eso la
+  // foto llegaba sin vista previa, el video sin miniatura (o con el ffmpeg de
+  // Baileys por fuera del semaforo) y la nota de voz con la onda plana.
+  const tipoVista = { image: 'foto', video: 'video', audio: 'audio' }[medio.tipo];
+  const previa = tipoVista ? await miniatura.paraReenviar(medio.nodo, buf, tipoVista) : {};
   const contenido =
     medio.tipo === 'sticker'  ? { sticker: buf }
-  : medio.tipo === 'image'    ? { image: buf, caption: pie }
-  : medio.tipo === 'video'    ? { video: buf, caption: pie, mimetype: medio.nodo.mimetype || 'video/mp4' }
+  : medio.tipo === 'image'    ? { image: buf, ...previa, caption: pie }
+  : medio.tipo === 'video'    ? { video: buf, jpegThumbnail: null, ...previa, caption: pie, mimetype: medio.nodo.mimetype || 'video/mp4' }
   : medio.tipo === 'audio'    ? { audio: buf, mimetype: medio.nodo.mimetype || 'audio/ogg; codecs=opus',
-                                  ptt: Boolean(medio.nodo.ptt) }
+                                  ptt: Boolean(medio.nodo.ptt), ...previa }
   :                             { document: buf,
                                   mimetype: medio.nodo.mimetype || 'application/octet-stream',
                                   fileName: medio.nodo.fileName || 'archivo',

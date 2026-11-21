@@ -97,6 +97,18 @@ enlace, y lo que manda después no lo cita: el recuadro de la cita enseñaba el
 enlace. El @ de quien lo pidió va en el pie del vídeo o de la foto, y en el
 aviso de «Bajando…». Una búsqueda sin enlace sigue citando. Capas 50, 74 y 124.
 
+## Fotos y vídeos, con su vista previa
+
+Lo pidió el dueño (21 nov): «la mejor calidad posible para lo que es WhatsApp;
+calidad y velocidad de la mano». Todo lo que manda el bot sale con miniatura,
+tamaño y, un vídeo, duración (`src/utils/miniatura.js`): la burbuja tiene su
+forma antes de bajar, el álbum enseña sus fotos y la notificación lleva foto.
+Un solo ffmpeg suave lo saca todo y es el mismo que analiza los vídeos de
+redes, así que no cuesta nada más; lo ya sondeado no se repite, y con tope de
+tiempo. Lo reenviado (`!k`, `!tagall`, ver una vez) lleva lo del original, y
+`!play`, la duración que ya mide. Un vídeo nunca va con la miniatura en
+`undefined` (Baileys lanzaría su ffmpeg). Ver `MOTOR.md`; capas 181, 74, 58 y 50.
+
 ## !play: la canción, no el primer vídeo
 
 Lo pidió el dueño (20 nov), con «!play hotline bling» → «No encontré esa

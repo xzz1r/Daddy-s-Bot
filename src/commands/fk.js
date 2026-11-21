@@ -20,6 +20,7 @@ const { faceSearch: facecheckSearch, hasKey: facecheckEnabled } = require('../ut
 const { uploadTemp } = require('../utils/imageHost');
 const { shorten } = require('../utils/shorten');
 const logger = require('../utils/logger');
+const miniatura = require('../utils/miniatura');
 const { SOLO_ADMINS, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
 
@@ -241,6 +242,8 @@ async function fkOnImage(sock, msg, img) {
 
   await sock.sendMessage(jid, {
     image: buf,
+    // Con su miniatura y su tamaño (21 nov, utils/miniatura.js).
+    ...(await miniatura.deFoto(buf)),
     caption: header + lines.join('\n') + '\n\n' + search + footer,
     mentions,
   }, { quoted: msg });

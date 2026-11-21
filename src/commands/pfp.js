@@ -9,6 +9,8 @@ const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { computeHash } = require('../utils/phash');
 const { recordAndMatch } = require('../utils/pfpStore');
 const pfpCache = require('../utils/pfpCache');
+// La foto sale con su miniatura y su tamaño (21 nov, ver utils/miniatura.js).
+const miniatura = require('../utils/miniatura');
 // Tope a onWhatsApp: un WebSocket colgado no lanza, se queda, y sin tope *!pfp*
 // se quedaba sin contestar para siempre.
 const { withTimeout } = require('../utils/helpers');
@@ -191,6 +193,7 @@ async function cmdPfp(sock, msg, args, groupMeta) {
       .catch(() => {});
     return sock.sendMessage(jid, {
       image: imageBuffer,
+      ...(await miniatura.deFoto(imageBuffer)),
       caption: tag,
       mentions: [target],
     }, { quoted: msg });
@@ -202,6 +205,7 @@ async function cmdPfp(sock, msg, args, groupMeta) {
   if (cached?.buf?.length) {
     return sock.sendMessage(jid, {
       image: cached.buf,
+      ...(await miniatura.deFoto(cached.buf)),
       caption: restringida
         ? `${tag}\n_Tiene la foto limitada a sus contactos — esta es la última que el bot llegó a ver, del ${fechaCorta(cached.lastSeen)}._`
         : falloPasajero

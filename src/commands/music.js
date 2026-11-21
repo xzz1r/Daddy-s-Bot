@@ -173,6 +173,11 @@ async function cmdPlay(sock, msg, args, groupMeta) {
       mimetype: result.mimetype || 'audio/mp4',
       fileName: `${result.title}.${result.ext || 'm4a'}`,
       ptt: false,
+      // LA DURACION, YA MEDIDA (21 nov). El descargador la mide para tirar los
+      // avances de 30 segundos, y la cache la guarda. Si el mensaje no la
+      // lleva, Baileys la recalcula, y para eso copia la cancion entera a un
+      // temporal antes de subirla: misma cancion, misma calidad, y sale antes.
+      ...(Number(result.segundos) > 0 ? { seconds: Math.round(Number(result.segundos)) } : {}),
     }, { quoted: msg, mediaUploadTimeoutMs: 60000 });
     incrementStat('musicPlayed');
   } catch (err) {
@@ -185,7 +190,7 @@ async function cmdPlay(sock, msg, args, groupMeta) {
     // colgaron de su descarga ni lo guardan ni lo borran.
     if (!fromCache && !result.compartido) {
       const requester = isMainOwner(getSender(msg), msg.key.fromMe, groupMeta) ? '' : (msg.pushName || '').trim();
-      try { await setCached(query, result.filePath, result.title, result.mimetype, result.ext, audioBuffer, requester); } catch {}
+      try { await setCached(query, result.filePath, result.title, result.mimetype, result.ext, audioBuffer, requester, result.segundos); } catch {}
     }
     // Y el ultimo en soltar borra. `soltar` viene de `downloadAudio`; de la
     // cache no viene ninguno, y ese fichero no se toca porque es el de la cache.

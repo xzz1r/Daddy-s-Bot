@@ -23,8 +23,17 @@ const { getSender } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { bajar: bajarBytes, NO_ENTREGADA, SIN_CLAVE_CITA } = require('../utils/verUnaVez');
 const logger = require('../utils/logger');
+const miniatura = require('../utils/miniatura');
 
 ffmpeg.setFfmpegPath(ffmpegPath);
+
+// Y AHORA CON SU VISTA PREVIA (21 nov, utils/miniatura.js). El `null` de
+// arriba evitaba el ffmpeg de Baileys, pero dejaba los envios sin miniatura,
+// sin tamaño y sin duracion, y un gif sin tamaño ni siquiera se dibuja (ver
+// utils/redes.js, datosDeGif). Lo que se rehace aqui lleva los suyos, sacados
+// con un solo ffmpeg suave; lo que se saca de un mensaje (la foto o el video
+// de ver una vez) lleva los que ya traia el original, que no cuestan nada.
+const vistaDeLoTraido = (media, buf, tipo) => miniatura.paraReenviar(media && media.data, buf, tipo);
 
 // Hard kill a stuck ffmpeg after this long (matches sticker.js).
 const FFMPEG_TIMEOUT_MS = 45_000;
@@ -326,7 +335,7 @@ async function cmdToVid(sock, msg, groupMeta) {
       }
       try {
         const mp4 = await convertToMp4(buf);
-        await sock.sendMessage(jid, { video: mp4, mimetype: 'video/mp4', gifPlayback: true, jpegThumbnail: null }, { quoted: msg });
+        await sock.sendMessage(jid, { video: mp4, mimetype: 'video/mp4', gifPlayback: true, jpegThumbnail: null, ...(await miniatura.deVideo(mp4)) }, { quoted: msg });
       } catch (err) {
         logger.warn(`tovid MP4 failed (${err.message.slice(0, 80)}), enviando el WebP`);
         await sock.sendMessage(jid, {
@@ -338,7 +347,7 @@ async function cmdToVid(sock, msg, groupMeta) {
       }
     } else if (media.type === 'video') {
       const caption = media.viewOnce ? 'Video extraído de visualización única.' : undefined;
-      await sock.sendMessage(jid, { video: buf, mimetype: 'video/mp4', caption, jpegThumbnail: null }, { quoted: msg });
+      await sock.sendMessage(jid, { video: buf, mimetype: 'video/mp4', caption, jpegThumbnail: null, ...(await vistaDeLoTraido(media, buf, 'video')) }, { quoted: msg });
     } else {
       // imagen u otro: no aplica para video
       await reembolsar();
@@ -387,7 +396,7 @@ async function cmdToImg(sock, msg, groupMeta) {
         let sent = false;
         try {
           const mp4 = await convertToMp4(buf);
-          await sock.sendMessage(jid, { video: mp4, gifPlayback: true, mimetype: 'video/mp4', jpegThumbnail: null }, { quoted: msg });
+          await sock.sendMessage(jid, { video: mp4, gifPlayback: true, mimetype: 'video/mp4', jpegThumbnail: null, ...(await miniatura.deVideo(mp4)) }, { quoted: msg });
           sent = true;
         } catch (err) {
           logger.warn(`toimg MP4 failed (${err.message.slice(0, 80)}), trying frame extraction`);
@@ -401,6 +410,7 @@ async function cmdToImg(sock, msg, groupMeta) {
               const jpg = await convertToJpeg(frameBuf);
               await sock.sendMessage(jid, {
                 image: jpg,
+                ...(await miniatura.deFoto(jpg)),
                 caption: 'Primer fotograma del sticker animado.',
               }, { quoted: msg });
               sent = true;
@@ -428,15 +438,15 @@ async function cmdToImg(sock, msg, groupMeta) {
 
       } else {
         const jpg = await convertToJpeg(buf);
-        await sock.sendMessage(jid, { image: jpg }, { quoted: msg });
+        await sock.sendMessage(jid, { image: jpg, ...(await miniatura.deFoto(jpg)) }, { quoted: msg });
       }
 
     } else if (media.type === 'image') {
       const caption = media.viewOnce ? 'Foto extraída de visualización única.' : undefined;
-      await sock.sendMessage(jid, { image: buf, caption }, { quoted: msg });
+      await sock.sendMessage(jid, { image: buf, caption, ...(await vistaDeLoTraido(media, buf, 'foto')) }, { quoted: msg });
     } else if (media.type === 'video') {
       const caption = media.viewOnce ? 'Video extraído de visualización única.' : undefined;
-      await sock.sendMessage(jid, { video: buf, mimetype: 'video/mp4', caption, jpegThumbnail: null }, { quoted: msg });
+      await sock.sendMessage(jid, { video: buf, mimetype: 'video/mp4', caption, jpegThumbnail: null, ...(await vistaDeLoTraido(media, buf, 'video')) }, { quoted: msg });
     }
   } catch (err) {
     logger.error(`toimg error: ${err.message}`);

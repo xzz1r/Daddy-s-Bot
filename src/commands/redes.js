@@ -16,6 +16,7 @@ const { getSender, canonicalJid } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo, SIN_SERVICIO } = require('../utils/auraCobro');
 const logger = require('../utils/logger');
 const progreso = require('../utils/progreso');
+const miniatura = require('../utils/miniatura');
 
 // UN ENLACE CADA OCHO SEGUNDOS POR PERSONA. No es por el precio —el aura ya
 // frena eso— sino por los dos huecos de descarga que hay para todo el bot: sin
@@ -394,8 +395,26 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
       pieTuit = `Ya te he enseñado todo lo que hay de «${busqueda}». Vuelvo a empezar.`;
     }
 
+    // ─── CADA FOTO Y CADA VIDEO, CON SU VISTA PREVIA (21 nov) ──────────────
+    //
+    // Miniatura, tamaño y, en un video, duración (utils/miniatura.js): la
+    // burbuja sale con su forma y su imagen antes de bajar nada, el album
+    // enseña sus fotos y la notificacion lleva foto. Sale casi siempre gratis,
+    // porque el video ya se analizo por el camino con el mismo ffmpeg. Se van
+    // preparando en orden, de una en una, mientras sube la anterior: en un
+    // album solo se espera la de la primera. Los gif no: se rehacen antes de
+    // mandarlos y su vista va con ellos (datosDeGif).
+    let cadena = Promise.resolve();
+    const vistas = lote.map((m) => {
+      if (m.animado) return null;
+      cadena = cadena
+        .then(() => (m.tipo === 'imagen' ? miniatura.deFoto(m.fichero) : miniatura.deVideo(m.fichero)))
+        .catch(() => (m.tipo === 'imagen' ? {} : { jpegThumbnail: null }));
+      return cadena;
+    });
+
     let primero = true;
-    for (const m of lote) {
+    for (const [i, m] of lote.entries()) {
       // `animado` viene marcado desde utils/redes.js cuando lo que se bajo es
       // un MP4 sin pista de audio, que es como X sirve los GIF. Con
       // gifPlayback WhatsApp lo pone en bucle y sin controles, igual que se ve
@@ -420,8 +439,9 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
       // fichero bajado y bien.
       //
       // Se los damos hechos, que ademas es lo que ya hacen las acciones y
-      // *!tovid* —los dos sitios donde el gif si funcionaba—. Solo para gifs:
-      // un video corriente no paga este ffmpeg.
+      // *!tovid* —los dos sitios donde el gif si funcionaba—. Y desde el 21 nov
+      // un video corriente tambien lleva los suyos (`vistas`, arriba), sin
+      // pagar ningun ffmpeg: salen del analisis que ya se hizo por el camino.
       // Y EL GIF SE REHACE ANTES DE MEDIRLO. Con la miniatura puesta el gif ya
       // se dibujaba, pero seguia sin poder bajarse: WhatsApp lo descargaba, se
       // le daba a reproducir y volvia el boton de descarga. El fichero de X era
@@ -430,9 +450,10 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
       // gif llevan meses reproduciendose en este grupo.
       if (m.animado) m.fichero = await prepararGif(m.fichero);
       const extraGif = m.animado ? await datosDeGif(m.fichero).catch(() => ({})) : null;
+      const vista = vistas[i] ? await vistas[i] : null;
 
       const medio = m.tipo === 'imagen'
-        ? { image: { url: m.fichero }, ...pie }
+        ? { image: { url: m.fichero }, ...(vista || {}), ...pie }
         : {
           video: { url: m.fichero },
           mimetype: 'video/mp4',
@@ -442,6 +463,8 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
           // Baileys solo calcula la duracion del audio, asi que un video sale
           // siempre sin ella. Un gif se pinta en bucle y la necesita.
           ...(extraGif && extraGif.segundos ? { seconds: extraGif.segundos } : {}),
+          // Un video corriente: su miniatura, su tamaño y su duracion.
+          ...(vista || {}),
           ...pie,
         };
       // La cita solo en la primera cuando no hay album: colgar las cinco del

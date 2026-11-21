@@ -10017,8 +10017,9 @@ const di=async(quien,t)=>{out.length=0;
       if (envio) {
         exige(envio.content.video && typeof envio.content.video === 'object' && typeof envio.content.video.url === 'string',
           'el vídeo se manda como Buffer: son hasta 25 MB en el heap del bot por envío, en una máquina de 1 GB');
-        exige('jpegThumbnail' in envio.content && envio.content.jpegThumbnail === null,
-          'jpegThumbnail no va en null: con undefined, Baileys lanza SU ffmpeg al enviar, en el único core y con alguien esperando');
+        // Null o la miniatura hecha (21 nov, utils/miniatura.js); undefined nunca.
+        exige('jpegThumbnail' in envio.content && (envio.content.jpegThumbnail === null || Buffer.isBuffer(envio.content.jpegThumbnail)),
+          'jpegThumbnail no va en el envío: con undefined, Baileys lanza SU ffmpeg al enviar, en el único core y con alguien esperando');
       }
       exige(ficheroFalso && !(await fsx.pathExists(ficheroFalso)),
         'el vídeo se queda en disco después de mandarlo: el dueño pidió que no se guarde nada');
@@ -11735,7 +11736,7 @@ const di=async(quien,t)=>{out.length=0;
     // Baileys genera la miniatura sola cuando `jpegThumbnail` viene `undefined`,
     // y para un video lo hace lanzando su propio ffmpeg POR FUERA del semaforo.
     {
-      for (const fichero of ['src/commands/toimg.js', 'src/commands/redes.js', 'src/commands/acciones.js']) {
+      for (const fichero of ['src/commands/toimg.js', 'src/commands/redes.js', 'src/commands/acciones.js', 'src/commands/k.js', 'src/commands/group.js']) {
         const src = soloCodigo(fichero);
         const envios = [...src.matchAll(/\{\s*video:/g)];
         for (const m of envios) {
@@ -14831,22 +14832,33 @@ const ficheroDe = async (ext) => {
         exige(!!v && v.c.width === 320 && v.c.height === 240,
           'el gif sale con tamaño ' + JSON.stringify([v && v.c.width, v && v.c.height]) + ' y el fichero es 320x240: sin ancho ni alto no hay burbuja que pintar');
 
-        // Y UN VIDEO CORRIENTE NO PAGA ESE FFMPEG. Es la otra mitad: sacar una
-        // miniatura de cada reel en el unico core de la VPS es justo lo que se
-        // quito en su dia.
+        // Y UN VIDEO CORRIENTE, CON SU VISTA PREVIA Y SIN FFMPEG DE MAS (21
+        // nov). Aqui se comprobaba lo contrario: que un video saliera sin
+        // miniatura, sin tamaño y sin duracion, porque sacar una miniatura de
+        // cada reel era un ffmpeg mas en el unico core. Ya no lo es: el analisis
+        // que se hace por el camino (analizarMedio) la saca en la misma llamada
+        // y la guarda (utils/miniatura.js). Se analiza como lo haria traer() y
+        // el envio no puede lanzar otro sondeo.
         const conSonido = path.join(R, 'temp', 'x74_son_' + Math.random().toString(36).slice(2) + '.mp4');
         basura.push(conSonido);
         spawnSync(ffmpegPath, ['-y', '-f', 'lavfi', '-i', 'color=c=blue:s=320x240:d=1',
           '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=mono', '-shortest', '-pix_fmt', 'yuv420p', conSonido], { timeout: 60000 });
+        const mini74 = require(path.join(R, 'src/utils/miniatura'));
+        await redes._analizarMedio(conSonido);
+        const sondeosAntes = mini74._sondeados.size;
         const o2 = await lanzar('!x https://x.com/a/status/31',
           { fichero: conSonido, tipo: 'video', ext: 'mp4', bytes: 9000 });
         const v2 = o2.find((x) => x.c.video);
         exige(!!v2 && !v2.c.gifPlayback, 'un video con sonido sale como gif');
-        exige(!!v2 && v2.c.jpegThumbnail === null && v2.c.width === undefined,
-          'un video corriente se lleva el ffmpeg de la miniatura: eso es lo que hacia que subir 13 KB tardara 1699 ms, y un video no lo necesita');
+        exige(!!v2 && Buffer.isBuffer(v2.c.jpegThumbnail) && v2.c.jpegThumbnail[0] === 0xff && v2.c.jpegThumbnail[1] === 0xd8,
+          'un video corriente sale sin miniatura: la burbuja es un recuadro gris hasta que alguien lo baja');
+        exige(!!v2 && v2.c.width === 320 && v2.c.height === 240,
+          'un video corriente sale con tamaño ' + JSON.stringify([v2 && v2.c.width, v2 && v2.c.height]) + ' y el fichero es 320x240: la burbuja no sabe que forma tiene');
+        exige(!!v2 && v2.c.seconds === 1, 'un video corriente sale sin su duracion (' + JSON.stringify(v2 && v2.c.seconds) + ' y dura 1 s)');
+        exige(mini74._sondeados.size === sondeosAntes,
+          'mandar un video ya analizado lanza otro ffmpeg: la miniatura tenia que salir del analisis, gratis');
         exige(!!v2 && v2.c.video.url === conSonido,
           'un video corriente se reencoda: eso es un libx264 entero por cada reel en el unico core de la VPS, y solo hace falta para los gif');
-        exige(!!v2 && v2.c.seconds === undefined, 'un video corriente lleva duracion calculada a mano: no le hace falta y cuesta un ffmpeg');
       }
     }
 
@@ -26385,6 +26397,121 @@ const r = {};
     exige(K180.some((f) => f.uno.includes('He decidido dejar de intentarlo: te echo por el asco que me das.')),
       'el aviso de !kick que señaló el dueño ya no lo da el bot: «He decidido dejar de intentarlo: te echo por el asco que me das.»');
     if (fallos === antes180) console.log(verde('   ✓ el bot lo ve, lo decide y echa él: «el grupo» ya no juzga por él'));
+  }
+
+  // ── 181. LO QUE MANDA EL BOT LLEVA SU VISTA PREVIA (21 nov) ────────────────
+  // El dueño: «la mejor calidad posible para lo que es WhatsApp; calidad y
+  // velocidad de la mano». Una foto o un vídeo llevan en el propio mensaje su
+  // miniatura, su tamaño y su duración, y es lo que se ve antes de bajar nada.
+  // El bot los mandaba vacíos: en la VPS no hay sharp ni jimp, y los vídeos van
+  // con `jpegThumbnail: null` para que Baileys no lance su ffmpeg.
+  // utils/miniatura.js los saca con un solo ffmpeg suave, con tope de tiempo y
+  // sin repetir lo ya sondeado; lo reenviado lleva lo del original, y *!play*
+  // la duración que ya mide. Con ficheros de verdad.
+  {
+    console.log('\n181. LO QUE MANDA EL BOT LLEVA SU VISTA PREVIA');
+    const antes181 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const mini = require(path.join(R, 'src/utils/miniatura'));
+    const { ffmpegPath: ff181 } = require(path.join(R, 'src/utils/ffmpeg'));
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'vista181-'));
+    const hacer = (args, salida) => {
+      spawnSync(ff181, ['-hide_banner', '-loglevel', 'error', '-y', ...args, path.join(caja, salida)], { timeout: 60000 });
+      return path.join(caja, salida);
+    };
+    try {
+      // 1. El tamaño, leyendo la cabecera: JPEG, PNG, GIF (y WebP si este
+      //    ffmpeg sabe escribirlo).
+      const jpg = hacer(['-f', 'lavfi', '-i', 'testsrc=size=1080x1350:rate=1', '-frames:v', '1', '-q:v', '3'], 'foto.jpg');
+      const png = hacer(['-f', 'lavfi', '-i', 'testsrc=size=640x480:rate=1', '-frames:v', '1'], 'foto.png');
+      const gif = hacer(['-f', 'lavfi', '-i', 'testsrc=size=320x200:rate=5', '-t', '1'], 'anim.gif');
+      const webp = hacer(['-f', 'lavfi', '-i', 'testsrc=size=300x200:rate=1', '-frames:v', '1'], 'foto.webp');
+      const tam = (f) => (fs.existsSync(f) ? mini.dimensiones(fs.readFileSync(f)) : null);
+      exige(JSON.stringify(tam(jpg)) === '{"ancho":1080,"alto":1350}', `el tamaño de un JPEG sale ${JSON.stringify(tam(jpg))} y es 1080x1350`);
+      exige(JSON.stringify(tam(png)) === '{"ancho":640,"alto":480}', `el tamaño de un PNG sale ${JSON.stringify(tam(png))} y es 640x480`);
+      exige(JSON.stringify(tam(gif)) === '{"ancho":320,"alto":200}', `el tamaño de un GIF sale ${JSON.stringify(tam(gif))} y es 320x200`);
+      if (fs.existsSync(webp) && fs.statSync(webp).size > 30) {
+        exige(JSON.stringify(tam(webp)) === '{"ancho":300,"alto":200}', `el tamaño de un WebP sale ${JSON.stringify(tam(webp))} y es 300x200`);
+      }
+      exige(mini.dimensiones(Buffer.from('esto no es una foto, es texto de relleno')) === null, 'un fichero que no es foto devuelve un tamaño inventado');
+
+      // 2. Una foto: tamaño de verdad y miniatura de 160 px de lado largo.
+      const f1 = await mini.deFoto(fs.readFileSync(jpg));
+      const t1 = f1.jpegThumbnail ? mini.dimensiones(f1.jpegThumbnail) : null;
+      exige(f1.width === 1080 && f1.height === 1350, `la foto sale con tamaño ${JSON.stringify([f1.width, f1.height])} y es 1080x1350`);
+      exige(!!t1 && Math.max(t1.ancho, t1.alto) === mini.LADO && t1.alto > t1.ancho,
+        `la miniatura de la foto sale ${JSON.stringify(t1)}: tiene que ser un JPEG de ${mini.LADO} px de lado largo y con la forma de la foto`);
+      exige(!!f1.jpegThumbnail && f1.jpegThumbnail.length < 16 * 1024, `la miniatura pesa ${f1.jpegThumbnail ? f1.jpegThumbnail.length : 0} bytes: va dentro de cada mensaje`);
+
+      // 3. Si ffmpeg no llega a tiempo, sale sin miniatura pero CON tamaño, y
+      //    con null para que Baileys no copie la foto a disco por nada.
+      const t0 = Date.now();
+      const f2 = await mini.deFoto(fs.readFileSync(jpg), { topeMs: 1 });
+      exige(Date.now() - t0 < 1000 && f2.width === 1080 && f2.height === 1350 && f2.jpegThumbnail === null,
+        `con el tope agotado la foto no sale al momento con su tamaño y la miniatura en null: ${JSON.stringify({ ms: Date.now() - t0, w: f2.width, h: f2.height, t: f2.jpegThumbnail === null ? null : typeof f2.jpegThumbnail })}`);
+
+      // 4. Un vídeo: miniatura, tamaño y duración; y lo ya sondeado no se repite.
+      const mp4 = hacer(['-f', 'lavfi', '-i', 'testsrc=size=480x854:rate=25', '-t', '3', '-pix_fmt', 'yuv420p'], 'video.mp4');
+      mini._olvidar();
+      const v1 = await mini.deVideo(mp4);
+      const antesCache = mini._sondeados.size;
+      const v2 = await mini.deVideo(mp4);
+      exige(v1.width === 480 && v1.height === 854 && v1.seconds === 3,
+        `el vídeo sale con ${JSON.stringify({ w: v1.width, h: v1.height, s: v1.seconds })} y es 480x854 de 3 s`);
+      exige(Buffer.isBuffer(v1.jpegThumbnail) && v1.jpegThumbnail[0] === 0xff, 'el vídeo sale sin miniatura');
+      exige(mini._sondeados.size === antesCache && v2.jpegThumbnail === v1.jpegThumbnail,
+        'el mismo vídeo se vuelve a sondear: lo ya mirado tenía que salir guardado');
+      const sinVideo = hacer(['-f', 'lavfi', '-i', 'sine=frequency=440:duration=2', '-c:a', 'aac'], 'audio.m4a');
+      const v3 = await mini.deVideo(sinVideo);
+      exige('jpegThumbnail' in v3 && v3.jpegThumbnail === null, 'un vídeo sin imagen sale con la miniatura en undefined: Baileys lanzaría su ffmpeg');
+
+      // 5. EL GIRO. Un vertical grabado apaisado con su marca de giro: ffmpeg
+      //    gira la miniatura, y el tamaño tiene que girar con ella.
+      const vertical = Buffer.from(fs.readFileSync(path.join(caja, 'foto.jpg')));
+      const miniVertical = (await mini.deFoto(vertical)).jpegThumbnail;
+      const girado = mini._leerInfo('  Duration: 00:00:08.00, start: 0.000000, bitrate: 900 kb/s\n'
+        + '  Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(progressive), 1280x720, 800 kb/s, 30 fps\n', miniVertical);
+      exige(girado.ancho === 720 && girado.alto === 1280 && girado.segundos === 8,
+        `un vertical con marca de giro sale ${JSON.stringify(girado)}: el tamaño tiene que seguir a la imagen girada (720x1280)`);
+
+      // 6. Lo reenviado lleva lo del original, gratis; un audio, su duración y
+      //    su onda; un vídeo grande en memoria no se escribe para mirarlo.
+      const nodo = { jpegThumbnail: Buffer.from([0xff, 0xd8, 1, 2]), width: 720, height: 1280, seconds: 9, gifPlayback: true, waveform: new Uint8Array([3, 4]) };
+      const rv = await mini.paraReenviar(nodo, Buffer.alloc(10), 'video');
+      exige(rv.jpegThumbnail && rv.jpegThumbnail[2] === 1 && rv.width === 720 && rv.seconds === 9 && rv.gifPlayback === true && !rv.waveform,
+        `el reenvío de un vídeo no lleva lo del original: ${JSON.stringify(Object.keys(rv))}`);
+      const ra = await mini.paraReenviar({ seconds: 14, waveform: new Uint8Array([5]), jpegThumbnail: Buffer.from('x') }, Buffer.alloc(10), 'audio');
+      exige(ra.seconds === 14 && ra.waveform && ra.waveform[0] === 5 && !('jpegThumbnail' in ra),
+        `el reenvío de una nota de voz no lleva su duración y su onda: ${JSON.stringify(Object.keys(ra))}`);
+      const grande = await mini.paraReenviar({ width: 10, height: 20 }, Buffer.alloc(11 * 1024 * 1024), 'video');
+      exige(grande.jpegThumbnail === null && grande.width === 10, 'un vídeo de 11 MB en memoria se escribe a disco para sacarle la miniatura');
+
+      // 7. *!play*: la duración que ya mide el descargador va al mensaje y se
+      //    guarda en la caché. En un clon aparte, para no tocar la de verdad.
+      const cajaMusica = path.join(caja, 'bot');
+      fs.cpSync(path.join(R, 'src'), path.join(cajaMusica, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(cajaMusica, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(cajaMusica, 'node_modules'), 'dir');
+      fs.writeFileSync(path.join(caja, 'cancion.mp3'), Buffer.alloc(4096, 7));
+      const guion = [
+        "const MC = require('./src/utils/musicCache');",
+        "(async () => {",
+        "  await MC.setCached('hotline bling', " + JSON.stringify(path.join(caja, 'cancion.mp3')) + ", 'Hotline Bling', 'audio/mpeg', 'mp3', null, '', 267.4);",
+        "  const r = await MC.getCached('hotline bling');",
+        "  console.log('R181' + JSON.stringify({ segundos: r && r.segundos }));",
+        "  process.exit(0);",
+        "})();",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: cajaMusica, encoding: 'utf8', timeout: 30000, env: { ...process.env, LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R181'));
+      const rm = linea ? JSON.parse(linea.slice(4)) : null;
+      exige(rm && rm.segundos === 267, `la caché de *!play* no guarda la duración (${linea || (out.stderr || '').split('\n').slice(0, 2).join(' ')})`);
+      exige(/segundos: dur \|\| null/.test(soloCodigo('src/utils/downloader.js')),
+        'el descargador ya no devuelve la duración que mide: Baileys la recalculará copiando la canción entera');
+      exige(/seconds: Math\.round\(Number\(result\.segundos\)\)/.test(soloCodigo('src/commands/music.js')),
+        '*!play* ya no manda la duración: Baileys copia la canción a disco para calcularla antes de subirla');
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes181) console.log(verde('   ✓ fotos y vídeos salen con miniatura, tamaño y duración, sin ffmpeg de más; lo reenviado, con lo del original'));
   }
 
 

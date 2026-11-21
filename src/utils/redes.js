@@ -58,6 +58,7 @@
 // agua, y solo si no queda ninguno cae al mejor a secas.
 
 const { spawnSuave } = require('./hijos');
+const miniatura = require('./miniatura');
 const fs = require('fs-extra');
 const fsp = require('fs').promises;
 const path = require('path');
@@ -1412,6 +1413,10 @@ const EXTRA_DB = (() => {
 // Asi que se hace igual: un fotograma con ffmpeg, y el tamaño del propio
 // analisis que ya se hacia. Un gif son setenta kilobytes, asi que es barato. Y
 // si falla, se manda sin ella: una miniatura no vale un comando roto.
+//
+// (21 nov) Y ya no es solo cosa de los gif: todo lo que manda el bot lleva su
+// miniatura, su tamaño y su duracion, y salen del mismo ffmpeg que analiza el
+// fichero (utils/miniatura.js, y analizarMedio aqui abajo).
 // ─── Y ADEMAS SE REHACE, CON LA RECETA QUE YA FUNCIONA ──────────────────────
 //
 // Con la miniatura y el tamaño puestos, el gif POR FIN se dibujaba... y seguia
@@ -1491,23 +1496,13 @@ async function prepararGif(fichero) {
 }
 
 async function datosDeGif(fichero) {
-  const medio = await analizarMedio(fichero).catch(() => ({}));
-  let thumb = null;
-  const jpg = path.join(TEMP_DIR, `thumb_${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`);
-  try {
-    await new Promise((resolve, reject) => {
-      const ff = spawnSuave(ffmpegPath, ['-y', '-i', fichero, '-frames:v', '1',
-        '-vf', "scale='min(64,iw)':-2", '-q:v', '8', jpg]);
-      const mata = setTimeout(() => { try { ff.kill('SIGKILL'); } catch {} reject(new Error('miniatura')); }, 8000);
-      ff.on('error', (e) => { clearTimeout(mata); reject(e); });
-      ff.on('close', (c) => { clearTimeout(mata); c === 0 ? resolve() : reject(new Error(`miniatura ${c}`)); });
-    });
-    thumb = await fs.readFile(jpg);
-  } catch (e) {
-    logger.info(`redes: sin miniatura para el gif (${String(e.message).slice(0, 50)})`);
-  } finally {
-    await fs.remove(jpg).catch(() => {});
-  }
+  // Un solo ffmpeg para la miniatura, el tamaño y la duracion, el mismo que
+  // usa todo lo que manda el bot (utils/miniatura.js, 21 nov). Antes eran
+  // dos: el analisis y otro aparte para la miniatura.
+  const v = await miniatura.deVideo(fichero, {}, { topeMs: 8000 });
+  const medio = { ancho: v.width, alto: v.height, segundos: v.seconds };
+  const thumb = v.jpegThumbnail || null;
+  if (!thumb) logger.info('redes: sin miniatura para el gif');
   // La DURACION tambien va al mensaje. Baileys solo la calcula para el audio
   // (Utils/messages.js:134), asi que un video sale siempre con `seconds` vacio.
   // A uno normal le da igual —tiene su boton de play— pero un gif se pinta en
@@ -1532,41 +1527,40 @@ function esAnimado(medio) {
   return Boolean(medio && medio.probado && !medio.audio);
 }
 
-function analizarMedio(fichero) {
-  return new Promise((resolve) => {
-    const proc = spawnSuave(ffmpegPath, ['-hide_banner', '-i', fichero, '-t', '0', '-f', 'null', '-']);
-    let texto = '';
-    const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 20000);
-    proc.stderr?.on('data', (d) => { texto += d.toString(); });
-    proc.on('error', () => { clearTimeout(matar); resolve({ probado: false, video: null, audio: false }); });
-    proc.on('close', () => {
-      clearTimeout(matar);
-      // Sin ninguna linea de Stream no es que no haya video: es que ffmpeg no
-      // pudo leer el fichero, y eso es otra cosa.
-      const probado = /Stream #\d+:\d+/.test(texto);
-      const m = /Stream #\d+:\d+.*: Video: (\w+)/.exec(texto);
-      // Y EL TAMAÑO. Hace falta para los gif: ver la nota de datosDeGif.
-      const d = /Stream #\d+:\d+.*: Video: [^\n]*?[ ,](\d{2,5})x(\d{2,5})/.exec(texto);
-      const dur = /Duration: (\d+):(\d\d):(\d\d)\.(\d+)/.exec(texto);
-      // LA ETIQUETA DEL HEVC Y LOS FOTOGRAMAS. Los dos hacen falta para mandar
-      // el HEVC tal cual: el iPhone solo abre el que va etiquetado `hvc1`, y
-      // lo que cuesta recodificar depende de cuantos fotogramas hay que hacer.
-      const etiqueta = /Stream #\d+:\d+.*: Video: \w+[^\n]*?\((\w{4}) \/ 0x[0-9a-f]+\)/i.exec(texto);
-      const fps = /Stream #\d+:\d+.*: Video: [^\n]*?, ([\d.]+) fps/.exec(texto);
-      resolve({
-        probado,
-        video: m ? m[1].toLowerCase() : null,
-        etiqueta: etiqueta ? etiqueta[1].toLowerCase() : null,
-        fps: fps ? Number(fps[1]) : null,
-        audio: /: Audio: /.test(texto),
-        ancho: d ? Number(d[1]) : null,
-        alto: d ? Number(d[2]) : null,
-        segundos: dur
-          ? Math.max(1, Math.round(Number(dur[1]) * 3600 + Number(dur[2]) * 60 + Number(dur[3]) + Number(`0.${dur[4]}`)))
-          : null,
-      });
-    });
-  });
+// CON LA MINIATURA DE PASO, Y UNA VEZ POR FICHERO (21 nov). Esto era un
+// ffmpeg con `-t 0 -f null` solo para leer lo que dice al abrir la entrada. Lo
+// hace ahora utils/miniatura.js, que en la misma llamada saca la miniatura del
+// mensaje y cuesta menos (57 frente a 74 ms en un MP4 de 12 s), y que guarda lo
+// sondeado por fichero: el mismo video se analizaba dos, tres y cuatro veces
+// por el camino y ahora una. Lo que se lee de la salida es lo mismo de antes.
+async function analizarMedio(fichero) {
+  const r = await miniatura.sondear(fichero, { topeMs: 20000 });
+  if (!r) return { probado: false, video: null, audio: false };
+  const texto = r.info || '';
+  // Sin ninguna linea de Stream no es que no haya video: es que ffmpeg no
+  // pudo leer el fichero, y eso es otra cosa.
+  const probado = /Stream #\d+:\d+/.test(texto);
+  const m = /Stream #\d+:\d+.*: Video: (\w+)/.exec(texto);
+  // Y EL TAMAÑO. Hace falta para los gif: ver la nota de datosDeGif.
+  const d = /Stream #\d+:\d+.*: Video: [^\n]*?[ ,](\d{2,5})x(\d{2,5})/.exec(texto);
+  const dur = /Duration: (\d+):(\d\d):(\d\d)\.(\d+)/.exec(texto);
+  // LA ETIQUETA DEL HEVC Y LOS FOTOGRAMAS. Los dos hacen falta para mandar
+  // el HEVC tal cual: el iPhone solo abre el que va etiquetado `hvc1`, y
+  // lo que cuesta recodificar depende de cuantos fotogramas hay que hacer.
+  const etiqueta = /Stream #\d+:\d+.*: Video: \w+[^\n]*?\((\w{4}) \/ 0x[0-9a-f]+\)/i.exec(texto);
+  const fps = /Stream #\d+:\d+.*: Video: [^\n]*?, ([\d.]+) fps/.exec(texto);
+  return {
+    probado,
+    video: m ? m[1].toLowerCase() : null,
+    etiqueta: etiqueta ? etiqueta[1].toLowerCase() : null,
+    fps: fps ? Number(fps[1]) : null,
+    audio: /: Audio: /.test(texto),
+    ancho: d ? Number(d[1]) : null,
+    alto: d ? Number(d[2]) : null,
+    segundos: dur
+      ? Math.max(1, Math.round(Number(dur[1]) * 3600 + Number(dur[2]) * 60 + Number(dur[3]) + Number(`0.${dur[4]}`)))
+      : null,
+  };
 }
 
 // ─── EL HEVC VA TAL CUAL, Y ESO ES LO QUE ARREGLA LA ESPERA ─────────────────

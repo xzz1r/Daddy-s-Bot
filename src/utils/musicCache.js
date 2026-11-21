@@ -211,7 +211,7 @@ async function getCached(query) {
   entry.timestamp = Date.now();
   scheduleIndexSave();
 
-  return { filePath, title: entry.title, mimetype: entry.mimetype, ext: entry.ext };
+  return { filePath, title: entry.title, mimetype: entry.mimetype, ext: entry.ext, segundos: entry.segundos || null };
 }
 
 // Tira las entradas más viejas hasta respetar los dos topes. El tamaño de una
@@ -239,7 +239,7 @@ async function desalojar() {
   }
 }
 
-async function setCached(query, srcPath, title, mimetype, ext, srcBuffer = null, requester = '') {
+async function setCached(query, srcPath, title, mimetype, ext, srcBuffer = null, requester = '', segundos = null) {
   await loadIndex();
   const k = cacheKey(query);
 
@@ -267,6 +267,8 @@ async function setCached(query, srcPath, title, mimetype, ext, srcBuffer = null,
   // que nadie podra volver a encontrar: ocupan sitio y encima se re-descargan,
   // gastando el cupo que la cache existe para no gastar.
   index[k] = { file: cacheFile, title, mimetype, ext, requester: requester || '', timestamp: Date.now(), bytes, query: String(query || ''), v: CLAVE_VERSION };
+  // La duracion, para mandarla hecha la proxima vez (21 nov).
+  if (Number(segundos) > 0) index[k].segundos = Math.round(Number(segundos));
 
   // Desalojo por NÚMERO y por TAMAÑO. Solo con el tope de 60 canciones, un
   // puñado de temas largos en alta calidad podía dejar la caché en más de un

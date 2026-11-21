@@ -484,7 +484,10 @@ async function fetchFromProvider(videoId, provider) {
     const dur = await audioDuration(dest);
     if (dur != null && dur < MIN_FULL_SECONDS) throw delVideo(new Error('preview'));
     const safeTitle = String(title).replace(/[\r\n]/g, ' ').slice(0, 90).trim() || 'Sin título';
-    return { filePath: dest, title: safeTitle, mimetype: 'audio/mpeg', ext: 'mp3' };
+    // La duracion ya medida va con la cancion (21 nov): si el mensaje la
+    // lleva, Baileys no la vuelve a calcular, y para calcularla copiaba antes
+    // el MP3 entero a un temporal.
+    return { filePath: dest, title: safeTitle, mimetype: 'audio/mpeg', ext: 'mp3', segundos: dur || null };
   } catch (err) {
     await cleanupPartials(baseName);
     throw err;

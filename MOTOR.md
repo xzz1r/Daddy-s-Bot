@@ -1309,6 +1309,42 @@ duración a lo que quepa y se codifica una vez más. Ese GIF sale a 384 px, q35,
 7,7 s y 961 KB. Dos pasadas de recorte, medio segundo como mínimo. La capa
 142 lo prueba.
 
+**La vista previa de lo que manda el bot** (21 nov, «la mejor calidad posible
+para lo que es WhatsApp; calidad y velocidad de la mano»). Una foto o un vídeo
+llevan dentro del mensaje su miniatura (`jpegThumbnail`), su tamaño (`width`,
+`height`) y, un vídeo, su duración (`seconds`): es lo que se ve antes de bajar
+nada, lo que forma la burbuja y el álbum, y la foto de la notificación. El bot
+los mandaba vacíos: Baileys los calcula con sharp o jimp, y en la VPS no hay
+ninguno (cada foto intentaba los dos, fallaba y antes copiaba la foto entera a
+un temporal para nada), y los vídeos van con `jpegThumbnail: null` para que
+Baileys no lance su ffmpeg. Ahora `utils/miniatura.js`:
+
+- **Un ffmpeg, a prioridad baja, da la miniatura (160 px de lado largo, unos
+  pocos KB), el tamaño y la duración.** Medido: abrir un vídeo y sacar ese
+  fotograma (57 ms en un MP4 de 12 s) cuesta menos que la lectura vacía
+  `-t 0 -f null` (74 ms) que hacía `analizarMedio` de redes, y arrancar ffmpeg
+  ya son 46. Así que redes analiza con esto y la miniatura le sale gratis, y lo
+  que se lee de la salida es lo mismo de antes, comprobado campo a campo con
+  el ffmpeg de la VPS y con el de 2018.
+- **Lo ya sondeado no se repite** (por ruta, tamaño y fecha): un vídeo de redes
+  se analizaba dos, tres y cuatro veces por el camino.
+- **Con tope** (1,5 s una foto, 3 s un vídeo): si no llega, la foto sale con el
+  tamaño leído de su cabecera (JPEG, PNG, WebP y GIF, sin decodificar nada) y
+  la miniatura en `null`, que tampoco hace copiar nada a Baileys.
+- **Lo reenviado lleva lo del original** (`paraReenviar`): `!k`, el `!tagall`
+  con foto, vídeo o audio y la foto o el vídeo de ver una vez de `!toimg` y
+  `!tovid`. La nota de voz sigue siendo nota de voz, con su onda y su duración.
+- En un álbum, la vista de cada foto se prepara mientras sube la anterior.
+- `!tovid` y el GIF de `!toimg` salían sin tamaño, como los gif de `!x` que
+  no se dibujaban; ahora llevan los suyos.
+- **`!play` manda la duración que ya mide** el descargador (para tirar los
+  avances de 30 s), y la caché la guarda: sin ella Baileys copiaba la canción
+  entera a un temporal para calcularla.
+
+La capa 181 lo prueba con ficheros de verdad; la 74, que un vídeo ya analizado
+sale con su vista sin otro ffmpeg; la 50 y la 58, que ningún
+vídeo sale con la miniatura en `undefined`.
+
 ## Las fotos de ver una vez, en disco (15 nov)
 
 En el grupo del dueño todas las fotos van en ver una vez (es la regla, y el bot

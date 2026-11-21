@@ -3,6 +3,7 @@ const { isOwner, isMainOwner, isAdmin, isBotJid, isBotAdmin, isGroupAdmin, getTa
 const { streamToBuffer, MAX_DOWNLOAD_BYTES, atomicWriteJson, readJsonOrEnoent, pickFresh, pickBaraja, withTimeout } = require('../utils/helpers');
 const path = require('path');
 const logger = require('../utils/logger');
+const miniatura = require('../utils/miniatura');
 const config = require('../config');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled, toggleSoloAdmins, isSoloAdminsEnabled, toggleAutoAceptar, isAutoAceptarEnabled, vistoActivo, ponerVisto } = require('../utils/state');
 const { aceptarPendientes } = require('../utils/joinRequests');
@@ -308,15 +309,21 @@ async function cmdTodos(sock, msg, args, groupMeta) {
     }
   }
 
+  // CON LO QUE TRAIA EL ORIGINAL (21 nov): su miniatura, su tamaño, su
+  // duracion y, en una nota de voz, su onda (utils/miniatura.js). Sin eso la
+  // foto salia sin vista previa, el video con el ffmpeg de Baileys por fuera
+  // del semaforo y una nota de voz llegaba como cancion con la onda plana.
+  const previa = (nodo, buf, tipo) => miniatura.paraReenviar(nodo, buf, tipo);
+
   // --- Media attached to the command message itself ---
   const m = msg.message;
   if (m?.imageMessage) {
     const buf = await tryDl(m.imageMessage, 'image');
-    if (buf) return sock.sendMessage(jid, { image: buf, caption: caption || m.imageMessage.caption || '', mentions });
+    if (buf) return sock.sendMessage(jid, { image: buf, ...(await previa(m.imageMessage, buf, 'foto')), caption: caption || m.imageMessage.caption || '', mentions });
   }
   if (m?.videoMessage) {
     const buf = await tryDl(m.videoMessage, 'video');
-    if (buf) return sock.sendMessage(jid, { video: buf, caption: caption || m.videoMessage.caption || '', mentions });
+    if (buf) return sock.sendMessage(jid, { video: buf, jpegThumbnail: null, ...(await previa(m.videoMessage, buf, 'video')), caption: caption || m.videoMessage.caption || '', mentions });
   }
   if (m?.stickerMessage) {
     const buf = await tryDl(m.stickerMessage, 'sticker');
@@ -347,11 +354,11 @@ async function cmdTodos(sock, msg, args, groupMeta) {
 
     if (quoted.imageMessage) {
       const buf = await tryDl(quoted.imageMessage, 'image');
-      if (buf) return sock.sendMessage(jid, { image: buf, caption: caption || quoted.imageMessage.caption || '', mentions });
+      if (buf) return sock.sendMessage(jid, { image: buf, ...(await previa(quoted.imageMessage, buf, 'foto')), caption: caption || quoted.imageMessage.caption || '', mentions });
     }
     if (quoted.videoMessage) {
       const buf = await tryDl(quoted.videoMessage, 'video');
-      if (buf) return sock.sendMessage(jid, { video: buf, caption: caption || quoted.videoMessage.caption || '', mentions });
+      if (buf) return sock.sendMessage(jid, { video: buf, jpegThumbnail: null, ...(await previa(quoted.videoMessage, buf, 'video')), caption: caption || quoted.videoMessage.caption || '', mentions });
     }
     if (quoted.stickerMessage) {
       const buf = await tryDl(quoted.stickerMessage, 'sticker');
@@ -363,7 +370,15 @@ async function cmdTodos(sock, msg, args, groupMeta) {
     }
     if (quoted.audioMessage) {
       const buf = await tryDl(quoted.audioMessage, 'audio');
-      if (buf) return sock.sendMessage(jid, { audio: buf, mimetype: quoted.audioMessage.mimetype || 'audio/mp4', mentions });
+      if (buf) {
+        return sock.sendMessage(jid, {
+          audio: buf, mimetype: quoted.audioMessage.mimetype || 'audio/mp4',
+          // Una nota de voz sigue siendo nota de voz, con su onda y su duracion.
+          ...(quoted.audioMessage.ptt ? { ptt: true } : {}),
+          ...(await previa(quoted.audioMessage, buf, 'audio')),
+          mentions,
+        });
+      }
     }
     // Quoted text → use as body if no caption given
     const quotedText = quoted.conversation || quoted.extendedTextMessage?.text || '';

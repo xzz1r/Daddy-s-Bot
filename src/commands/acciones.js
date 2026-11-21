@@ -28,6 +28,7 @@ const { ffmpegPath } = require('../utils/ffmpeg');
 const { spawn } = require('child_process');
 const RX = require('../data/accionPhrases');
 const logger = require('../utils/logger');
+const miniatura = require('../utils/miniatura');
 
 // Comando -> categoría de nekos.best y pool de frases.
 //
@@ -1382,8 +1383,10 @@ function hazAccion(nombre) {
     // aparecia un titulo japones que devolvia al lector a que esto es un gif
     // sacado de una web. Se sigue pidiendo a la API porque viene en la misma
     // respuesta, pero no se enseña.
+    // Una imagen fija, con su miniatura y su tamaño (21 nov, utils/miniatura.js);
+    // el gif ya los lleva de la despensa.
     const media = traido.imagen
-      ? { image: traido.imagen, caption: frase, mentions: [quienCanon, objCanon] }
+      ? { image: traido.imagen, ...(await miniatura.deFoto(traido.imagen, { topeMs: 800 })), caption: frase, mentions: [quienCanon, objCanon] }
       : {
           video: traido.mp4,
           gifPlayback: true,
