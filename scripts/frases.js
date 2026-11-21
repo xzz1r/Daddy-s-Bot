@@ -159,7 +159,9 @@ const POOLS_MODO = args.includes('--pools');
 // Ese mismo 20 nov, al fortalecer las frases de dinámicas (aura, apuesta,
 // robo, esperas, duelo, rencor, tienda, bote, banco y cobro), con el taco
 // solo donde suena natural: nadie 188, analogía 3, enlatado 120.
-const TECHO = { nadie: 188, analogia: 3, coletilla: 7, eco: 0, molde: 65, enlatado: 120, roto: 0 };
+// El 21 nov, cuando el bot dejó de escudarse en «el grupo» («el grupo ha
+// decidido», «el grupo te ha visto») y pasó a decirlo él: enlatado 116.
+const TECHO = { nadie: 188, analogia: 3, coletilla: 7, eco: 0, molde: 65, enlatado: 116, roto: 0 };
 
 // ─── corpus ────────────────────────────────────────────────────────────────
 const vistos = new Set();

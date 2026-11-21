@@ -366,6 +366,19 @@ se vuelve a hacer sin que el dueño lo pida otra vez.
 Lo que se queda es suyo del 17 nov: los avisos de fotos y de enlaces no dan
 por hecho que lo que se mandó es sexual («no debe asumir nada»). Capa 171.
 
+## El bot no se escuda en el grupo
+
+Lo pidió el dueño (21 nov), con un `!kick` que acababa en «El grupo ha
+decidido dejar de intentarlo y quitarte de en medio»: «quita en todo el bot
+cuando dice "el grupo ha decidido" o "el grupo te ha visto"… no dan más que
+pena». El bot lo ve, lo decide y echa él («te he visto», «me das asco», «te
+echo por el asco que me das») o lo dice en impersonal («se ha decidido»). En
+`!kick` ya no es «te echan»: es «te echo». Quedan fuera las escenas de las
+acciones (ahí el grupo es parte de lo que pasa) y el halago que cuenta cómo le
+contesta la peña a quien escribe. Cuatro de los ejemplos intocables del dueño
+en `!aura` todavía hablan así; no se tocan sin que él lo diga. GUIA, regla 11;
+capa 180.
+
 ## La peña activa se halaga, sin veneno
 
 Lo pidió el dueño (18 oct): a quien escribe, el bot lo halaga por su actividad,

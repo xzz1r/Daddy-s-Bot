@@ -15,7 +15,7 @@
 const GUARDADO = [
   'Guardadito. Que nadie diga que no sabes esconder lo poco que tienes.',
   'Guardado, y la cerradura ya ha cobrado su parte. Tu miedo empieza a salir caro.',
-  'Al banco. Ahora el grupo entero sabe que tienes algo que esconder, y que te cagas por perderlo.',
+  'Al banco. Ahora sé que tienes algo que esconder, y que te cagas por perderlo.',
   'Con dos vueltas de llave. El candado ya ha cobrado, y tú ya puedes dejar de temblar.',
   'Guardado. Ojo, que un golpe redondo se lleva una parte de dentro: has pagado por un escondite con agujero.',
   'Cerrado. Lo que queda fuera sigue siendo carne, por si acaso.',
@@ -42,7 +42,7 @@ const SACADO = [
   'Sacado. El miedo se paga a plazos y este era uno.',
   'Otra vez en la mesa %C, con su mordida, y tú otra vez a tiro de cualquiera.',
   'Sacado del banco. Menos de lo que metiste, como te dijeron, y como te pasa con todo.',
-  'Fuera. Y de paso ya sabe todo el grupo que tenías algo, y que ahora lo llevas encima.',
+  'Fuera. Y de paso me entero de que tenías algo, y de que ahora lo llevas encima.',
   'Sacado. Vuelve a la mesa, vuelve a ser carne.',
   'Fuera. Pagaste por guardarlo y ahora por sacarlo: doble peaje por tu propio miedo.',
   'Abierto con tu propia llave. La cerradura también cobra, y te ha tratado como a cualquiera, que es lo que eres.',

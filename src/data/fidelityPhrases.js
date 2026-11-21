@@ -43,7 +43,7 @@ const FIEL_MID = [
   'No has hecho nada todavía, pero tienes la excusa redactada por si acaso.',
   'Eres fiel cuando te miran. Cuando no te miran, miras tú, y bastante, chiquitina.',
   'Ayudas a tus amigos si no coincide con el fútbol, con la siesta o con un plan mejor.',
-  '[nombre] no engaña a nadie porque no le sale ligar. El día que le salga, el grupo tiene tema para un año.',
+  '[nombre] no engaña a nadie porque no le sale ligar. El día que le salga, tengo tema para un año.',
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -104,7 +104,7 @@ const INFIEL_HIGH = [
   'Tienes dos cargadores, dos móviles y dos versiones del mismo finde. Las dos te salen bien, y eso asusta.',
   'Borras el historial y acto seguido pides que confíen en ti.',
   '[nombre] pide perdón con el mismo ramo a parejas distintas. En la floristería ya le conocen.',
-  'Quien salga contigo se va a enterar de la mitad. La otra mitad la sabrá el grupo entero, con capturas.',
+  'Quien salga contigo se va a enterar de la mitad. La otra mitad la sabré yo, con capturas.',
   'Eres capaz de liarte con alguien en una boda mientras tu pareja baila con la abuela.',
   'Tendrías Tinder con la foto de las vacaciones que te pagó tu pareja.',
   'Pondrías «en camino» desde la cama de otra persona.',

@@ -49,7 +49,7 @@ const CIERRES = [
   'Ahí os quedáis, los {N}, con el culo al aire.',
   'El bot ha hablado: los {N}, y que os den por saco.',
   'Sois {N}. Sois mierda de hoy. Mañana otra tanda de mierda.',
-  'Ahí quedáis los {N}, con nombre, apellido y el grupo mirando.',
+  'Ahí quedáis los {N}, con nombre, apellido y mi firma debajo.',
   '{N} menciones de golpe. Ya no se puede disimular.',
   'Los {N}, en fila y a la vista. El orden da igual, la vergüenza es la misma.',
   'Sois {N} y os ha tocado por sorteo. Ni el sorteo os quería.',

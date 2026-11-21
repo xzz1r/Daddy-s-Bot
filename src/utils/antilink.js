@@ -394,7 +394,7 @@ const PERMISO_ENLACE = [
   'fuera. El enlace se queda fuera hasta que un admin te dé el *!allow*, y tú detrás si insistes.',
   'ese enlace no ha llegado ni a cargar. Sin el *!allow* de un admin, así acaban todos.',
   'eliminado, y con testigos. Pídele el *!allow* a un admin si no quieres que esto se repita delante de todos.',
-  'borrado. Lo que ha visto el grupo es que te pasas las normas por el culo. El *!allow* lo da un admin.',
+  'borrado. Lo que he visto es que te pasas las normas por el culo. El *!allow* lo da un admin.',
   'quitado. Sin el *!allow* aquí no pega nadie, y tú no lo tienes. Arrástrate hasta un admin.',
   'fuera. Has tardado más en copiar el link que yo en borrarlo. El *!allow* te lo da un admin.',
   'a tomar viento el enlace. Los admins reparten el *!allow*, y a ti todavía no te ha tocado.',

@@ -46,7 +46,7 @@ const POBRE = 100;
 const VEREDICTOS = {
   nunca: [
     'No ha escrito nunca, ni un hola. Está aquí de adorno.',
-    'Cero mensajes desde que entró. El grupo conoce su número y poco más.',
+    'Cero mensajes desde que entró. De su paso por aquí solo consta el número.',
     'Ocupa plaza y no ha dicho ni mu. Ni para despedirse va a abrir la boca.',
   ],
   fantasmaLargo: [
@@ -57,7 +57,7 @@ const VEREDICTOS = {
   ],
   fantasma: [
     'Días y días sin abrir la boca. Lo que pasa en el grupo le da igual, o eso parece.',
-    'Hace días que no escribe ni una letra. El grupo ha dejado de contar con su opinión.',
+    'Hace días que no escribe ni una letra. Su opinión ya no cuenta para nada.',
     'Lleva días sin escribir. Su último mensaje ya queda tan arriba que no se encuentra.',
     'Más de una semana sin dar señales. Cuando vuelva, habrá que presentarle al grupo otra vez.',
   ],
@@ -93,7 +93,7 @@ const VEREDICTOS = {
     'Una fortuna de chat. Fuera de aquí no le llega ni para el pan.',
   ],
   pobre: [
-    'Su cuenta da pena hasta al bot, y el resto del grupo lo sabe.',
+    'Su cuenta da pena hasta al bot, y al bot no le da pena nada.',
     'Pobre de solemnidad. Mira el precio de cada comando y se va sin pedir nada.',
     'No le llega ni para lo más barato de la tienda, y aun así entra a mirar.',
   ],

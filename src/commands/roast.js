@@ -32,11 +32,11 @@ function getActivityPhrases(count) {
   const c = fmt(count);
   if (count === 0) {
     return [
-      `Cero mensajes, %N. Ni un hola, ni un audio, ni una puta queja. El grupo no tiene ni una prueba de que respiras.`,
+      `Cero mensajes, %N. Ni un hola, ni un audio, ni una puta queja. No tengo ni una prueba de que respiras.`,
       `%N, cero mensajes. Todavía no has empezado y ya se te da mal.`,
       `Cero, %N. Lo normal es entrar y saludar, y tú entraste y te sentaste.`,
       `%N, contador a cero. Si te fueras ahora, se iría alguien de quien no queda ni una frase.`,
-      `Cero mensajes, %N. Nadie en el grupo sabe cómo suenas.`,
+      `Cero mensajes, %N. Ni sé cómo suenas.`,
       `%N, ni uno. El grupo lleva hablando todo este tiempo y tú mirando como quien mira el tráfico.`,
       `Cero, %N. Entrar te costó un toque, y escribir por lo visto cuesta más.`,
       `%N, cero mensajes. Parasitismo puro: todo lo que pasa aquí te lo llevas y no devuelves ni un emoji.`,
@@ -55,7 +55,7 @@ function getActivityPhrases(count) {
       `%N, ${c} mensajes. De vez en cuando asomas la cabeza, compruebas que el grupo sigue y te vuelves al agujero.`,
       `${c} mensajes, %N. Asomas, sueltas una frase corta y el puto chat te pasa por encima sin frenar.`,
       `%N, ${c} mensajes. Das señales de vida con la frecuencia justa para que nadie llame a la policía.`,
-      `${c} mensajes, %N. Cada vez que escribes, el grupo tiene que mirar quién eres.`,
+      `${c} mensajes, %N. Cada vez que escribes, tengo que mirar quién eres.`,
       `%N, ${c} mensajes. Que sabes escribir está demostrado; que tengas algo que decir, no.`,
       `${c} mensajes, %N. La cifra de quien entra al grupo como quien entra al baño: rápido, a lo suyo y sin hablar con nadie.`,
       `%N, ${c} mensajes. Ni fantasma del todo ni miembro del todo: visitante con carné.`,
@@ -65,22 +65,22 @@ function getActivityPhrases(count) {
       `${c} mensajes, %N. Lo que no dices tú lo dicen otros, y encima mejor.`,
       `%N, ${c} mensajes. Presencia de figurante: sales en la escena y nadie recuerda tu cara.`,
       `%N, ${c} mensajes. Escribes como quien paga una multa: lo mínimo y de mala gana.`,
-      `${c} mensajes, %N. Si te callas mañana, el grupo ni gira la puta cabeza.`,
+      `${c} mensajes, %N. Si te callas mañana, ni giro la puta cabeza.`,
     ];
   }
   if (count < 60) {
     return [
       `${c} mensajes, %N. Suficientes para que se sepa que existes y pocos para que importe.`,
       `%N, ${c} mensajes. Apareces lo justo para demostrar que el móvil te sigue funcionando.`,
-      `${c} mensajes, %N. El grupo sabe cómo te llamas, y de ahí no ha pasado.`,
+      `${c} mensajes, %N. Me sé tu nombre, y de ahí no he pasado.`,
       `%N, ${c}. Hablas cuando se te pregunta y nadie te pregunta.`,
       `${c} mensajes, %N. Tu aportación al grupo es de las que se olvidan antes de terminar de leerlas.`,
       `%N, ${c} mensajes. Participas como quien firma el libro de visitas y se va.`,
       `${c} mensajes, %N. A ti no se te echa de menos: se te descubre de vez en cuando.`,
       `%N, ${c} mensajes. Das para una anécdota, y la anécdota es que casi nunca hablas.`,
-      `${c} mensajes, %N. Si el grupo hiciera una lista de gente imprescindible, no estarías ni entre los suplentes.`,
+      `${c} mensajes, %N. Si hiciera una lista de gente imprescindible, no estarías ni entre los suplentes.`,
       `%N, ${c} mensajes. Más que un fantasma y menos que un vecino: saludas en el ascensor y ya.`,
-      `${c} mensajes, %N. El grupo no te odia, que eso requiere conocerte.`,
+      `${c} mensajes, %N. No te odio, que eso requiere conocerte.`,
       `%N, ${c}. Cuando escribes, parece que pasabas por aquí de casualidad.`,
       `${c} mensajes, %N. Tu mejor aportación hasta ahora ha sido no molestar.`,
       `%N, ${c} mensajes. Todo lo tuyo se lee rápido porque hay muy poco.`,
@@ -103,7 +103,7 @@ function getActivityPhrases(count) {
       `%N, ${c} mensajes. Te has ganado el derecho a ser insoportable, y lo estás usando.`,
       `${c} mensajes, %N. El motor del grupo eres tú: mucho ruido, mucho gasto y ningún sitio al que ir.`,
       `%N, ${c}. Con ese número ya no se te roastea por callar: se te roastea por no saber callarte.`,
-      `${c} mensajes, %N. Si hablaras menos, el grupo lo notaría; si hablaran menos los demás, no lo notaría nadie.`,
+      `${c} mensajes, %N. Si hablaras menos, lo notaría yo. Si hablaran menos los demás, no lo notaría nadie.`,
       `%N, ${c} mensajes. Eres una puta máquina de conversación, y como toda máquina, no tienes vida.`,
       `${c} mensajes, %N. Llevas tú el ritmo del grupo, y los demás, a aguantarlo.`,
       `%N, ${c} mensajes. Roastearte es fácil: con ese número, se ve desde aquí que no sales de casa.`,

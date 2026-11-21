@@ -31,7 +31,7 @@ const HITO = [
   '*%D días* de %N. Ni un fallo, ni una excusa, ni un día de vacaciones del chat.',
   '%N cumple *%D días*. El marcador te lo paga en aura, y el grupo te tiene de fijo en cada conversación.',
   '%N llega a *%D días*, en un grupo donde hay quien no escribe ni el día de su cumpleaños. La diferencia salta a la vista.',
-  '*%D días*, %N. Esta racha la ha visto todo el grupo, y ya eres la vara con la que se mide al resto.',
+  '*%D días*, %N. Una racha así no pasa desapercibida, y ya eres la vara con la que se mide al resto.',
   '*%D días* de racha. %N no falla, y el grupo ya cuenta con su nombre cada mañana.',
   '%N lleva *%D días*. Eso no sale con cuatro ganas: hace falta aparecer cada puto día, y tú apareces.',
   '*%D días* seguidos para %N. Quien se ríe de la racha no ha pasado de la primera semana, y tú vas muy por delante.',

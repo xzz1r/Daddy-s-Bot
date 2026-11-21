@@ -35,7 +35,7 @@ const RIZZ = {
     'Te inventan una pareja para no quedar contigo, %N. La inventada tiene más futuro, y tú te quedas con el plan de pringado.',
     'Mandas la misma frase a cinco personas que se conocen, %N, y ahora tienen un grupo para leerla. Tu ligue es un meme de mierda.',
     'Insistes después del no, %N, como si el no viniera con letra pequeña. No venía, y el segundo mensaje ya es de parásito.',
-    'Cuando ligas en público el grupo mira al techo, %N, por no verte arrastrarte. El arrastre da vergüenza hasta a quien no te conoce.',
+    'Cuando ligas en público miro al techo, %N, por no verte arrastrarte. El arrastre da vergüenza hasta a quien no te conoce.',
     'Callado tendrías alguna oportunidad, %N, pero abres la boca a los diez segundos y se acabó: diez segundos de ridículo y a casa.',
     'El visto es el único orgasmo que vas a provocar, %N. Y ni siquiera es tuyo: es el alivio de no contestarte.',
     'Ligas como se pide limosna, %N: mano abierta y dignidad por el suelo. Te dan el no y das las gracias.',

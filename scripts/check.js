@@ -26318,6 +26318,67 @@ const r = {};
     if (fallos === antes179) console.log(verde('   ✓ !play lee los resultados, elige la canción y, si la API no puede, prueba otra subida de la misma'));
   }
 
+  // ── 180. EL BOT NO SE ESCUDA EN EL GRUPO (21 nov) ──────────────────────────
+  // El dueño, con un !kick que acababa en «El grupo ha decidido dejar de
+  // intentarlo y quitarte de en medio»: «quita en todo el bot cuando dice "el
+  // grupo ha decidido" o "el grupo te ha visto". Haz las frases de forma más
+  // dominante y personal, o imparcial: "se ha decidido", "te daré ban por el
+  // asco que me das"». Daban pena: el bot se escondía detrás del grupo. Ahora
+  // lo dice él (te he visto, lo he decidido, te echo) o en impersonal. Las
+  // escenas de las acciones quedan fuera, que ahí el grupo es parte de lo que
+  // pasa y no quien juzga. Los ejemplos intocables del dueño en !aura no casan
+  // con esto y no se tocan.
+  {
+    console.log('\n180. EL BOT NO SE ESCUDA EN EL GRUPO');
+    const antes180 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const SUJ = '(?:el (?:puto )?grupo(?: entero)?|todo el (?:puto )?grupo|medio grupo|el chat(?: entero)?|todo el chat|todo el mundo)';
+    const CL = '(?:(?:te|os|lo|la|los|las|le|les|me|se)\\s+){0,2}';
+    const JUEZ = [
+      new RegExp(`\\b${SUJ}\\s+(?:ya\\s+)?${CL}(?:(?:ha|han|había)\\s+(?:decidido|visto|votado)|decide|decidió|vota|votó|acaba de ver|está viendo|estaba viendo)\\b`, 'i'),
+      new RegExp(`\\b(?:te|os|lo|la|los|las)\\s+(?:lo\\s+|la\\s+)?han?\\s+visto\\s+${SUJ}`, 'i'),
+      new RegExp(`\\b${SUJ}\\s+(?:ya\\s+)?(?:se\\s+)?(?:está\\s+|estaba\\s+)?(?:descojon\\w*|meando de risa|mea de risa|ríe de|riéndose de|parte de risa|partiéndose)`, 'i'),
+    ];
+    const juez = (s) => JUEZ.some((rx) => rx.test(s));
+    // Y que la regla siga viendo: estas son de las que había.
+    const cebos = [
+      'El grupo ha decidido dejar de intentarlo y quitarte de en medio.',
+      'Te ha visto el grupo entero intentando mandar sin rango.',
+      'Tus ganas de callarle las ha visto todo el puto grupo.',
+      'Has intentado mandar sin rango, y el grupo se está descojonando de ti ahora mismo.',
+      'El grupo entero te está viendo spamear el comando.',
+      'Tarde. Y lo ha visto todo el mundo: primero cómo te robaban.',
+    ];
+    const ciegos = cebos.filter((c) => !juez(c));
+    exige(ciegos.length === 0, `la regla ya no ve lo que tiene que ver: «${ciegos[0]}» pasa sin que diga nada`);
+    const malas = [];
+    const recorre = (d) => {
+      for (const e of fs.readdirSync(d)) {
+        const p = path.join(d, e);
+        if (fs.statSync(p).isDirectory()) { recorre(p); continue; }
+        if (!p.endsWith('.js') || /accionPhrases\.js$/.test(p)) continue;
+        fs.readFileSync(p, 'utf8').split('\n').forEach((l, i) => {
+          const t = l.trim();
+          if (t.startsWith('//') || t.startsWith('*')) return;
+          for (const m of t.matchAll(/'((?:[^'\\]|\\.){12,})'|"((?:[^"\\]|\\.){12,})"|`((?:[^`\\]|\\.){12,})`/g)) {
+            if (juez(m[1] || m[2] || m[3])) malas.push(`${path.relative(R, p)}:${i + 1}`);
+          }
+        });
+      }
+    };
+    recorre(path.join(R, 'src'));
+    exige(malas.length === 0,
+      `hay frases donde decide, mira o se ríe «el grupo» y no el bot (${malas.length}): ${malas.slice(0, 4).join(' ')}`);
+    // El !kick lo da el bot: «te echo», no «te echan».
+    const { AVISOS_KICK: K180 } = require(path.join(R, 'src/data/kickPhrases'));
+    const echan = K180.filter((f) => /\b(?:te|os) echan\b/i.test(`${f.uno} ${f.varios}`));
+    exige(echan.length === 0,
+      `hay avisos de !kick donde echan otros y no el bot (${echan.length}): «${(echan[0]?.uno || '').slice(0, 70)}…»`);
+    exige(K180.some((f) => f.uno.includes('He decidido dejar de intentarlo: te echo por el asco que me das.')),
+      'el aviso de !kick que señaló el dueño ya no lo da el bot: «He decidido dejar de intentarlo: te echo por el asco que me das.»');
+    if (fallos === antes180) console.log(verde('   ✓ el bot lo ve, lo decide y echa él: «el grupo» ya no juzga por él'));
+  }
+
 
 
   // ── 176. LA PROTECCIÓN DEL TIER DUEÑO, CASO A CASO (16 nov) ─────────────────

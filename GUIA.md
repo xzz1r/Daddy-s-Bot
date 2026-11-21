@@ -476,12 +476,21 @@ sustantivo que no cambia con quien lo lee (una rata, un parásito, un estorbo,
 escoria) o el vocativo suelto. Lo demás lo tiene que ver quien escribe.
 
 **El plural es vosotros.** Cuando el bot le habla a varios (un !kick de dos,
-el bote, !inactivos) es «os echan», «lleváis», «largaos», nunca «ustedes». Lo
+el bote, !inactivos) es «os echo», «lleváis», «largaos», nunca «ustedes». Lo
 decidió el dueño y el check lo vigila en los avisos, en !kick y en !purge.
 
 **10. La amenaza de echar.** El bot no amenaza con echar a nadie. Echar es cosa
 de `!kick` y de la purga, que es cuando pasa de verdad, y una amenaza que no se
 cumple le quita peso a las que sí.
+
+**11. Escudarse en el grupo.** «El grupo ha decidido…», «el grupo entero te ha
+visto», «el grupo se está descojonando»: el bot se esconde detrás de los demás
+para decir lo que piensa, y eso da pena, no miedo (dueño, 21 nov). Lo dice él,
+«te he visto», «me das asco», «he decidido dejar de intentarlo: te echo por el
+asco que me das», o en impersonal: «se ha decidido», «queda apuntado». En
+`!kick` echa el bot, «te echo», no «te echan». Quedan fuera las escenas de las
+acciones, donde el grupo mirando es parte de lo que pasa, y el halago que
+cuenta cómo le contesta la peña a quien escribe. La capa 180 lo vigila.
 
 ### Que no parezca escrito por una máquina
 

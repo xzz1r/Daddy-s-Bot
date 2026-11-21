@@ -27,7 +27,7 @@ const HUMOR_NEGRO = [
   'Aquí el chiste de cáncer se contesta con otro peor. Quien venga a que le respeten el tema sagrado ha entendido mal el puto grupo.',
   'Si un chiste de tu abuela en el ataúd te deja la tarde hecha mierda, este grupo te la va a dejar así a diario. Aguante, o abstención.',
   'Nadie pide perdón por una gracia. Quien necesite disculpas, que se las pida al psicólogo y deje de ensuciar el chat con el drama.',
-  'Piel de cristal, aquí se raja en el primer mensaje. El grupo se ríe de quien acaba de entrar antes de saber el nombre, y con razón.',
+  'Piel de cristal, aquí se raja en el primer mensaje. Me río de quien acaba de entrar antes de saber su nombre, y con razón.',
   'Hace falta cerebro para pillar la mitad. Quien no llegue, que se ría igual: el silencio delata antes que cualquier insulto, y da vergüenza ajena.',
   'La foto de perfil también se juzga. Si la tuya da asco, que la gracia lo compense, porque compasión aquí no hay ni de puta coña.',
   'Humor que duele y se dice a la cara. El audio de «eso no tiene gracia» es de pringado, y aquí se nota al segundo.',

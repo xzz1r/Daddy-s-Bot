@@ -54,7 +54,7 @@ const ADMIN_SPAM = [
   'Un admin no hace spam, y %M lo ha hecho en bucle. Así que ya no es admin: ahora solo es quien hacía el gilipoyas.',
   'Mirad a %M: tenía que cuidar el grupo y lo ha llenado de spam. Sin admin, que es lo que le toca a una basura así.',
   '%M pierde el admin por spam. Quien tenía que frenarlo lo ha mandado en bucle, y eso no se perdona con el cargo puesto.',
-  'Se acabó el admin de %M: spam en bucle y cero vergüenza. La vergüenza se la pone el grupo, que lo está viendo.',
+  'Se acabó el admin de %M: spam en bucle y cero vergüenza. La vergüenza se la pongo yo, que lo estoy viendo.',
 ];
 
 module.exports = { AVISO_SPAM, BAN_SPAM, ADMIN_SPAM };
