@@ -262,8 +262,8 @@ const AVISOS_KICK = [
     varios: '%M, mentís más que habláis, hijos de puta, y habláis mucho. Cada historia vuestra cambia según quién la escuche, cada promesa se queda en nada y cada excusa es peor que la anterior. Ya nadie se cree una palabra de lo que decís, y gente en la que nadie confía no pinta nada en un grupo. Ahí va una verdad, para variar: no volvéis.',
   },
   {
-    uno: '%M, si esto se votara, saldrías por unanimidad, mamarracho, pero aquí no se vota: decido yo. Me basta con ver cómo se apaga el chat cuando escribes y cómo se anima en cuanto desapareces. Lo único que has conseguido aquí es que echarte sea lo más fácil que he hecho hoy.',
-    varios: '%M, si esto se votara, saldríais por unanimidad, mamarrachos, pero aquí no se vota: decido yo. Me basta con ver cómo se apaga el chat cuando escribís y cómo se anima en cuanto desaparecéis. Lo único que habéis conseguido vosotros aquí es que echaros sea lo más fácil que he hecho hoy.',
+    uno: '%M, si esto se votara, saldrías por unanimidad, gilipoyas, pero aquí no se vota: decido yo. Me basta con ver cómo se apaga el chat cuando escribes y cómo se anima en cuanto desapareces. Lo único que has conseguido aquí es que echarte sea lo más fácil que he hecho hoy.',
+    varios: '%M, si esto se votara, saldríais por unanimidad, gilipoyas, pero aquí no se vota: decido yo. Me basta con ver cómo se apaga el chat cuando escribís y cómo se anima en cuanto desaparecéis. Lo único que habéis conseguido vosotros aquí es que echaros sea lo más fácil que he hecho hoy.',
   },
 ];
 

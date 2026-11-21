@@ -7,7 +7,7 @@ const ROBO_FALLO_REMATE = [
   'y no le dio tiempo ni a que la víctima levantara la vista',
   'y demostró por qué no le confían ni la contraseña del wifi, por inútil',
   'y hasta la víctima sintió vergüenza ajena',
-  'y yo vi el intento y cambié de tema, por asco',
+  'y yo vi el intento y aparté la vista, por asco',
   'y lo único que me robó fue la paciencia, y ya me estoy cagando en todo',
   'y volvió con menos de lo que no tenía',
   'y se le cayó la chulería en el primer paso. Había un solo paso',

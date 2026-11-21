@@ -822,7 +822,7 @@ const LABELS = {
       '[nombre] se ofende si le dicen maricón y se pone duro si se lo dicen bajito. El mapa está claro. El puto mapa.',
       'Patético al cuadrado: [nombre] se humilla y luego cuenta la versión donde "estaba ayudando". Nadie compra esa mierda.',
       '[nombre] tiene la mirada de quien busca cinturón, no ojos. Se le pilla al segundo. Se le usa al tercero. Se le olvida al cuarto.',
-      'Si [nombre] cerrara esa boca un día, yo notaría el silencio y no lo echaría de menos. Echaría de menos el chiste, que es él.',
+      'Si [nombre] cerrara esa boca un día, no le echaría de menos a él: echaría de menos reírme de él.',
     ],
     mid: [
       'A [nombre] se le cierran las piernas y a mitad se acuerda de abrirlas. Lo veo, aparto la vista, y el gesto se queda colgando.',
@@ -980,7 +980,7 @@ const LABELS = {
       'Ni las apps de citas saben dónde ponerte: los hetero pasan, los gays piden reembolso. Eres el limbo con medias.',
       'El audio empieza en voz fina y acaba en tío: a los tres segundos se te cae el personaje y queda el cabrón.',
       'Preguntas si te queda bien y mandas tres fotos. Las tres son el mismo ángulo. El ángulo no tapa el hombro, joder.',
-      'Me callo cuando mandas foto. No es admiración: es el recuento de lo patético que eres.',
+      'Me callo cuando mandas foto. No es admiración: estoy contando todo lo patético que sale en ella.',
       'Dices que el outfit es broma y luego lo llevas puesto de verdad. Solo un gilipoyas como tú plancha una broma.',
       'Te pintas la uña y lo anuncias como logro. Lo único que logras es el ridículo.',
       'Dices soy un chico más veces que nadie. Recitarlo tanto es de cabrón que se lo tiene que creer.',

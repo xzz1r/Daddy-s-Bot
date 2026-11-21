@@ -49,7 +49,7 @@ const VERDICTS = {
     'Cien. El bot no le da esto a cualquiera y os ha tocado a vosotros dos, qué desperdicio de cifra.',
     'Match perfecto. A partir de aquí, cualquier excusa entre vosotros dos es cobardía.',
     'Cien de cien. Si esto no acaba en boda, acaba en desgracia, y con vosotros las dos cosas se parecen.',
-    'Cien. A partir de hoy, cada vez que uno de vosotros escriba, el bot va a mirar al otro.',
+    'Cien. A partir de hoy, cuando uno de vosotros escriba, ya sé quién va a contestar.',
     'Compatibilidad total. Si algún día os pasa algo, que nadie diga que el bot no avisó.',
     'Cien exacto. Ni el bot se lo cree, y eso que os ha visto hacer el gilipoyas por separado.',
     'Match perfecto. Os aguantaríais lo que no aguanta nadie, y eso aquí es amor.',
