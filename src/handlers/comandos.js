@@ -125,7 +125,7 @@ const FAMILIAS = [
   // llamaria mas la atencion que dejarlo, por el aviso de "se elimino este
   // mensaje" que deja WhatsApp a la vista de todo el grupo.
   { nombres: ['k'], meta: true,
-    hace: (c) => c.de('k').cmdK(c.sock, c.msg, c.meta, !c.viaTriggerK) },
+    hace: (c) => c.de('k').cmdK(c.sock, c.msg, c.meta, !c.viaTriggerK, c.args) },
   // !z — de qué dispositivo salió el mensaje al que se responde, al privado del
   // owner. Las mismas reglas que !k: ver z.js.
   { nombres: ['z'], meta: true,

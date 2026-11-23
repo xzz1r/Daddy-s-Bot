@@ -230,6 +230,20 @@ elige por dígitos, `-- +57…` uno nuevo, `-- lista` los enseña): para el bot,
 aparta la sesión (se mueve, no se borra), pide el código, espera a que se
 vincule y lo arranca; si no se completa, vuelve la sesión de antes. Capa 178.
 
+## !k por número, desde el privado
+
+Lo pidió el dueño (23 nov): «decir !k, welcome o diría algo es muy cantoso»,
+y «/k y el número, que mande todo lo que ha estado registrado». En el privado
+del bot, `!k 573001234567` le manda todo lo que esa persona ha subido a los
+grupos, del más viejo al más nuevo, y `!k interlude 5730…` solo lo de ese
+grupo. En el grupo no pasa nada. El bot apunta cada medio que llega
+(`src/utils/registroMedios.js`): no baja ni guarda archivos, solo lo que hace
+falta para bajarlo luego, sin miniatura ni cita; 300 por persona y 5.000 en
+total. Solo el dueño principal (`dueñoEnPrivado`); a otro no le contesta.
+**El guardián no toca nada de esto** (dueño: «es completamente invisible»):
+ni apunta ni lee el registro. Lo de ver una vez no entra, que al bot solo le
+llega el aviso vacío. El `!k` respondiendo sigue igual. Capa 182.
+
 ## !visto: solo lo conoce el dueño
 
 Lo dijo el dueño (16 nov): «el comando /visto solo yo tengo conocimiento de

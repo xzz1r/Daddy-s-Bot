@@ -26514,6 +26514,80 @@ const r = {};
     if (fallos === antes181) console.log(verde('   ✓ fotos y vídeos salen con miniatura, tamaño y duración, sin ffmpeg de más; lo reenviado, con lo del original'));
   }
 
+  // ── 182. !k NÚMERO, DESDE EL PRIVADO Y SIN TOCAR EL GRUPO (23 nov) ─────────
+  // El dueño: «decir !k, welcome o diría algo es muy cantoso; ¿se puede hacer
+  // más anónimo, sin que tenga que interactuar con el mensaje?», y «/k y el
+  // número, que mande todo lo que ha estado registrado». Y: «el guardián no
+  // puede tocar nada de esto; es completamente invisible». El bot apunta cada
+  // medio que llega a un grupo (sin bajarlo) y *!k número* por privado los
+  // manda. En sandbox: el registro con @lid y teléfono, que al grupo no salga
+  // nada, que a otro no le conteste y que el guardián no intervenga.
+  {
+    console.log('\n182. !k NÚMERO, DESDE EL PRIVADO Y SIN TOCAR EL GRUPO');
+    const antes182 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'k182-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'data'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir');
+      const guion = [
+        "const WA = require('./src/utils/wa'); const RM = require('./src/utils/registroMedios'); const K = require('./src/commands/k');",
+        "const G = '120363000000182001@g.us', TEL = '573000001820', LID = '918200001820';",
+        "const medio = (id, quien, extra) => ({ key: { remoteJid: G, id, participant: quien }, messageTimestamp: 1763900000,",
+        "  message: { imageMessage: { url: 'https://127.0.0.1:9/x', directPath: '/v/x', mediaKey: Buffer.alloc(32, 1), mimetype: 'image/jpeg', jpegThumbnail: Buffer.alloc(4000, 2), ...extra } } });",
+        "const r = {};",
+        "r.apuntado = RM.apuntar(medio('M1', LID + '@lid'));",
+        "r.vacio = RM.apuntar({ key: { remoteJid: G, id: 'V1', participant: TEL + '@s.whatsapp.net' }, message: { viewOnceMessageV2: { message: { imageMessage: { mimetype: 'image/jpeg' } } } } });",
+        "r.propio = RM.apuntar({ ...medio('M2', TEL + '@s.whatsapp.net'), key: { remoteJid: G, id: 'M2', fromMe: true } });",
+        "WA.rememberMapping(LID + '@lid', TEL + '@s.whatsapp.net');",
+        "const l = RM.dePersona(TEL);",
+        "r.porTelefono = l.length; r.sinMiniatura = !(l[0] && l[0].message.imageMessage.jpegThumbnail && l[0].message.imageMessage.jpegThumbnail.length);",
+        "(async () => {",
+        "  const enviados = [];",
+        "  const sock = { user: { id: '549182@s.whatsapp.net' }, sendMessage: async (j, c) => { enviados.push({ j, c }); return { key: { id: 'E' + enviados.length } }; },",
+        "    groupFetchAllParticipating: async () => ({ [G]: { subject: 'Interlude', participants: [] } }) };",
+        "  const PRIV = process.env.OWNER_NUMBER + '@s.whatsapp.net';",
+        "  const pide = (texto, de) => ({ key: { remoteJid: de, id: 'P' + Math.random(), fromMe: false }, message: { conversation: texto } });",
+        "  await K.cmdK(sock, pide('!k ' + TEL, '34600099999@s.whatsapp.net'), null, true, [TEL]);",
+        "  r.aOtro = enviados.length;",
+        "  await K.cmdK(sock, pide('!k ' + TEL, PRIV), null, true, ['+57', '300', '000', '1820']);",
+        "  r.aDonde = [...new Set(enviados.map((e) => e.j))];",
+        "  r.textos = enviados.map((e) => e.c.text).filter(Boolean);",
+        "  enviados.length = 0;",
+        "  await K.cmdK(sock, pide('!k', PRIV), null, true, ['999999999']);",
+        "  r.nada = enviados.map((e) => e.c.text).join(' | ');",
+        "  console.log('R182' + JSON.stringify(r));",
+        "  process.exit(0);",
+        "})();",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 90000,
+        env: { ...process.env, OWNER_NUMBER: '34600011820', CO_OWNERS: '', LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R182'));
+      const r = linea ? JSON.parse(linea.slice(4)) : null;
+      if (!r) exige(false, `no pude probarlo: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}`);
+      else {
+        exige(r.apuntado === true && r.vacio === false && r.propio === false,
+          `el registro no apunta lo que debe (un medio sí; el aviso vacío de ver una vez y lo del propio bot, no): ${JSON.stringify([r.apuntado, r.vacio, r.propio])}`);
+        exige(r.porTelefono === 1, `lo apuntado con el @lid no sale al pedirlo por el teléfono (${r.porTelefono}): una persona, una historia`);
+        exige(r.sinMiniatura, 'el registro guarda la miniatura de cada medio: solo hace falta lo necesario para bajarlo');
+        exige(r.aOtro === 0, 'a alguien que no es el dueño, *!k número* por privado le contesta: tiene que ser invisible');
+        exige(r.aDonde.length === 1 && r.aDonde[0] === '34600011820@s.whatsapp.net',
+          `*!k número* manda algo fuera del privado del dueño: ${JSON.stringify(r.aDonde)}`);
+        exige(r.textos.some((t) => /1 archivo/.test(t)) && r.textos.some((t) => /Listo/.test(t)),
+          `*!k número* no dice cuántos hay y cómo acabó: ${JSON.stringify(r.textos)}`);
+        exige(/No tengo nada apuntado de \+999999999/.test(r.nada), `sin nada de esa persona no lo dice: ${r.nada}`);
+      }
+      // El guardián no interviene: ni apunta ni lee el registro.
+      const guardian = soloCodigo('src/guardian.js');
+      exige(!/registroMedios/.test(guardian), 'el guardián toca el registro de *!k número*: el dueño lo quiere fuera de esto');
+      exige(!/guardian|authGuardian|verUnaVez/i.test(soloCodigo('src/utils/registroMedios.js')),
+        'el registro de *!k número* tira de lo del guardián: el dueño lo quiere fuera de esto');
+      exige(/registroMedios\.apuntar\(msg\)/.test(soloCodigo('src/bot.js')), 'el bot ya no apunta los medios que llegan: *!k número* no tendría nada');
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes182) console.log(verde('   ✓ !k número por privado manda lo apuntado de esa persona, sin tocar el grupo ni pasar por el guardián'));
+  }
+
 
 
   // ── 176. LA PROTECCIÓN DEL TIER DUEÑO, CASO A CASO (16 nov) ─────────────────

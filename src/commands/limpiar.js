@@ -290,6 +290,6 @@ async function cmdLimpiar(sock, msg, args, groupMeta) {
 }
 
 module.exports = {
-  cmdLimpiar, claveBorrado, MAX, _normalizarNombre: normalizarNombre,
+  cmdLimpiar, claveBorrado, MAX, buscarGrupo, _normalizarNombre: normalizarNombre,
   _enCurso: enCurso, _esperar,
 };

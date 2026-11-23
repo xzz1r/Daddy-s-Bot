@@ -198,6 +198,8 @@ cuandoCambieVisto(aplicarVisto);
 const { VF_STATIC } = require('./utils/sticker');
 const { recordar: recordarMensaje, recuperar: recuperarMensaje } = require('./utils/mensajesRecientes');
 const { recordar: recordarHistorial, ingestarEvento: ingestarHistorial, flush: flushHistorial } = require('./utils/historialGrupo');
+// Lo que cada uno sube a los grupos, para el !k a distancia (23 nov).
+const registroMedios = require('./utils/registroMedios');
 const logger = require('./utils/logger');
 const { versionWA } = require('./utils/versionWA');
 const { explicarRechazo } = require('./utils/rechazoWA');
@@ -2610,6 +2612,9 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
       // Claves (no contenido) para !limpiar: el borrado de admin necesita el
       // id y el participante. Filtra por dentro lo que no es un mensaje real.
       recordarHistorial(msg);
+      // Y si es un medio, lo que hace falta para bajarlo luego con *!k número*
+      // desde el privado. No baja nada ahora (utils/registroMedios.js).
+      registroMedios.apuntar(msg);
       // Baileys tira el lote si fromMe sale false (LID). Lo bajamos igual.
       const notifHist = getHistoryMsg(msg.message);
       if (notifHist) {
@@ -2795,7 +2800,7 @@ async function gracefulShutdown(code = 0) {
     flushState(), flushCounts(), flushAura(), flushCache(),
     flushCasino(), flushPfpHashes(), flushBanlist(), flushPfpCache(), flushNicks(), flushLinkPerms(),
     flushJoinRequests(), flushRobo(), flushMutes(), flushRacha(), flushNames(), flushPickHistory(),
-    flushObjetivoDia(), flushDeuda(), flushHistorial(), flushRencor(),
+    flushObjetivoDia(), flushDeuda(), flushHistorial(), flushRencor(), registroMedios.flush(),
   ]);
   await Promise.race([flushes, new Promise(r => setTimeout(r, 3000))]);
   if (sock) {

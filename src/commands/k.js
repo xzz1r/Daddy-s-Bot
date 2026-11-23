@@ -1,7 +1,8 @@
 'use strict';
 
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { isOwner, getSender, canonicalJid, bareJid } = require('../utils/wa');
+const { isOwner, getSender, canonicalJid, bareJid, dueñoEnPrivado } = require('../utils/wa');
+const registroMedios = require('../utils/registroMedios');
 const { streamToBuffer, MAX_MEDIA_BYTES } = require('../utils/helpers');
 const logger = require('../utils/logger');
 const config = require('../config');
@@ -187,9 +188,13 @@ function autorDelCitado(ctx, jid) {
 // puestas, y borrar un mensaje real de por sí llama más la atención (deja el
 // aviso de "se eliminó este mensaje" a la vista de todo el grupo) que dejarlo
 // tal cual. Quien llama decide con qué disparo se llegó aquí.
-async function cmdK(sock, msg, groupMeta, borrar = true) {
+async function cmdK(sock, msg, groupMeta, borrar = true, args = []) {
   const jid = msg.key.remoteJid;
   const sender = getSender(msg);
+
+  // Por privado y con un número: lo que esa persona ha subido a los grupos,
+  // sin tocar ningún mensaje (ver kDeNumero).
+  if (!jid.endsWith('@g.us') && (args || []).length) return kDeNumero(sock, msg, args);
 
   // Owner tier y nadie más. Sin respuesta si no lo es: quien no debería saber
   // que el comando existe tampoco se entera por un "no puedes usar esto".
@@ -308,4 +313,114 @@ async function cmdK(sock, msg, groupMeta, borrar = true) {
   }
 }
 
-module.exports = { cmdK, hallarMedio, privadoDelOwner, autorDelCitado, _bajarMedio: bajarMedio };
+// ─── !k NÚMERO, DESDE EL PRIVADO (23 nov) ────────────────────────────────────
+//
+// El dueño: «a veces decir !k, welcome o diría algo es muy cantoso. ¿Se puede
+// hacer más anónimo, sin que tenga que interactuar con el mensaje?», y
+// después: «/k y el número, que mande todo lo que ha estado registrado». En el
+// privado del bot:
+//
+//   !k 573001234567             todo lo que esa persona ha subido a los grupos
+//   !k interlude 573001234567   solo lo de ese grupo
+//
+// En el grupo no pasa nada: ni un mensaje, ni una respuesta, ni nada borrado.
+// Sale lo que el bot apuntó desde que existe el registro
+// (utils/registroMedios.js), del más viejo al más nuevo, con un respiro entre
+// uno y otro para no mandar en ráfaga. Solo el dueño principal, como todo lo
+// que va por privado; a cualquier otro no le contesta. El guardián no
+// interviene: el registro es del bot, y lo de ver una vez no entra (al bot solo
+// le llega el aviso vacío).
+const RESPIRO_MS = 1200;
+const enCursoK = new Set();
+const fechaCorta = (seg) => {
+  const d = new Date(Number(seg) * 1000);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return `${dd}/${mm} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+};
+
+async function kDeNumero(sock, msg, args) {
+  const aqui = msg.key.remoteJid;
+  if (!dueñoEnPrivado(msg)) return null;
+  // El número puede venir con espacios, guiones o el +: los trozos que son
+  // cifras van juntos; lo demás es el nombre del grupo.
+  const trozos = (args || []).map((a) => String(a).trim()).filter(Boolean);
+  const esCifra = (t) => /^\+?[\d\s-]+$/.test(t);
+  const numero = trozos.filter(esCifra).join('').replace(/\D/g, '');
+  const nombre = trozos.filter((t) => !esCifra(t) && !t.startsWith('@')).join(' ');
+  if (numero.length < 8) {
+    return sock.sendMessage(aqui, { text: `Dime el número: *${config.prefix}k 573001234567*, o con el grupo: *${config.prefix}k interlude 573001234567*.` }, { quoted: msg });
+  }
+  let grupo = null;
+  let asunto = '';
+  if (nombre) {
+    const { buscarGrupo } = require('./limpiar');
+    const hallados = await buscarGrupo(sock, nombre);
+    if (!hallados.length) return sock.sendMessage(aqui, { text: `No encuentro ningún grupo del bot que se llame «${nombre}».` }, { quoted: msg });
+    if (hallados.length > 1) {
+      return sock.sendMessage(aqui, {
+        text: `Hay ${hallados.length} grupos con ese nombre: ${hallados.slice(0, 6).map((g) => `*${g.subject}*`).join(', ')}. Escríbelo más entero.`,
+      }, { quoted: msg });
+    }
+    grupo = hallados[0].jid;
+    asunto = hallados[0].subject;
+  }
+  const lista = registroMedios.dePersona(numero, grupo);
+  if (!lista.length) {
+    return sock.sendMessage(aqui, { text: `No tengo nada apuntado de +${numero}${asunto ? ` en *${asunto}*` : ''}.` }, { quoted: msg });
+  }
+  if (enCursoK.has(aqui)) return sock.sendMessage(aqui, { text: 'Todavía estoy mandando lo de antes.' }, { quoted: msg });
+  enCursoK.add(aqui);
+  let nombres = {};
+  try {
+    const { censoDeGrupos } = require('../handlers/messageHandler');
+    const censo = (await censoDeGrupos(sock).catch(() => null)) || {};
+    for (const [j, m] of Object.entries(censo)) nombres[j] = m?.subject || '';
+  } catch { nombres = {}; }
+  let mandados = 0;
+  let perdidos = 0;
+  try {
+    await sock.sendMessage(aqui, { text: `De +${numero}${asunto ? ` en *${asunto}*` : ''}: ${lista.length} archivo${lista.length === 1 ? '' : 's'}. Van.` });
+    for (const x of lista) {
+      const medio = hallarMedio(x.message);
+      if (!medio) { perdidos++; continue; }
+      const sobre = { key: { remoteJid: x.g, id: x.id, participant: x.a, fromMe: false }, message: x.message };
+      let buf = null;
+      // Con tope: si hay que pedir que lo vuelvan a subir y no contestan, se
+      // pasa al siguiente en vez de quedarse esperando.
+      let reloj = null;
+      try {
+        buf = await Promise.race([
+          bajarMedio(sock, sobre, medio),
+          new Promise((_, no) => { reloj = setTimeout(() => no(new Error('tope')), 45000); }),
+        ]);
+      } catch { buf = null; } finally { clearTimeout(reloj); }
+      if (!buf || !buf.length) { perdidos++; continue; }
+      const pie = `${medio.nombre} · *${nombres[x.g] || 'un grupo'}* · ${fechaCorta(x.t)}`;
+      const tipoVista = { image: 'foto', video: 'video', audio: 'audio' }[medio.tipo];
+      const previa = tipoVista ? await miniatura.paraReenviar(medio.nodo, buf, tipoVista) : {};
+      const contenido =
+        medio.tipo === 'sticker' ? { sticker: buf }
+        : medio.tipo === 'image' ? { image: buf, ...previa, caption: pie }
+        : medio.tipo === 'video' ? { video: buf, jpegThumbnail: null, ...previa, caption: pie, mimetype: medio.nodo.mimetype || 'video/mp4' }
+        : medio.tipo === 'audio' ? { audio: buf, mimetype: medio.nodo.mimetype || 'audio/ogg; codecs=opus', ptt: Boolean(medio.nodo.ptt), ...previa }
+        : { document: buf, mimetype: medio.nodo.mimetype || 'application/octet-stream', fileName: medio.nodo.fileName || 'archivo', caption: pie };
+      try {
+        await sock.sendMessage(aqui, contenido);
+        mandados++;
+      } catch (e) {
+        perdidos++;
+        logger.warn(`!k número: no pude mandar un ${medio.nombre} (${e.message})`);
+      }
+      await new Promise((r) => setTimeout(r, RESPIRO_MS));
+    }
+  } finally {
+    enCursoK.delete(aqui);
+  }
+  const fin = perdidos
+    ? `Listo: ${mandados} de ${lista.length}. ${perdidos} ya no están en WhatsApp.`
+    : `Listo: ${mandados}.`;
+  return sock.sendMessage(aqui, { text: fin });
+}
+
+module.exports = { cmdK, hallarMedio, privadoDelOwner, autorDelCitado, _bajarMedio: bajarMedio, _kDeNumero: kDeNumero };
