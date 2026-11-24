@@ -26540,6 +26540,8 @@ const r = {};
         "r.apuntado = RM.apuntar(medio('M1', LID + '@lid'));",
         "r.vacio = RM.apuntar({ key: { remoteJid: G, id: 'V1', participant: TEL + '@s.whatsapp.net' }, message: { viewOnceMessageV2: { message: { imageMessage: { mimetype: 'image/jpeg' } } } } });",
         "r.propio = RM.apuntar({ ...medio('M2', TEL + '@s.whatsapp.net'), key: { remoteJid: G, id: 'M2', fromMe: true } });",
+        "r.audio = RM.apuntar({ key: { remoteJid: G, id: 'A1', participant: LID + '@lid' }, messageTimestamp: 1763900000, message: { audioMessage: { url: 'https://127.0.0.1:9/a', directPath: '/v/a', mediaKey: Buffer.alloc(32, 1), mimetype: 'audio/ogg; codecs=opus' } } });",
+        "r.sticker = RM.apuntar({ key: { remoteJid: G, id: 'S1', participant: LID + '@lid' }, messageTimestamp: 1763900000, message: { stickerMessage: { url: 'https://127.0.0.1:9/s', directPath: '/v/s', mediaKey: Buffer.alloc(32, 1), mimetype: 'image/webp' } } });",
         "WA.rememberMapping(LID + '@lid', TEL + '@s.whatsapp.net');",
         "const l = RM.dePersona(TEL);",
         "r.porTelefono = l.length; r.sinMiniatura = !(l[0] && l[0].message.imageMessage.jpegThumbnail && l[0].message.imageMessage.jpegThumbnail.length);",
@@ -26569,6 +26571,8 @@ const r = {};
       else {
         exige(r.apuntado === true && r.vacio === false && r.propio === false,
           `el registro no apunta lo que debe (un medio sí; el aviso vacío de ver una vez y lo del propio bot, no): ${JSON.stringify([r.apuntado, r.vacio, r.propio])}`);
+        exige(r.audio === false, '*!k número* apunta audios: el dueño los quiere fuera');
+        exige(r.sticker === false, '*!k número* apunta stickers: el dueño los quiere fuera');
         exige(r.porTelefono === 1, `lo apuntado con el @lid no sale al pedirlo por el teléfono (${r.porTelefono}): una persona, una historia`);
         exige(r.sinMiniatura, 'el registro guarda la miniatura de cada medio: solo hace falta lo necesario para bajarlo');
         exige(r.aOtro === 0, 'a alguien que no es el dueño, *!k número* por privado le contesta: tiene que ser invisible');

@@ -365,7 +365,11 @@ async function kDeNumero(sock, msg, args) {
     grupo = hallados[0].jid;
     asunto = hallados[0].subject;
   }
-  const lista = registroMedios.dePersona(numero, grupo);
+  const listaBruta = registroMedios.dePersona(numero, grupo);
+  const lista = listaBruta.filter((x) => {
+    const m = hallarMedio(x.message);
+    return m && m.tipo !== 'sticker' && m.tipo !== 'audio';
+  });
   if (!lista.length) {
     return sock.sendMessage(aqui, { text: `No tengo nada apuntado de +${numero}${asunto ? ` en *${asunto}*` : ''}.` }, { quoted: msg });
   }

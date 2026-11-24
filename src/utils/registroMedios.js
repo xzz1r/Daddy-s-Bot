@@ -30,7 +30,7 @@ const logger = require('./logger');
 let FICHERO = path.join(__dirname, '../../data/registroMedios.json');
 const TOPE_TOTAL = 5000;
 const TOPE_PERSONA = 300;
-const CAMPOS = ['imageMessage', 'videoMessage', 'audioMessage', 'stickerMessage', 'documentMessage', 'ptvMessage'];
+const CAMPOS = ['imageMessage', 'videoMessage', 'documentMessage', 'ptvMessage'];
 
 // [{ id, g: grupo, a: autor, a2: su otra forma si vino, t: segundos, m: mensaje en base64 }]
 let lista = null;
