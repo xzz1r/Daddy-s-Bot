@@ -21,6 +21,9 @@ const config = require('./config');
 // bot, ademas de en cada modulo que sale a internet: asi ninguna ruta queda sin
 // el. Ver src/utils/redSegura.js.
 require('./utils/redSegura');
+// Antes de abrir el socket: Baileys aprende el campo de los stickers con sonido
+// (utils/stickerSonido.js), o los tira al descifrar.
+require('./utils/stickerSonido').instalar();
 
 // ─── LO QUE ESCRIBE EL BOT NO LO LEE NADIE MAS ──────────────────────────────
 //

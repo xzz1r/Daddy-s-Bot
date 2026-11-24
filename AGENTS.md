@@ -242,7 +242,20 @@ falta para bajarlo luego, sin miniatura ni cita; 300 por persona y 5.000 en
 total. Solo el dueño principal (`dueñoEnPrivado`); a otro no le contesta.
 **El guardián no toca nada de esto** (dueño: «es completamente invisible»):
 ni apunta ni lee el registro. Lo de ver una vez no entra, que al bot solo le
-llega el aviso vacío. El `!k` respondiendo sigue igual. Capa 182.
+llega el aviso vacío, ni los audios ni los stickers (dueño, 24 nov). El `!k`
+respondiendo sigue igual. Capa 182.
+
+## Stickers con sonido
+
+Lo pidió el dueño (24 nov): «ahora que los stickers se pueden hacer con
+sonido, inclúyelo dentro del bot». `!s` con un vídeo que tiene sonido saca un
+sticker con sonido (hasta 10 s); `!s mudo`, sin él. Uno mudo o sin pista sale
+normal, y si el de sonido no sale, va el de siempre. Al volver a sellar uno
+con sonido, se queda el suyo. Baileys rc14 no conoce el campo (el 134) y los
+tiraba: `src/utils/stickerSonido.js` se lo enseña antes de conectar, al leer
+y al escribir. Se mandan con la forma ya probada en teléfonos (`type="text"`,
+sin el sticker a la vista de Baileys); no se cambia sin probarlo en un
+móvil. Ver `MOTOR.md`; capa 183.
 
 ## !visto: solo lo conoce el dueño
 

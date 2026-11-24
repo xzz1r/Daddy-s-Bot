@@ -1299,6 +1299,22 @@ siempre. Va en tubería, sin la animación entera en memoria. Lo usan `!s` con
 un sticker que no cabe y `!tovid`. Necesita ffmpeg 4.4 o más (el de la VPS);
 con uno más viejo, el bot avisa como antes. Capa 142.
 
+**Los stickers con sonido** (24 nov). WhatsApp los manda en el campo 134 del
+mensaje (`audioStickerMessage`): un FutureProofMessage cuyo Message lleva el
+stickerMessage de siempre y, dentro del sticker, en su campo 26, una nota de
+voz entera (AudioMessage, subida como audio, `ptt`). Baileys rc14 no conoce
+ninguno de los dos y el sticker llegaba vacío (Baileys #2932).
+`utils/stickerSonido.js` envuelve `proto.Message.decode` y `encode` al
+arrancar, sin tocar node_modules: al leer, un 134 sale como `stickerMessage`
+con su audio en `[AUDIO]` (también citado y en la copia al propio
+dispositivo); al escribir, un mensaje con `[SONIDO]` lleva su 134 detrás. Se
+manda con `relayMessage` y `type: 'text'`, sin el sticker a la vista: así lo
+mandan zapota (#10) y whatsapp-rust (#2110) y así lo enseñan los teléfonos;
+con `type="media"` lo tiran sin avisar. El opus va con `-vbr on`,
+`-frame_duration 20` y `-avoid_negative_ts make_zero`: sin eso el sticker se
+ve y el sonido no suena. Un vídeo sin pista o en silencio sale como sticker
+normal, y si el envío con sonido falla, también. Capa 183.
+
 **La escalera de los animados no se rinde, ni baja del suelo** (25 oct). Un
 GIF de WhatsApp de 11,6 s con mucho movimiento no cabía ni en el último
 escalón (384 px, q35: 1190 KB) y el bot contestaba que no podía. Se probó a

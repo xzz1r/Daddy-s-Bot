@@ -26592,6 +26592,83 @@ const r = {};
     if (fallos === antes182) console.log(verde('   ✓ !k número por privado manda lo apuntado de esa persona, sin tocar el grupo ni pasar por el guardián'));
   }
 
+  // ── 183. STICKERS CON SONIDO (24 nov) ─────────────────────────────────────
+  // El dueño: «ahora que los stickers se pueden hacer con sonido, inclúyelo
+  // dentro del bot». Baileys rc14 tira el campo 134 y el sticker con sonido
+  // llegaba vacío. Aquí: que se lea (suelto, citado y en la copia al propio
+  // dispositivo), que se escriba con la forma probada en teléfonos (type text,
+  // sin el sticker a la vista de Baileys), que un mensaje normal no cambie, que
+  // el sonido salga de un vídeo con sonido y no de uno mudo o sin pista, y que
+  // *!s* lo use, con *!s mudo* para quitarlo y el sticker de siempre si falla.
+  {
+    console.log('\n183. STICKERS CON SONIDO');
+    const antes183 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'son183-'));
+    try {
+      const v = (nombre, args) => spawnSync('ffmpeg', ['-v', 'error', '-y', ...args, path.join(caja, nombre)], { timeout: 30000 });
+      v('con.mp4', ['-f', 'lavfi', '-i', 'testsrc=s=160x120:d=2', '-f', 'lavfi', '-i', 'sine=f=440:d=2', '-shortest', '-c:v', 'libx264', '-c:a', 'aac']);
+      v('mudo.mp4', ['-f', 'lavfi', '-i', 'testsrc=s=160x120:d=2', '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=mono', '-t', '2', '-c:v', 'libx264', '-c:a', 'aac']);
+      v('sin.mp4', ['-f', 'lavfi', '-i', 'testsrc=s=160x120:d=2', '-c:v', 'libx264']);
+      v('s.webp', ['-f', 'lavfi', '-i', 'color=red:s=512x512', '-frames:v', '1']);
+      const guion = [
+        "const SS = require('./src/utils/stickerSonido'); SS.instalar(); SS.instalar();",
+        "const { proto } = require('@whiskeysockets/baileys'); const fs = require('fs'), path = require('path');",
+        "const C = process.env.CAJA183; const r = {};",
+        "const st = { url: 'https://x/s', mimetype: 'image/webp', mediaKey: Buffer.alloc(32, 1), directPath: '/v/s', isAnimated: true };",
+        "const au = { url: 'https://x/a', mimetype: 'audio/ogg; codecs=opus', mediaKey: Buffer.alloc(32, 2), directPath: '/v/a', seconds: 2, ptt: true };",
+        "const m = { messageContextInfo: { messageSecret: Buffer.alloc(32, 3) } }; Object.defineProperty(m, SS.SONIDO, { value: { sticker: st, audio: au } });",
+        "const b = Buffer.from(proto.Message.encode(m).finish());",
+        "r.con134 = !!SS._buscarCampo(b, 134); r.sinVisible = !SS._buscarCampo(b, 26);",
+        "const d = proto.Message.decode(b); r.leido = d.stickerMessage && d.stickerMessage.directPath; r.audio = SS.audioDe(d.stickerMessage) && SS.audioDe(d.stickerMessage).directPath;",
+        "const q = proto.Message.decode(proto.Message.encode({ extendedTextMessage: { text: '!s', contextInfo: { stanzaId: 'X', quotedMessage: m } } }).finish());",
+        "r.cita = SS.audioDe(q.extendedTextMessage.contextInfo.quotedMessage.stickerMessage) && 1;",
+        "const ds = proto.Message.decode(proto.Message.encode({ deviceSentMessage: { destinationJid: 'g@g.us', message: m } }).finish());",
+        "r.propio = SS.audioDe(ds.deviceSentMessage.message.stickerMessage) && 1;",
+        "const n = proto.Message.decode(proto.Message.encode({ conversation: 'hola', imageMessage: { mimetype: 'image/jpeg' } }).finish());",
+        "r.normal = n.conversation === 'hola' && n.imageMessage.mimetype === 'image/jpeg' && !n.stickerMessage;",
+        "(async () => {",
+        "  const son = await SS.sonidoDe(path.join(C, 'con.mp4'));",
+        "  r.sonido = !!(son && son.ogg.length > 200 && son.segundos === 2 && son.waveform.length === 64);",
+        "  r.mudo = await SS.sonidoDe(path.join(C, 'mudo.mp4')); r.sin = await SS.sonidoDe(path.join(C, 'sin.mp4'));",
+        "  const ll = [];",
+        "  const sock = { waUploadToServer: async () => ({ mediaUrl: 'https://x/u', directPath: '/v/u' }),",
+        "    relayMessage: async (j, msg, o) => { ll.push({ o, visibles: Object.keys(msg), b: proto.Message.encode(msg).finish() }); return 'ID'; } };",
+        "  await SS.enviar(sock, 'g@g.us', { sticker: fs.readFileSync(path.join(C, 's.webp')), sonido: son,",
+        "    citado: { key: { id: 'K', remoteJid: 'g@g.us', participant: 'p@s.whatsapp.net' }, message: { videoMessage: { caption: '!s', contextInfo: { expiration: 86400 } } } } });",
+        "  const vuelta = proto.Message.decode(ll[0].b);",
+        "  r.tipo = ll[0].o.additionalAttributes.type; r.visibles = ll[0].visibles;",
+        "  const a2 = SS.audioDe(vuelta.stickerMessage);",
+        "  r.enviado = !!(vuelta.stickerMessage && a2 && a2.ptt && a2.mimetype === 'audio/ogg; codecs=opus' && vuelta.stickerMessage.contextInfo.expiration === 86400 && vuelta.stickerMessage.contextInfo.stanzaId === 'K');",
+        "  console.log('R183' + JSON.stringify(r)); process.exit(0);",
+        "})().catch((e) => { console.log('R183' + JSON.stringify({ error: e.message })); process.exit(0); });",
+      ].join('\n');
+      const out = spawnSync('node', ['-e', guion], { cwd: R, encoding: 'utf8', timeout: 90000, env: { ...process.env, CAJA183: caja, LOG_LEVEL: 'error' } });
+      const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R183'));
+      const r = linea ? JSON.parse(linea.slice(4)) : null;
+      if (!r || r.error) exige(false, `no pude probarlo: ${r ? r.error : (out.stderr || '').split('\n').slice(0, 4).join(' ')}`);
+      else {
+        exige(r.con134 && r.sinVisible, 'el sticker con sonido no se escribe en el campo 134 o deja el sticker a la vista: así el teléfono lo tira');
+        exige(r.leido === '/v/s' && r.audio === '/v/a', `el sticker con sonido no se lee entero (${r.leido}, ${r.audio}): llegaría vacío`);
+        exige(r.cita === 1, 'citado, el sticker con sonido llega sin su sonido o vacío: *!s* respondiendo no tendría nada');
+        exige(r.propio === 1, 'en la copia al propio dispositivo el sticker con sonido se pierde');
+        exige(r.normal === true, 'enseñarle a Baileys el campo nuevo cambia los mensajes normales');
+        exige(r.sonido === true, 'de un vídeo con sonido no sale una nota de voz de su duración con su onda');
+        exige(r.mudo === null && r.sin === null, 'un vídeo mudo o sin pista de sonido sale como sticker con sonido');
+        exige(r.tipo === 'text' && r.visibles.length === 1 && r.visibles[0] === 'messageContextInfo',
+          `el sticker con sonido no sale como lo aceptan los teléfonos (type ${r.tipo}, a la vista: ${r.visibles})`);
+        exige(r.enviado === true, 'lo que se manda no lleva el sticker con su nota de voz, la cita y el tiempo de los mensajes temporales');
+      }
+      const s = soloCodigo('src/commands/sticker.js');
+      exige(/stickerSonido\.sonidoDe\(rutaOrigen\)/.test(s) && /stickerSonido\.enviar\(/.test(s), '*!s* no saca el sonido del vídeo o no manda el sticker con sonido');
+      exige(/esMudo\(args\)/.test(s) && /if \(!conSonido\)/.test(s), '*!s mudo* no quita el sonido, o si el sticker con sonido falla no sale el de siempre');
+      exige(/stickerSonido\.audioDe\(found\.msg\)/.test(s), 'al volver a sellar un sticker con sonido se pierde el sonido');
+      exige(/require\('\.\/utils\/stickerSonido'\)\.instalar\(\)/.test(soloCodigo('src/bot.js')), 'el bot no le enseña a Baileys el campo de los stickers con sonido antes de conectar');
+      exige(!/stickerSonido/.test(soloCodigo('src/guardian.js')), 'el guardián toca los stickers con sonido: no es cosa suya');
+    } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    if (fallos === antes183) console.log(verde('   ✓ los stickers con sonido se leen, citados también, y *!s* los hace de un vídeo con sonido como los aceptan los teléfonos'));
+  }
+
 
 
   // ── 176. LA PROTECCIÓN DEL TIER DUEÑO, CASO A CASO (16 nov) ─────────────────

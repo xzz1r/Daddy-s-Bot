@@ -6,6 +6,7 @@ const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { incrementStat } = require('../utils/state');
 const { clasificar, bajar, NO_ENTREGADA, SIN_CLAVE_CITA } = require('../utils/verUnaVez');
 const logger = require('../utils/logger');
+const stickerSonido = require('../utils/stickerSonido');
 
 // Identify what kind of media is in a message object.
 // Anything already in WebP is functionally an existing sticker no matter which
@@ -36,7 +37,10 @@ function pistaClave(m) {
   return `clave ${m?.mediaKey ? 'sí' : 'no'}, ruta ${m?.directPath || m?.url ? 'sí' : 'no'}`;
 }
 
-async function cmdSticker(sock, msg, groupMeta) {
+// *!s mudo* (o *sin sonido*): el vídeo sale como sticker sin su sonido.
+const esMudo = (args) => /^(mudo|muted?|sinsonido|sin)$/i.test(String((args || [])[0] || ''));
+
+async function cmdSticker(sock, msg, groupMeta, args = []) {
   const jid = msg.key.remoteJid;
   // Fallback chain: WhatsApp display name → sender phone number → "Anonimo".
   // Critically NOT msg.key.remoteJid, which in groups is the GROUP jid.
@@ -113,13 +117,22 @@ async function cmdSticker(sock, msg, groupMeta) {
   let rutaOrigen = null;
   let sourceThumb = null;
   let stickerBuffer;
+  // STICKERS CON SONIDO (24 nov, utils/stickerSonido.js). Un vídeo con sonido
+  // sale como sticker con sonido; el sonido se saca en paralelo, del mismo
+  // temporal. Un sticker con sonido que se vuelve a sellar se queda el suyo,
+  // sin subirlo otra vez.
+  let sonido = found.type === 'sticker' ? stickerSonido.audioDe(found.msg) : null;
   try {
     if (found.type === 'video') {
       rutaOrigen = tempFile(detectExt(buffer) || 'mp4');
       await fs.writeFile(rutaOrigen, buffer);
-      [sourceThumb, stickerBuffer] = await Promise.all([
+      [sourceThumb, stickerBuffer, sonido] = await Promise.all([
         generateSourceThumb(rutaOrigen).catch(() => null),
         videoToSticker(buffer, author, rutaOrigen),
+        esMudo(args) ? null : stickerSonido.sonidoDe(rutaOrigen).catch((e) => {
+          logger.warn(`sticker con sonido: no saqué el sonido (${e.message})`);
+          return null;
+        }),
       ]);
     } else if (found.type === 'sticker') {
       // Re-encode existing sticker to re-stamp metadata with our pack
@@ -181,13 +194,24 @@ async function cmdSticker(sock, msg, groupMeta) {
     const pngThumbnail = animated
       ? (sourceThumb || await generateAnimatedThumb(stickerBuffer).catch(() => null))
       : undefined;
-    await sock.sendMessage(jid, {
-      sticker: stickerBuffer,
-      ...(animated && { isAnimated: true }),
-      ...(pngThumbnail && { pngThumbnail }),
-    }, { quoted: msg });
+    let conSonido = false;
+    if (sonido && !esMudo(args)) {
+      try {
+        await stickerSonido.enviar(sock, jid, { sticker: stickerBuffer, isAnimated: animated, pngThumbnail, sonido, citado: msg });
+        conSonido = true;
+      } catch (e) {
+        logger.warn(`sticker con sonido: no salió, va sin sonido (${e.message})`);
+      }
+    }
+    if (!conSonido) {
+      await sock.sendMessage(jid, {
+        sticker: stickerBuffer,
+        ...(animated && { isAnimated: true }),
+        ...(pngThumbnail && { pngThumbnail }),
+      }, { quoted: msg });
+    }
     incrementStat('stickersCreated');
-    logger.success(`Sticker enviado (${found.type}, ${stickerBuffer.length} bytes, animated=${animated}, thumb=${!!pngThumbnail})`);
+    logger.success(`Sticker enviado (${found.type}, ${stickerBuffer.length} bytes, animated=${animated}, thumb=${!!pngThumbnail}, sonido=${conSonido})`);
   } catch (err) {
     logger.error(`Sticker send error: ${err.message}`);
     await reembolsar();

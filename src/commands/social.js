@@ -566,7 +566,7 @@ _Todo lleva ${PREFIJOS} delante. El número es lo que cuesta; sin número no cob
 *${p}x* ${c('redes')} <enlace> — la foto, el gif o el vídeo del tuit
 *${p}pin* ${c('redes')} <qué buscar> — fotos de Pinterest (*${p}next* saca otra)
 _Enlaces de publicaciones, no de perfiles._
-*${p}s* ${c('sticker')} — foto o vídeo a sticker
+*${p}s* ${c('sticker')} — foto o vídeo a sticker, con su sonido (*${p}s mudo*, sin él)
 *${p}toimg* ${c('toimg')} — sticker a foto
 *${p}tovid* ${c('tovid')} — sticker animado a vídeo
 *${p}ttp* ${c('ttp')} <texto> — texto a sticker
