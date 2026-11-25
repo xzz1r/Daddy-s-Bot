@@ -26839,6 +26839,11 @@ const r = {};
           "  await corre('s2Sello', 'st.webp', () => cmdStickerSonido(sock, cita('e'), meta));",
           "  await corre('sSello', 'st.webp', () => cmdSticker(sock, cita('f'), meta));",
           "  audioBaja = false; await corre('s2SelloSinBajar', 'st.webp', () => cmdStickerSonido(sock, cita('g'), meta)); audioBaja = true;",
+          "  // La cita sin el audio (el sticker propio, 25 nov): vale el que el bot vio llegar con ese id.",
+          "  const citaSin = (id, ref) => k(id, proto.Message.decode(proto.Message.encode({ extendedTextMessage: { text: '!s2', contextInfo: { stanzaId: ref, participant: DUENO, quotedMessage: { stickerMessage: { ...nodo('image/webp'), url: 'https://x/s' } } } } }).finish()));",
+          "  SS.recordar('VISTO1', { ...nodo('audio/ogg; codecs=opus'), url: 'https://x/a', directPath: '/v/a', seconds: 2, ptt: true });",
+          "  await corre('s2Recordado', 'st.webp', () => cmdStickerSonido(sock, citaSin('h', 'VISTO1'), meta));",
+          "  await corre('s2NoVisto', 'st.webp', () => cmdStickerSonido(sock, citaSin('i', 'NOVISTO'), meta));",
           "  await new Promise((res) => setTimeout(res, 200));",
           "  try { r.fallos = JSON.parse(fs.readFileSync('data/stickerFallos.json', 'utf8')).map((x) => x.que); } catch { r.fallos = null; }",
           "  console.log('R183B' + JSON.stringify(r)); process.exit(0);",
@@ -26862,6 +26867,10 @@ const r = {};
           exige(JSON.stringify(r2.s2Sello) === '["consonido:text:subido"]',
             `*!s2* sobre un sticker con sonido no lo manda con su sonido subido otra vez: ${JSON.stringify(r2.s2Sello)}`);
           exige(JSON.stringify(r2.sSello) === '["sticker"]', `*!s* sobre un sticker con sonido no da el sticker sin sonido: ${JSON.stringify(r2.sSello)}`);
+          exige(JSON.stringify(r2.s2Recordado) === '["consonido:text:subido"]',
+            `*!s2* sobre un sticker con sonido cuya cita no trae el audio no usa el que el bot vio llegar: ${JSON.stringify(r2.s2Recordado)}`);
+          exige(JSON.stringify(r2.s2NoVisto) === '["sticker"]' && (r2.fallos || []).includes('buscar su sonido'),
+            `*!s2* sin sonido que encontrar no saca el sticker normal o no deja el motivo: ${JSON.stringify([r2.s2NoVisto, r2.fallos])}`);
           exige(JSON.stringify(r2.s2SelloSinBajar) === '["sticker"]' && (r2.fallos || []).includes('bajar el sonido del sticker'),
             `si su sonido no se puede bajar, *!s2* no saca el sticker normal o no deja el motivo para npm run estado: ${JSON.stringify([r2.s2SelloSinBajar, r2.fallos])}`);
         }
@@ -26874,6 +26883,7 @@ const r = {};
       exige(/require\('\.\/utils\/stickerSonido'\)\.instalar\(\)/.test(soloCodigo('src/bot.js')), 'el bot no le enseña a Baileys el campo de los stickers con sonido antes de conectar');
       exige(!/stickerSonido/.test(soloCodigo('src/guardian.js')), 'el guardián toca los stickers con sonido: no es cosa suya');
       exige(/stickerFallos\.json/.test(fs.readFileSync(path.join(R, 'scripts/estado.js'), 'utf8')), '`npm run estado` ya no dice dónde y por qué falló el último sticker');
+      exige(/stickerSonido\.recordar\(/.test(soloCodigo('src/handlers/messageHandler.js')), 'el bot ya no guarda el audio de los stickers con sonido que llegan: *!s2* sobre una cita sin audio sale sin sonido');
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     if (fallos === antes183) console.log(verde('   ✓ los stickers con sonido se leen, citados también; *!s* los hace sin sonido y *!s2* con el del vídeo, como los aceptan los teléfonos'));
   }

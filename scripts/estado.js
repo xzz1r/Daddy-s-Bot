@@ -842,6 +842,10 @@ if (!bot) {
     let fallosSt = [];
     try { fallosSt = JSON.parse(require('fs').readFileSync(path.join(RAIZ, 'data/stickerFallos.json'), 'utf8')); } catch { fallosSt = []; }
     const recientesSt = (Array.isArray(fallosSt) ? fallosSt : []).filter((f) => Date.now() - (f.t || 0) < 24 * 3600 * 1000);
+    let vistosSon = [];
+    try { vistosSon = JSON.parse(require('fs').readFileSync(path.join(RAIZ, 'data/stickerSonidoVistos.json'), 'utf8')); } catch { vistosSon = []; }
+    const nSon = (Array.isArray(vistosSon) ? vistosSon : []).filter((t) => Date.now() - t < 24 * 3600 * 1000).length;
+    bien(`stickers con sonido recibidos en 24 h: ${nSon}`);
     if (recientesSt.length) {
       const ult = recientesSt[recientesSt.length - 1];
       aviso(`stickers: ${recientesSt.length} fallo(s) en 24 h (el último, al ${ult.que}: ${ult.motivo})`,

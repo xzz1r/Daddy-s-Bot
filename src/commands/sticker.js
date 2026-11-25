@@ -143,7 +143,17 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
   // sonido se saca en paralelo, del mismo temporal. Un sticker con sonido que
   // se vuelve a sellar con *!s2* conserva el suyo: se baja y se sube otra vez
   // con el sticker (25 nov, ver sonidoDeSticker), también en paralelo.
-  const audioSuyo = conSonido && found.type === 'sticker' ? stickerSonido.audioDe(found.msg) : null;
+  // Si la cita no lo trae, el que el bot vio llegar con ese id (ver recordar).
+  const idCitado = msg.message?.extendedTextMessage?.contextInfo?.stanzaId;
+  const audioSuyo = conSonido && found.type === 'sticker'
+    ? (stickerSonido.audioDe(found.msg) || (origen === 'cita' ? stickerSonido.recordado(idCitado) : null))
+    : null;
+  if (conSonido && found.type === 'sticker' && !audioSuyo) {
+    // Sin esto, un *!s2* sin sonido no dejaba rastro: no se sabía si el
+    // sticker no lo tenía, si la cita no lo traía o si no se vio llegar.
+    const claves = Object.keys(quoted || {}).filter((k) => k !== 'messageContextInfo').join(',') || 'nada';
+    apuntarFallo('buscar su sonido', `${origen === 'cita' ? 'la cita' : 'el mensaje'} no trae audio (${claves}) y no vi llegar ese sticker con sonido`);
+  }
   let sonido = null;
   try {
     if (found.type === 'video') {

@@ -11,6 +11,7 @@ const { recordFacts, recordDevice, getMemberFacts } = require('../utils/nickStor
 const { noteOffence, forget, yaAvisado, marcarAvisado, olvidarAviso } = require('../utils/mediaSpam');
 const { isAllowed, noteWarning, resetWarnings, MAX_AVISOS } = require('../utils/linkPerms');
 const spamTexto = require('../utils/spamTexto');
+const stickerSonido = require('../utils/stickerSonido');
 const { tienePase, gastarIndulto } = require('../utils/roboStore');
 const { banAccount } = require('../utils/banlist');
 const { businessEvidence } = require('../utils/businessCheck');
@@ -2173,6 +2174,11 @@ async function handleMessage(sock, msg, opciones = {}) {
   // Replace the wrapped message with its real inner content so extractText and
   // every command's media lookup operate on the actual image/video/caption.
   msg.message = unwrapEnvelope(msg.message);
+
+  // El audio de cada sticker con sonido que llega, por su id: la cita de un
+  // *!s2* a veces no lo trae (ver recordar en utils/stickerSonido).
+  const audioSticker = stickerSonido.audioDe(msg.message?.stickerMessage);
+  if (audioSticker && msg.key?.id) stickerSonido.recordar(msg.key.id, audioSticker);
 
   const jid = msg.key.remoteJid;
 

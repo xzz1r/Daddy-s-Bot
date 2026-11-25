@@ -223,17 +223,48 @@ async function bajarAudio(audioMessage) {
 }
 
 async function sonidoDeSticker(audioMessage) {
-  if (!audioMessage?.mediaKey || !(audioMessage.directPath || audioMessage.url)) return null;
+  if (!audioMessage?.mediaKey || !(audioMessage.directPath || audioMessage.url)) {
+    throw new Error('su audio viene sin clave o sin dirección');
+  }
   const ruta = tempFile('ogg');
   try {
     const buf = await module.exports.bajarAudio(audioMessage);
-    if (!buf || buf.length < 100) return null;
+    if (!buf || buf.length < 100) throw new Error(`su audio bajó vacío (${buf ? buf.length : 0} bytes)`);
     await fs.writeFile(ruta, buf);
-    return await sonidoDe(ruta);
+    const son = await sonidoDe(ruta);
+    if (!son) throw new Error('su audio está en silencio o no se pudo leer');
+    return son;
   } finally {
     await cleanTemp(ruta).catch(() => {});
   }
 }
+
+// EL AUDIO DE CADA STICKER CON SONIDO QUE LLEGA, POR SU ID (25 nov). El dueño
+// respondió con *!s2* a su propio sticker con sonido y salió sin él: la cita
+// de una respuesta no siempre trae el audio (lo que manda uno mismo, sobre
+// todo). El bot ya lo vio llegar entero, así que lo guarda (sin bajar nada:
+// solo la referencia) y *!s2* lo busca por el id que cita. 500 y 24 h, en
+// memoria. Y cuántos llegan, para `npm run estado`.
+const vistos = new Map();
+const VISTO_DURA_MS = 24 * 60 * 60 * 1000;
+let VISTOS_FILE = require('path').join(__dirname, '../../data/stickerSonidoVistos.json');
+function recordar(id, audio) {
+  if (!id || !audio) return;
+  if (vistos.size >= 500) vistos.delete(vistos.keys().next().value);
+  vistos.set(String(id), { audio, t: Date.now() });
+  try {
+    let lista = [];
+    try { lista = JSON.parse(require('fs').readFileSync(VISTOS_FILE, 'utf8')); } catch { lista = []; }
+    lista = (Array.isArray(lista) ? lista : []).filter((t) => Date.now() - t < VISTO_DURA_MS).slice(-199);
+    lista.push(Date.now());
+    require('fs').writeFileSync(VISTOS_FILE, JSON.stringify(lista));
+  } catch { /* solo es para mirar */ }
+}
+function recordado(id) {
+  const v = id && vistos.get(String(id));
+  return v && Date.now() - v.t < VISTO_DURA_MS ? v.audio : null;
+}
+function _usarVistos(f) { VISTOS_FILE = f; }
 
 // Manda un sticker con sonido. `sonido` es { ogg, segundos, waveform } (se
 // sube) o un AudioMessage que ya está en WhatsApp (se reutiliza tal cual; ya
@@ -265,6 +296,6 @@ async function enviar(sock, jid, { sticker, isAnimated, pngThumbnail, sonido, ci
 }
 
 module.exports = {
-  instalar, enviar, sonidoDe, audioDe, sonidoDeSticker, bajarAudio, SONIDO, AUDIO, TOPE_S,
+  instalar, enviar, sonidoDe, audioDe, sonidoDeSticker, bajarAudio, recordar, recordado, _usarVistos, SONIDO, AUDIO, TOPE_S,
   _buscarCampo: buscarCampo, _campoBytes: campoBytes, _cerrar: cerrar,
 };

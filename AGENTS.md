@@ -260,8 +260,11 @@ poner (foto, vídeo mudo o sin pista) o si el de sonido no sale, `!s2` hace el
 de siempre. Al volver a sellar con `!s2` uno con sonido, su sonido se baja y
 se sube otra vez con el sticker, como el de un vídeo (25 nov: «falla al
 inyectársela a stickers con audio»; reutilizar su audio tal cual no se había
-probado en un teléfono); si no se puede bajar, sale sin sonido. Dónde y por
-qué falló el último sticker sale en `npm run estado`.
+probado en un teléfono); si no se puede bajar, sale sin sonido. La cita no
+siempre trae el audio (dueño, 25 nov, con su propio sticker: salió sin
+sonido), así que el bot guarda el de cada sticker con sonido que ve llegar,
+por su id, y `!s2` lo busca por el id citado (`recordar`). Dónde y por qué
+falló el último sticker, y cuántos con sonido llegan, sale en `npm run estado`.
 Baileys rc14 no conoce el campo (el 134) y los tiraba:
 `src/utils/stickerSonido.js` se lo enseña antes de conectar, al leer y al
 escribir. Se mandan con la forma ya probada en teléfonos (`type="text"`, sin
