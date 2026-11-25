@@ -240,8 +240,8 @@ Y en la tercera pasada:
   con el 4 no cabe en los 100 KB, se repite la misma calidad con el 6 antes de
   bajar un escalón: la calidad que sale es la de antes.
 - **`npm run medir`.** Todo lo de arriba se midió en otra máquina, y los topes
-  del bot (45 s por sticker animado, 10 s de vídeo como mucho) se pusieron con
-  esos números. Esto mide en la VPS el núcleo, un sticker de una foto y uno
+  del bot (45 s por sticker animado, 10 s de vídeo como mucho; desde el 25 nov,
+  20 s con los mismos 240 fotogramas) se pusieron con esos números. Esto mide en la VPS el núcleo, un sticker de una foto y uno
   animado (con el peor caso contra el tope), el arranque de yt-dlp y cuál es,
   lo que tarda en cargar el bot, el disco y el «steal», que es lo que se queda
   el hipervisor. Tarda un minuto, no toca `data/` y no sale a internet. Lo que
@@ -275,7 +275,8 @@ Lo que se hizo con eso:
   más, dos. `npm run medir` lo prueba en la máquina («dos a la vez») y, si dice
   otra cosa, `FFMPEG_PLAZAS` en el `.env` manda. La capa 45 lo vigila.
 - **Los topes se quedan.** El peor sticker animado (10 s) es 7,8 s por pasada,
-  y el tope de 45 s es por pasada: casi seis veces de margen. El arranque de
+  y el tope de 45 s es por pasada: casi seis veces de margen. (Desde el 25 nov
+  el más largo es de 20 s, con los mismos 240 fotogramas: ver «Hasta 20 s».) El arranque de
   yt-dlp ya es el rápido (pipx) y se lanza una vez por vídeo: no hay llamadas
   que juntar.
 - **Lo que no arregla el código es el steal.** Un tercio del tiempo de CPU se
@@ -1424,7 +1425,66 @@ añadir escalones por debajo (384 px a q25, 320 y 256 px) y el dueño lo vio:
 Si ni el suelo cabe, los fps tampoco se tocan (es requisito): se recorta la
 duración a lo que quepa y se codifica una vez más. Ese GIF sale a 384 px, q35,
 7,7 s y 961 KB. Dos pasadas de recorte, medio segundo como mínimo. La capa
-142 lo prueba.
+142 lo prueba. *Desde el 25 nov, antes de recortar se bajan los fps del suelo
+(hasta 12): ver lo siguiente.*
+
+**Hasta 20 s, y menos fps antes que menos segundos** (25 nov). El dueño:
+«ahora parece que el bot no hace stickers de más de 5 segundos… hay otros
+bots que hacen stickers de 15 segs o más con buena calidad». Eran dos cosas, y
+las dos de aquí. Lo que pasaba de 10 s se cortaba a 10 (`TOPE_ANIMADO_S`). Y
+un vídeo con mucho detalle salía de 5 o 6 s aunque durara 10: ni el suelo
+cabía en 1 MB a 24 fps, y lo de arriba lo acortaba. Reproducido con 10 s de un
+corto de animación (hierba, pelo): salía de 5,92 s.
+
+Este codificador escribe cada fotograma entero, así que el peso va con
+cuántos fotogramas hay y no con lo que dura el sticker. Medido en ese corto,
+a 384 px y q35: 1.537 KB a 24 fps, 1.281 a 20, 1.025 a 16 y 768 a 12. De ahí
+las dos reglas:
+
+- **Lo que pasa de 10 s reparte 240 fotogramas** (`FOTOGRAMAS_TOPE`, los de
+  10 s a 24 fps): 16 fps a los 15 s, 12 a los 20 (`fpsParaDuracion`, tope
+  `TOPE_ANIMADO_S` = 20). Pesa y se ve, fotograma a fotograma, como uno de
+  10 s, con la escalera de siempre; lo que pierde es fluidez. Hasta 10 s, los
+  24 fps de siempre: lo de hasta 10 s sale idéntico byte a byte (15 clips;
+  uno de 10,1 s ya no pierde su última décima).
+- **Si ni el suelo cabe, se bajan sus fps antes que los segundos**, con el
+  peso del suelo y margen, hasta 12 (`FPS_MINIMO`); solo si ni a 12 cabe se
+  recorta, a esos fps. El corto de animación: de 5,92 s a 10 s enteros a
+  15 fps (967 KB).
+
+Lo que se pierde con menos fps es fluidez, y eso no lo mide bien comparar
+fotograma a fotograma: con grano, la comparación sale igual a 20 que a 12
+fps. **Sin ver aún en un teléfono:** los de más de 10 s (16 fps a 15 s, 12 a
+20) y *!s2* con una animación más larga que su sonido. Si a 12 fps va a
+saltos, son dos números: `TOPE_ANIMADO_S` (20) y `FPS_MINIMO` (12).
+
+Medido con siete clips de 20 s (animación, cámara fija 1080p60, cámara, vídeo
+musical, móvil movido con grano, vertical y un edit de cortes rápidos), con lo
+que dejaba el bot antes entre paréntesis:
+
+| | a 15 s | a 20 s |
+|---|---|---|
+| seis de los siete | enteros a 16 fps, 523-1.009 KB (10 s) | enteros a 12 fps, 508-1.024 KB (10 s) |
+| el corto de animación | 12,3 s a 12 fps, 927 KB (5,9 s) | 12,2 s a 12 fps, 916 KB (5,9 s) |
+
+Tres salen a 512 px y tres a 384, como les pasaba a los mismos clips a 10 s.
+Aquí tardan de 11 a 18 s (dos a cuatro pasadas), lo mismo que a 10 s: son
+los mismos 240 fotogramas, más decodificar el doble de vídeo. En la VPS, con
+el 2,5 por fotograma que midió `npm run medir`, sale una pasada de unos 15 s
+como mucho contra el tope de 45 (estimado, no medido allí). El sonido de *!s2* sigue
+siendo de 10 s como mucho.
+
+**El 1 MB es con la marca dentro.** La marca (EXIF) se pone al final y suma
+unos cientos de bytes: un sticker que entraba justo salía por encima y el
+comando contestaba que pesaba demasiado (el vertical de 20 s quedaba a 378
+bytes). La escalera mide contra 1 MB menos la marca.
+
+**Cada sticker animado deja su ficha** (`infoDe`): lo que duraba el vídeo, lo
+que dura el sticker, fotogramas y fps, lienzo y calidad, peso, pasadas y
+tiempo, si se bajaron fps o se recortó y si llevó sonido. El comando la
+apunta en `data/stickerHechos.json` (las 20 últimas) y `npm run estado`
+enseña la última, en el resumen las dos horas siguientes: si ahí sale de 10 s
+y en el teléfono dura 5, lo corta el teléfono. Capas 142 y 188.
 
 **La vista previa de lo que manda el bot** (21 nov, «la mejor calidad posible
 para lo que es WhatsApp; calidad y velocidad de la mano»). Una foto o un vídeo

@@ -514,9 +514,37 @@ const VF_ANIM = (fps, size = 512, fpsOrigen = 0, repetidos = false) => {
 // otherwise pin a CPU core forever and zombie the command.
 const FFMPEG_TIMEOUT_MS = 45_000;
 
-// Cuanto se queda de un video al hacerlo sticker. Ver la nota del tope en la
-// orden de ffmpeg de mas abajo.
-const TOPE_ANIMADO_S = 10;
+// ─── HASTA 20 SEGUNDOS, CON LOS FOTOGRAMAS DE 10 (25 nov) ───────────────────
+//
+// El dueño: «ahora parece que el bot no hace stickers de más de 5 segundos…
+// hay otros bots que hacen stickers de 15 segs o más con buena calidad». Eran
+// dos cosas. Un vídeo de más de 10 s se cortaba a 10 (era este tope). Y uno
+// con mucho detalle salía de 5 o 6 s aunque durara 10: ni el suelo (384 px a
+// q35) cabía en 1 MB a 24 fps, y lo único que quedaba era acortarlo. Medido
+// con 10 s de un corto de animación (hierba, pelo): salía de 5,92 s.
+//
+// Lo que pesa un sticker es lo que pesan sus fotogramas: este codificador
+// escribe cada uno entero, así que el peso va con cuántos hay y no con lo que
+// dura. Uno de 20 s lleva los mismos 240 fotogramas que uno de 10 s a 24 fps,
+// repartidos: 16 fps a los 15 s, 12 fps a los 20. Pesa y se ve, fotograma a
+// fotograma, como uno de 10 s, con la escalera de calidad de siempre; lo que
+// pierde es fluidez, no nitidez. Hasta 10 s, los 24 fps de siempre.
+//
+// Y si ni el suelo cabe, se bajan sus fps (hasta 12) antes de acortar: ver
+// videoToSticker. Medido, a 10 s de ese corto: 384 px a q35 pesa 1.537 KB a
+// 24 fps y 1.025 a 16; a 15 fps sale entero.
+const TOPE_ANIMADO_S = 20;
+const SIN_BAJAR_FPS_S = 10;
+const FOTOGRAMAS_TOPE = 240;
+const FPS_MINIMO = 12;
+
+// Los fps más altos que le tocan a un vídeo de `segundos`: sin límite hasta
+// 10 s, y de ahí a 20 los que reparten 240 fotogramas (redondeados: uno de
+// 10,1 s sigue a 24).
+function fpsParaDuracion(segundos) {
+  if (!(segundos > SIN_BAJAR_FPS_S)) return Infinity;
+  return Math.max(FPS_MINIMO, Math.round(FOTOGRAMAS_TOPE / Math.min(segundos, TOPE_ANIMADO_S)));
+}
 
 // Acquires the shared ffmpeg slot before spawning, so e.g. 4 people sending
 // !s at once on a 2-core phone run 2-at-a-time instead of all 4 simultaneously.
@@ -812,9 +840,11 @@ async function imageToSticker(imageBuffer, author) {
 // guideline is conservative — clients accept up to roughly double that in practice).
 const MAX_STICKER_BYTES = 1024 * 1024;
 
-// FPS is locked to 24-30 always — never drops lower, per product requirement.
-// Quality and, as a last resort, canvas size are the only levers used to control
-// file weight. Tiers are tried in order until one fits under MAX_STICKER_BYTES.
+// Hasta 10 s, los fps van de 24 a 30 y no bajan: la calidad y, al final, el
+// lienzo son lo que se toca para que quepa. Los escalones se prueban en orden
+// hasta que uno cabe en MAX_STICKER_BYTES. Desde el 25 nov hay dos salvedades
+// (ver TOPE_ANIMADO_S): lo que pasa de 10 s reparte 240 fotogramas, y si ni el
+// suelo cabe, se bajan sus fps (hasta 12) antes de acortar.
 const ANIM_TIERS = [
   // ARRANCA EN q85, Y NO EN q95 (25 nov). El q95 se puso para gastar el
   // presupuesto entero, y el dueño: «todos pesan más de 1 MB, es demasiado».
@@ -1053,6 +1083,10 @@ async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512, f
         //
         // Si algun dia se ve que el telefono corta antes, esto es UN NUMERO.
         //
+        // VEINTE DESDE EL 25 NOV, con los fotogramas de diez: lo que pasa de
+        // 10 s baja los fps (ver TOPE_ANIMADO_S), así que el coste por pasada
+        // sigue siendo el de 240 fotogramas, más decodificar el doble.
+        //
         // `inputOptions` y no `outputOptions`: como opcion de entrada, ffmpeg
         // deja de LEER al llegar al tope. Puesta a la salida decodifica el
         // video entero y tira lo que sobra.
@@ -1137,6 +1171,31 @@ function contarFotogramas(webp) {
   return n;
 }
 
+// Lo que dura la animación: la suma de lo que dura cada fotograma.
+function duracionMs(webp) {
+  let pos = 12;
+  let total = 0;
+  while (webp && pos + 8 <= webp.length) {
+    const largo = webp.readUInt32LE(pos + 4);
+    if (webp.slice(pos, pos + 4).toString('latin1') === 'ANMF' && largo >= 16) total += webp.readUIntLE(pos + 20, 3);
+    pos += 8 + largo + (largo % 2);
+  }
+  return total;
+}
+
+// ─── LO QUE SALIÓ DE CADA STICKER ANIMADO (25 nov) ──────────────────────────
+//
+// El dueño: «parece que el bot no hace stickers de más de 5 segundos». Desde
+// el grupo no se sabe si el bot lo hizo corto o si es el teléfono el que lo
+// corta. Cada sticker animado sale con su ficha: lo que duraba el vídeo, lo
+// que dura el sticker, sus fotogramas y fps, la calidad y el lienzo, el peso,
+// las pasadas de ffmpeg y lo que tardó, y si se bajaron fps o se acortó. El
+// comando la apunta y `npm run estado` enseña la última.
+const INFO = new WeakMap();
+function infoDe(buf) {
+  return (buf && typeof buf === 'object' && INFO.get(buf)) || null;
+}
+
 // `rutaOrigen`: si el que llama ya escribio el medio en un temporal, se usa ese
 // y no se escribe una segunda copia. El fichero sigue siendo suyo y lo borra el.
 async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
@@ -1159,6 +1218,7 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
     }
   }
 
+  const t0 = Date.now();
   const ext = detected || 'mp4';
   const inputFile = rutaOrigen || tempFile(ext);
   const outputFile = tempFile('webp');
@@ -1171,20 +1231,45 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
     const startIdx = startTierIndex(durationS);
     // Los repetidos fuera solo si el origen es YUV plano: ver QUITA_REPETIDOS.
     const repetidos = FORMATOS_SIN_CONVERSION.test(medidas.pixFmt || '');
+    // HASTA 20 S, CON LOS FOTOGRAMAS DE 10 (25 nov, ver TOPE_ANIMADO_S): lo que
+    // pasa de 10 s baja los fps de toda la escalera, y la calidad y el lienzo
+    // de cada escalón son los de siempre. Sin saber lo que dura, como antes:
+    // los diez primeros segundos.
+    const leer = durationS > 0 ? TOPE_ANIMADO_S : SIN_BAJAR_FPS_S;
+    const fpsTope = fpsParaDuracion(durationS);
+    const escalera = ANIM_TIERS.map((t) => (t.fps > fpsTope ? { ...t, fps: fpsTope } : t));
     // Lo que tiene que durar la animación con un tope de `seg` segundos.
     const objetivoMs = (seg) => (durationS > 0 ? Math.min(durationS, seg) * 1000 : 0);
+    // EL 1 MB ES CON LA MARCA DENTRO (25 nov). La marca (EXIF) se pone al
+    // final y suma unos cientos de bytes, así que un sticker que entraba
+    // justo salía por encima de 1 MB y el comando contestaba que pesaba
+    // demasiado. Con 20 s de un vídeo vertical quedaban 378 bytes de margen.
+    const limite = MAX_STICKER_BYTES - (buildExif(config.sticker.pack, author || config.sticker.author).length + 64);
+    // Cada pasada de ffmpeg pasa por aquí: se cuenta, se le alarga el último
+    // fotograma si hace falta y se apunta con qué salió (para infoDe). Los fps
+    // son los que salen de verdad: el filtro no sube los del origen.
+    let pasadas = 0;
+    const hechoCon = new Map();
+    const codificar = async (fps, quality, size, segundos) => {
+      pasadas++;
+      await encodeAnimWebp(inputFile, outputFile, fps, quality, size, fpsOrigen, segundos, repetidos);
+      let b = await fs.readFile(outputFile);
+      if (repetidos) b = completarDuracion(b, objetivoMs(segundos));
+      hechoCon.set(b, { fps: fpsOrigen > 0 ? Math.min(fpsOrigen, fps) : fps, quality, size });
+      return b;
+    };
     // Lo que puede pesar el escalón i: con 3 s o más, 500 KB hasta el escalón
     // ligero (OBJETIVO_LIGERO); en lo demás, 1 MB.
     const iLigero = ANIM_TIERS.findIndex((t) => t.ligero);
-    const tope = (i, segundos) => (segundos >= DESDE_LIGERO_S && i <= iLigero ? OBJETIVO_LIGERO : MAX_STICKER_BYTES);
+    const tope = (i, segundos) => (segundos >= DESDE_LIGERO_S && i <= iLigero ? OBJETIVO_LIGERO : limite);
     const ligero = durationS >= DESDE_LIGERO_S;
 
     let buf = null;
     let smallest = null;   // keep the lightest valid encode as a fallback
     let refBytes = null, refTier = null; // last real encode, feeds predictTierBytes
     let cupo = -1;         // el escalón donde cupo
-    for (let i = startIdx; i < ANIM_TIERS.length; i++) {
-      const tier = ANIM_TIERS[i];
+    for (let i = startIdx; i < escalera.length; i++) {
+      const tier = escalera[i];
       // Skip a tier predicted to still overshoot — never skip the last tier, so
       // there's always a final real encode to fall back to. 8% headroom on the
       // cap absorbs the small variance the benchmark showed across content types.
@@ -1193,16 +1278,16 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
       // 504 KB). Y con 3 s o más, el escalón ligero no se salta mientras pueda
       // caber en 1 MB: lo que pese de verdad decide si se queda él.
       const meta = tope(i, durationS);
-      if (refBytes !== null && i < ANIM_TIERS.length - 1) {
+      if (refBytes !== null && i < escalera.length - 1) {
         const prevision = predictTierBytes(tier, refTier, refBytes);
         const sobra = ligero && i === iLigero
-          ? prevision > MAX_STICKER_BYTES * 1.08
+          ? prevision > limite * 1.08
           : prevision > meta * (meta === OBJETIVO_LIGERO ? 1 : 1.08);
         if (sobra) continue;
       }
       const { fps, quality, size } = tier;
       try {
-        await encodeAnimWebp(inputFile, outputFile, fps, quality, size, fpsOrigen, TOPE_ANIMADO_S, repetidos);
+        buf = await codificar(fps, quality, size, leer);
       } catch (e) {
         // UN ESCALON QUE FALLA DEJA RASTRO. Este catch estaba mudo, y con el
         // mudo la unica señal de que la escalera entera se cae es un «sticker
@@ -1211,9 +1296,7 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
         logger.unaVez(`sticker animado q${tier.quality}@${tier.size}`, e);
         continue;
       }
-      buf = await fs.readFile(outputFile);
       if (buf.length < 100) continue;
-      if (repetidos) buf = completarDuracion(buf, objetivoMs(TOPE_ANIMADO_S));
       // EL ESCALON DE ARRIBA NO SIRVE PARA PREDECIR NADA.
       //
       // Los multiplicadores de QUALITY_SIZE_FACTOR se midieron de q85 hacia
@@ -1231,7 +1314,7 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
       if (buf.length <= meta) { smallest = buf; cupo = i; break; }
       // EL ESCALÓN LIGERO: si ni ahí cabe en 500 KB, se queda él mientras
       // quepa en 1 MB. Bajar más para los 500 KB ya se vería.
-      if (ligero && i === iLigero && buf.length <= MAX_STICKER_BYTES) { smallest = buf; cupo = i; break; }
+      if (ligero && i === iLigero && buf.length <= limite) { smallest = buf; cupo = i; break; }
       if (!smallest || buf.length < smallest.length) smallest = buf;
     }
     // SUBIR SI LOS REPETIDOS DEJARON SITIO (25 nov). El escalón de arranque
@@ -1242,16 +1325,15 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
     // una codificación más, que con pocos fotogramas es corta. Si no cabe, se
     // queda el de antes. Un vídeo sin repetidos no sube: dura lo mismo.
     if (repetidos && cupo > 0 && cupo === startIdx && buf) {
-      const de = ANIM_TIERS[cupo];
+      const de = escalera[cupo];
       const fpsHechos = fpsOrigen > 0 ? Math.min(fpsOrigen, de.fps) : de.fps;
       const efectivos = contarFotogramas(buf) / fpsHechos;
       for (let j = startTierIndex(efectivos); j < cupo; j++) {
-        const t = ANIM_TIERS[j];
+        const t = escalera[j];
         const metaJ = tope(j, efectivos);
         if (predictTierBytes(t, de, buf.length) > metaJ) continue;
         try {
-          await encodeAnimWebp(inputFile, outputFile, t.fps, t.quality, t.size, fpsOrigen, TOPE_ANIMADO_S, repetidos);
-          const mejor = completarDuracion(await fs.readFile(outputFile), objetivoMs(TOPE_ANIMADO_S));
+          const mejor = await codificar(t.fps, t.quality, t.size, leer);
           if (mejor.length >= 100 && mejor.length <= metaJ) { buf = mejor; smallest = mejor; }
         } catch (e) {
           logger.unaVez('sticker animado: subir de escalón', e);
@@ -1259,29 +1341,55 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
         break;
       }
     }
-    // SI NI EL SUELO CABE, SE ACORTA EN VEZ DE RENDIRSE NI DE BAJAR MAS (25
-    // oct). Los fps no se tocan (es requisito) y la calidad no baja del suelo
-    // (lo pidio el dueño): lo que queda es la duracion. Se calcula cuanta cabe
-    // con el peso del mas ligero, con margen, y se codifica una vez mas con el
-    // ultimo escalon. Un sticker de siete segundos bien visto es un sticker;
-    // uno de diez emborronado, o un «no he podido», no.
+    // SI NI EL SUELO CABE, PRIMERO SE BAJAN SUS FPS (25 nov). La calidad no
+    // baja del suelo (dueño, 25 oct), y hasta hoy lo siguiente era acortar: un
+    // vídeo de 10 s con mucho detalle salía de 5 o 6, y el dueño: «el bot no
+    // hace stickers de más de 5 segundos». Ahora se quitan fotogramas antes
+    // que segundos: los fps que caben, con el peso del suelo y margen, sin
+    // bajar de 12. Medido con 10 s de un corto de animación: el suelo a 24 fps
+    // pesa 1.537 KB, a 16 fps 1.025, y a 15 sale entero por debajo de 1 MB.
+    // Lo que no está en el suelo no cambia: lo que ya cabía sigue a sus 24 fps.
+    // Dos pasadas como mucho, la segunda corrigiendo con lo que pesó la primera.
+    const ult = escalera[escalera.length - 1];
+    let fpsSuelo = fpsOrigen > 0 ? Math.min(fpsOrigen, ult.fps) : ult.fps;
+    let fpsBajados = false;
+    for (let pasada = 0; pasada < 2 && smallest && smallest.length > limite && fpsSuelo > FPS_MINIMO; pasada++) {
+      const fps = Math.max(FPS_MINIMO, Math.floor(fpsSuelo * (limite / smallest.length) * 0.95));
+      // Medio fotograma por segundo no lo nota el filtro: los del origen se dejan.
+      if (fps > fpsSuelo - 0.5) break;
+      try {
+        const menos = await codificar(fps, ult.quality, ult.size, leer);
+        if (menos.length < 100) break;
+        fpsSuelo = fps;
+        fpsBajados = true;
+        smallest = menos;
+        if (menos.length <= limite) buf = menos;
+      } catch (e) {
+        logger.unaVez('sticker animado: bajar fps', e);
+        break;
+      }
+    }
+    // Y SI NI A 12 FPS CABE, SE ACORTA (25 oct), en vez de rendirse o bajar de
+    // calidad. Se calcula cuánto cabe con el peso del más ligero, con margen, y
+    // se codifica una vez más con el último escalón a los fps a los que llegó.
+    // Un sticker de siete segundos bien visto es un sticker; uno de diez
+    // emborronado, o un «no he podido», no.
     // Dos pasadas: la primera estima con el peso del suelo a duracion entera,
     // y si el contenido no se reparte igual a lo largo del clip, la segunda
     // corrige con lo que de verdad pesó la primera.
-    let largo = Math.min(durationS > 0 ? durationS : TOPE_ANIMADO_S, TOPE_ANIMADO_S);
-    for (let pasada = 0; pasada < 2 && smallest && smallest.length > MAX_STICKER_BYTES; pasada++) {
-      const cabe = Math.floor(largo * (MAX_STICKER_BYTES / smallest.length) * 0.9 * 10) / 10;
+    let largo = Math.min(durationS > 0 ? durationS : leer, leer);
+    let recortado = false;
+    for (let pasada = 0; pasada < 2 && smallest && smallest.length > limite; pasada++) {
+      const cabe = Math.floor(largo * (limite / smallest.length) * 0.9 * 10) / 10;
       if (cabe < 0.5) break;
-      const ult = ANIM_TIERS[ANIM_TIERS.length - 1];
       try {
-        await encodeAnimWebp(inputFile, outputFile, ult.fps, ult.quality, ult.size, fpsOrigen, cabe, repetidos);
-        let corto = await fs.readFile(outputFile);
-        if (repetidos) corto = completarDuracion(corto, objetivoMs(cabe));
-        logger.info(`sticker animado: no cabía en el suelo; recortado a ${cabe} s (${Math.round(corto.length / 1024)} KB)`);
+        const corto = await codificar(fpsSuelo, ult.quality, ult.size, cabe);
+        logger.info(`sticker animado: no cabía ni a ${Math.round(fpsSuelo)} fps; recortado a ${cabe} s (${Math.round(corto.length / 1024)} KB)`);
         if (corto.length < 100) break;
         smallest = corto;
         largo = cabe;
-        if (corto.length <= MAX_STICKER_BYTES) buf = corto;
+        recortado = true;
+        if (corto.length <= limite) buf = corto;
       } catch (e) {
         logger.unaVez('sticker animado recortado', e);
         break;
@@ -1289,11 +1397,26 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
     }
     // If no tier fit the cap, ship the smallest we produced (most likely to be
     // accepted/saveable) rather than whatever the last tier happened to output.
-    const out = (buf && buf.length >= 100 && buf.length <= MAX_STICKER_BYTES) ? buf : smallest;
+    const out = (buf && buf.length >= 100 && buf.length <= limite) ? buf : smallest;
     if (!out || out.length < 100) throw new Error('Sticker animado vacío');
     // Hecho aquí, con todos sus fotogramas completos: lleva el arreglo del
     // fantasma (ver injectExifIntoWebP).
-    return addStickerMeta(out, author, { propio: true });
+    const final = addStickerMeta(out, author, { propio: true });
+    const con = hechoCon.get(out) || {};
+    INFO.set(final, {
+      entra: durationS > 0 ? Math.round(durationS * 10) / 10 : null,
+      sale: Math.round(duracionMs(out) / 100) / 10,
+      fotogramas: contarFotogramas(out),
+      fps: con.fps ? Math.round(con.fps * 10) / 10 : null,
+      q: con.quality ?? null,
+      px: con.size ?? null,
+      kb: Math.round(final.length / 1024),
+      pasadas,
+      ms: Date.now() - t0,
+      fpsBajados,
+      recortado,
+    });
+    return final;
   } finally {
     // El temporal solo se borra si lo hemos creado aqui: cuando llega por
     // `rutaOrigen` es del que llama, y borrarlo le quitaria de debajo el fichero
@@ -1310,4 +1433,4 @@ async function gifToSticker(gifBuffer, author, rutaOrigen = null) {
   return videoToSticker(gifBuffer, author, rutaOrigen);
 }
 
-module.exports = { componerWebpAnimado, CANVAS_SIZE_FACTOR, _VF_ANIM: VF_ANIM, FFMPEG_TIMEOUT_MS, TOPE_ANIMADO_S, detectExt, desmontarWebpAnimado, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC, UMBRAL_REPETIDO, FORMATOS_SIN_CONVERSION, OBJETIVO_LIGERO, DESDE_LIGERO_S, _completarDuracion: completarDuracion, _contarFotogramas: contarFotogramas };
+module.exports = { componerWebpAnimado, CANVAS_SIZE_FACTOR, _VF_ANIM: VF_ANIM, FFMPEG_TIMEOUT_MS, TOPE_ANIMADO_S, SIN_BAJAR_FPS_S, FOTOGRAMAS_TOPE, FPS_MINIMO, fpsParaDuracion, infoDe, _duracionMs: duracionMs, detectExt, desmontarWebpAnimado, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC, UMBRAL_REPETIDO, FORMATOS_SIN_CONVERSION, OBJETIVO_LIGERO, DESDE_LIGERO_S, _completarDuracion: completarDuracion, _contarFotogramas: contarFotogramas };

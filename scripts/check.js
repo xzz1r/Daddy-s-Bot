@@ -11755,10 +11755,14 @@ const di=async(quien,t)=>{out.length=0;
       // Y la duracion no puede depender solo de ffprobe, que puede no existir.
       exige(/porFfmpeg\(/.test(stk) && /medidasDe\(/.test(stk),
         'la duración vuelve a salir solo de ffprobe: si ffprobe no está, devuelve 0 y la escalera arranca siempre en el escalón más caro (13 s de más medidos en un vídeo de 8 s)');
-      // Un escalon que revienta tiene que dejar rastro.
-      const j = stk.indexOf('await encodeAnimWebp(');
+      // Un escalon que revienta tiene que dejar rastro. Desde el 25 nov cada
+      // pasada va por `codificar`, que no se traga nada: el catch que deja el
+      // rastro es el del escalón.
+      const j = stk.indexOf('buf = await codificar(');
       const tras = j > 0 ? stk.slice(j, j + 400) : '';
-      exige(/logger\.unaVez\(/.test(tras),
+      const k = stk.indexOf('const codificar = async');
+      const cod = k > 0 ? stk.slice(k, stk.indexOf('};', k)) : '';
+      exige(/logger\.unaVez\(/.test(tras) && cod.includes('await encodeAnimWebp(') && !/catch/.test(cod),
         'el catch del escalón vuelve a estar mudo: la escalera entera se cae y lo único que se ve es «sticker animado vacío», que no dice por qué');
     }
 
@@ -23625,7 +23629,9 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
         }
         // Y UN VIDEO QUE NO CABE NI EN EL SUELO (25 oct): un GIF de WhatsApp
         // con mucho movimiento acababa en «no he podido». Mucho detalle y
-        // grano: tiene que salir, más corto y con la calidad del suelo.
+        // grano: tiene que salir, con la calidad del suelo. Desde el 25 nov,
+        // primero con menos fps (hasta 12) y solo si ni así, más corto (capa
+        // 188): acortar sin más dejaba en 5 s un vídeo de 10.
         const ruido = spawnSync(ffmpegPath, ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'testsrc2=s=640x640:r=30:d=6,noise=alls=40:allf=t',
           '-c:v', 'libx264', '-crf', '10', '-pix_fmt', 'yuv420p', f('ruido.mp4')]);
         if (ruido.status === 0) {
@@ -23634,25 +23640,30 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
           exige(S.isAnimatedWebP(st), 'el sticker acortado ya no es animado');
           const dc = S.desmontarWebpAnimado(st);
           exige(dc && dc.ancho >= 384, `para que quepa se ha bajado el lienzo a ${dc?.ancho} px en vez de acortar`);
+          const fi = S.infoDe(st) || {};
+          exige(fi.fpsBajados === true && (!fi.recortado || fi.fps <= S.FPS_MINIMO + 0.5),
+            `para que quepa se ha acortado a ${fi.sale} s con ${fi.fps} fps: antes de quitar segundos se quitan fotogramas, hasta ${S.FPS_MINIMO} fps`);
+          exige(fi.sale >= 4, `de 6 s de ruido sale un sticker de ${fi.sale} s: a ${S.FPS_MINIMO} fps caben unos 5`);
         }
       }
       // Cada tamaño de la escalera con su factor medido: sin él la predicción
       // da NaN y se salta escalones a ciegas.
       // Y EL SUELO (dueño, 25 oct: «la calidad ha bajado demasiado» con 384 px
-      // a q25, 320 y 256 px). Lo que no quepa se acorta, no se emborrona.
+      // a q25, 320 y 256 px). Lo que no quepa baja fps y, si ni así, se acorta;
+      // no se emborrona.
       const ult = S.ANIM_TIERS[S.ANIM_TIERS.length - 1];
       // A 512 px se puede bajar hasta q30 (25 nov, los de 3 a 10 s): medido en
       // ocho clips, q30 a 512 se ve mejor que q45 a 384, que está por encima
       // del suelo. Por debajo de q30 a 512, o de q35 a 384, no.
       exige(S.ANIM_TIERS.every((t) => (t.size === 512 && t.quality >= 30) || (t.size === 384 && t.quality >= 35)) && ult.size === 384 && ult.quality === 35,
-        `la escalera baja de 384 px a q35, o de 512 px a q30 (llega a ${Math.min(...S.ANIM_TIERS.map((t) => t.size))} px y q${Math.min(...S.ANIM_TIERS.map((t) => t.quality))}): el dueño lo vio emborronado; lo que no quepa se acorta`);
+        `la escalera baja de 384 px a q35, o de 512 px a q30 (llega a ${Math.min(...S.ANIM_TIERS.map((t) => t.size))} px y q${Math.min(...S.ANIM_TIERS.map((t) => t.quality))}): el dueño lo vio emborronado; lo que no quepa baja fps o se acorta`);
       const sinFactor = S.ANIM_TIERS.filter((t) => !S.CANVAS_SIZE_FACTOR[t.size]).map((t) => `${t.size} px`);
       exige(!sinFactor.length, `la escalera usa ${[...new Set(sinFactor)].join(', ')} sin factor de tamaño medido`);
     } catch (e) {
       exige(false, `no pude probar los stickers de parches: ${String(e.message).split('\n')[0]}`);
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
     if (saltada) console.log(`   · saltada: ${saltada} (el de la VPS sí; aquí el bot avisa como antes)`);
-    else if (fallos === antes142) console.log(verde('   ✓ un sticker de parches se compone idéntico, uno de más de 1 MB baja por debajo y lo que no cabe en el suelo sale más corto, no peor'));
+    else if (fallos === antes142) console.log(verde('   ✓ un sticker de parches se compone idéntico, uno de más de 1 MB baja por debajo y lo que no cabe en el suelo sale con menos fps y, si ni así, más corto, no peor'));
   }
   // ── 143. !a: EL DUEÑO BORRA LOS AVISOS DEL ANTISPAM, Y NADIE MÁS LO VE ─────
   // «Haz que yo pueda restablecer los avisos de ban con el antispam de
@@ -27142,6 +27153,71 @@ const r = {};
       console.log(rojo(`   ✗ se llama a ffmpeg o ffprobe por su nombre, y en GitHub (o con solo el de node_modules) no está: ${malas.slice(0, 6).join(', ')}. Usa ffmpegPath de utils/ffmpeg`));
     }
     if (fallos === antes187) console.log(verde('   ✓ el bot y las capas usan el ffmpeg que elige utils/ffmpeg, nunca uno por su nombre'));
+  }
+
+  // ── 188. HASTA 20 S, Y MENOS FPS ANTES QUE MENOS SEGUNDOS (25 nov) ────────
+  // El dueño: «ahora parece que el bot no hace stickers de más de 5
+  // segundos… hay otros bots que hacen stickers de 15 segs o más con buena
+  // calidad». Un vídeo de más de 10 s se cortaba a 10, y uno con mucho
+  // detalle salía de 5 o 6 s aunque durara 10: ni el suelo cabía a 24 fps y
+  // lo único que quedaba era acortar. Ahora lo que pasa de 10 s reparte los
+  // 240 fotogramas de uno de 10 (16 fps a 15 s, 12 a 20), y si ni el suelo
+  // cabe se le bajan los fps antes de acortar. Cada sticker animado deja su
+  // ficha (infoDe) y `npm run estado` enseña la última. Con vídeos fabricados
+  // que salen igual con el ffmpeg de la VPS que con el de GitHub.
+  {
+    console.log('\n188. STICKERS DE HASTA 20 S, Y MENOS FPS ANTES QUE MENOS SEGUNDOS');
+    const antes188 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const S = require(path.join(R, 'src/utils/sticker'));
+    const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'largo188-'));
+    try {
+      exige(S.TOPE_ANIMADO_S === 20 && S.FOTOGRAMAS_TOPE === 240 && S.FPS_MINIMO === 12 && S.SIN_BAJAR_FPS_S === 10,
+        `topes cambiados (${S.TOPE_ANIMADO_S} s, ${S.FOTOGRAMAS_TOPE} fotogramas, ${S.FPS_MINIMO} fps como mínimo, 24 fps hasta ${S.SIN_BAJAR_FPS_S} s): el dueño pidió 15 s o más, y por debajo de 12 fps va a saltos`);
+      const f = S.fpsParaDuracion;
+      exige(f(3) === Infinity && f(10) === Infinity && f(10.1) === 24 && f(15) === 16 && f(16) === 15 && f(20) === 12 && f(45) === 12,
+        `los fps por duración no reparten 240 fotogramas (3 s: ${f(3)}, 10 s: ${f(10)}, 10,1 s: ${f(10.1)}, 15 s: ${f(15)}, 20 s: ${f(20)}, 45 s: ${f(45)})`);
+      const ff = (args) => spawnSync(ffmpegPath, ['-v', 'error', '-y', ...args], { timeout: 120000 });
+      const ruta = (n) => path.join(dir, n);
+      // Uno ligero de 16 s: tiene que salir entero, a 15 fps y a 512 px.
+      ff(['-f', 'lavfi', '-i', 'color=c=0x2a6f97:s=320x240:r=24:d=16', '-f', 'lavfi', '-i', 'color=c=yellow:s=40x40:r=24:d=16',
+        '-filter_complex', "[0][1]overlay=x='mod(t*50,280)':y=100", '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', ruta('largo16.mp4')]);
+      // Uno de 6 s con mucho grano: a 24 fps ni el suelo cabe en 1 MB.
+      ff(['-f', 'lavfi', '-i', 'testsrc2=s=480x480:r=30:d=6,noise=alls=24:allf=t', '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '12',
+        '-pix_fmt', 'yuv420p', ruta('grano6.mp4')]);
+      if (!fs.existsSync(ruta('largo16.mp4')) || !fs.existsSync(ruta('grano6.mp4'))) {
+        exige(false, 'no pude fabricar los vídeos de prueba (¿ffmpeg sin libx264?)');
+      } else {
+        const l = await S.videoToSticker(fs.readFileSync(ruta('largo16.mp4')), 'capa');
+        const fl = S.infoDe(l) || {};
+        exige(Math.abs((fl.sale || 0) - 16) <= 0.3, `un vídeo de 16 s sale de ${fl.sale} s: lo que pasaba de 10 s se cortaba, y el dueño pidió 15 o más`);
+        exige(fl.fps === 15 && fl.fotogramas <= S.FOTOGRAMAS_TOPE + 2,
+          `16 s salen con ${fl.fotogramas} fotogramas a ${fl.fps} fps: tendrían que ser los 240 de uno de 10 s, a 15 fps`);
+        exige(fl.px === 512 && l.length <= S.MAX_STICKER_BYTES,
+          `uno ligero de 16 s sale a ${fl.px} px y ${Math.round(l.length / 1024)} KB: con 240 fotogramas cabe a 512, como uno de 10 s`);
+        exige(fl.kb === Math.round(l.length / 1024) && fl.entra > 15.5 && fl.pasadas >= 1 && fl.ms > 0 && fl.q > 0,
+          `la ficha del sticker no cuadra con lo que salió (${JSON.stringify(fl)})`);
+        const g = await S.videoToSticker(fs.readFileSync(ruta('grano6.mp4')), 'capa');
+        const fg = S.infoDe(g) || {};
+        exige(g.length <= S.MAX_STICKER_BYTES && S.isAnimatedWebP(g), `uno de 6 s con grano sale con ${Math.round(g.length / 1024)} KB, o sin animar`);
+        exige(fg.fpsBajados === true && !fg.recortado && Math.abs((fg.sale || 0) - 6) <= 0.2,
+          `uno de 6 s con grano sale de ${fg.sale} s a ${fg.fps} fps${fg.recortado ? ', recortado' : ''}: bajando fps cabe entero, y antes de quitar segundos se quitan fotogramas`);
+        exige(fg.fps >= S.FPS_MINIMO && fg.fps < 24 && fg.px === 384 && fg.q === 35,
+          `el de grano sale a ${fg.fps} fps, ${fg.px} px y q${fg.q}: los fps se bajan en el suelo (384 px a q35), sin bajar de calidad ni de ${S.FPS_MINIMO} fps`);
+      }
+      // La ficha llega a npm run estado, y el 1 MB es con la marca dentro.
+      const cmd = soloCodigo('src/commands/sticker.js');
+      exige(/infoDe\(stickerBuffer\)/.test(cmd) && /apuntarHecho\(\{\s*\.\.\.ficha/.test(cmd) && /stickerHechos\.json/.test(cmd),
+        'el comando ya no apunta la ficha de cada sticker animado: npm run estado no puede decir si lo cortó el bot o el teléfono');
+      const est = fs.readFileSync(path.join(R, 'scripts/estado.js'), 'utf8');
+      exige(/stickerHechos\.json/.test(est) && /último sticker animado/.test(est), 'npm run estado ya no enseña el último sticker animado');
+      exige(/const limite = MAX_STICKER_BYTES - \(buildExif\(/.test(soloCodigo('src/utils/sticker.js')),
+        'la escalera vuelve a medir contra 1 MB sin la marca: uno que entra justo sale por encima y el comando contesta que pesa demasiado');
+    } catch (e) {
+      exige(false, `no pude probar los stickers largos: ${String(e.message).split('\n')[0]}`);
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+    if (fallos === antes188) console.log(verde('   ✓ hasta 20 s con los 240 fotogramas de uno de 10; si ni el suelo cabe, menos fps antes que menos segundos; cada sticker deja su ficha'));
   }
 
 

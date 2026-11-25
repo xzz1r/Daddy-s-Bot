@@ -1,4 +1,4 @@
-const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, detectExt, MAX_STICKER_BYTES } = require('../utils/sticker');
+const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, detectExt, MAX_STICKER_BYTES, infoDe } = require('../utils/sticker');
 const fs = require('fs-extra');
 const path = require('path');
 const { tempFile, cleanTemp, atomicWriteJson, readJsonOrEnoent } = require('../utils/helpers');
@@ -43,6 +43,21 @@ async function apuntarFallo(que, motivo) {
     const nueva = (Array.isArray(lista) ? lista : []).slice(-19);
     nueva.push({ t: Date.now(), que, motivo: String(motivo || '').split('\n')[0].slice(0, 160) });
     await atomicWriteJson(FALLOS_FILE, nueva);
+  } catch { /* solo es para mirar */ }
+}
+
+// LO QUE SALIÓ DE CADA STICKER ANIMADO, PARA `npm run estado` (25 nov). El
+// dueño: «parece que el bot no hace stickers de más de 5 segundos». Desde el
+// grupo no se sabe si lo hizo corto el bot o si lo corta el teléfono: aquí
+// queda lo que duraba el vídeo y lo que dura el sticker, con sus fps, su
+// calidad, su peso y si llevó sonido (ver infoDe). Los 20 últimos.
+const HECHOS_FILE = path.join(__dirname, '../../data/stickerHechos.json');
+async function apuntarHecho(ficha) {
+  try {
+    const lista = await readJsonOrEnoent(HECHOS_FILE, []).catch(() => []);
+    const nueva = (Array.isArray(lista) ? lista : []).slice(-19);
+    nueva.push({ t: Date.now(), ...ficha });
+    await atomicWriteJson(HECHOS_FILE, nueva);
   } catch { /* solo es para mirar */ }
 }
 
@@ -254,7 +269,10 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
       }, { quoted: msg });
     }
     incrementStat('stickersCreated');
-    logger.success(`Sticker enviado (${found.type}, ${stickerBuffer.length} bytes, animated=${animated}, thumb=${!!pngThumbnail}, sonido=${salioConSonido})`);
+    const ficha = infoDe(stickerBuffer);
+    const resumen = ficha ? `, ${ficha.entra ?? '?'} s → ${ficha.sale} s a ${ficha.fps ?? '?'} fps, ${ficha.px} px q${ficha.q}${ficha.fpsBajados ? ', fps bajados' : ''}${ficha.recortado ? ', recortado' : ''}` : '';
+    logger.success(`Sticker enviado (${found.type}, ${stickerBuffer.length} bytes, animated=${animated}, thumb=${!!pngThumbnail}, sonido=${salioConSonido}${resumen})`);
+    if (ficha) await apuntarHecho({ ...ficha, de: found.type, orden: conSonido ? 's2' : 's', sonido: salioConSonido });
   } catch (err) {
     logger.error(`Sticker send error: ${err.message}`);
     apuntarFallo('mandar', err.message);

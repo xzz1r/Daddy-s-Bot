@@ -855,6 +855,23 @@ if (!bot) {
       const c = (x) => (Array.isArray(x) ? x.join(',') : '?');
       bien(`último sticker recibido: ${ultSt.audio ? 'con' : 'sin'} audio · campos del mensaje ${c(ultSt.mensaje)} · del sticker ${c(ultSt.sticker)}`, recientesSt.length > 0);
     }
+    // EL ÚLTIMO STICKER ANIMADO QUE HIZO EL BOT (25 nov). El dueño: «parece que
+    // el bot no hace stickers de más de 5 segundos». Si aquí sale de 10 s y en
+    // el teléfono dura 5, lo corta el teléfono; si sale de 5, lo cortó el bot,
+    // y la línea dice por qué. Va en el resumen las dos horas siguientes.
+    let hechosSt = [];
+    try { hechosSt = JSON.parse(require('fs').readFileSync(path.join(RAIZ, 'data/stickerHechos.json'), 'utf8')); } catch { hechosSt = []; }
+    const ultH = Array.isArray(hechosSt) ? hechosSt[hechosSt.length - 1] : null;
+    if (ultH && ultH.sale != null) {
+      const coma = (n) => String(n).replace('.', ',');
+      const min = Math.max(0, Math.round((Date.now() - (ultH.t || 0)) / 60000));
+      const cuando = min < 60 ? `hace ${min} min` : min < 48 * 60 ? `hace ${Math.round(min / 60)} h` : `hace ${Math.round(min / 1440)} días`;
+      const origen = ultH.de === 'video' ? 'vídeo' : ultH.de === 'sticker' ? 'sticker' : 'GIF';
+      const porque = ultH.recortado ? ` (recortado: ni a ${coma(ultH.fps)} fps cabía en 1 MB)`
+        : ultH.fpsBajados ? ' (con menos fps para que cupiera entero)' : '';
+      bien(`último sticker animado (!${ultH.orden}, ${cuando}): ${origen} de ${ultH.entra != null ? coma(ultH.entra) : '?'} s → sticker de ${coma(ultH.sale)} s${porque} · ${ultH.fotogramas} fotogramas a ${coma(ultH.fps)} fps · ${ultH.px} px q${ultH.q} · ${ultH.kb} KB · ${ultH.pasadas} pasadas en ${coma(Math.round((ultH.ms || 0) / 100) / 10)} s${ultH.sonido ? ' · con sonido' : ''}`,
+        min < 120 || recientesSt.length > 0);
+    }
     if (recientesSt.length) {
       const ult = recientesSt[recientesSt.length - 1];
       aviso(`stickers: ${recientesSt.length} fallo(s) en 24 h (el último, al ${ult.que}: ${ult.motivo})`,

@@ -304,6 +304,21 @@ menos de 3 s no cambian. No se baja de q30 a 512, ni se quitan fps, ni se
 reutilizan bloques entre fotogramas para pesar menos: se midió y se ve peor.
 Capa 185.
 
+**Hasta 20 s, y menos fps antes que menos segundos** (dueño, 25 nov: «ahora
+parece que el bot no hace stickers de más de 5 segundos… hay otros bots que
+hacen stickers de 15 segs o más con buena calidad»). Lo que pasa de 10 s
+reparte los 240 fotogramas de uno de 10 (`FOTOGRAMAS_TOPE`): 16 fps a los
+15 s, 12 a los 20 (`TOPE_ANIMADO_S`). El peso va con los fotogramas, así que
+pesa y se ve, fotograma a fotograma, como uno de 10 s con la escalera de
+siempre; lo que pierde es fluidez. Hasta 10 s, los 24 fps de siempre. Y si ni
+el suelo (384 px a q35) cabe en 1 MB, se le bajan los fps, hasta 12
+(`FPS_MINIMO`), antes de acortar: un vídeo de 10 s con mucho detalle salía de
+5,9 s. Es la única excepción al «no se quitan fps» de arriba. El 1 MB es con
+la marca dentro. Cada sticker animado deja su ficha (lo que duraba, lo que
+dura, fps, calidad, peso, pasadas y si llevó sonido) y `npm run estado`
+enseña la última: si ahí sale de 10 s y en el teléfono dura 5, lo corta el
+teléfono. Capas 142 y 188.
+
 ## El menú: corto y coherente
 
 Lo pidió el dueño (25 nov): «ajusta bien la lista de /commands… coherencia,

@@ -123,7 +123,10 @@ function ffmpegBin() {
       const S = require(path.join(RAIZ, 'src/utils/sticker'));
       // Los topes, del propio bot: copiados aquí se quedarían viejos al cambiarlos.
       const TIMEOUT_STICKER_MS = S.FFMPEG_TIMEOUT_MS;
-      const FOTOGRAMAS_TOPE = S.TOPE_ANIMADO_S * 24;
+      // El sticker más largo lleva 240 fotogramas: 10 s a 24 fps, o hasta 20 s
+      // con menos fps (25 nov, ver TOPE_ANIMADO_S en sticker.js).
+      const FOTOGRAMAS_TOPE = S.FOTOGRAMAS_TOPE || S.TOPE_ANIMADO_S * 24;
+      const LARGO = `un vídeo de ${S.TOPE_ANIMADO_S} s (${FOTOGRAMAS_TOPE} fotogramas)`;
       const bufFoto = fs.readFileSync(foto);
       const tiempos = [];
       for (let i = 0; i < 3; i++) { const t0 = process.hrtime.bigint(); await S.imageToSticker(bufFoto, 'medir'); tiempos.push(ms(t0)); }
@@ -142,16 +145,16 @@ function ffmpegBin() {
       const porFotograma = tAnim / 96;
       const peorCaso = porFotograma * FOTOGRAMAS_TOPE;
       dato('sticker animado, por fotograma', `${porFotograma.toFixed(1)} ms (referencia: ${REF.msPorFotograma} ms)`);
-      dato(`un vídeo de ${S.TOPE_ANIMADO_S} s, una pasada`, `${(peorCaso / 1000).toFixed(1)} s, contra un tope de ${TIMEOUT_STICKER_MS / 1000} s`);
+      dato(`${LARGO}, una pasada`, `${(peorCaso / 1000).toFixed(1)} s, contra un tope de ${TIMEOUT_STICKER_MS / 1000} s`);
       if (peorCaso > TIMEOUT_STICKER_MS) {
-        mal(`un vídeo de ${S.TOPE_ANIMADO_S} s no cabe en el tope de ${TIMEOUT_STICKER_MS / 1000} s: el sticker animado de un vídeo largo fallará aquí`,
+        mal(`${LARGO} no cabe en el tope de ${TIMEOUT_STICKER_MS / 1000} s: el sticker animado de un vídeo largo fallará aquí`,
           'pégale esto a quien mantenga el bot: hay que subir FFMPEG_TIMEOUT_MS o bajar TOPE_ANIMADO_S en src/utils/sticker.js');
         conclusiones.push('el tope de tiempo del sticker animado se queda corto para esta máquina');
       } else if (peorCaso > TIMEOUT_STICKER_MS * 0.6) {
-        aviso(`un vídeo de ${S.TOPE_ANIMADO_S} s se come el ${Math.round((peorCaso / TIMEOUT_STICKER_MS) * 100)} % del tope: si además le toca bajar de calidad (dos pasadas), no cabe`,
+        aviso(`${LARGO} se come el ${Math.round((peorCaso / TIMEOUT_STICKER_MS) * 100)} % del tope: si además le toca bajar de calidad (dos pasadas), no cabe`,
           'pégale esto a quien mantenga el bot');
         conclusiones.push('el sticker animado de un vídeo largo va justo de tiempo');
-      } else bien(`un vídeo de ${S.TOPE_ANIMADO_S} s cabe con margen en el tope de ${TIMEOUT_STICKER_MS / 1000} s`);
+      } else bien(`${LARGO} cabe con margen en el tope de ${TIMEOUT_STICKER_MS / 1000} s`);
     }
 
     // ─── DOS A LA VEZ ────────────────────────────────────────────────────
