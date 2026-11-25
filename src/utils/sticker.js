@@ -473,8 +473,36 @@ const VF_STATIC = `scale=512:512:force_original_aspect_ratio=decrease,pad=512:51
 // hay treinta fotogramas de movimiento, hay doce con marcas de tiempo de
 // treinta. Si el origen viene a 60, el filtro sigue bajandolo a 30, que es para
 // lo que servia.
-const VF_ANIM = (fps, size = 512, fpsOrigen = 0) => {
-  const cadena = `scale=${size}:${size}:force_original_aspect_ratio=decrease,`
+//
+// ─── LOS FOTOGRAMAS REPETIDOS, UNA SOLA VEZ (25 nov) ────────────────────────
+//
+// El dueño: «todos pesan más de 1 MB, es demasiado». Un vídeo que es una foto
+// fija con sonido (lo normal ahora que los stickers suenan), uno que se congela
+// al principio o al final, o un anime que repite dibujo, llegan con el mismo
+// fotograma decenas de veces, y este codificador escribe cada uno entero. Con
+// `mpdecimate` el repetido no se escribe: el anterior dura más. Medido a q85:
+// la foto fija con texto de 6 s, de 1.760 KB a 38 KB; congelado al principio y
+// al final, de 1.154 a 440; anime, un 10-20 % menos. Y la calidad, idéntica:
+// lo que se ve en cada instante es el mismo fotograma.
+//
+// EL UMBRAL ES «NADA CAMBIA», NO «CASI NADA». Repetido es que ningún bloque de
+// 8x8 cambie más de 64 en total (un nivel por píxel), y en TODA la imagen
+// (`frac=0`). Con el `frac` de serie (un tercio de la imagen puede cambiar) se
+// tiraba el 60 % de un vídeo de gente andando delante de una cámara fija: la
+// gente es poca imagen. Medido en vídeos de cámara de verdad: ningún fotograma
+// baja de 128, ni siquiera quietos (el grano del sensor), así que a 64 no se
+// toca ni uno.
+//
+// SOLO CON YUV PLANO. mpdecimate trabaja en YUV: con eso (lo que trae casi todo
+// vídeo) no convierte nada. A un GIF (pal8) ffmpeg lo pasaría a gbrp y le
+// quitaría la transparencia, y el RGBA lo pasaría a YUV antes de escalar: con
+// eso no se usa. Lo decide FORMATOS_SIN_CONVERSION con el formato del origen.
+const UMBRAL_REPETIDO = 64;
+const QUITA_REPETIDOS = `mpdecimate=hi=${UMBRAL_REPETIDO}:lo=${UMBRAL_REPETIDO}:frac=0`;
+const FORMATOS_SIN_CONVERSION = /^yuv[ja]?4(20|22|44)p$/;
+const VF_ANIM = (fps, size = 512, fpsOrigen = 0, repetidos = false) => {
+  const cadena = (repetidos ? `${QUITA_REPETIDOS},` : '')
+    + `scale=${size}:${size}:force_original_aspect_ratio=decrease,`
     + `pad=${size}:${size}:(ow-iw)/2:(oh-ih)/2:color=0x00000000,setsar=1,format=rgba`;
   // Sin saber los fps del origen se deja como estaba: bajarlos de mas seria
   // perder movimiento de verdad, y eso si se ve.
@@ -778,12 +806,13 @@ const MAX_STICKER_BYTES = 1024 * 1024;
 // Quality and, as a last resort, canvas size are the only levers used to control
 // file weight. Tiers are tried in order until one fits under MAX_STICKER_BYTES.
 const ANIM_TIERS = [
-  // EL PRIMER ESCALON ERA q85 Y SOBRABA PRESUPUESTO. Medido sobre contenido
-  // normal, un clip de cuatro segundos sale a 215 KB con q85 y a 341 KB con
-  // q95, contra un tope de 1 MB: se estaba mandando el sticker a un quinto de
-  // lo que WhatsApp admite. El q95 va delante, y si no cabe la escalera cae
-  // sola al siguiente como ha hecho siempre — no hay nada que decidir a mano.
-  { fps: 30, quality: 95, size: 512 },
+  // ARRANCA EN q85, Y NO EN q95 (25 nov). El q95 se puso para gastar el
+  // presupuesto entero, y el dueño: «todos pesan más de 1 MB, es demasiado».
+  // Medido en doce clips de verdad (cámara, cámara HD y vertical, anime, CGI,
+  // meme con texto): q95 pesa el doble que q85 (2,1x de media) y no se ve.
+  // En lo normal, SSIM 0,994 contra 0,988, y a doble tamaño el texto y las
+  // caras son iguales; solo la textura más fina (suelo, follaje) sale algo más
+  // lisa. Un clip corto que pesaba casi 1 MB se queda en la mitad.
   { fps: 30, quality: 85, size: 512 },
   { fps: 30, quality: 75, size: 512 },
   // `desde` marca en que escalon arranca un video segun lo que dure. Va en el
@@ -862,22 +891,28 @@ function porFfmpeg(inputFile) {
       clearTimeout(t);
       const d = /Duration: (\d+):(\d+):(\d+\.?\d*)/.exec(texto);
       const f = /,\s*([\d.]+)\s*fps[,\s]/.exec(texto);
+      // El formato de los píxeles: «Video: h264 (High) (avc1 / …), yuv420p(tv, …)».
+      const p = /Stream #[^\n]*?Video: [^,\n]+, ([a-z0-9_]+)/.exec(texto);
       resolve({
         segundos: d ? Number(d[1]) * 3600 + Number(d[2]) * 60 + Number(d[3]) : 0,
         fps: f ? Number(f[1]) : 0,
+        pixFmt: p ? p[1] : '',
       });
     });
   });
 }
 
-// Duracion Y fotogramas por segundo del origen, con ffprobe si esta y con
-// ffmpeg si no. Los fps hacen falta para no inventarse fotogramas: ver VF_ANIM.
+// Duracion, fotogramas por segundo y formato de los pixeles del origen, con
+// ffprobe si esta y con ffmpeg si no. Los fps hacen falta para no inventarse
+// fotogramas (ver VF_ANIM) y el formato, para saber si se pueden quitar los
+// repetidos sin convertir nada (FORMATOS_SIN_CONVERSION).
 async function medidasDe(inputFile) {
   const porSonda = await getVideoDurationS(inputFile);
   const porFf = await porFfmpeg(inputFile);
   return {
     segundos: porSonda > 0 ? porSonda : porFf.segundos,
     fps: porFf.fps,
+    pixFmt: porFf.pixFmt || '',
   };
 }
 
@@ -887,8 +922,11 @@ function getVideoDurationS(inputFile) {
     const finish = (v) => { if (settled) return; settled = true; clearTimeout(t); resolve(v); };
     let proc;
     try {
+      // La del VÍDEO: el audio puede durar más, y con los repetidos fuera esta
+      // cifra es la que dice cuánto dura el último fotograma (completarDuracion).
       proc = spawnSuave(ffprobePath, [
         '-v', 'error',
+        '-select_streams', 'v:0',
         '-show_entries', 'stream=duration:format=duration',
         '-of', 'json', inputFile,
       ]);
@@ -931,7 +969,13 @@ function startTierIndex(durationS) {
 // "split in two" sticker. Plain `libwebp` emits every frame as a FULL keyframe
 // (full canvas, no blending), which WhatsApp renders faithfully. Output is a bit
 // larger, which the size-tiering loop in videoToSticker already handles.
-async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512, fpsOrigen = 0, segundos = TOPE_ANIMADO_S) {
+//
+// Y NO SOLO POR WHATSAPP (medido el 25 nov, decodificando con libwebp). A q85,
+// libwebp_anim pesa un 30-58 % menos con cámara fija y un 7 % con cámara en
+// movimiento, pero da por iguales los cambios pequeños y la calidad cae: en un
+// vídeo de cámara fija, de 47,7 a 40,6 dB. Para pesar menos sin perder nada
+// está quitar los fotogramas repetidos de verdad (QUITA_REPETIDOS).
+async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512, fpsOrigen = 0, segundos = TOPE_ANIMADO_S, repetidos = false) {
   await ffmpegSemaphore.acquire();
   try {
     return await new Promise((resolve, reject) => {
@@ -981,13 +1025,19 @@ async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512, f
         .inputOptions(['-t', String(segundos)])
         .outputOptions([
           '-map', '0:v:0',
-          '-vf', VF_ANIM(fps, size, fpsOrigen),
+          '-vf', VF_ANIM(fps, size, fpsOrigen, repetidos),
           '-c:v', 'libwebp',
           '-loop', '0',
           '-an',
           '-q:v', String(quality),
-          '-compression_level', '2',
-          '-preset', 'default',
+          // EL ESFUERZO ES 4, Y SIN -preset (25 nov). Aquí ponía
+          // `-compression_level 2` junto a `-preset default`, y con un preset
+          // ffmpeg toma el esfuerzo del preset (4) y tira el que se le pasa:
+          // el 2 no se aplicó nunca (mismo fichero byte a byte con 2 que con 6).
+          // Se deja el 4, que es lo que salía, escrito como lo que es: el 5
+          // ahorra un 2 % y tarda un 12 % más, y el 6 un 4 % por siete veces
+          // el tiempo. Ojo: con -preset también se ignora `-lossless`.
+          '-compression_level', '4',
           '-y',
         ])
         .toFormat('webp')
@@ -1010,6 +1060,47 @@ async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512, f
   } finally {
     ffmpegSemaphore.release();
   }
+}
+
+// ─── EL ÚLTIMO FOTOGRAMA DURA LO QUE QUEDA ──────────────────────────────────
+//
+// Sin los repetidos, cada fotograma dura hasta el siguiente que cambia, salvo
+// el último: el muxer de ffmpeg le pone un solo periodo (33 ms). Una foto fija
+// de 6 s salía como dos fotogramas que duraban 166 ms en total, y un vídeo que
+// se congela al final perdía la pausa antes de volver a empezar. Aquí el
+// último se alarga hasta `objetivoMs`, lo que dura el vídeo (con su tope). Solo
+// alarga, y solo si falta más de un fotograma: lo demás no se toca.
+function completarDuracion(webp, objetivoMs) {
+  if (!webp || webp.length < 16 || !(objetivoMs > 0)) return webp;
+  let pos = 12;
+  let total = 0;
+  let ultimo = -1;
+  while (pos + 8 <= webp.length) {
+    const largo = webp.readUInt32LE(pos + 4);
+    if (webp.slice(pos, pos + 4).toString('latin1') === 'ANMF' && largo >= 16) {
+      total += webp.readUIntLE(pos + 20, 3);
+      ultimo = pos;
+    }
+    pos += 8 + largo + (largo % 2);
+  }
+  if (ultimo < 0) return webp;
+  const dura = webp.readUIntLE(ultimo + 20, 3);
+  const falta = Math.round(objetivoMs) - total;
+  if (falta <= Math.max(dura, 40)) return webp;
+  const out = Buffer.from(webp);
+  out.writeUIntLE(Math.min(dura + falta, 0xFFFFFF), ultimo + 20, 3);
+  return out;
+}
+
+function contarFotogramas(webp) {
+  let pos = 12;
+  let n = 0;
+  while (webp && pos + 8 <= webp.length) {
+    const largo = webp.readUInt32LE(pos + 4);
+    if (webp.slice(pos, pos + 4).toString('latin1') === 'ANMF') n++;
+    pos += 8 + largo + (largo % 2);
+  }
+  return n;
 }
 
 // `rutaOrigen`: si el que llama ya escribio el medio en un temporal, se usa ese
@@ -1044,10 +1135,15 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
     const durationS = medidas.segundos;
     const fpsOrigen = medidas.fps;
     const startIdx = startTierIndex(durationS);
+    // Los repetidos fuera solo si el origen es YUV plano: ver QUITA_REPETIDOS.
+    const repetidos = FORMATOS_SIN_CONVERSION.test(medidas.pixFmt || '');
+    // Lo que tiene que durar la animación con un tope de `seg` segundos.
+    const objetivoMs = (seg) => (durationS > 0 ? Math.min(durationS, seg) * 1000 : 0);
 
     let buf = null;
     let smallest = null;   // keep the lightest valid encode as a fallback
     let refBytes = null, refTier = null; // last real encode, feeds predictTierBytes
+    let cupo = -1;         // el escalón donde cupo
     for (let i = startIdx; i < ANIM_TIERS.length; i++) {
       const tier = ANIM_TIERS[i];
       // Skip a tier predicted to still overshoot — never skip the last tier, so
@@ -1058,7 +1154,7 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
       }
       const { fps, quality, size } = tier;
       try {
-        await encodeAnimWebp(inputFile, outputFile, fps, quality, size, fpsOrigen);
+        await encodeAnimWebp(inputFile, outputFile, fps, quality, size, fpsOrigen, TOPE_ANIMADO_S, repetidos);
       } catch (e) {
         // UN ESCALON QUE FALLA DEJA RASTRO. Este catch estaba mudo, y con el
         // mudo la unica señal de que la escalera entera se cae es un «sticker
@@ -1069,6 +1165,7 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
       }
       buf = await fs.readFile(outputFile);
       if (buf.length < 100) continue;
+      if (repetidos) buf = completarDuracion(buf, objetivoMs(TOPE_ANIMADO_S));
       // EL ESCALON DE ARRIBA NO SIRVE PARA PREDECIR NADA.
       //
       // Los multiplicadores de QUALITY_SIZE_FACTOR se midieron de q85 hacia
@@ -1078,13 +1175,37 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
       // imposibles TODOS los escalones de 512 px y el sticker terminaba a 384 —
       // peor de lo que salia antes de tocar nada.
       //
-      // Asi que un q95 que no cabe se descarta y ya esta: el siguiente escalon
-      // se codifica de verdad y es ese el que queda de referencia. Cuesta una
-      // codificacion, que es justo lo que ya se paga por intentar la calidad
-      // buena.
+      // Asi que un escalon por encima de q85 que no cabe se descarta y ya esta:
+      // el siguiente se codifica de verdad y es ese el que queda de referencia.
+      // Hoy la escalera arranca en q85 (ver ANIM_TIERS) y no hay ninguno por
+      // encima, pero la regla se queda por si vuelve alguno.
       if (tier.quality <= REF_MAX_QUALITY) { refBytes = buf.length; refTier = tier; }
-      if (buf.length <= MAX_STICKER_BYTES) { smallest = buf; break; }
+      if (buf.length <= MAX_STICKER_BYTES) { smallest = buf; cupo = i; break; }
       if (!smallest || buf.length < smallest.length) smallest = buf;
+    }
+    // SUBIR SI LOS REPETIDOS DEJARON SITIO (25 nov). El escalón de arranque
+    // sale de lo que dura el vídeo, y una foto fija de diez segundos arrancaba
+    // en q60 como si fueran 240 fotogramas distintos, cuando son dos. Si cupo
+    // a la primera, con lo que de verdad quedó (los fotogramas que hay, a sus
+    // fps) se mira qué escalón le tocaría; si es mejor y se espera que quepa,
+    // una codificación más, que con pocos fotogramas es corta. Si no cabe, se
+    // queda el de antes. Un vídeo sin repetidos no sube: dura lo mismo.
+    if (repetidos && cupo > 0 && cupo === startIdx && buf) {
+      const de = ANIM_TIERS[cupo];
+      const fpsHechos = fpsOrigen > 0 ? Math.min(fpsOrigen, de.fps) : de.fps;
+      const efectivos = contarFotogramas(buf) / fpsHechos;
+      for (let j = startTierIndex(efectivos); j < cupo; j++) {
+        const t = ANIM_TIERS[j];
+        if (predictTierBytes(t, de, buf.length) > MAX_STICKER_BYTES) continue;
+        try {
+          await encodeAnimWebp(inputFile, outputFile, t.fps, t.quality, t.size, fpsOrigen, TOPE_ANIMADO_S, repetidos);
+          const mejor = completarDuracion(await fs.readFile(outputFile), objetivoMs(TOPE_ANIMADO_S));
+          if (mejor.length >= 100 && mejor.length <= MAX_STICKER_BYTES) { buf = mejor; smallest = mejor; }
+        } catch (e) {
+          logger.unaVez('sticker animado: subir de escalón', e);
+        }
+        break;
+      }
     }
     // SI NI EL SUELO CABE, SE ACORTA EN VEZ DE RENDIRSE NI DE BAJAR MAS (25
     // oct). Los fps no se tocan (es requisito) y la calidad no baja del suelo
@@ -1101,8 +1222,9 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
       if (cabe < 0.5) break;
       const ult = ANIM_TIERS[ANIM_TIERS.length - 1];
       try {
-        await encodeAnimWebp(inputFile, outputFile, ult.fps, ult.quality, ult.size, fpsOrigen, cabe);
-        const corto = await fs.readFile(outputFile);
+        await encodeAnimWebp(inputFile, outputFile, ult.fps, ult.quality, ult.size, fpsOrigen, cabe, repetidos);
+        let corto = await fs.readFile(outputFile);
+        if (repetidos) corto = completarDuracion(corto, objetivoMs(cabe));
         logger.info(`sticker animado: no cabía en el suelo; recortado a ${cabe} s (${Math.round(corto.length / 1024)} KB)`);
         if (corto.length < 100) break;
         smallest = corto;
@@ -1134,4 +1256,4 @@ async function gifToSticker(gifBuffer, author, rutaOrigen = null) {
   return videoToSticker(gifBuffer, author, rutaOrigen);
 }
 
-module.exports = { componerWebpAnimado, CANVAS_SIZE_FACTOR, _VF_ANIM: VF_ANIM, FFMPEG_TIMEOUT_MS, TOPE_ANIMADO_S, detectExt, desmontarWebpAnimado, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC };
+module.exports = { componerWebpAnimado, CANVAS_SIZE_FACTOR, _VF_ANIM: VF_ANIM, FFMPEG_TIMEOUT_MS, TOPE_ANIMADO_S, detectExt, desmontarWebpAnimado, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC, UMBRAL_REPETIDO, FORMATOS_SIN_CONVERSION, _completarDuracion: completarDuracion, _contarFotogramas: contarFotogramas };

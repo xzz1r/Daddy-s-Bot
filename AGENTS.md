@@ -257,6 +257,17 @@ y al escribir. Se mandan con la forma ya probada en teléfonos (`type="text"`,
 sin el sticker a la vista de Baileys); no se cambia sin probarlo en un
 móvil. Ver `MOTOR.md`; capa 183.
 
+## Stickers animados: lo justo, sin perder calidad
+
+Lo pidió el dueño (25 nov): «optimiza el peso de los stickers sin sacrificar
+calidad; todos pesan más de 1 MB». La escalera de `src/utils/sticker.js`
+arranca en q85 (q95 pesaba el doble y no se veía) y **no se vuelve a poner un
+escalón por encima**. Los fotogramas repetidos de verdad se escriben una vez
+(`QUITA_REPETIDOS`): el umbral es «nada cambia en toda la imagen» y solo con
+vídeo YUV; no se afloja, que con el de serie se tiraban fotogramas que se
+mueven. La codificación no lleva `-preset` (ffmpeg tiraría el esfuerzo). Ver
+`MOTOR.md`; capa 184.
+
 ## !visto: solo lo conoce el dueño
 
 Lo dijo el dueño (16 nov): «el comando /visto solo yo tengo conocimiento de

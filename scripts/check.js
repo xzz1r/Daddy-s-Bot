@@ -26669,6 +26669,96 @@ const r = {};
     if (fallos === antes183) console.log(verde('   ✓ los stickers con sonido se leen, citados también, y *!s* los hace de un vídeo con sonido como los aceptan los teléfonos'));
   }
 
+  // ── 184. STICKERS MÁS LIGEROS SIN PERDER CALIDAD (25 nov) ──────────────────
+  // El dueño: «¿puedes optimizar el peso de los stickers sin sacrificar
+  // calidad? Todos pesan más de 1 MB, es demasiado». La escalera arranca en q85
+  // (q95 pesaba el doble y no se veía), los fotogramas repetidos de verdad no
+  // se escriben dos veces, y el esfuerzo del compresor es el que se escribe
+  // (con -preset, ffmpeg tiraba el que se le pasaba). Aquí: que no vuelva un
+  // escalón por encima de q85; que lo repetido se quite solo con YUV plano y
+  // con el umbral de «nada cambia» en toda la imagen; que el último fotograma
+  // dure lo que queda; que una foto fija de 6 s salga ligera y dure 6 s; que un
+  // vídeo que se mueve no pierda un solo fotograma; y que no vuelva -preset.
+  {
+    console.log('\n184. STICKERS MÁS LIGEROS SIN PERDER CALIDAD');
+    const antes184 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const S = require(path.join(R, 'src/utils/sticker'));
+    const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ligero-'));
+    try {
+      const techo = Math.max(...S.ANIM_TIERS.map((t) => t.quality));
+      const t0 = S.ANIM_TIERS[0];
+      exige(techo <= 85 && t0.quality === 85 && t0.fps === 30 && t0.size === 512,
+        `la escalera arranca en q${t0.quality}@${t0.fps} y llega a q${techo}: por encima de q85 pesa el doble y no se ve (el dueño: «todos pesan más de 1 MB»)`);
+
+      exige(S.UMBRAL_REPETIDO === 64, `el umbral de repetido es ${S.UMBRAL_REPETIDO}: por encima, en vídeos de cámara de verdad se empiezan a tirar fotogramas que se mueven`);
+      const conR = S._VF_ANIM(30, 512, 60, true);
+      exige(/^fps=30,mpdecimate=hi=64:lo=64:frac=0,scale=/.test(conR),
+        `los repetidos no se quitan en su sitio (después de bajar los fps, antes de escalar, y con frac=0): ${conR.slice(0, 80)}`);
+      exige(!/mpdecimate/.test(S._VF_ANIM(30, 512, 60)) && !/mpdecimate/.test(S._VF_ANIM(30, 512, 12, false)),
+        'se quitan repetidos sin que nadie lo pida: con un GIF o un RGBA, ffmpeg convertiría los colores o quitaría la transparencia');
+      const si = ['yuv420p', 'yuvj420p', 'yuv422p', 'yuv444p', 'yuva420p'].filter((f) => !S.FORMATOS_SIN_CONVERSION.test(f));
+      const no = ['pal8', 'bgra', 'rgba', 'gbrp', 'yuv420p10le', 'nv12', 'gray', ''].filter((f) => S.FORMATOS_SIN_CONVERSION.test(f));
+      exige(!si.length, `con ${si.join(', ')} no se quitan los repetidos, y ese vídeo no necesita convertir nada`);
+      exige(!no.length, `con ${no.join(', ')} se quitarían los repetidos, y ffmpeg convertiría el origen (colores o transparencia)`);
+      exige(/FORMATOS_SIN_CONVERSION\.test\(medidas\.pixFmt/.test(soloCodigo('src/utils/sticker.js')),
+        'videoToSticker ya no mira el formato del origen antes de quitar repetidos');
+
+      // El último fotograma dura lo que queda, sin acortar nunca nada.
+      const anmf = (ms) => {
+        const cuerpo = Buffer.alloc(26);
+        cuerpo.writeUIntLE(511, 6, 3); cuerpo.writeUIntLE(511, 9, 3); cuerpo.writeUIntLE(ms, 12, 3);
+        const cab = Buffer.alloc(8); cab.write('ANMF', 0, 'latin1'); cab.writeUInt32LE(cuerpo.length, 4);
+        return Buffer.concat([cab, cuerpo]);
+      };
+      const riff = (trozos) => {
+        const cuerpo = Buffer.concat([Buffer.from('WEBP', 'latin1'), ...trozos]);
+        const cab = Buffer.alloc(8); cab.write('RIFF', 0, 'latin1'); cab.writeUInt32LE(cuerpo.length, 4);
+        return Buffer.concat([cab, cuerpo]);
+      };
+      const duraciones = (b) => (S.desmontarWebpAnimado(b)?.cuadros || []).map((c) => c.ms);
+      const dos = riff([anmf(33), anmf(33)]);
+      exige(JSON.stringify(duraciones(S._completarDuracion(dos, 6000))) === '[33,5967]',
+        `una foto fija de 6 s sin repetidos sigue durando ${duraciones(S._completarDuracion(dos, 6000)).reduce((a, b) => a + b, 0)} ms: el último fotograma no se alarga`);
+      exige(S._completarDuracion(dos, 80).equals(dos) && S._completarDuracion(dos, 30).equals(dos),
+        'completarDuracion toca un sticker al que no le falta nada (o lo acorta)');
+
+      // De verdad: una foto fija de 6 s, y un vídeo que se mueve en cada fotograma.
+      const ff = (args) => spawnSync(ffmpegPath, ['-v', 'error', '-y', ...args], { timeout: 120000 });
+      const foto = path.join(dir, 'foto.png'), fija = path.join(dir, 'fija.mp4'), mueve = path.join(dir, 'mueve.mp4');
+      ff(['-f', 'lavfi', '-i', 'testsrc2=s=640x360:d=1', '-frames:v', '1', foto]);
+      ff(['-loop', '1', '-framerate', '30', '-i', foto, '-t', '6', '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', fija]);
+      ff(['-f', 'lavfi', '-i', 'testsrc2=s=640x360:r=30:d=2.5', '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', mueve]);
+      if (!fs.existsSync(fija) || !fs.existsSync(mueve)) exige(false, 'no pude fabricar los vídeos de prueba (¿ffmpeg sin libx264?)');
+      else {
+        const st = await S.videoToSticker(fs.readFileSync(fija), 'capa');
+        const d = S.desmontarWebpAnimado(st);
+        const total = (d?.cuadros || []).reduce((a, c) => a + c.ms, 0);
+        exige(d && d.cuadros.length <= 10 && st.length < 150 * 1024,
+          `una foto fija de 6 s sale con ${d?.cuadros.length} fotogramas y ${Math.round(st.length / 1024)} KB: los repetidos se escriben enteros (pesaba ~860 KB)`);
+        exige(Math.abs(total - 6000) <= 100, `la foto fija de 6 s dura ${total} ms como sticker: el último fotograma no dura lo que queda`);
+        exige(S.isAnimatedWebP(st), 'la foto fija ha dejado de salir como sticker animado');
+        const sm = await S.videoToSticker(fs.readFileSync(mueve), 'capa');
+        const dm = S.desmontarWebpAnimado(sm);
+        exige(dm && dm.cuadros.length >= 74,
+          `un vídeo que cambia en cada fotograma sale con ${dm?.cuadros.length} de 75: se están tirando fotogramas que se mueven`);
+      }
+
+      // El esfuerzo que se escribe es el que se usa: sin -preset.
+      const stk = soloCodigo('src/utils/sticker.js');
+      const i = stk.indexOf('async function encodeAnimWebp(');
+      const cuerpo = i < 0 ? '' : stk.slice(i, stk.indexOf('\nfunction completarDuracion', i));
+      exige(i > 0 && !/'-preset'/.test(cuerpo) && /'-compression_level', '4'/.test(cuerpo),
+        'vuelve -preset a la codificación del sticker animado: con él ffmpeg tira el -compression_level (y el -lossless) que se le pase');
+      exige(/startTierIndex\(efectivos\)/.test(stk),
+        'ya no se sube de escalón cuando los repetidos dejan sitio: una foto fija de 10 s volvería a salir en q60');
+    } catch (e) {
+      exige(false, `no pude probar los stickers ligeros: ${String(e.message).split('\n')[0]}`);
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+    if (fallos === antes184) console.log(verde('   ✓ los stickers arrancan en q85, lo repetido de verdad se escribe una vez y dura lo que dura, y lo que se mueve no pierde nada'));
+  }
+
 
 
   // ── 176. LA PROTECCIÓN DEL TIER DUEÑO, CASO A CASO (16 nov) ─────────────────

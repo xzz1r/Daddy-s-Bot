@@ -1315,6 +1315,39 @@ con `type="media"` lo tiran sin avisar. El opus va con `-vbr on`,
 ve y el sonido no suena. Un vídeo sin pista o en silencio sale como sticker
 normal, y si el envío con sonido falla, también. Capa 183.
 
+**Los animados, más ligeros sin perder calidad** (25 nov). El dueño: «todos
+pesan más de 1 MB, es demasiado». Medido en doce clips de verdad (cámara normal,
+HD y vertical, anime de la despensa, CGI, meme con texto) más una foto fija con
+sonido y un vídeo que se congela, comparando cada fotograma con el origen
+(SSIM y PSNR) y mirando recortes a doble tamaño:
+
+- La escalera arranca en **q85, no en q95**. q95 pesa el doble (2,1x de
+  media) y no se ve: en lo normal, SSIM 0,994 contra 0,988, y texto y caras
+  iguales a doble tamaño; solo la textura más fina (suelo, follaje) sale algo más lisa. Un clip
+  corto que pesaba casi 1 MB se queda en la mitad.
+- **Lo repetido de verdad se escribe una vez** (`QUITA_REPETIDOS`,
+  `mpdecimate=hi=64:lo=64:frac=0`, después del `fps` y antes de escalar). Una
+  foto fija con texto de 6 s: de 862 KB (q70) a 39 KB (q85); congelado al
+  principio y al final: de 572 a 440 KB; anime, un 10-20 % menos. El umbral es
+  «ningún bloque de 8x8 cambia más de 64, en toda la imagen»: el `frac` de
+  serie tiraba el 60 % de un vídeo de gente andando ante una cámara fija, y en
+  vídeo de cámara de verdad ningún fotograma baja de 128 (el grano), así que no
+  se toca ni uno. Solo con YUV plano (`FORMATOS_SIN_CONVERSION`): a un GIF
+  ffmpeg lo pasaría a gbrp sin transparencia, y el RGBA a YUV antes de escalar.
+  El último fotograma dura lo que queda (`completarDuracion`, con la duración
+  del VÍDEO, no del audio) y, si lo repetido deja un vídeo corto de verdad, se
+  sube al escalón que le toca a esa duración (una codificación más, corta).
+- **El esfuerzo del compresor es el que se escribe.** Con `-preset`, ffmpeg
+  toma el del preset (4) y tira `-compression_level` y `-lossless`: el 2 que
+  había no se aplicó nunca (mismo fichero byte a byte). Se deja el 4 sin preset.
+
+Lo que se descartó, medido: los presets de libwebp (photo, picture, drawing)
+dan lo mismo por byte; sin pérdidas pesa de 4 a 8 veces más; y `libwebp_anim`
+(solo lo que cambia) ahorra un 30-58 % con cámara fija pero baja la calidad
+(47,7 a 40,6 dB en un vídeo) además de lo de WhatsApp con los parches. Lo
+que no baja: un clip largo con mucho detalle sigue cerca de 1 MB, porque para
+caber ya está en q50-q70 a 24 fps, y pesar menos ahí sí se vería. Capa 184.
+
 **La escalera de los animados no se rinde, ni baja del suelo** (25 oct). Un
 GIF de WhatsApp de 11,6 s con mucho movimiento no cabía ni en el último
 escalón (384 px, q35: 1190 KB) y el bot contestaba que no podía. Se probó a
