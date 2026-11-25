@@ -1313,7 +1313,9 @@ mandan zapota (#10) y whatsapp-rust (#2110) y así lo enseñan los teléfonos;
 con `type="media"` lo tiran sin avisar. El opus va con `-vbr on`,
 `-frame_duration 20` y `-avoid_negative_ts make_zero`: sin eso el sticker se
 ve y el sonido no suena. Un vídeo sin pista o en silencio sale como sticker
-normal, y si el envío con sonido falla, también. Capa 183.
+normal, y si el envío con sonido falla, también. Solo los hace `!s2` (dueño,
+25 nov: «separa los stickers de audio de los que no»); `!s` no saca sonido
+ni se queda el de un sticker que lo traía. Capa 183.
 
 **Los animados, más ligeros sin perder calidad** (25 nov). El dueño: «todos
 pesan más de 1 MB, es demasiado». Medido en doce clips de verdad (cámara normal,
@@ -1347,6 +1349,35 @@ dan lo mismo por byte; sin pérdidas pesa de 4 a 8 veces más; y `libwebp_anim`
 (47,7 a 40,6 dB en un vídeo) además de lo de WhatsApp con los parches. Lo
 que no baja: un clip largo con mucho detalle sigue cerca de 1 MB, porque para
 caber ya está en q50-q70 a 24 fps, y pesar menos ahí sí se vería. Capa 184.
+
+**Los de 3 a 10 segundos, a 500 KB** (25 nov). El dueño, con lo anterior ya
+hecho: «enfoca la optimización en los de movimiento de 3 a 10 segundos». Un
+vídeo así no tiene repetidos: pesar menos es perder algo, y se midió qué se
+nota menos, todo contra la misma referencia (512 px, 24 fps) y decodificando
+con libwebp:
+
+- **Reutilizar bloques entre fotogramas** (`-cr_threshold` de ffmpeg: el bloque
+  que no cambió va transparente y se ve el de antes). Con cámara fija pesa un
+  45-73 % menos, pero en paredes y suelos con luz que cambia deja un mosaico
+  de cuadros de 16x16 de distinto tono, y con cámara en movimiento no ahorra.
+  Descartado.
+- **Bajar fps** (20 o 16): solo compensa con cámara fija, y se pierde fluidez.
+  Se quedan los 24.
+- **Lienzo de 384 px**: a igual peso se ve peor que bajar la calidad a 512.
+  q30 a 512 se ve mejor que q45 a 384 en los ocho clips, y q60 a 384 pesa más
+  que q30 a 512 (por eso salió de la escalera).
+- **Bajar la calidad a 512**: lo que menos se nota. A tamaño de móvil q70 y q30
+  casi no se distinguen; a doble tamaño, q30 alisa algo la textura fina.
+
+Así que con 3 s o más la escalera busca caber en 500 KB (`OBJETIVO_LIGERO`,
+lo que WhatsApp pide a los animados de sus packs) bajando hasta q30 a 512 px
+(el escalón `ligero`), y si ni ahí cabe se queda q30 mientras quepa en 1 MB.
+Medido: meme de 5 s, de 998 a 641 KB; vertical de 6 s, de 1.023 a 594; HD de
+5 s, de 985 a 696; vídeo musical de 6 s, de 623 a 443; un anime de 10 s que
+bajaba a 384 px (904 KB) se queda a 512 (850). Hacia los 500 KB la predicción
+va sin holgura (cada intento de más es una codificación entera) y el escalón
+ligero solo se salta si no cabría ni en 1 MB: esos clips pasan de una a dos
+pasadas de ffmpeg. Capa 185.
 
 **La escalera de los animados no se rinde, ni baja del suelo** (25 oct). Un
 GIF de WhatsApp de 11,6 s con mucho movimiento no cabía ni en el último

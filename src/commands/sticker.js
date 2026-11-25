@@ -37,11 +37,22 @@ function pistaClave(m) {
   return `clave ${m?.mediaKey ? 'sí' : 'no'}, ruta ${m?.directPath || m?.url ? 'sí' : 'no'}`;
 }
 
-// *!s mudo* (o *sin sonido*): el vídeo sale como sticker sin su sonido.
-const esMudo = (args) => /^(mudo|muted?|sinsonido|sin)$/i.test(String((args || [])[0] || ''));
+// *!s* SIN SONIDO Y *!s2* CON SONIDO (25 nov). El dueño: «separa los stickers
+// de audio de los que no; el de audio será !s2». *!s* nunca lleva sonido, ni
+// al volver a sellar uno que lo tenía; *!s2* saca el del vídeo, o se queda el
+// que ya traía el sticker. Si no hay sonido que poner (una foto, un vídeo mudo
+// o sin pista), *!s2* hace el sticker de siempre: es lo que se puede hacer.
+async function cmdSticker(sock, msg, groupMeta) {
+  return hacerSticker(sock, msg, groupMeta, { conSonido: false });
+}
 
-async function cmdSticker(sock, msg, groupMeta, args = []) {
+async function cmdStickerSonido(sock, msg, groupMeta) {
+  return hacerSticker(sock, msg, groupMeta, { conSonido: true });
+}
+
+async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
   const jid = msg.key.remoteJid;
+  const orden = conSonido ? '*!s2*' : '*!s*';
   // Fallback chain: WhatsApp display name → sender phone number → "Anonimo".
   // Critically NOT msg.key.remoteJid, which in groups is the GROUP jid.
   const senderJid = getSender(msg);
@@ -55,7 +66,7 @@ async function cmdSticker(sock, msg, groupMeta, args = []) {
 
   if (!found) {
     return sock.sendMessage(jid, {
-      text: 'Envía o responde una imagen o video con *!s*',
+      text: conSonido ? 'Manda un vídeo con *!s2* (o responde a uno).' : 'Manda una foto o un vídeo con *!s* (o responde a uno).',
     }, { quoted: msg });
   }
   const eraVerUnaVez = found.verUnaVez || found.msg?.viewOnce === true;
@@ -65,7 +76,7 @@ async function cmdSticker(sock, msg, groupMeta, args = []) {
   // stickers they didn't make. Members can still turn images/videos into stickers.
   if (found.type === 'sticker' && !isOwner(senderJid, msg.key.fromMe, groupMeta)) {
     return sock.sendMessage(jid, {
-      text: 'Para hacer un sticker manda una imagen o un video con *!s*.',
+      text: conSonido ? 'Para un sticker con sonido, manda un vídeo con *!s2*.' : 'Para hacer un sticker, manda una foto o un vídeo con *!s*.',
     }, { quoted: msg });
   }
 
@@ -91,14 +102,10 @@ async function cmdSticker(sock, msg, groupMeta, args = []) {
     return sock.sendMessage(jid, { text: 'No pude descargar eso. Prueba otra vez.' }, { quoted: msg });
   }
 
-  // Fire notice before encoding — videos/GIFs can take several seconds on Termux.
-  // Static images are near-instant so they don't need it.
-  const willAnimate = found.type === 'video'
-    || (found.msg.mimetype || '').includes('gif')
-    || (found.type === 'sticker' && (found.msg.isAnimated === true || (found.msg.mimetype || '').includes('animated')));
-  if (willAnimate) {
-    sock.sendMessage(jid, { text: 'Haciendo sticker...' }, { quoted: msg }).catch(() => {});
-  }
+  // SIN «Haciendo sticker...» (25 nov). Salía con cada animado y se quedaba en
+  // el chat, y a los 6 s llegaba además el aviso de progreso de su fila
+  // (`espera`, utils/progreso.js), que se borra solo al acabar. Queda ese: lo
+  // que tarda poco no avisa y lo que tarda no avisa dos veces.
 
   // Miniatura del origen y el encode son independientes: en paralelo se
   // ahorra el tiempo de la miniatura (un frame) sin tocar la calidad del WebP.
@@ -117,11 +124,10 @@ async function cmdSticker(sock, msg, groupMeta, args = []) {
   let rutaOrigen = null;
   let sourceThumb = null;
   let stickerBuffer;
-  // STICKERS CON SONIDO (24 nov, utils/stickerSonido.js). Un vídeo con sonido
-  // sale como sticker con sonido; el sonido se saca en paralelo, del mismo
-  // temporal. Un sticker con sonido que se vuelve a sellar se queda el suyo,
-  // sin subirlo otra vez.
-  let sonido = found.type === 'sticker' ? stickerSonido.audioDe(found.msg) : null;
+  // STICKERS CON SONIDO (24 nov, utils/stickerSonido.js), solo con *!s2*. El
+  // sonido se saca en paralelo, del mismo temporal. Un sticker con sonido que
+  // se vuelve a sellar con *!s2* se queda el suyo, sin subirlo otra vez.
+  let sonido = conSonido && found.type === 'sticker' ? stickerSonido.audioDe(found.msg) : null;
   try {
     if (found.type === 'video') {
       rutaOrigen = tempFile(detectExt(buffer) || 'mp4');
@@ -129,10 +135,10 @@ async function cmdSticker(sock, msg, groupMeta, args = []) {
       [sourceThumb, stickerBuffer, sonido] = await Promise.all([
         generateSourceThumb(rutaOrigen).catch(() => null),
         videoToSticker(buffer, author, rutaOrigen),
-        esMudo(args) ? null : stickerSonido.sonidoDe(rutaOrigen).catch((e) => {
+        conSonido ? stickerSonido.sonidoDe(rutaOrigen).catch((e) => {
           logger.warn(`sticker con sonido: no saqué el sonido (${e.message})`);
           return null;
-        }),
+        }) : null,
       ]);
     } else if (found.type === 'sticker') {
       // Re-encode existing sticker to re-stamp metadata with our pack
@@ -166,7 +172,7 @@ async function cmdSticker(sock, msg, groupMeta, args = []) {
   } catch (err) {
     logger.error(`Sticker conversion error: ${err.message}`);
     await reembolsar();
-    return sock.sendMessage(jid, { text: 'No pude convertir eso a sticker. Prueba con otra imagen o video.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No pude convertir eso en sticker. Prueba con otra foto o vídeo.' }, { quoted: msg });
   } finally {
     // El temporal compartido se borra aqui, salga bien o mal: es el unico sitio
     // por el que pasan los dos caminos.
@@ -186,7 +192,7 @@ async function cmdSticker(sock, msg, groupMeta, args = []) {
     if (animated && stickerBuffer.length > MAX_STICKER_BYTES) {
       await reembolsar();
       return sock.sendMessage(jid, {
-        text: 'Ese sticker animado pesa demasiado para WhatsApp y no he podido recomprimirlo. Si tienes el video o el GIF del que salió, mándalo con *!s* y se hace de nuevo desde ahí.',
+        text: `Ese sticker pesa demasiado para WhatsApp. Si tienes el vídeo o el GIF del que salió, mándalo con ${orden}.`,
       }, { quoted: msg });
     }
     // sourceThumb (from original video/gif) takes priority; fall back to the
@@ -194,16 +200,16 @@ async function cmdSticker(sock, msg, groupMeta, args = []) {
     const pngThumbnail = animated
       ? (sourceThumb || await generateAnimatedThumb(stickerBuffer).catch(() => null))
       : undefined;
-    let conSonido = false;
-    if (sonido && !esMudo(args)) {
+    let salioConSonido = false;
+    if (conSonido && sonido) {
       try {
         await stickerSonido.enviar(sock, jid, { sticker: stickerBuffer, isAnimated: animated, pngThumbnail, sonido, citado: msg });
-        conSonido = true;
+        salioConSonido = true;
       } catch (e) {
         logger.warn(`sticker con sonido: no salió, va sin sonido (${e.message})`);
       }
     }
-    if (!conSonido) {
+    if (!salioConSonido) {
       await sock.sendMessage(jid, {
         sticker: stickerBuffer,
         ...(animated && { isAnimated: true }),
@@ -211,7 +217,7 @@ async function cmdSticker(sock, msg, groupMeta, args = []) {
       }, { quoted: msg });
     }
     incrementStat('stickersCreated');
-    logger.success(`Sticker enviado (${found.type}, ${stickerBuffer.length} bytes, animated=${animated}, thumb=${!!pngThumbnail}, sonido=${conSonido})`);
+    logger.success(`Sticker enviado (${found.type}, ${stickerBuffer.length} bytes, animated=${animated}, thumb=${!!pngThumbnail}, sonido=${salioConSonido})`);
   } catch (err) {
     logger.error(`Sticker send error: ${err.message}`);
     await reembolsar();
@@ -219,4 +225,4 @@ async function cmdSticker(sock, msg, groupMeta, args = []) {
   }
 }
 
-module.exports = { cmdSticker };
+module.exports = { cmdSticker, cmdStickerSonido };

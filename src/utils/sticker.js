@@ -823,7 +823,16 @@ const ANIM_TIERS = [
   { fps: 24, quality: 70, size: 512, desde: 5 },
   { fps: 24, quality: 60, size: 512, desde: 8 },
   { fps: 24, quality: 50, size: 512 },
-  { fps: 24, quality: 60, size: 384 },
+  // LOS DE 3 A 10 SEGUNDOS, A 500 KB (25 nov). El dueño: «enfoca la
+  // optimización en los de movimiento de 3 a 10 segundos». Un vídeo así no
+  // tiene nada repetido que quitar: pesar menos es bajar calidad, y lo que
+  // menos se nota es bajarla aquí, a 512 px. Medido en ocho clips contra la
+  // misma referencia: q30 a 512 px se ve mejor que q45 a 384 en los ocho, y
+  // q60 a 384 pesa más que q30 a 512 sin verse mejor (por eso ya no está). A
+  // tamaño de móvil q70 y q30 casi no se distinguen; a doble tamaño, q30
+  // alisa algo la textura fina (suelo, grano). Ver OBJETIVO_LIGERO.
+  { fps: 24, quality: 40, size: 512 },
+  { fps: 24, quality: 30, size: 512, ligero: true },
   { fps: 24, quality: 45, size: 384 },
   // EL SUELO. Por debajo de esto no se baja la calidad (dueño, 25 oct: se
   // añadieron 384 a q25, 320 y 256 px para que un GIF largo cupiera, y «la
@@ -844,7 +853,22 @@ const ANIM_TIERS = [
 // proporcional— asi que un escalon por encima puede intentarse, pero nunca
 // puede servir de REFERENCIA para estimar los demas.
 const REF_MAX_QUALITY = 85;
-const QUALITY_SIZE_FACTOR = { 95: 1.47, 85: 1.0, 80: 0.853, 75: 0.737, 70: 0.704, 60: 0.649, 50: 0.591, 45: 0.558, 35: 0.482 };
+// q40 y q30 (25 nov): medidos a 24 fps en ocho clips, q40 pesa 0,88 de q50 y
+// q30 0,75 (de 0,84 a 0,67 según el clip).
+const QUALITY_SIZE_FACTOR = { 95: 1.47, 85: 1.0, 80: 0.853, 75: 0.737, 70: 0.704, 60: 0.649, 50: 0.591, 45: 0.558, 40: 0.52, 35: 0.482, 30: 0.44 };
+
+// ─── LOS DE 3 A 10 SEGUNDOS APUNTAN A 500 KB (25 nov) ───────────────────────
+//
+// Con 3 segundos o más, la escalera no se conforma con caber en 1 MB: busca el
+// primer escalón que quepa en 500 KB (lo que WhatsApp pide a los stickers
+// animados de sus packs), y para eso baja como mucho hasta el escalón
+// `ligero` (q30 a 512 px). Si ni ahí cabe en 500 KB, se queda ese mientras
+// quepa en 1 MB; si tampoco, sigue la escalera de siempre hacia 1 MB. Medido:
+// un meme de 5 s, de 998 a 641 KB; un vertical de 6 s, de 1.023 a 594; un vídeo
+// HD de 5 s, de 985 a 696. Lo que ya pesaba menos de 500 KB no cambia, y los
+// de menos de 3 segundos tampoco.
+const OBJETIVO_LIGERO = 500 * 1024;
+const DESDE_LIGERO_S = 3;
 const CANVAS_SIZE_FACTOR = { 512: 1.0, 384: 0.70 };
 
 function predictTierBytes(tier, refTier, refBytes) {
@@ -1139,6 +1163,11 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
     const repetidos = FORMATOS_SIN_CONVERSION.test(medidas.pixFmt || '');
     // Lo que tiene que durar la animación con un tope de `seg` segundos.
     const objetivoMs = (seg) => (durationS > 0 ? Math.min(durationS, seg) * 1000 : 0);
+    // Lo que puede pesar el escalón i: con 3 s o más, 500 KB hasta el escalón
+    // ligero (OBJETIVO_LIGERO); en lo demás, 1 MB.
+    const iLigero = ANIM_TIERS.findIndex((t) => t.ligero);
+    const tope = (i, segundos) => (segundos >= DESDE_LIGERO_S && i <= iLigero ? OBJETIVO_LIGERO : MAX_STICKER_BYTES);
+    const ligero = durationS >= DESDE_LIGERO_S;
 
     let buf = null;
     let smallest = null;   // keep the lightest valid encode as a fallback
@@ -1149,8 +1178,17 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
       // Skip a tier predicted to still overshoot — never skip the last tier, so
       // there's always a final real encode to fall back to. 8% headroom on the
       // cap absorbs the small variance the benchmark showed across content types.
+      // Hacia los 500 KB, sin holgura: cada intento de más es una codificación
+      // entera (un meme de 6 s pasaba de 3,8 a 10 s por uno que se quedó en
+      // 504 KB). Y con 3 s o más, el escalón ligero no se salta mientras pueda
+      // caber en 1 MB: lo que pese de verdad decide si se queda él.
+      const meta = tope(i, durationS);
       if (refBytes !== null && i < ANIM_TIERS.length - 1) {
-        if (predictTierBytes(tier, refTier, refBytes) > MAX_STICKER_BYTES * 1.08) continue;
+        const prevision = predictTierBytes(tier, refTier, refBytes);
+        const sobra = ligero && i === iLigero
+          ? prevision > MAX_STICKER_BYTES * 1.08
+          : prevision > meta * (meta === OBJETIVO_LIGERO ? 1 : 1.08);
+        if (sobra) continue;
       }
       const { fps, quality, size } = tier;
       try {
@@ -1180,7 +1218,10 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
       // Hoy la escalera arranca en q85 (ver ANIM_TIERS) y no hay ninguno por
       // encima, pero la regla se queda por si vuelve alguno.
       if (tier.quality <= REF_MAX_QUALITY) { refBytes = buf.length; refTier = tier; }
-      if (buf.length <= MAX_STICKER_BYTES) { smallest = buf; cupo = i; break; }
+      if (buf.length <= meta) { smallest = buf; cupo = i; break; }
+      // EL ESCALÓN LIGERO: si ni ahí cabe en 500 KB, se queda él mientras
+      // quepa en 1 MB. Bajar más para los 500 KB ya se vería.
+      if (ligero && i === iLigero && buf.length <= MAX_STICKER_BYTES) { smallest = buf; cupo = i; break; }
       if (!smallest || buf.length < smallest.length) smallest = buf;
     }
     // SUBIR SI LOS REPETIDOS DEJARON SITIO (25 nov). El escalón de arranque
@@ -1196,11 +1237,12 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
       const efectivos = contarFotogramas(buf) / fpsHechos;
       for (let j = startTierIndex(efectivos); j < cupo; j++) {
         const t = ANIM_TIERS[j];
-        if (predictTierBytes(t, de, buf.length) > MAX_STICKER_BYTES) continue;
+        const metaJ = tope(j, efectivos);
+        if (predictTierBytes(t, de, buf.length) > metaJ) continue;
         try {
           await encodeAnimWebp(inputFile, outputFile, t.fps, t.quality, t.size, fpsOrigen, TOPE_ANIMADO_S, repetidos);
           const mejor = completarDuracion(await fs.readFile(outputFile), objetivoMs(TOPE_ANIMADO_S));
-          if (mejor.length >= 100 && mejor.length <= MAX_STICKER_BYTES) { buf = mejor; smallest = mejor; }
+          if (mejor.length >= 100 && mejor.length <= metaJ) { buf = mejor; smallest = mejor; }
         } catch (e) {
           logger.unaVez('sticker animado: subir de escalón', e);
         }
@@ -1256,4 +1298,4 @@ async function gifToSticker(gifBuffer, author, rutaOrigen = null) {
   return videoToSticker(gifBuffer, author, rutaOrigen);
 }
 
-module.exports = { componerWebpAnimado, CANVAS_SIZE_FACTOR, _VF_ANIM: VF_ANIM, FFMPEG_TIMEOUT_MS, TOPE_ANIMADO_S, detectExt, desmontarWebpAnimado, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC, UMBRAL_REPETIDO, FORMATOS_SIN_CONVERSION, _completarDuracion: completarDuracion, _contarFotogramas: contarFotogramas };
+module.exports = { componerWebpAnimado, CANVAS_SIZE_FACTOR, _VF_ANIM: VF_ANIM, FFMPEG_TIMEOUT_MS, TOPE_ANIMADO_S, detectExt, desmontarWebpAnimado, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC, UMBRAL_REPETIDO, FORMATOS_SIN_CONVERSION, OBJETIVO_LIGERO, DESDE_LIGERO_S, _completarDuracion: completarDuracion, _contarFotogramas: contarFotogramas };

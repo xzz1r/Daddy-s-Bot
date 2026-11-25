@@ -248,14 +248,16 @@ respondiendo sigue igual. Capa 182.
 ## Stickers con sonido
 
 Lo pidió el dueño (24 nov): «ahora que los stickers se pueden hacer con
-sonido, inclúyelo dentro del bot». `!s` con un vídeo que tiene sonido saca un
-sticker con sonido (hasta 10 s); `!s mudo`, sin él. Uno mudo o sin pista sale
-normal, y si el de sonido no sale, va el de siempre. Al volver a sellar uno
-con sonido, se queda el suyo. Baileys rc14 no conoce el campo (el 134) y los
-tiraba: `src/utils/stickerSonido.js` se lo enseña antes de conectar, al leer
-y al escribir. Se mandan con la forma ya probada en teléfonos (`type="text"`,
-sin el sticker a la vista de Baileys); no se cambia sin probarlo en un
-móvil. Ver `MOTOR.md`; capa 183.
+sonido, inclúyelo dentro del bot», y el 25 nov: «separa los stickers de audio
+de los que no; el de audio será !s2». `!s` nunca lleva sonido; `!s2` con un
+vídeo que tiene sonido saca un sticker con sonido (hasta 10 s). Sin sonido que
+poner (foto, vídeo mudo o sin pista) o si el de sonido no sale, `!s2` hace el
+de siempre. Al volver a sellar con `!s2` uno con sonido, se queda el suyo.
+Baileys rc14 no conoce el campo (el 134) y los tiraba:
+`src/utils/stickerSonido.js` se lo enseña antes de conectar, al leer y al
+escribir. Se mandan con la forma ya probada en teléfonos (`type="text"`, sin
+el sticker a la vista de Baileys); no se cambia sin probarlo en un móvil. Ver
+`MOTOR.md`; capa 183.
 
 ## Stickers animados: lo justo, sin perder calidad
 
@@ -267,6 +269,27 @@ escalón por encima**. Los fotogramas repetidos de verdad se escriben una vez
 vídeo YUV; no se afloja, que con el de serie se tiraban fotogramas que se
 mueven. La codificación no lleva `-preset` (ffmpeg tiraría el esfuerzo). Ver
 `MOTOR.md`; capa 184.
+
+**Los de 3 a 10 segundos, a 500 KB** (dueño, 25 nov: «enfoca la optimización
+en los de movimiento de 3 a 10 segundos»). Con 3 s o más, la escalera busca
+caber en 500 KB (`OBJETIVO_LIGERO`) y para eso baja como mucho hasta q30 a
+512 px (el escalón `ligero`); si ni ahí cabe, se queda en q30 mientras quepa
+en 1 MB, y si tampoco, sigue hacia 384 px como antes. Lo que ya cabía y los de
+menos de 3 s no cambian. No se baja de q30 a 512, ni se quitan fps, ni se
+reutilizan bloques entre fotogramas para pesar menos: se midió y se ve peor.
+Capa 185.
+
+## El menú: corto y coherente
+
+Lo pidió el dueño (25 nov): «ajusta bien la lista de /commands… coherencia,
+longitud (que sea más corta)… es importante la calidad en todo el bot,
+también su escritura». `!menu` dice qué hace cada cosa y lo que cuesta, y las
+acciones van una vez, por su nombre en castellano (el inglés sigue valiendo y
+sale en la lista entera). `!help todo` lleva las mismas secciones en el mismo
+orden y solo nombres: « · » une las formas de un mismo comando y «  ·  »
+separa comandos distintos. El menú tiene tope de líneas (45 para un miembro,
+55 para un admin, 60 para el dueño): lo nuevo entra apretando lo que hay, no
+alargándolo. Vive en `src/commands/social.js`; capa 186.
 
 ## !visto: solo lo conoce el dueño
 

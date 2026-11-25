@@ -305,7 +305,7 @@ async function capasDelMenu() {
       await cmdHelp(s, { key: { remoteJid: GRUPO, participant: quien, fromMe: false, id: 'X' } }, metaM);
       return out.at(-1)?.text || '';
     };
-    const cmds = (txt) => new Set([...txt.matchAll(/!([a-zá-úñ0-9]+)/gi)].map((m) => m[1].toLowerCase()));
+    const cmds = (txt) => new Set([...txt.matchAll(/!([a-zá-úñü0-9]+)/gi)].map((m) => m[1].toLowerCase()));
 
     const mOwner = await pedir(OWN), mAdmin = await pedir(ADM), mRaso = await pedir(RASO);
     const cO = cmds(mOwner), cA = cmds(mAdmin), cR = cmds(mRaso);
@@ -958,9 +958,13 @@ async function capaStores() {
     comprueba(!/entera explicada|todos sus modos/.test(menu),
       'menu: sigue anunciando la guia como un manual completo, y ya no lo es');
 
+    // Se compara SIN TILDES, que es como compara el bot: *!puñetazo* y
+    // *!vergüenza* llegan como punetazo y verguenza. Sin la ü en la clase,
+    // *!vergüenza* se leia como *!verg*.
+    const sinTildeCit = (x) => String(x).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     for (const [nombre, texto] of [['la guia', guia], ['el menu', menu]]) {
-      const citados = [...new Set([...texto.matchAll(/!([a-zá-úñ0-9]+)/gi)].map((m) => m[1].toLowerCase()))];
-      const rotos = citados.filter((c) => !existen.has(c));
+      const citados = [...new Set([...texto.matchAll(/!([a-zá-úñü0-9]+)/gi)].map((m) => m[1].toLowerCase()))];
+      const rotos = citados.filter((c) => !existen.has(c) && !existen.has(sinTildeCit(c)));
       comprueba(rotos.length === 0,
         `ayuda: ${nombre} anuncia comandos que no existen: ${rotos.join(', ')}`);
     }
@@ -7405,7 +7409,7 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       const bloque = src.match(/const ANIM_TIERS = \[([\s\S]*?)\n\];/);
       exige(!!bloque, 'no encuentro ANIM_TIERS en sticker.js');
       if (bloque) {
-        const tiers = [...bloque[1].matchAll(/\{ fps: (\d+), quality: (\d+), size: (\d+)(?:, desde: (\d+))? \}/g)]
+        const tiers = [...bloque[1].matchAll(/\{ fps: (\d+), quality: (\d+), size: (\d+)(?:, desde: (\d+))?(?:, ligero: true)? \}/g)]
           .map((m) => ({ fps: +m[1], quality: +m[2], size: +m[3], desde: m[4] ? +m[4] : undefined }));
         exige(tiers.length >= 5, `ANIM_TIERS se lee mal: ${tiers.length} escalones`);
         const tope = Math.max(...tiers.map((t) => t.quality));
@@ -23601,8 +23605,11 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
       // Y EL SUELO (dueño, 25 oct: «la calidad ha bajado demasiado» con 384 px
       // a q25, 320 y 256 px). Lo que no quepa se acorta, no se emborrona.
       const ult = S.ANIM_TIERS[S.ANIM_TIERS.length - 1];
-      exige(S.ANIM_TIERS.every((t) => t.size >= 384 && t.quality >= 35) && ult.size === 384 && ult.quality === 35,
-        `la escalera baja de 384 px a q35 (llega a ${Math.min(...S.ANIM_TIERS.map((t) => t.size))} px y q${Math.min(...S.ANIM_TIERS.map((t) => t.quality))}): el dueño lo vio emborronado; lo que no quepa se acorta`);
+      // A 512 px se puede bajar hasta q30 (25 nov, los de 3 a 10 s): medido en
+      // ocho clips, q30 a 512 se ve mejor que q45 a 384, que está por encima
+      // del suelo. Por debajo de q30 a 512, o de q35 a 384, no.
+      exige(S.ANIM_TIERS.every((t) => (t.size === 512 && t.quality >= 30) || (t.size === 384 && t.quality >= 35)) && ult.size === 384 && ult.quality === 35,
+        `la escalera baja de 384 px a q35, o de 512 px a q30 (llega a ${Math.min(...S.ANIM_TIERS.map((t) => t.size))} px y q${Math.min(...S.ANIM_TIERS.map((t) => t.quality))}): el dueño lo vio emborronado; lo que no quepa se acorta`);
       const sinFactor = S.ANIM_TIERS.filter((t) => !S.CANVAS_SIZE_FACTOR[t.size]).map((t) => `${t.size} px`);
       exige(!sinFactor.length, `la escalera usa ${[...new Set(sinFactor)].join(', ')} sin factor de tamaño medido`);
     } catch (e) {
@@ -26599,7 +26606,7 @@ const r = {};
   // dispositivo), que se escriba con la forma probada en teléfonos (type text,
   // sin el sticker a la vista de Baileys), que un mensaje normal no cambie, que
   // el sonido salga de un vídeo con sonido y no de uno mudo o sin pista, y que
-  // *!s* lo use, con *!s mudo* para quitarlo y el sticker de siempre si falla.
+  // *!s2* lo use (y *!s* no), con el sticker de siempre si no hay sonido o si falla.
   {
     console.log('\n183. STICKERS CON SONIDO');
     const antes183 = fallos;
@@ -26659,14 +26666,68 @@ const r = {};
           `el sticker con sonido no sale como lo aceptan los teléfonos (type ${r.tipo}, a la vista: ${r.visibles})`);
         exige(r.enviado === true, 'lo que se manda no lleva el sticker con su nota de voz, la cita y el tiempo de los mensajes temporales');
       }
+      // *!s* SIN SONIDO Y *!s2* CON SONIDO (dueño, 25 nov: «separa los stickers de
+      // audio de los que no; el de audio será !s2»). De verdad, en una copia
+      // aparte (el sticker apunta su cuenta en el estado): un vídeo con sonido,
+      // uno mudo y una foto, por *!s* y por *!s2*.
+      const caja2 = fs.mkdtempSync(path.join(os.tmpdir(), 'son183b-'));
+      try {
+        fs.cpSync(path.join(R, 'src'), path.join(caja2, 'src'), { recursive: true });
+        fs.mkdirSync(path.join(caja2, 'data'));
+        fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja2, 'node_modules'), 'dir');
+        const guion2 = [
+          "const fs = require('fs'); const path = require('path'); const { execFileSync } = require('child_process');",
+          "const { ffmpegPath } = require('./src/utils/ffmpeg');",
+          "const D = path.join(process.cwd(), 'medios'); fs.mkdirSync(D, { recursive: true });",
+          "const hacer = (args) => execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', ...args], { timeout: 60000 });",
+          "hacer(['-f', 'lavfi', '-i', 'testsrc2=size=320x240:rate=15:duration=2', '-f', 'lavfi', '-i', 'sine=f=440:d=2', '-shortest', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-c:a', 'aac', path.join(D, 'consonido.mp4')]);",
+          "hacer(['-f', 'lavfi', '-i', 'testsrc2=size=320x240:rate=15:duration=2', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', path.join(D, 'mudo.mp4')]);",
+          "hacer(['-f', 'lavfi', '-i', 'testsrc=size=320x240:rate=1', '-frames:v', '1', path.join(D, 'foto.jpg')]);",
+          "const VU = require('./src/utils/verUnaVez');",
+          "let siguiente = null;",
+          "VU.bajar = async () => fs.readFileSync(path.join(D, siguiente));",
+          "const { cmdSticker, cmdStickerSonido } = require('./src/commands/sticker');",
+          "const G = '120363000000183001@g.us', DUENO = '33600000183@s.whatsapp.net', BOT = '34600000183@s.whatsapp.net';",
+          "const meta = { id: G, participants: [{ id: BOT, admin: 'admin' }, { id: DUENO, admin: 'superadmin' }] };",
+          "(async () => {",
+          "  const r = {}; let envios = [];",
+          "  const sock = { user: { id: BOT }, waUploadToServer: async () => ({ mediaUrl: 'https://x/u', directPath: '/v/u' }),",
+          "    sendMessage: async (j, c) => { if (!c.text || !/Haciendo/.test(c.text)) envios.push(c.sticker ? 'sticker' : (c.text ? 'texto' : 'otro')); return { key: { id: 'x' } }; },",
+          "    relayMessage: async (j, m, o) => { envios.push('consonido:' + ((o && o.additionalAttributes && o.additionalAttributes.type) || '?')); return 'ID'; } };",
+          "  const k = (id, message) => ({ key: { remoteJid: G, participant: DUENO, fromMe: false, id }, message, pushName: 'Dueño' });",
+          "  const nodo = (m) => ({ mimetype: m, mediaKey: Buffer.alloc(32), directPath: '/x' });",
+          "  const vid = (id) => k(id, { videoMessage: { ...nodo('video/mp4'), seconds: 2, caption: '!s' } });",
+          "  const corre = async (nombre, entrada, f) => { siguiente = entrada; envios = []; try { await f(); } catch (e) { envios.push('EXCEPCIÓN ' + e.message); } r[nombre] = envios; };",
+          "  await corre('sConSonido', 'consonido.mp4', () => cmdSticker(sock, vid('a'), meta));",
+          "  await corre('s2ConSonido', 'consonido.mp4', () => cmdStickerSonido(sock, vid('b'), meta));",
+          "  await corre('s2Mudo', 'mudo.mp4', () => cmdStickerSonido(sock, vid('c'), meta));",
+          "  await corre('s2Foto', 'foto.jpg', () => cmdStickerSonido(sock, k('d', { imageMessage: { ...nodo('image/jpeg'), caption: '!s2' } }), meta));",
+          "  console.log('R183B' + JSON.stringify(r)); process.exit(0);",
+          "})().catch((e) => { console.log('R183B' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+        ].join('\n');
+        const out2 = spawnSync('node', ['-e', guion2], { cwd: caja2, encoding: 'utf8', timeout: 170000,
+          env: { ...process.env, OWNER_NUMBER: '33600000183', CO_OWNERS: '', LOG_LEVEL: 'error' } });
+        const l2 = (out2.stdout || '').split('\n').find((l) => l.startsWith('R183B'));
+        const r2 = l2 ? JSON.parse(l2.slice(5)) : { error: `sin respuesta: ${(out2.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+        if (r2.error) exige(false, `no pude probar *!s* y *!s2*: ${String(r2.error).split('\n').slice(0, 3).join(' ')}`);
+        else {
+          exige(JSON.stringify(r2.sConSonido) === '["sticker"]',
+            `*!s* con un vídeo con sonido no da el sticker de siempre, sin sonido: ${JSON.stringify(r2.sConSonido)}`);
+          exige(JSON.stringify(r2.s2ConSonido) === '["consonido:text"]',
+            `*!s2* con un vídeo con sonido no manda el sticker con sonido como lo aceptan los teléfonos: ${JSON.stringify(r2.s2ConSonido)}`);
+          exige(JSON.stringify(r2.s2Mudo) === '["sticker"]' && JSON.stringify(r2.s2Foto) === '["sticker"]',
+            `*!s2* sin sonido que poner (vídeo mudo o foto) no hace el sticker de siempre: ${JSON.stringify([r2.s2Mudo, r2.s2Foto])}`);
+        }
+      } finally { fs.rmSync(caja2, { recursive: true, force: true }); }
+      const { construirListas } = require(path.join(R, 'src/handlers/comandos'));
+      const L183 = construirListas({ ALIAS_ACCION: [] });
+      exige(L183.LENTOS.has('s2') && typeof L183.ESPERA.s2 === 'string', '*!s2* no tiene su fila con el aviso de espera');
       const s = soloCodigo('src/commands/sticker.js');
-      exige(/stickerSonido\.sonidoDe\(rutaOrigen\)/.test(s) && /stickerSonido\.enviar\(/.test(s), '*!s* no saca el sonido del vídeo o no manda el sticker con sonido');
-      exige(/esMudo\(args\)/.test(s) && /if \(!conSonido\)/.test(s), '*!s mudo* no quita el sonido, o si el sticker con sonido falla no sale el de siempre');
-      exige(/stickerSonido\.audioDe\(found\.msg\)/.test(s), 'al volver a sellar un sticker con sonido se pierde el sonido');
+      exige(/stickerSonido\.audioDe\(found\.msg\)/.test(s), 'al volver a sellar con *!s2* un sticker con sonido se pierde el sonido');
       exige(/require\('\.\/utils\/stickerSonido'\)\.instalar\(\)/.test(soloCodigo('src/bot.js')), 'el bot no le enseña a Baileys el campo de los stickers con sonido antes de conectar');
       exige(!/stickerSonido/.test(soloCodigo('src/guardian.js')), 'el guardián toca los stickers con sonido: no es cosa suya');
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
-    if (fallos === antes183) console.log(verde('   ✓ los stickers con sonido se leen, citados también, y *!s* los hace de un vídeo con sonido como los aceptan los teléfonos'));
+    if (fallos === antes183) console.log(verde('   ✓ los stickers con sonido se leen, citados también; *!s* los hace sin sonido y *!s2* con el del vídeo, como los aceptan los teléfonos'));
   }
 
   // ── 184. STICKERS MÁS LIGEROS SIN PERDER CALIDAD (25 nov) ──────────────────
@@ -26757,6 +26818,127 @@ const r = {};
       exige(false, `no pude probar los stickers ligeros: ${String(e.message).split('\n')[0]}`);
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
     if (fallos === antes184) console.log(verde('   ✓ los stickers arrancan en q85, lo repetido de verdad se escribe una vez y dura lo que dura, y lo que se mueve no pierde nada'));
+  }
+
+  // ── 185. LOS DE 3 A 10 SEGUNDOS, A 500 KB (25 nov) ─────────────────────────
+  // El dueño: «enfoca la optimización en los de movimiento de 3 a 10 segundos».
+  // Con 3 s o más, la escalera busca caber en 500 KB y baja hasta q30 a 512 px
+  // como mucho (el escalón `ligero`); si ni ahí cabe, se queda q30 mientras
+  // quepa en 1 MB. Aquí, con vídeos fabricados que pesan igual con el ffmpeg de
+  // la VPS que con el de GitHub: uno pesado de 5 s baja a q30 y sigue a 512 px;
+  // uno de 2,5 s que a q85 pesa ~785 KB no se toca (no llega a 3 s); y uno
+  // ligero de 5 s sale exactamente como antes, sin perder calidad por nada.
+  {
+    console.log('\n185. LOS DE 3 A 10 SEGUNDOS, A 500 KB');
+    const antes185 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const S = require(path.join(R, 'src/utils/sticker'));
+    const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ligero185-'));
+    try {
+      exige(S.OBJETIVO_LIGERO === 500 * 1024 && S.DESDE_LIGERO_S === 3,
+        `los de 3 a 10 s apuntan a ${Math.round(S.OBJETIVO_LIGERO / 1024)} KB desde ${S.DESDE_LIGERO_S} s: el dueño pidió optimizar esos`);
+      const iL = S.ANIM_TIERS.findIndex((t) => t.ligero);
+      const L = S.ANIM_TIERS[iL] || {};
+      exige(S.ANIM_TIERS.filter((t) => t.ligero).length === 1 && L.quality === 30 && L.size === 512 && L.fps === 24,
+        `el escalón ligero no es q30 a 512 px y 24 fps (${JSON.stringify(L)}): por debajo ya se vería, y bajar fps o lienzo se nota más`);
+      exige(S.ANIM_TIERS.slice(iL + 1).every((t) => t.size === 384) && S.ANIM_TIERS.slice(0, iL).every((t) => t.size === 512),
+        'después del escalón ligero queda alguno a 512 px, o antes alguno a 384: para pesar menos se baja la calidad a 512 antes que el lienzo');
+      exige(S.QUALITY_SIZE_FACTOR[40] > 0 && S.QUALITY_SIZE_FACTOR[30] > 0, 'q40 o q30 sin su factor medido: la escalera los saltaría a ciegas');
+
+      const ff = (args) => spawnSync(ffmpegPath, ['-v', 'error', '-y', ...args], { timeout: 120000 });
+      const f = (n) => path.join(dir, n);
+      ff(['-f', 'lavfi', '-i', 'testsrc2=s=640x360:r=30:d=5,noise=alls=14:allf=t', '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '18', '-pix_fmt', 'yuv420p', f('pesado5.mp4')]);
+      // Uno corto que a q85 ya cabe en 1 MB pero no en 500 KB: sin predicciones
+      // de por medio, lo único que puede bajarlo es el objetivo de los 3-10 s.
+      ff(['-f', 'lavfi', '-i', 'testsrc2=s=320x240:r=30:d=2.5', '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '18', '-pix_fmt', 'yuv420p', f('corto25.mp4')]);
+      ff(['-f', 'lavfi', '-i', 'color=c=0x2a6f97:s=320x240:r=24:d=5', '-f', 'lavfi', '-i', 'color=c=yellow:s=40x40:r=24:d=5',
+        '-filter_complex', "[0][1]overlay=x='t*50':y=100", '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', f('ligero5.mp4')]);
+      if (!['pesado5.mp4', 'corto25.mp4', 'ligero5.mp4'].every((n) => fs.existsSync(f(n)))) {
+        exige(false, 'no pude fabricar los vídeos de prueba (¿ffmpeg sin libx264?)');
+      } else {
+        const p5 = await S.videoToSticker(fs.readFileSync(f('pesado5.mp4')), 'capa');
+        const d5 = S.desmontarWebpAnimado(p5);
+        exige(d5 && d5.ancho === 512 && p5.length <= 650 * 1024,
+          `un vídeo pesado de 5 s sale con ${Math.round(p5.length / 1024)} KB a ${d5?.ancho} px: tendría que bajar a q30 a 512 px (~560 KB) en vez de quedarse cerca de 1 MB`);
+        const c25 = await S.videoToSticker(fs.readFileSync(f('corto25.mp4')), 'capa');
+        exige(c25.length > S.OBJETIVO_LIGERO && c25.length <= S.MAX_STICKER_BYTES,
+          `uno de 2,5 s que a q85 cabe en 1 MB (~785 KB) sale con ${Math.round(c25.length / 1024)} KB: los de menos de 3 s no se bajan hacia los 500 KB`);
+        const l5 = await S.videoToSticker(fs.readFileSync(f('ligero5.mp4')), 'capa');
+        ff(['-t', '10', '-i', f('ligero5.mp4'), '-map', '0:v:0', '-vf', S._VF_ANIM(24, 512, 24, true), '-c:v', 'libwebp', '-loop', '0', '-an',
+          '-q:v', '70', '-compression_level', '4', f('directo.webp')]);
+        const directo = fs.existsSync(f('directo.webp')) ? fs.statSync(f('directo.webp')).size : 0;
+        exige(directo > 0 && Math.abs(l5.length - directo) <= 2048,
+          `uno ligero de 5 s sale con ${Math.round(l5.length / 1024)} KB y a su escalón de siempre pesa ${Math.round(directo / 1024)}: lo que ya cabía no se toca`);
+      }
+    } catch (e) {
+      exige(false, `no pude probar los de 3 a 10 s: ${String(e.message).split('\n')[0]}`);
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+    if (fallos === antes185) console.log(verde('   ✓ los de 3 a 10 s bajan hacia 500 KB hasta q30 a 512 px; los cortos y lo que ya cabía no se tocan'));
+  }
+
+  // ── 186. EL MENÚ, CORTO Y COHERENTE CON LA LISTA ENTERA (25 nov) ──────────
+  // El dueño: «ajusta bien la lista de /commands… coherencia, longitud (que sea
+  // más corta)… es importante la calidad en todo el bot, también su escritura».
+  // La lista entera (*!help todo*) iba con otras secciones y en otro orden que
+  // el menú, unía comandos distintos con « · » como si fueran formas del mismo
+  // y llevaba descripciones sueltas. Se pinta el menú de los tres niveles y se
+  // mira: las mismas secciones en el mismo orden, « · » solo entre formas de un
+  // mismo comando, la lista entera sin descripciones (eso lo dice el menú) y un
+  // tope de líneas para que el menú corto no vuelva a crecer solo.
+  {
+    console.log('\n186. EL MENÚ, CORTO Y COHERENTE CON LA LISTA ENTERA');
+    const antes186 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    try {
+      const { cmdHelp } = require(path.join(R, 'src/commands/social'));
+      const cfg186 = require(path.join(R, 'src/config'));
+      const { FAMILIA } = require(path.join(R, 'src/handlers/messageHandler'))._reparto;
+      const G = '000000186@g.us';
+      const OWN = `${String(cfg186.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+      const ADM = '34600000186@s.whatsapp.net', RASO = '34600000187@s.whatsapp.net';
+      const meta = { id: G, participants: [{ id: OWN, admin: 'admin' }, { id: ADM, admin: 'admin' }, { id: RASO }] };
+      const pinta = async (quien, args) => {
+        let t = '';
+        const sk = { sendMessage: async (j, c) => { t = c.text || ''; return {}; } };
+        await cmdHelp(sk, { key: { remoteJid: G, participant: quien, fromMe: false, id: 'M186' } }, meta, args);
+        return t;
+      };
+      const secciones = (t) => t.split('\n').map((l) => l.trim()).filter((l) => /^\*[A-ZÁÉÍÓÚÑ ]+\*$/.test(l));
+      const sinTilde = (x) => String(x).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const familia = (n) => FAMILIA.get(sinTilde(n.toLowerCase()));
+      const nombres = (t) => [...t.matchAll(/[!/]([a-zá-úñü0-9]+)/gi)].map((m) => m[1]);
+      // *!hoy* y *!casino* son dos filas que hacen lo mismo: *!hoy* llama a cmdCasino.
+      const MISMO = new Set(['hoy|casino']);
+      const TOPE = { miembro: 45, admin: 55, dueño: 60 };
+      for (const [nivel, quien] of [['miembro', RASO], ['admin', ADM], ['dueño', OWN]]) {
+        const corto = await pinta(quien, []);
+        const entera = await pinta(quien, ['todo']);
+        const sc = secciones(corto), se = secciones(entera);
+        exige(se[0] === '*TODOS LOS COMANDOS*', `la lista entera de ${nivel} no empieza por su título`);
+        exige(sc.length > 3 && JSON.stringify(sc) === JSON.stringify(se.slice(1)),
+          `el menú de ${nivel} y su lista entera no tienen las mismas secciones en el mismo orden: ${sc.join(' ')} / ${se.slice(1).join(' ')}`);
+        const lineas = corto.split('\n').length;
+        exige(lineas <= TOPE[nivel], `el menú de ${nivel} tiene ${lineas} líneas y el tope es ${TOPE[nivel]}: el dueño lo quiere corto`);
+        for (const l of entera.split('\n')) {
+          if (!l.startsWith(cfg186.prefix)) continue;
+          exige(!/ — /.test(l), `la lista entera lleva una descripción («${l}»): lo que hace cada uno lo dice el menú`);
+          for (const grupo of l.split(/ {2}· {2}/)) {
+            const partes = grupo.split(' · ');
+            for (let i = 1; i < partes.length; i++) {
+              const izq = nombres(partes[i - 1]).at(-1), der = nombres(partes[i])[0];
+              if (!izq || !der) continue;
+              const igual = familia(izq) !== undefined && familia(izq) === familia(der);
+              exige(igual || MISMO.has(`${sinTilde(izq)}|${sinTilde(der)}`),
+                `la lista entera une *${izq}* y *${der}* con « · », que es para las formas de un mismo comando`);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      exige(false, `no pude pintar el menú: ${String(e.message).split('\n')[0]}`);
+    }
+    if (fallos === antes186) console.log(verde('   ✓ el menú y la lista entera tienen las mismas secciones, « · » solo une formas de un mismo comando y el menú no pasa de su tope'));
   }
 
 

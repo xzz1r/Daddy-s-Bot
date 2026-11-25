@@ -114,7 +114,10 @@ const FAMILIAS = [
   { nombres: ['whoami'], meta: true,
     hace: (c) => c.de('social').cmdWhoami(c.sock, c.msg, c.args, c.meta) },
   { nombres: ['s', 'sticker', 'stk'], meta: true, lento: true, espera: 'Haciendo el sticker', cobraDentro: true, media: true, cobro: 'sticker',
-    hace: (c) => c.de('sticker').cmdSticker(c.sock, c.msg, c.meta, c.args) },
+    hace: (c) => c.de('sticker').cmdSticker(c.sock, c.msg, c.meta) },
+  // !s2 — el sticker con su sonido (dueño, 25 nov: «el de los de audio será !s2»).
+  { nombres: ['s2'], meta: true, lento: true, espera: 'Haciendo el sticker', cobraDentro: true, media: true, cobro: 'sticker',
+    hace: (c) => c.de('sticker').cmdStickerSonido(c.sock, c.msg, c.meta) },
   // !k — se lleva al privado del owner el archivo citado. No responde nada en
   // el grupo (ni siquiera un error) y no sale en el menu: es una herramienta de
   // verificacion del owner, no una funcion del grupo.

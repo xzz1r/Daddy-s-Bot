@@ -389,20 +389,23 @@ function bloqueAccionesTodo(p) {
   return `\n*ACCIONES*\n${filas(cada, 2, '  ·  ').join('\n')}\n`;
 }
 
-// El menu corto: solo el nombre en ingles, y el precio pegado al que cuesta el
-// doble.
+// El menu corto: cada accion por su nombre en castellano, y el precio pegado al
+// que cuesta el doble.
 function bloqueAcciones(p, c) {
   if (!ACTIVAS.length) return '';
-  // EL NOMBRE EN INGLES Y EL CASTELLANO DETRAS. Aqui estaba solo el ingles y
-  // eso obligaba a pedir *!help todo* para descubrir que *!abrazo* existia — o
-  // sea, a saber de antemano lo que se venia a buscar.
-  //
-  // Solo el PRIMER alias, no los dos: con veintiuna acciones, meter los dos
-  // convierte siete lineas en catorce para decir lo mismo. El segundo sigue
-  // funcionando y sigue en la lista larga.
+  // EL NOMBRE EN CASTELLANO, Y SOLO ESE (25 nov). Iba «*!hug* _abrazo_»: el
+  // ingles como comando y el castellano como explicacion, dos palabras por
+  // accion y once lineas. El dueño: «ajusta la lista; más corta, coherente».
+  // El castellano YA es un comando (*!abrazo*, *!puñetazo*…) y se entiende
+  // solo, asi que va el, sin glosa. El ingles sigue funcionando y sale en la
+  // lista larga (*!help todo*), como todos los alias.
+  // Si la glosa no es un comando («de la mano», «dar de comer»), va el ingles
+  // con su glosa: *!comer* se leeria como otra cosa.
+  const sinTilde = (x) => String(x).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const nombre = (n) => {
     const a = ACCIONES[n];
-    return a.es ? `*${p}${a.cmds[0]}* _${a.es}_` : `*${p}${a.cmds[0]}*`;
+    const es = a.es && a.cmds.find((x) => sinTilde(x) === sinTilde(a.es));
+    return es ? `*${p}${comoSeEscribe(es)}*` : `*${p}${a.cmds[0]}*${a.es ? ` _${a.es}_` : ''}`;
   };
   const sfw = ACTIVAS.filter((n) => !ACCIONES[n].nsfw);
   const nsfw = ACTIVAS.filter((n) => ACCIONES[n].nsfw);
@@ -410,49 +413,51 @@ function bloqueAcciones(p, c) {
   if (sfw.length) {
     // EL RECARGO SE DICE AQUI, en la unica linea donde alguien mira el precio
     // antes de gastar. Un precio que sube sin avisar se lee como un fallo.
-    lineas.push(`_Sobre alguien, ${c('accion')} cada una · de la ${RAFAGA.gratis + 1}ª del día, el doble_`);
-    lineas.push(...filas(sfw.map(nombre), 3, ' · '));
+    lineas.push(`_Sobre alguien, ${c('accion')} cada una (de la ${RAFAGA.gratis + 1}ª del día, el doble). En inglés también valen._`);
+    lineas.push(...filas(sfw.map(nombre), 6, ' · '));
   }
-  if (nsfw.length) lineas.push(`${nsfw.map(nombre).join(' · ')} ${c('accionNsfw')}`);
+  // El precio delante y para las cuatro: pegado detras de *!azote* se leia
+  // como el precio de esa sola.
+  if (nsfw.length) lineas.push(`_Las explícitas, ${c('accionNsfw')} cada una:_ ${nsfw.map(nombre).join(' · ')}`);
   return `\n*ACCIONES*\n${lineas.join('\n')}\n`;
 }
 
+// LA LISTA ENTERA, CON LAS MISMAS SECCIONES Y EN EL MISMO ORDEN QUE EL MENU
+// CORTO (25 nov: «coherencia»). Solo nombres: lo que hace cada uno lo dice el
+// menu corto. « · » une las formas de un mismo comando; «  ·  », comandos
+// distintos.
 function textoCompleto(p, c, esAdmin, esOwner) {
   return `*TODOS LOS COMANDOS*
-_Cada línea: el nombre y todas sus formas. Cualquiera vale._
+_Cada comando, con todas sus formas. Cualquiera vale._
 
 *HERRAMIENTAS*
 ${p}play · ${p}música · ${p}canción · ${p}song · ${p}playsong · ${p}playaudio
 ${p}tt · ${p}tiktok  ·  ${p}ig · ${p}insta · ${p}instagram  ·  ${p}pin · ${p}pinterest
 ${p}x · ${p}twitter · ${p}tuit · ${p}tweet
 ${p}next · ${p}otra · ${p}siguiente
-${p}s · ${p}sticker · ${p}stk — hacer sticker
+${p}s · ${p}sticker · ${p}stk  ·  ${p}s2
 ${p}toimg · ${p}stimg  ·  ${p}tovid  ·  ${p}ttp · ${p}texto
 ${p}cachelist · ${p}listacache · ${p}cache
 
 *DINÁMICAS*
 ${p}roast · ${p}quemar · ${p}destruir · ${p}flamear
-${p}mog · ${p}moggear  ·  ${p}ship  ·  ${p}rizz · ${p}piropo · ${p}wingman
-${p}top5 · ${p}top10
+${p}mog · ${p}moggear  ·  ${p}ship  ·  ${p}rizz  ·  ${p}piropo  ·  ${p}wingman
+${p}top5  ·  ${p}top10
 ${p}puta ${p}guarra ${p}maricon ${p}incel ${p}gay ${p}femboy ${p}cerdo ${p}rata
 ${p}simp ${p}friki ${p}inutil ${p}perdedor · ${p}l  ·  ${p}fea ${p}gorda ${p}infiel ${p}iq
 ${p}feminidad ${p}masculinidad ${p}linda ${p}lindo ${p}hot ${p}sexy ${p}fiel ${p}crack ${p}ganador
-
-*AURA*
-${p}aura  ·  ${p}saldo · ${p}miaura  ·  ${p}ranking · ${p}auratop · ${p}top
-${p}hoy  ·  ${p}casino  ·  ${p}apostar · ${p}apuesta · ${p}apuestas
-${p}duel · ${p}duelo · ${p}1v1
-${p}dar · ${p}regalar · ${p}transferir · ${p}pagar · ${p}donar
-${p}guia · ${p}aurahelp · ${p}guiaaura
 ${bloqueAccionesTodo(p)}
-*ROBO*
-${p}robo · ${p}robar
+*AURA Y ROBO*
+${p}aura  ·  ${p}saldo · ${p}miaura  ·  ${p}ranking · ${p}auratop · ${p}top
+${p}hoy · ${p}casino  ·  ${p}guia · ${p}aurahelp · ${p}guiaaura
+${p}apostar · ${p}apuesta · ${p}apuestas  ·  ${p}duel · ${p}duelo · ${p}1v1
+${p}dar · ${p}regalar · ${p}transferir · ${p}pagar · ${p}donar
+${p}tienda · ${p}shop  ·  ${p}comprar  ·  ${p}bote  ·  ${p}caja · ${p}registradora
+${p}robo · ${p}robar  ·  ${p}quienmerobo · ${p}robados
 ${p}contrarobo · ${p}contraataque · ${p}contraatacar · ${p}vengarse
 ${p}buscados · ${p}cartel · ${p}wanted · ${p}mostwanted · ${p}recompensas
-${p}tienda · ${p}shop  ·  ${p}comprar  ·  ${p}bote  ·  ${p}caja · ${p}registradora
 ${p}asalto · ${p}asaltar  ·  ${p}atraco · ${p}atracar
-${p}robarbanco  ·  ${p}quienmerobo · ${p}robados
-${p}banco · ${p}vault · ${p}safe  ·  ${p}lock · ${p}stash  ·  ${p}unlock
+${p}banco · ${p}vault · ${p}safe  ·  ${p}lock · ${p}stash  ·  ${p}unlock  ·  ${p}robarbanco
 
 *ACTIVIDAD*
 ${p}relevancia · ${p}importancia · ${p}relevance
@@ -473,15 +478,15 @@ ${p}pfp · ${p}foto  ·  ${p}fk · ${p}verificar · ${p}verify · ${p}check
 ${p}notifadmin  ·  ${p}autoaccept · ${p}autoaceptar · ${p}autoapprove · ${p}autoaprobar
 ` : ''}
 *ADMINS PREMIUM*
-${p}premiar · ${p}bonificar · ${p}otorgar — regalan aura nueva
-${esOwner ? `${p}on · ${p}off  ·  ${p}demote · ${p}degradar
+${p}premiar · ${p}bonificar · ${p}otorgar
+${esOwner ? `${p}on  ·  ${p}off  ·  ${p}demote · ${p}degradar
 ${p}listanegra  ·  ${p}inactivos purge
-${p}antilink · ${p}antifoto · ${p}antiempresa · ${p}antibusiness · ${p}antiadmin
+${p}antilink  ·  ${p}antifoto  ·  ${p}antiempresa · ${p}antibusiness  ·  ${p}antiadmin
 ${p}adminmode · ${p}soloadmins · ${p}soloadmin  ·  ${p}aura on/off
 ${p}resetcount · ${p}resetconteo  ·  ${p}resetaura
 ${p}clearcache · ${p}borracache  ·  ${p}diag
 ` : ''}
-${p}ping · ${p}info · ${p}estado · ${p}status · ${p}whoami
+${p}ping  ·  ${p}info · ${p}estado · ${p}status  ·  ${p}whoami
 ${p}help · ${p}ayuda · ${p}menu · ${p}commands`;
 }
 
@@ -557,61 +562,52 @@ async function cmdHelp(sock, msg, groupMeta, args = []) {
 
   const text = completo ? textoCompleto(p, c, esAdmin, esOwner) :
 `*${config.botName}*
-_Todo lleva ${PREFIJOS} delante. El número es lo que cuesta; sin número no cobra._
+_Con ${PREFIJOS} delante. El número es lo que cuesta; sin número, gratis._
 
 *HERRAMIENTAS*
-*${p}play* ${c('play')} <canción> — el audio de la canción
-*${p}tt* ${c('redes')} <enlace> — el vídeo de TikTok, sin marca de agua
-*${p}ig* ${c('redes')} <enlace> — el vídeo o las fotos del enlace de Instagram
-*${p}x* ${c('redes')} <enlace> — la foto, el gif o el vídeo del tuit
-*${p}pin* ${c('redes')} <qué buscar> — fotos de Pinterest (*${p}next* saca otra)
-_Enlaces de publicaciones, no de perfiles._
-*${p}s* ${c('sticker')} — foto o vídeo a sticker, con su sonido (*${p}s mudo*, sin él)
-*${p}toimg* ${c('toimg')} — sticker a foto
-*${p}tovid* ${c('tovid')} — sticker animado a vídeo
+*${p}play* ${c('play')} <canción> — te mando el audio
+*${p}tt* ${c('redes')} · *${p}ig* ${c('redes')} · *${p}x* ${c('redes')} <enlace> — el vídeo o las fotos de esa publicación, sin marca de agua
+*${p}pin* ${c('redes')} <qué buscar> — fotos de Pinterest; *${p}next*, otra
+*${p}s* ${c('sticker')} — foto o vídeo a sticker · *${p}s2* ${c('sticker')} — con su sonido
+*${p}toimg* ${c('toimg')} — sticker a foto · *${p}tovid* ${c('tovid')} — sticker animado a vídeo
 *${p}ttp* ${c('ttp')} <texto> — texto a sticker
 
 *DINÁMICAS*
-_Sin @ va sobre ti, con @ sobre esa persona_
+_Sin @ va sobre ti; con @, sobre esa persona._
 *${p}roast* ${c('roast')} · *${p}mog* ${c('mog')} @a @b · *${p}ship* ${c('ship')} @a @b
-*${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} <tema>
-*${p}rizz* ${c('rizz')} · *${p}piropo* ${c('piropo')} · *${p}wingman* ${c('wingman')}
-_De una palabra, ${PRECIOS.percent} cada uno, de más crudo a más suave:_
-*${p}puta ${p}guarra ${p}maricon ${p}incel ${p}gay ${p}femboy ${p}cerdo ${p}rata*
-*${p}simp ${p}friki ${p}inutil ${p}perdedor ${p}fea ${p}gorda ${p}infiel ${p}iq ${p}feminidad*
-*${p}masculinidad ${p}linda ${p}lindo ${p}hot ${p}sexy ${p}fiel ${p}crack ${p}ganador*
+*${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} <tema> · *${p}rizz* ${c('rizz')} · *${p}piropo* ${c('piropo')} · *${p}wingman* ${c('wingman')}
+_Porcentajes, ${c('percent')} cada uno:_ *${p}puta ${p}guarra ${p}maricon ${p}incel ${p}gay ${p}femboy ${p}cerdo ${p}rata ${p}simp ${p}friki ${p}inutil ${p}perdedor*
+*${p}fea ${p}gorda ${p}infiel ${p}iq ${p}feminidad ${p}masculinidad ${p}linda ${p}lindo ${p}hot ${p}sexy ${p}fiel ${p}crack ${p}ganador*
 ${bloqueAcciones(p, c)}
 *AURA Y ROBO*
-*${p}robo* @user <cant.> · *${p}contrarobo* · *${p}buscados*
-*${p}asalto* · *${p}atraco* — contra la casa, no contra nadie
-*${p}robarbanco* @user — a por lo que guarda · *${p}quienmerobo*
-*${p}banco* · *${p}lock* <cant.> · *${p}unlock* <cant.> — a salvo del *${p}robo*, no del *${p}robarbanco*
+*${p}aura* — tu tirada · *${p}saldo* · *${p}ranking* · *${p}hoy* · *${p}guia*
 *${p}apostar* mitad/todo/2k · *${p}duel* @user · *${p}dar* @user <cant.>
 *${p}tienda* · *${p}comprar* <objeto> · *${p}bote* · *${p}caja*
-*${p}aura* la tirada · *${p}saldo* · *${p}ranking* · *${p}hoy* · *${p}guia*
+*${p}robo* @user <cant.> · *${p}contrarobo* · *${p}buscados* · *${p}quienmerobo*
+*${p}asalto* · *${p}atraco* — contra la casa, no contra nadie
+*${p}banco* · *${p}lock* · *${p}unlock* <cant.> — a salvo del *${p}robo*, no del *${p}robarbanco* @user
 
 *ACTIVIDAD*
 *${p}fantasmas* ${c('fantasmas')} · *${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b
-*${p}caso* ${c('caso')} @user — su expediente: mensajes, aura, robos, cuánto lleva callado
+*${p}caso* ${c('caso')} @user — su expediente: mensajes, aura, robos y cuánto lleva callado
 ${esAdmin ? `
 *ADMINS*
-*${p}kick* · *${p}unmute* · *${p}del* · *${p}tagall* · *${p}allow*
-*${p}mute* ${c('mute')} @user <tiempo> — le borro todo lo que escriba (*60s* · *60m* · *60h* · *7d*)
-*${p}fkban* · *${p}fkunban* · *${p}marcarfake* · *${p}fklist* · *${p}scan*
-*${p}pfp* ${c('pfp')} @user — su foto de perfil · *${p}fk* ${c('fk')} @user — ¿cuenta falsa?
-*${p}close* · *${p}open* · *${p}promote* · *${p}count* ${c('count')} · *${p}inactivos* ${c('inactivos')}
+*${p}kick* · *${p}del* · *${p}tagall* · *${p}allow* · *${p}close* · *${p}open* · *${p}promote*
+*${p}mute* ${c('mute')} @user <tiempo> — le borro todo lo que escriba (*60s*, *60m*, *60h*, *7d*) · *${p}unmute*
+*${p}count* ${c('count')} · *${p}inactivos* ${c('inactivos')} · *${p}pfp* ${c('pfp')} @user — su foto de perfil
+*${p}fk* ${c('fk')} @user — ¿cuenta falsa? · *${p}fkban* · *${p}fkunban* · *${p}marcarfake* · *${p}fklist* · *${p}scan*
 *${p}r* ${c('presentarse')} — pide a los nuevos que se presenten, sin un @ a la vista
 *${p}antifake* · *${p}notifadmin* · *${p}autoaccept* — on/off
-_Y todo te cuesta un *${Math.round(ADMIN.descuento * 100)} %* menos que al resto, menos *${p}r*. Por ser admin._
+_Por ser admin pagas un *${Math.round(ADMIN.descuento * 100)} %* menos en todo, salvo *${p}r*._
 ` : ''}
 *ADMINS PREMIUM*
-*${p}premiar* @user <cant.> — regalan aura nueva, que no sale del saldo de nadie
+*${p}premiar* @user <cant.> — regalan aura nueva, sin quitársela a nadie
 ${esOwner ? `*${p}demote* · *${p}resetaura* · *${p}resetcount* · *${p}on*/*${p}off* · *${p}clearcache* · *${p}diag*
-*${p}listanegra* — la lista negra global: ver, meter números y sacarlos
-*${p}inactivos purge* — echa a los de la lista de *${p}inactivos* (pide confirmar)
+*${p}listanegra* — ver, meter y sacar números de la lista negra global
+*${p}inactivos purge* — echa a los de *${p}inactivos* (pide confirmar)
 _on/off:_ *${p}antiadmin* *${p}antilink* *${p}antiempresa* *${p}antifoto* *${p}adminmode* *${p}aura*
 ` : ''}
-_${p}ping · ${p}info · ${p}whoami · *${p}help todo* para la lista entera_${config.contacto ? `
+_${p}ping · ${p}info · ${p}whoami · *${p}help todo*: la lista entera_${config.contacto ? `
 _Contacto: wa.me/${config.contacto}_` : ''}`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
