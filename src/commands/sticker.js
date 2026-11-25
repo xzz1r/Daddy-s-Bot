@@ -152,7 +152,9 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
     // Sin esto, un *!s2* sin sonido no dejaba rastro: no se sabía si el
     // sticker no lo tenía, si la cita no lo traía o si no se vio llegar.
     const claves = Object.keys(quoted || {}).filter((k) => k !== 'messageContextInfo').join(',') || 'nada';
-    apuntarFallo('buscar su sonido', `${origen === 'cita' ? 'la cita' : 'el mensaje'} no trae audio (${claves}) y no vi llegar ese sticker con sonido`);
+    const dondeMsg = origen === 'cita' ? quoted : msg.message;
+    const campos = (x) => (Array.isArray(x) ? x.join(',') : '?');
+    apuntarFallo('buscar su sonido', `${origen === 'cita' ? 'la cita' : 'el mensaje'} no trae audio (${claves}; campos del mensaje ${campos(dondeMsg?.[stickerSonido.CAMPOS])}; del sticker ${campos(found.msg?.[stickerSonido.CAMPOS])}) y no vi llegar ese sticker con sonido`);
   }
   let sonido = null;
   try {

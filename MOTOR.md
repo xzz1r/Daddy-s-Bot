@@ -1328,6 +1328,18 @@ de un sticker (al bajarlo, al convertirlo, al bajar su sonido, al mandarlo)
 queda con su motivo en `data/stickerFallos.json` y sale en `npm run estado`.
 Capa 183.
 
+**El audio, dentro del propio sticker** (25 nov). El dueño respondía con
+`!s2` a su sticker con sonido y salía sin él: «la cita no trae audio
+(stickerMessage)». En el proto de WhatsApp (whatsapp-rust lo tiene; Baileys,
+ni en master) el audio es el campo 26 de StickerMessage, así que puede venir
+en un sticker suelto, no solo dentro del 134, y la cita lo trae así. Ahora
+`instalar` envuelve también `proto.Message.StickerMessage.decode` (Baileys
+decodifica cada sticker anidado por esa propiedad) y lee el 26 en todos; y un
+Message con el sticker de siempre y además el 134 ya no se salta el 134. Cada
+sticker y cada mensaje con sticker apuntan sus campos (`CAMPOS`), y los 10
+últimos stickers recibidos van a `data/stickerRecibidos.json`: si el audio no
+viene ni en el 26 ni en el 134, WhatsApp no se lo manda al bot. Capa 183.
+
 **La marca a un sticker ajeno, solo en el EXIF** (25 nov). El dueño: «al
 inyectar una marca en stickers de movimiento, sale con artefactos blancos».
 `injectExifIntoWebP` ponía blend=no a todo fotograma que cubre el lienzo: en

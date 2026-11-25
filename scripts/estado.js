@@ -845,7 +845,16 @@ if (!bot) {
     let vistosSon = [];
     try { vistosSon = JSON.parse(require('fs').readFileSync(path.join(RAIZ, 'data/stickerSonidoVistos.json'), 'utf8')); } catch { vistosSon = []; }
     const nSon = (Array.isArray(vistosSon) ? vistosSon : []).filter((t) => Date.now() - t < 24 * 3600 * 1000).length;
-    bien(`stickers con sonido recibidos en 24 h: ${nSon}`);
+    bien(`stickers con sonido recibidos en 24 h: ${nSon}`, recientesSt.length > 0);
+    // Lo que traía el último sticker que llegó: si el audio no viene ni en el
+    // mensaje (134) ni en el sticker (26), WhatsApp no se lo manda al bot.
+    let recibidosSt = [];
+    try { recibidosSt = JSON.parse(require('fs').readFileSync(path.join(RAIZ, 'data/stickerRecibidos.json'), 'utf8')); } catch { recibidosSt = []; }
+    const ultSt = Array.isArray(recibidosSt) ? recibidosSt[recibidosSt.length - 1] : null;
+    if (ultSt) {
+      const c = (x) => (Array.isArray(x) ? x.join(',') : '?');
+      bien(`último sticker recibido: ${ultSt.audio ? 'con' : 'sin'} audio · campos del mensaje ${c(ultSt.mensaje)} · del sticker ${c(ultSt.sticker)}`, recientesSt.length > 0);
+    }
     if (recientesSt.length) {
       const ult = recientesSt[recientesSt.length - 1];
       aviso(`stickers: ${recientesSt.length} fallo(s) en 24 h (el último, al ${ult.que}: ${ult.motivo})`,

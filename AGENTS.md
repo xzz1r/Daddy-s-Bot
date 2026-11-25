@@ -263,8 +263,13 @@ inyectársela a stickers con audio»; reutilizar su audio tal cual no se había
 probado en un teléfono); si no se puede bajar, sale sin sonido. La cita no
 siempre trae el audio (dueño, 25 nov, con su propio sticker: salió sin
 sonido), así que el bot guarda el de cada sticker con sonido que ve llegar,
-por su id, y `!s2` lo busca por el id citado (`recordar`). Dónde y por qué
-falló el último sticker, y cuántos con sonido llegan, sale en `npm run estado`.
+por su id, y `!s2` lo busca por el id citado (`recordar`). Y el audio va
+**dentro del propio sticker** (campo 26 de StickerMessage, el `oneof audio`
+del proto de WhatsApp), venga envuelto en el 134 o suelto: se lee en todo
+sticker que se decodifica, y un mensaje con el sticker de siempre y además el
+134 no se queda sin él (25 nov: la cita llegaba con el sticker suelto y el
+bot solo miraba el 134). Dónde y por qué falló el último sticker, cuántos con
+sonido llegan y qué campos traía el último sale en `npm run estado`.
 Baileys rc14 no conoce el campo (el 134) y los tiraba:
 `src/utils/stickerSonido.js` se lo enseña antes de conectar, al leer y al
 escribir. Se mandan con la forma ya probada en teléfonos (`type="text"`, sin

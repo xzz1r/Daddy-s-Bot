@@ -2179,6 +2179,7 @@ async function handleMessage(sock, msg, opciones = {}) {
   // *!s2* a veces no lo trae (ver recordar en utils/stickerSonido).
   const audioSticker = stickerSonido.audioDe(msg.message?.stickerMessage);
   if (audioSticker && msg.key?.id) stickerSonido.recordar(msg.key.id, audioSticker);
+  if (msg.message?.stickerMessage) stickerSonido.anotarRecibido(msg.message);
 
   const jid = msg.key.remoteJid;
 

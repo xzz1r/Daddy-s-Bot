@@ -26844,6 +26844,14 @@ const r = {};
           "  SS.recordar('VISTO1', { ...nodo('audio/ogg; codecs=opus'), url: 'https://x/a', directPath: '/v/a', seconds: 2, ptt: true });",
           "  await corre('s2Recordado', 'st.webp', () => cmdStickerSonido(sock, citaSin('h', 'VISTO1'), meta));",
           "  await corre('s2NoVisto', 'st.webp', () => cmdStickerSonido(sock, citaSin('i', 'NOVISTO'), meta));",
+          "  // El audio en el propio sticker (su campo 26), sin el 134: así llega citado (25 nov).",
+          "  const auO = { ...nodo('audio/ogg; codecs=opus'), url: 'https://x/a', directPath: '/v/a', seconds: 2, ptt: true }; const stO = { ...nodo('image/webp'), url: 'https://x/s' };",
+          "  const stConSuAudio = Buffer.concat([Buffer.from(proto.Message.StickerMessage.encode(stO).finish()), SS._campoBytes(26, proto.Message.AudioMessage.encode(auO).finish())]);",
+          "  const citaPlana = SS._campoBytes(6, Buffer.concat([SS._campoBytes(1, Buffer.from('!s2')), SS._campoBytes(17, Buffer.concat([SS._campoBytes(1, Buffer.from('ST9')), SS._campoBytes(2, Buffer.from(DUENO)), SS._campoBytes(3, SS._campoBytes(26, stConSuAudio))]))]));",
+          "  await corre('s2CitaPlana', 'st.webp', () => cmdStickerSonido(sock, k('j', proto.Message.decode(citaPlana)), meta));",
+          "  // El sticker de siempre sin audio y, además, el 134 con él.",
+          "  const ambos = proto.Message.decode(Buffer.concat([SS._campoBytes(26, proto.Message.StickerMessage.encode(stO).finish()), SS._campoBytes(134, SS._cerrar({ sticker: stO, audio: auO }))]));",
+          "  r.ambos = Boolean(SS.audioDe(ambos.stickerMessage)); r.campos = (ambos[SS.CAMPOS] || []).join(',');",
           "  await new Promise((res) => setTimeout(res, 200));",
           "  try { r.fallos = JSON.parse(fs.readFileSync('data/stickerFallos.json', 'utf8')).map((x) => x.que); } catch { r.fallos = null; }",
           "  console.log('R183B' + JSON.stringify(r)); process.exit(0);",
@@ -26867,6 +26875,10 @@ const r = {};
           exige(JSON.stringify(r2.s2Sello) === '["consonido:text:subido"]',
             `*!s2* sobre un sticker con sonido no lo manda con su sonido subido otra vez: ${JSON.stringify(r2.s2Sello)}`);
           exige(JSON.stringify(r2.sSello) === '["sticker"]', `*!s* sobre un sticker con sonido no da el sticker sin sonido: ${JSON.stringify(r2.sSello)}`);
+          exige(JSON.stringify(r2.s2CitaPlana) === '["consonido:text:subido"]',
+            `*!s2* sobre una cita con el audio dentro del propio sticker (su campo 26, sin el 134) sale sin sonido: ${JSON.stringify(r2.s2CitaPlana)}`);
+          exige(r2.ambos === true && r2.campos === '26,134',
+            `un mensaje con el sticker de siempre y el 134 con su audio se queda sin audio, o no apunta sus campos: ${JSON.stringify([r2.ambos, r2.campos])}`);
           exige(JSON.stringify(r2.s2Recordado) === '["consonido:text:subido"]',
             `*!s2* sobre un sticker con sonido cuya cita no trae el audio no usa el que el bot vio llegar: ${JSON.stringify(r2.s2Recordado)}`);
           exige(JSON.stringify(r2.s2NoVisto) === '["sticker"]' && (r2.fallos || []).includes('buscar su sonido'),
@@ -26884,6 +26896,8 @@ const r = {};
       exige(!/stickerSonido/.test(soloCodigo('src/guardian.js')), 'el guardián toca los stickers con sonido: no es cosa suya');
       exige(/stickerFallos\.json/.test(fs.readFileSync(path.join(R, 'scripts/estado.js'), 'utf8')), '`npm run estado` ya no dice dónde y por qué falló el último sticker');
       exige(/stickerSonido\.recordar\(/.test(soloCodigo('src/handlers/messageHandler.js')), 'el bot ya no guarda el audio de los stickers con sonido que llegan: *!s2* sobre una cita sin audio sale sin sonido');
+      exige(/stickerSonido\.anotarRecibido\(/.test(soloCodigo('src/handlers/messageHandler.js')) && /stickerRecibidos\.json/.test(fs.readFileSync(path.join(R, 'scripts/estado.js'), 'utf8')),
+        'ya no se apunta qué campos trae cada sticker que llega: si vuelve a salir sin sonido, no se sabrá si WhatsApp manda el audio');
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     if (fallos === antes183) console.log(verde('   ✓ los stickers con sonido se leen, citados también; *!s* los hace sin sonido y *!s2* con el del vídeo, como los aceptan los teléfonos'));
   }

@@ -36,6 +36,7 @@ const CAMPO_AUDIO = 26;
 const CAMPO_STICKER = 26; // stickerMessage dentro de Message
 const SONIDO = Symbol.for('daddy.stickerSonido');
 const AUDIO = Symbol.for('daddy.stickerSonido.audio');
+const CAMPOS = Symbol.for('daddy.stickerSonido.campos');
 const TOPE_S = 10;
 const MIME_AUDIO = 'audio/ogg; codecs=opus';
 
@@ -132,25 +133,100 @@ function instalar() {
   M.decode = function decode(r, l, e) {
     // Lo que va a leer, antes de que lo lea: un Buffer suelto o un trozo del
     // lector de quien lo contiene (la cita de una respuesta, por ejemplo).
-    let trozo = null;
-    if (e === undefined) {
-      if (r && typeof r.pos === 'number' && r.buf) {
-        const fin = l === undefined ? r.len : r.pos + l;
-        trozo = r.buf.subarray(r.pos, fin);
-      } else if (r instanceof Uint8Array) trozo = r;
-    }
+    const trozo = trozoDe(r, l, e);
     const m = decodeOriginal.call(this, r, l, e);
-    if (!trozo || m.stickerMessage) return m;
+    if (!trozo) return m;
     try {
-      const futuro = buscarCampo(trozo, CAMPO_MENSAJE);
-      if (futuro) {
-        const st = abrir(futuro, (b) => M.decode(b));
-        if (st) m.stickerMessage = st;
+      // SIN SALIR ANTES SI YA HAY UN STICKER (25 nov). Un mensaje puede traer
+      // el sticker de siempre y además el 134 con su audio: el audio se busca
+      // igual y se le pega al sticker.
+      if (!(m.stickerMessage && m.stickerMessage[AUDIO])) {
+        const futuro = buscarCampo(trozo, CAMPO_MENSAJE);
+        if (futuro) {
+          const st = abrir(futuro, (b) => M.decode(b));
+          if (st && !m.stickerMessage) m.stickerMessage = st;
+          else if (st && st[AUDIO]) m.stickerMessage[AUDIO] = st[AUDIO];
+        }
       }
+      if (m.stickerMessage) m[CAMPOS] = camposDe(trozo);
     } catch { /* se queda como venía */ }
     return m;
   };
+
+  // EL AUDIO VA DENTRO DEL PROPIO STICKER (25 nov). En el proto de WhatsApp,
+  // StickerMessage lleva su audio en el campo 26 (`oneof audio`), venga envuelto
+  // en el 134 o suelto, citado o no. Solo se miraba dentro del 134, y el dueño
+  // respondía con *!s2* a un sticker con sonido y salía «la cita no trae audio
+  // (stickerMessage)». Aquí se lee en cualquier sticker que se decodifique, y
+  // se apuntan los campos que trae (CAMPOS), para `npm run estado`.
+  const S = M.StickerMessage;
+  const decodeSticker = S.decode;
+  S.decode = function decode(r, l, e) {
+    const trozo = trozoDe(r, l, e);
+    const st = decodeSticker.call(this, r, l, e);
+    if (!trozo) return st;
+    try {
+      st[CAMPOS] = camposDe(trozo);
+      if (!st[AUDIO]) {
+        const crudo = buscarCampo(trozo, CAMPO_AUDIO);
+        if (crudo) st[AUDIO] = M.AudioMessage.decode(crudo);
+      }
+    } catch { /* se queda como venía */ }
+    return st;
+  };
 }
+
+// El trozo que va a leer un decode de protobufjs, antes de que lo lea.
+function trozoDe(r, l, e) {
+  if (e !== undefined) return null;
+  if (r && typeof r.pos === 'number' && r.buf) {
+    const fin = l === undefined ? r.len : r.pos + l;
+    return r.buf.subarray(r.pos, fin);
+  }
+  return r instanceof Uint8Array ? r : null;
+}
+
+// Los números de campo del nivel de arriba de unos bytes protobuf.
+function camposDe(buf) {
+  const vistos = new Set();
+  let pos = 0;
+  while (pos < buf.length) {
+    const t = varint(buf, pos);
+    if (!t) break;
+    const [tag, p] = t;
+    pos = p;
+    const num = Math.floor(tag / 8);
+    if (!num) break;
+    vistos.add(num);
+    const tipo = tag & 7;
+    if (tipo === 0) { const v = varint(buf, pos); if (!v) break; pos = v[1]; }
+    else if (tipo === 1) pos += 8;
+    else if (tipo === 5) pos += 4;
+    else if (tipo === 2) { const q = varint(buf, pos); if (!q) break; pos = q[1] + q[0]; }
+    else break;
+  }
+  return [...vistos].sort((a, b) => a - b);
+}
+
+// Lo que traía cada sticker que llegó (los 10 últimos), para `npm run estado`:
+// si el audio no viene ni en el mensaje ni en el sticker, WhatsApp no se lo
+// manda al bot, y eso ya no es cosa del código.
+const recibidos = [];
+let RECIBIDOS_FILE = require('path').join(__dirname, '../../data/stickerRecibidos.json');
+let recibidosTimer = null;
+function anotarRecibido(message) {
+  const st = message?.stickerMessage;
+  if (!st) return;
+  recibidos.push({ t: Date.now(), mensaje: message[CAMPOS] || null, sticker: st[CAMPOS] || null, audio: Boolean(st[AUDIO]) });
+  if (recibidos.length > 10) recibidos.shift();
+  if (recibidosTimer) return;
+  recibidosTimer = setTimeout(() => {
+    recibidosTimer = null;
+    try { require('fs').writeFileSync(RECIBIDOS_FILE, JSON.stringify(recibidos)); } catch { /* solo es para mirar */ }
+  }, 3000);
+  if (recibidosTimer.unref) recibidosTimer.unref();
+}
+function _usarRecibidos(f) { RECIBIDOS_FILE = f; }
 
 function audioDe(stickerMessage) {
   return stickerMessage?.[AUDIO] || null;
@@ -296,6 +372,6 @@ async function enviar(sock, jid, { sticker, isAnimated, pngThumbnail, sonido, ci
 }
 
 module.exports = {
-  instalar, enviar, sonidoDe, audioDe, sonidoDeSticker, bajarAudio, recordar, recordado, _usarVistos, SONIDO, AUDIO, TOPE_S,
+  instalar, enviar, sonidoDe, audioDe, sonidoDeSticker, bajarAudio, recordar, recordado, anotarRecibido, CAMPOS, _usarVistos, _usarRecibidos, _camposDe: camposDe, SONIDO, AUDIO, TOPE_S,
   _buscarCampo: buscarCampo, _campoBytes: campoBytes, _cerrar: cerrar,
 };
