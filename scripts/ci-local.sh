@@ -35,6 +35,34 @@ git clone -q "$RAIZ" "$TMP/repo"
 cd "$TMP/repo"
 echo "→ Clon limpio de $(git rev-parse --short HEAD)"
 npm ci --omit=dev --ignore-scripts --no-fund --no-audit --loglevel=error
-echo "→ La puerta, como en GitHub"
-node scripts/check.js --breve
+# EN GITHUB NO HAY FFMPEG NI FFPROBE DEL SISTEMA (25 nov). Alli el bot usa el
+# ffmpeg que trae node_modules (@ffmpeg-installer: de 2018 y sin ffprobe), y
+# una capa que llamaba a `ffmpeg` a secas salio tres veces en rojo alli con
+# esto en verde aqui. Asi que aqui tampoco estan: cada carpeta del PATH que los
+# tiene se cambia por una copia con todo lo suyo menos ellos, y el resto del
+# PATH se queda como esta. La capa 107 lo vigila.
+SIN_SISTEMA="ffmpeg ffprobe"
+PATH_GITHUB=""
+n=0
+IFS=: read -r -a DIRS <<< "$PATH"
+for d in "${DIRS[@]}"; do
+  tapa=0
+  for h in $SIN_SISTEMA; do [ -e "$d/$h" ] && tapa=1; done
+  if [ "$tapa" = 1 ]; then
+    n=$((n + 1))
+    copia="$TMP/bin$n"
+    mkdir -p "$copia"
+    todo=()
+    for f in "$d"/*; do
+      [ -e "$f" ] || continue
+      case " $SIN_SISTEMA " in *" ${f##*/} "*) continue ;; esac
+      todo+=("$f")
+    done
+    [ ${#todo[@]} -gt 0 ] && ln -s "${todo[@]}" "$copia"/
+    d="$copia"
+  fi
+  PATH_GITHUB="${PATH_GITHUB:+$PATH_GITHUB:}$d"
+done
+echo "→ La puerta, como en GitHub (sin $SIN_SISTEMA del sistema)"
+PATH="$PATH_GITHUB" node scripts/check.js --breve
 echo "✓ Verde en limpio: se puede empujar."

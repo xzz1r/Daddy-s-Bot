@@ -17,6 +17,11 @@ igual que GitHub. `npm run check` en tu copia no basta: tiene `data/` y
 herramientas que GitHub no tiene. Cada run rojo es un correo al dueño; si
 `npm run ci` no sale verde, no se empuja.
 
+En GitHub no hay ffmpeg ni ffprobe del sistema, y `npm run ci` los esconde
+para probar lo mismo (25 nov: una capa que llamaba a `ffmpeg` a secas salió
+tres veces en rojo allí con todo en verde aquí). El bot y las capas usan
+siempre el que elige `src/utils/ffmpeg.js`; capas 107 y 187.
+
 ## Añadir un comando o un alias
 
 Un sitio: su fila en `src/handlers/comandos.js`. Lleva todos sus alias, sus

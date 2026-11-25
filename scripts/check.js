@@ -19813,6 +19813,15 @@ const manda = async (quien, tipo, opciones) => {
     const exigidas = ((loc.match(/for herramienta in ([^;]+);/) || [])[1] || '').trim().split(/\s+/);
     const faltan = instala.filter((h) => !exigidas.includes(h));
     exige(faltan.length === 0, `GitHub instala ${faltan.join(', ')} y el ci local no lo exige: aqui daria verde y alli rojo`);
+    // Y LO QUE GITHUB NO TIENE, AQUI TAMPOCO (25 nov). Alli no hay ffmpeg ni
+    // ffprobe del sistema: el bot usa el de node_modules. Con los dos a la vista
+    // aqui, una capa que llamaba a `ffmpeg` a secas dio verde en local y rojo
+    // dos veces en GitHub (spawn ffmpeg ENOENT).
+    if (!instala.includes('ffmpeg')) {
+      const sin = ((loc.match(/SIN_SISTEMA="([^"]*)"/) || [])[1] || '').split(/\s+/);
+      exige(sin.includes('ffmpeg') && sin.includes('ffprobe') && /PATH="\$PATH_GITHUB" node scripts\/check\.js/.test(loc),
+        'GitHub no tiene ffmpeg ni ffprobe del sistema y el ci local los deja a la vista: aquí daría verde y allí rojo');
+    }
     if (fallos === antes107) console.log(verde(`   ✓ los dos hacen el mismo npm ci, corren el mismo check y piden lo mismo (${instala.join(', ') || 'nada'})`));
   }
 
@@ -26613,7 +26622,10 @@ const r = {};
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
     const caja = fs.mkdtempSync(path.join(os.tmpdir(), 'son183-'));
     try {
-      const v = (nombre, args) => spawnSync('ffmpeg', ['-v', 'error', '-y', ...args, path.join(caja, nombre)], { timeout: 30000 });
+      // Con el ffmpeg del bot: en GitHub no hay otro, y con `ffmpeg` a secas esta
+      // capa salio dos veces en rojo alli (spawn ffmpeg ENOENT).
+      const { ffmpegPath: ff183 } = require(path.join(R, 'src/utils/ffmpeg'));
+      const v = (nombre, args) => spawnSync(ff183, ['-v', 'error', '-y', ...args, path.join(caja, nombre)], { timeout: 30000 });
       v('con.mp4', ['-f', 'lavfi', '-i', 'testsrc=s=160x120:d=2', '-f', 'lavfi', '-i', 'sine=f=440:d=2', '-shortest', '-c:v', 'libx264', '-c:a', 'aac']);
       v('mudo.mp4', ['-f', 'lavfi', '-i', 'testsrc=s=160x120:d=2', '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=mono', '-t', '2', '-c:v', 'libx264', '-c:a', 'aac']);
       v('sin.mp4', ['-f', 'lavfi', '-i', 'testsrc=s=160x120:d=2', '-c:v', 'libx264']);
@@ -26939,6 +26951,37 @@ const r = {};
       exige(false, `no pude pintar el menú: ${String(e.message).split('\n')[0]}`);
     }
     if (fallos === antes186) console.log(verde('   ✓ el menú y la lista entera tienen las mismas secciones, « · » solo une formas de un mismo comando y el menú no pasa de su tope'));
+  }
+
+  // ── 187. EL FFMPEG, EL DEL BOT (25 nov) ───────────────────────────────────
+  // Los stickers con sonido llamaban a `ffmpeg` a secas, y su capa también: en
+  // GitHub no hay ffmpeg del sistema y salió dos veces en rojo (spawn ffmpeg
+  // ENOENT), y el sonido no salía en ninguna máquina con solo el de
+  // node_modules. Cuál se usa lo decide utils/ffmpeg (el del sistema, el de
+  // Termux o el empaquetado). Aquí: ni el bot ni las capas lo llaman por su
+  // nombre.
+  {
+    console.log('\n187. EL FFMPEG, EL DEL BOT');
+    const antes187 = fallos;
+    const A_SECAS = /\b(?:spawn|spawnSync|execFile|execFileSync)\(\s*['"`](?:ffmpeg|ffprobe)['"`]|\bexecSync\(\s*['"`](?:ffmpeg|ffprobe)\b/;
+    const malas = [];
+    const recorre = (dir) => {
+      for (const f of fs.readdirSync(path.join(R, dir))) {
+        const rel = `${dir}/${f}`;
+        if (fs.statSync(path.join(R, rel)).isDirectory()) { recorre(rel); continue; }
+        if (!f.endsWith('.js')) continue;
+        fs.readFileSync(path.join(R, rel), 'utf8').split('\n').forEach((l, i) => {
+          if (A_SECAS.test(l) && !/^\s*(\/\/|\*|\/\*)/.test(l)) malas.push(`${rel}:${i + 1}`);
+        });
+      }
+    };
+    recorre('src');
+    recorre('scripts');
+    if (malas.length) {
+      fallos++;
+      console.log(rojo(`   ✗ se llama a ffmpeg o ffprobe por su nombre, y en GitHub (o con solo el de node_modules) no está: ${malas.slice(0, 6).join(', ')}. Usa ffmpegPath de utils/ffmpeg`));
+    }
+    if (fallos === antes187) console.log(verde('   ✓ el bot y las capas usan el ffmpeg que elige utils/ffmpeg, nunca uno por su nombre'));
   }
 
 

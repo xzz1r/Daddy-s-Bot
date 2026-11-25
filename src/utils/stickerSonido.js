@@ -26,6 +26,10 @@ const { randomBytes } = require('crypto');
 const { execFile } = require('child_process');
 const fs = require('fs-extra');
 const { tempFile, cleanTemp } = require('./helpers');
+// EL FFMPEG DEL BOT, NO EL QUE HAYA EN EL PATH (25 nov). Iba `ffmpeg` a
+// secas, y en una máquina sin ffmpeg del sistema (GitHub; o una con solo el que
+// trae node_modules) el sonido no salía nunca. utils/ffmpeg sabe cuál usar.
+const { ffmpegPath } = require('./ffmpeg');
 
 const CAMPO_MENSAJE = 134;
 const CAMPO_AUDIO = 26;
@@ -154,7 +158,7 @@ function audioDe(stickerMessage) {
 
 function ffmpeg(args, opts = {}) {
   return new Promise((res, rej) => {
-    execFile('ffmpeg', ['-v', 'error', ...args], { timeout: 60000, maxBuffer: 8 * 1024 * 1024, ...opts },
+    execFile(ffmpegPath, ['-v', 'error', ...args], { timeout: 60000, maxBuffer: 8 * 1024 * 1024, ...opts },
       (err, stdout, stderr) => (err ? rej(Object.assign(err, { stderr: String(stderr || '') })) : res(stdout)));
   });
 }
