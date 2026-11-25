@@ -1317,6 +1317,31 @@ normal, y si el envío con sonido falla, también. Solo los hace `!s2` (dueño,
 25 nov: «separa los stickers de audio de los que no»); `!s` no saca sonido
 ni se queda el de un sticker que lo traía. Capa 183.
 
+**Volver a sellar uno con sonido** (25 nov). El dueño: «falla al inyectársela
+a stickers con audio». Se reutilizaba su audio tal cual (la misma dirección y
+la misma clave del AudioMessage citado), y esa forma no se había probado en un
+teléfono. Ahora `sonidoDeSticker` lo baja (`downloadContentFromMessage`, como
+audio), lo pasa por `sonidoDe` igual que el de un vídeo (opus a 48 kHz, su onda
+y sus segundos) y `enviar` lo sube con el sticker: la forma probada. Si no se
+puede bajar (cita sin clave, caducado), el sticker sale sin sonido. Cada fallo
+de un sticker (al bajarlo, al convertirlo, al bajar su sonido, al mandarlo)
+queda con su motivo en `data/stickerFallos.json` y sale en `npm run estado`.
+Capa 183.
+
+**La marca a un sticker ajeno, solo en el EXIF** (25 nov). El dueño: «al
+inyectar una marca en stickers de movimiento, sale con artefactos blancos».
+`injectExifIntoWebP` ponía blend=no a todo fotograma que cubre el lienzo: en
+los stickers del bot arregla un fantasma en la costura del borde transparente
+(sus fotogramas están completos), pero hay stickers de otros que guardan cada
+fotograma a lienzo completo con lo que no cambia en transparente, para que se
+vea el anterior (conversores de GIF; ffmpeg con `-cr_threshold`, a bloques de
+16x16). Con blend=no eso queda hueco y, sobre el fondo claro de WhatsApp,
+blanco: medido con uno fabricado así, 19 de 20 fotogramas salían vacíos. Ahora
+el arreglo solo va con `propio` (lo que sale de la escalera del bot), y a un
+sticker ajeno la marca solo le cambia el EXIF y su bit del VP8X. Los de más de
+1 MB se recomponen (`componerWebpAnimado` respeta su mezcla) y salen como uno
+del bot. Capa 36.
+
 **Los animados, más ligeros sin perder calidad** (25 nov). El dueño: «todos
 pesan más de 1 MB, es demasiado». Medido en doce clips de verdad (cámara normal,
 HD y vertical, anime de la despensa, CGI, meme con texto) más una foto fija con

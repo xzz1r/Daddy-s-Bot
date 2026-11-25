@@ -1,6 +1,7 @@
 const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, detectExt, MAX_STICKER_BYTES } = require('../utils/sticker');
 const fs = require('fs-extra');
-const { tempFile, cleanTemp } = require('../utils/helpers');
+const path = require('path');
+const { tempFile, cleanTemp, atomicWriteJson, readJsonOrEnoent } = require('../utils/helpers');
 const { getSender, isOwner } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { incrementStat } = require('../utils/state');
@@ -30,6 +31,19 @@ function identifyMedia(messageObject) {
 
 async function bajarMedio(sock, msg, found, origen) {
   return bajar(sock, msg, found, origen);
+}
+
+// LOS FALLOS, PARA `npm run estado` (25 nov). El dueño: «falla al inyectársela
+// a stickers con audio». «Falla», desde el grupo, no dice dónde: si no baja, si
+// no convierte, si no se manda o si el sonido no sale. Los 20 últimos.
+const FALLOS_FILE = path.join(__dirname, '../../data/stickerFallos.json');
+async function apuntarFallo(que, motivo) {
+  try {
+    const lista = await readJsonOrEnoent(FALLOS_FILE, []).catch(() => []);
+    const nueva = (Array.isArray(lista) ? lista : []).slice(-19);
+    nueva.push({ t: Date.now(), que, motivo: String(motivo || '').split('\n')[0].slice(0, 160) });
+    await atomicWriteJson(FALLOS_FILE, nueva);
+  } catch { /* solo es para mirar */ }
 }
 
 // Para el log: con esto se sabe si el fallo es de la cita (sin clave) o de la red.
@@ -96,6 +110,7 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
     buffer = await bajarMedio(sock, msg, found, origen);
   } catch (err) {
     logger.error(`Sticker download error${eraVerUnaVez ? ' (ver una vez)' : ''} [${origen}, ${pistaClave(found.msg)}]: ${err.message}`);
+    apuntarFallo(`bajar (${found.type}, ${origen})`, err.message);
     await reembolsar();
     if (err?.sinClaveEnCita) return sock.sendMessage(jid, { text: SIN_CLAVE_CITA }, { quoted: msg });
     if (err?.noEntregada) return sock.sendMessage(jid, { text: NO_ENTREGADA }, { quoted: msg });
@@ -126,8 +141,10 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
   let stickerBuffer;
   // STICKERS CON SONIDO (24 nov, utils/stickerSonido.js), solo con *!s2*. El
   // sonido se saca en paralelo, del mismo temporal. Un sticker con sonido que
-  // se vuelve a sellar con *!s2* se queda el suyo, sin subirlo otra vez.
-  let sonido = conSonido && found.type === 'sticker' ? stickerSonido.audioDe(found.msg) : null;
+  // se vuelve a sellar con *!s2* conserva el suyo: se baja y se sube otra vez
+  // con el sticker (25 nov, ver sonidoDeSticker), también en paralelo.
+  const audioSuyo = conSonido && found.type === 'sticker' ? stickerSonido.audioDe(found.msg) : null;
+  let sonido = null;
   try {
     if (found.type === 'video') {
       rutaOrigen = tempFile(detectExt(buffer) || 'mp4');
@@ -137,6 +154,7 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
         videoToSticker(buffer, author, rutaOrigen),
         conSonido ? stickerSonido.sonidoDe(rutaOrigen).catch((e) => {
           logger.warn(`sticker con sonido: no saqué el sonido (${e.message})`);
+          apuntarFallo('sacar el sonido del vídeo', e.message);
           return null;
         }) : null,
       ]);
@@ -150,9 +168,14 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
       const mime = found.msg.mimetype || '';
       const isAnimated = found.msg.isAnimated === true || mime.includes('animated')
         || isAnimatedWebP(buffer);
-      stickerBuffer = isAnimated
-        ? await videoToSticker(buffer, author)
-        : await imageToSticker(buffer, author);
+      [stickerBuffer, sonido] = await Promise.all([
+        isAnimated ? videoToSticker(buffer, author) : imageToSticker(buffer, author),
+        audioSuyo ? stickerSonido.sonidoDeSticker(audioSuyo).catch((e) => {
+          logger.warn(`sticker con sonido: no pude bajar el suyo (${e.message})`);
+          apuntarFallo('bajar el sonido del sticker', e.message);
+          return null;
+        }) : null,
+      ]);
     } else {
       const mime = found.msg.mimetype || '';
       if (mime.includes('gif')) {
@@ -171,6 +194,7 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
     }
   } catch (err) {
     logger.error(`Sticker conversion error: ${err.message}`);
+    apuntarFallo(`convertir (${found.type})`, err.message);
     await reembolsar();
     return sock.sendMessage(jid, { text: 'No pude convertir eso en sticker. Prueba con otra foto o vídeo.' }, { quoted: msg });
   } finally {
@@ -207,6 +231,7 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
         salioConSonido = true;
       } catch (e) {
         logger.warn(`sticker con sonido: no salió, va sin sonido (${e.message})`);
+        apuntarFallo('mandar con sonido', e.message);
       }
     }
     if (!salioConSonido) {
@@ -220,6 +245,7 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
     logger.success(`Sticker enviado (${found.type}, ${stickerBuffer.length} bytes, animated=${animated}, thumb=${!!pngThumbnail}, sonido=${salioConSonido})`);
   } catch (err) {
     logger.error(`Sticker send error: ${err.message}`);
+    apuntarFallo('mandar', err.message);
     await reembolsar();
     await sock.sendMessage(jid, { text: 'No pude enviar el sticker. Prueba otra vez.' }, { quoted: msg });
   }

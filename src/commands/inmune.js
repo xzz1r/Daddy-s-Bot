@@ -19,7 +19,7 @@
 // otro no le contesta (COMANDOS_OCULTOS en messageHandler.js).
 
 const { getSender, getTarget, isMainOwner, dueñoEnPrivado, canonicalJid, bareJid } = require('../utils/wa');
-const { inmunesSpamGuardados, ponerInmuneSpam } = require('../utils/state');
+const { inmunesSpamGuardados, ponerInmuneSpam, lidsInmunesAprendidos } = require('../utils/state');
 const config = require('../config');
 
 const QUITAR = new Set(['quitar', 'quita', 'borrar', 'borra', 'off', 'no', 'fuera']);
@@ -30,8 +30,21 @@ function numeroDeArgs(args) {
   return d.length >= 8 && d.length <= 15 ? d : null;
 }
 
-function bonito(v) {
-  return String(v).includes('@') ? String(v).split('@')[0] + ' (sin número todavía)' : `+${v}`;
+// El @lid de cada inmune lo apunta el bot solo en cuanto llega con su
+// teléfono (ver aprenderLid en utils/spamTexto): se dice al lado del número.
+const sinNueveAR = (d) => (/^549\d{8,}$/.test(d) ? '54' + d.slice(3) : d);
+function conSuLid(numero, aprendidos) {
+  const n = sinNueveAR(String(numero).replace(/\D/g, ''));
+  return Object.values(aprendidos).some((x) => sinNueveAR(String(x)) === n);
+}
+
+// Un @lid guardado dice de quién es si el bot ya sabe su teléfono.
+function bonito(v, aprendidos = {}) {
+  if (!String(v).includes('@')) return `+${v}${conSuLid(v, aprendidos) ? ' (y su @lid)' : ''}`;
+  const tel = canonicalJid(v);
+  return /@s\.whatsapp\.net$/.test(String(tel))
+    ? `+${String(tel).split('@')[0]} (por su @lid)`
+    : `${String(v).split('@')[0]} (sin número todavía)`;
 }
 
 async function cmdInmune(sock, msg, args, groupMeta) {
@@ -57,9 +70,13 @@ async function cmdInmune(sock, msg, args, groupMeta) {
   if (!valores.length) {
     const guardados = inmunesSpamGuardados();
     const delEnv = config.spamInmunes || [];
+    const aprendidos = lidsInmunesAprendidos();
     const lineas = ['*Inmunes al spam*', '_Ni aviso, ni grupo cerrado, ni ban por repetir mensajes, stickers, fotos o vídeos._'];
-    lineas.push(guardados.length ? guardados.map((v) => `• ${bonito(v)}`).join('\n') : '_Ninguno guardado desde aquí._');
-    if (delEnv.length) lineas.push(`_Y ${delEnv.length} más que vienen de la configuración del bot._`);
+    lineas.push(guardados.length ? guardados.map((v) => `• ${bonito(v, aprendidos)}`).join('\n') : '_Ninguno guardado desde aquí._');
+    if (delEnv.length) {
+      const k = delEnv.filter((n) => conSuLid(n, aprendidos)).length;
+      lineas.push(`_Y ${delEnv.length} más que vienen de la configuración del bot${k ? ` (${k} ya con su @lid)` : ''}._`);
+    }
     lineas.push(`_Añadir: *${config.prefix}inmune +número* o respondiendo a su mensaje. Quitar: *${config.prefix}inmune quitar …*_`);
     return sock.sendMessage(jid, { text: lineas.join('\n') }, { quoted: msg });
   }

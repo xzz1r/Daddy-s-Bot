@@ -208,8 +208,36 @@ async function sonidoDe(rutaVideo, segundos = TOPE_S) {
   }
 }
 
+// EL SONIDO DE UN STICKER QUE YA LO TIENE, BAJADO Y SUBIDO OTRA VEZ (25 nov).
+// El dueño: «falla al inyectársela a stickers con audio». Al volver a sellar
+// uno, se reutilizaba su audio tal cual (la misma dirección y la misma clave),
+// y eso nunca se probó en un teléfono: lo probado es subirlo, como el de un
+// vídeo. Ahora se baja, pasa por sonidoDe (opus a 48 kHz, su onda y sus
+// segundos) y se sube con el sticker. Si no se puede bajar, null: el sticker
+// sale sin sonido.
+async function bajarAudio(audioMessage) {
+  const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
+  const trozos = [];
+  for await (const t of await downloadContentFromMessage(audioMessage, 'audio')) trozos.push(t);
+  return Buffer.concat(trozos);
+}
+
+async function sonidoDeSticker(audioMessage) {
+  if (!audioMessage?.mediaKey || !(audioMessage.directPath || audioMessage.url)) return null;
+  const ruta = tempFile('ogg');
+  try {
+    const buf = await module.exports.bajarAudio(audioMessage);
+    if (!buf || buf.length < 100) return null;
+    await fs.writeFile(ruta, buf);
+    return await sonidoDe(ruta);
+  } finally {
+    await cleanTemp(ruta).catch(() => {});
+  }
+}
+
 // Manda un sticker con sonido. `sonido` es { ogg, segundos, waveform } (se
-// sube) o un AudioMessage que ya está en WhatsApp (se reutiliza tal cual).
+// sube) o un AudioMessage que ya está en WhatsApp (se reutiliza tal cual; ya
+// no lo usa nadie: ver sonidoDeSticker).
 async function enviar(sock, jid, { sticker, isAnimated, pngThumbnail, sonido, citado }) {
   const subir = { upload: sock.waUploadToServer };
   const [{ stickerMessage }, audio] = await Promise.all([
@@ -237,6 +265,6 @@ async function enviar(sock, jid, { sticker, isAnimated, pngThumbnail, sonido, ci
 }
 
 module.exports = {
-  instalar, enviar, sonidoDe, audioDe, SONIDO, AUDIO, TOPE_S,
+  instalar, enviar, sonidoDe, audioDe, sonidoDeSticker, bajarAudio, SONIDO, AUDIO, TOPE_S,
   _buscarCampo: buscarCampo, _campoBytes: campoBytes, _cerrar: cerrar,
 };

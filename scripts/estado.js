@@ -822,6 +822,31 @@ if (!bot) {
       .split(',').map((n) => n.replace(/\D/g, '')).filter(Boolean);
     const total = new Set([...delEnv, ...guardados]).size;
     if (total) bien(`spam: ${total} inmune(s) (${delEnv.length} del .env, ${guardados.length} de !inmune)`, true);
+    // LOS CASTIGOS SIN TELÉFONO (25 nov). Un inmune por número se llevó el
+    // aviso porque su ráfaga llegó solo con el @lid. El bot ya apunta el @lid
+    // de cada inmune en cuanto lo ve con su teléfono; si aun así castiga a
+    // alguien de quien solo sabe el @lid, aquí se ve dónde y por qué.
+    let castigos = [];
+    try { castigos = JSON.parse(fsx.readFileSync(path.join(RAIZ, 'data/spamCastigos.json'), 'utf8')); } catch { castigos = []; }
+    const sinTel = (Array.isArray(castigos) ? castigos : []).filter((c) => Date.now() - (c.t || 0) < 24 * 3600 * 1000);
+    if (total && sinTel.length) {
+      const ult = sinTel[sinTel.length - 1];
+      aviso(`spam: ${sinTel.length} castigo(s) en 24 h a alguien de quien solo sabía el @lid (el último, por ${ult.que} en ${ult.grupo})`,
+        'si era uno de tus inmunes, responde a un mensaje suyo con !inmune y queda apuntado');
+    }
+  } catch { /* sin datos */ }
+  // LOS STICKERS QUE FALLARON (25 nov). El dueño: «falla al inyectársela a
+  // stickers con audio». Desde el grupo, «falla» no dice dónde; aquí sí: al
+  // bajarlo, al convertirlo, al bajar su sonido o al mandarlo, y por qué.
+  try {
+    let fallosSt = [];
+    try { fallosSt = JSON.parse(require('fs').readFileSync(path.join(RAIZ, 'data/stickerFallos.json'), 'utf8')); } catch { fallosSt = []; }
+    const recientesSt = (Array.isArray(fallosSt) ? fallosSt : []).filter((f) => Date.now() - (f.t || 0) < 24 * 3600 * 1000);
+    if (recientesSt.length) {
+      const ult = recientesSt[recientesSt.length - 1];
+      aviso(`stickers: ${recientesSt.length} fallo(s) en 24 h (el último, al ${ult.que}: ${ult.motivo})`,
+        'el motivo dice dónde se rompe; si se repite con el mismo sticker, cuéntalo con esta línea');
+    }
   } catch { /* sin datos */ }
   // !autoaccept QUE NO PUDO APROBAR NINGUNA (16 nov), con el porqué. Antes se
   // le pedía al grupo, por WhatsApp, que mandara un `pm2 logs … | grep`; ahora

@@ -257,7 +257,11 @@ sonido, inclúyelo dentro del bot», y el 25 nov: «separa los stickers de audio
 de los que no; el de audio será !s2». `!s` nunca lleva sonido; `!s2` con un
 vídeo que tiene sonido saca un sticker con sonido (hasta 10 s). Sin sonido que
 poner (foto, vídeo mudo o sin pista) o si el de sonido no sale, `!s2` hace el
-de siempre. Al volver a sellar con `!s2` uno con sonido, se queda el suyo.
+de siempre. Al volver a sellar con `!s2` uno con sonido, su sonido se baja y
+se sube otra vez con el sticker, como el de un vídeo (25 nov: «falla al
+inyectársela a stickers con audio»; reutilizar su audio tal cual no se había
+probado en un teléfono); si no se puede bajar, sale sin sonido. Dónde y por
+qué falló el último sticker sale en `npm run estado`.
 Baileys rc14 no conoce el campo (el 134) y los tiraba:
 `src/utils/stickerSonido.js` se lo enseña antes de conectar, al leer y al
 escribir. Se mandan con la forma ya probada en teléfonos (`type="text"`, sin
@@ -274,6 +278,14 @@ escalón por encima**. Los fotogramas repetidos de verdad se escriben una vez
 vídeo YUV; no se afloja, que con el de serie se tiraban fotogramas que se
 mueven. La codificación no lleva `-preset` (ffmpeg tiraría el esfuerzo). Ver
 `MOTOR.md`; capa 184.
+
+**La marca, solo la marca** (dueño, 25 nov: «al inyectar una marca en stickers
+de movimiento, sale con artefactos blancos»). A un sticker ajeno, volver a
+sellarlo solo le cambia el EXIF: sale igual byte a byte. Hay stickers que
+guardan cada fotograma a lienzo completo con lo que no cambia en transparente,
+para que se vea el anterior; el blend=no que arregla el fantasma de los
+stickers del bot los dejaba huecos, y sobre el fondo claro se veían blancos.
+Ese arreglo es solo para lo que codifica el bot (`propio`). Capa 36.
 
 **Los de 3 a 10 segundos, a 500 KB** (dueño, 25 nov: «enfoca la optimización
 en los de movimiento de 3 a 10 segundos»). Con 3 s o más, la escalera busca
@@ -344,6 +356,17 @@ estado` avisa de la línea pegada), y el dueño los guarda desde WhatsApp con
 `!inmune quitar …`; van en el estado, sin tocar el `.env`. La exención cubre
 el texto, los stickers y las fotos y vídeos: ni borrado, ni aviso, ni ban.
 Enlaces, historias y anti-empresa les siguen tocando. Capa 173.
+
+**Y aunque llegue solo con su @lid** (dueño, 25 nov, con la captura de uno de
+los dos números de `SPAM_INMUNES` llevándose el *Aviso 1 de 2*). Su ráfaga
+llegó sin el teléfono en la cabecera, en la ficha del grupo ni en el mapa del
+bot, y con solo el número en la lista no había con qué compararlo. Ahora el
+@lid de un inmune se apunta solo en cuanto llega una vez con su teléfono, atado
+a su número (si el número sale de la lista, su @lid deja de valer; `!inmune`
+dice cuáles lo tienen); y si solo se sabe el @lid, se le pregunta a la sesión de
+Baileys en local (`resolverLid`), **nunca a WhatsApp** (`getLIDForPN` puede
+consultar al servidor: no se usa). Lo castigado sin saber el teléfono queda en
+`npm run estado`. Capa 173.
 
 «Iguales» son las mismas letras y números (18 oct): un emoji, un signo, una
 tilde o un invisible ya no hacen distinto un copy. Los números sí cuentan, que

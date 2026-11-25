@@ -187,6 +187,24 @@ async function ponerInmuneSpam(valores, dentro) {
   return [...lista];
 }
 
+// LOS @lid DE LOS INMUNES, APRENDIDOS SOLOS (25 nov): @lid -> número. Van
+// aparte de la lista porque dependen del número: si el número sale de la lista
+// (*!inmune quitar*), su @lid deja de valer sin tocar nada más. Ver aprenderLid
+// en utils/spamTexto.js.
+function lidsInmunesAprendidos() {
+  const m = _state?.spamInmunesLid;
+  return m && typeof m === 'object' && !Array.isArray(m) ? { ...m } : {};
+}
+
+async function aprenderLidInmune(lid, numero) {
+  const m = lidsInmunesAprendidos();
+  if (m[lid] === numero) return false;
+  m[lid] = numero;
+  _state.spamInmunesLid = m;
+  await saveState(_state);
+  return true;
+}
+
 // QUIEN TIENE QUE ENTERARSE DEL CAMBIO. La presencia (aparecer en linea) la
 // lleva bot.js, que es quien tiene el socket. Antes *!visto* decia «hace falta
 // reconectar: pm2 restart bot» en el chat: una orden de terminal para el
@@ -239,5 +257,5 @@ const toggleAura            = (jid, enable) => setMembership('auraDisabled',    
 const isAutoAceptarEnabled  = (jid)         => hasMembership('autoAceptar',          jid);
 const toggleAutoAceptar     = (jid, enable) => setMembership('autoAceptar',          jid, enable);
 
-module.exports = { vistoActivo, ponerVisto, cuandoCambieVisto, inmunesSpamGuardados, ponerInmuneSpam, initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, flushState, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness, isAntiLinkEnabled, toggleAntiLink, isAntiFakeEnabled, toggleAntiFake, isSoloAdminsEnabled, toggleSoloAdmins, isAuraEnabled, toggleAura, isAutoAceptarEnabled, toggleAutoAceptar };
+module.exports = { vistoActivo, ponerVisto, cuandoCambieVisto, inmunesSpamGuardados, ponerInmuneSpam, lidsInmunesAprendidos, aprenderLidInmune, initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, flushState, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness, isAntiLinkEnabled, toggleAntiLink, isAntiFakeEnabled, toggleAntiFake, isSoloAdminsEnabled, toggleSoloAdmins, isAuraEnabled, toggleAura, isAutoAceptarEnabled, toggleAutoAceptar };
 

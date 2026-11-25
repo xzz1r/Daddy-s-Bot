@@ -7335,17 +7335,24 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
 
   // ── 36. LA MARCA NO ROMPE LOS STICKERS DE OTROS ──────────────────────────
   //
-  // Al inyectar la marca en un .webp animado se le pone blend=no a los
-  // fotogramas: le dice al renderer que REEMPLACE el rectangulo en vez de
-  // mezclarlo con lo que hay debajo. En los stickers que hace el bot eso es
-  // correcto y arregla un fantasma real —todos sus fotogramas cubren el lienzo
-  // entero, se lo garantiza el filtro pad de ffmpeg—, pero se estaba aplicando
-  // a TODOS, y un webp animado hecho por otro casi siempre guarda solo el
-  // rectangulo que cambia en cada fotograma. A esos, reemplazar en vez de
-  // mezclar les borra lo que habia debajo: manchas blancas dentro del sticker.
+  // Al inyectar la marca en un .webp animado HECHO POR EL BOT se le pone
+  // blend=no a los fotogramas que cubren el lienzo: le dice al renderer que
+  // REEMPLACE en vez de mezclar con lo que hay debajo, y arregla un fantasma
+  // real en la costura del borde transparente (todos sus fotogramas están
+  // completos, se lo garantiza el filtro pad de ffmpeg).
   //
-  // Se prueba con un webp animado fabricado a mano, con un fotograma que cubre
-  // el lienzo y otro parcial, por la puerta real (imageToSticker).
+  // A UN STICKER AJENO, NADA DE ESO: SOLO EL EXIF (25 nov). Primero se dejó de
+  // tocar los fotogramas parciales, y aún quedaban manchas blancas (el dueño:
+  // «al inyectar una marca en stickers de movimiento sale con artefactos
+  // blancos»): hay stickers que guardan cada fotograma a lienzo completo con lo
+  // que no cambia en transparente, para que se vea el anterior. Con blend=no
+  // eso queda hueco. Ahora un sticker ajeno sale byte a byte igual, salvo el
+  // EXIF y su bit en el VP8X; se mira así, sin decodificar, y vale con
+  // cualquier ffmpeg.
+  //
+  // Se prueba con un webp animado fabricado a mano (un fotograma que cubre el
+  // lienzo, mezclando, y otro parcial) por las dos puertas reales, y con un
+  // sticker hecho por el bot desde un vídeo.
   {
     console.log('\n36. LA MARCA NO ROMPE LOS STICKERS DE OTROS');
     const antes = fallos;
@@ -7382,18 +7389,38 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       }
       return out;
     };
-    try {
-      const { imageToSticker } = require(path.join(R, 'src/utils/sticker'));
-      const salida = await imageToSticker(entrada, 'check');
-      const f = leer(salida);
-      exige(f.length === 2, `el marcado ha perdido fotogramas: quedan ${f.length} de 2`);
-      if (f.length === 2) {
-        exige(f[0].blendNo === true,
-          'el fotograma que cubre el lienzo ha dejado de llevar blend=no: vuelve el fantasma en la costura del borde transparente');
-        exige(f[1].blendNo === false,
-          'a un fotograma PARCIAL se le pone blend=no: eso borra lo que hay debajo y deja manchas blancas dentro de los stickers que no ha hecho el bot');
+    // El sticker sin la marca: fuera el trozo EXIF, su bit del VP8X a cero y el
+    // tamaño del RIFF rehecho. Lo ajeno, marcado y desmarcado, es lo de antes.
+    const sinMarca = (buf) => {
+      const trozos = []; let p = 12;
+      while (p + 8 <= buf.length) {
+        const ct = buf.slice(p, p + 4).toString('latin1'); const cs = buf.readUInt32LE(p + 4); const tot = 8 + cs + (cs % 2);
+        if (ct !== 'EXIF') { const t = Buffer.from(buf.slice(p, p + tot)); if (ct === 'VP8X') t[8] &= ~0x08; trozos.push(t); }
+        p += tot;
       }
-      exige(salida.includes(Buffer.from('EXIF', 'ascii')), 'el sticker sale sin la marca');
+      const r = Buffer.concat([Buffer.from(buf.slice(0, 12)), ...trozos]); r.writeUInt32LE(r.length - 8, 4); return r;
+    };
+    try {
+      const { imageToSticker, videoToSticker } = require(path.join(R, 'src/utils/sticker'));
+      for (const [puerta, hacer] of [['imageToSticker', imageToSticker], ['videoToSticker', videoToSticker]]) {
+        const salida = await hacer(entrada, 'check');
+        exige(salida.includes(Buffer.from('EXIF', 'ascii')), `el sticker sale sin la marca (${puerta})`);
+        exige(sinMarca(salida).equals(entrada),
+          `al marcar un sticker ajeno (${puerta}) se cambia algo más que el EXIF: los fotogramas que mezclan con el anterior quedan huecos y se ven blancos`);
+        exige(leer(salida).every((f) => !f.blendNo), `a un sticker ajeno se le pone blend=no (${puerta}): vuelven las manchas blancas`);
+      }
+      // Y el que hace el bot, desde un vídeo: sus fotogramas cubren el lienzo y
+      // llevan blend=no (el arreglo del fantasma).
+      const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+      const dir36 = fs.mkdtempSync(path.join(os.tmpdir(), 'marca36-'));
+      try {
+        const mp4 = path.join(dir36, 'v.mp4');
+        spawnSync(ffmpegPath, ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'testsrc=s=160x120:d=1:r=10', '-pix_fmt', 'yuv420p', '-c:v', 'libx264', mp4], { timeout: 30000 });
+        const propio = await videoToSticker(fs.readFileSync(mp4), 'check');
+        const f = leer(propio);
+        exige(f.length > 1 && f.every((x) => x.completo && x.blendNo),
+          `los fotogramas de un sticker hecho por el bot ya no llevan blend=no: vuelve el fantasma en la costura del borde transparente (${JSON.stringify(f.slice(0, 3))})`);
+      } finally { fs.rmSync(dir36, { recursive: true, force: true }); }
     } catch (e) {
       exige(false, `no pude probar el marcado: ${String(e.message).split('\n')[0]}`);
     }
@@ -7449,7 +7476,7 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
           'la referencia de la prediccion ya no se limita a los escalones medidos: un q95 que no cabe volveria a mandar el sticker a 384 px');
       }
     }
-    if (fallos === antes) console.log(verde('   ✓ la marca respeta los fotogramas parciales y la escalera arranca por lo mejor que cabe'));
+    if (fallos === antes) console.log(verde('   ✓ a un sticker ajeno la marca solo le cambia el EXIF, los del bot llevan el arreglo del fantasma, y la escalera arranca por lo mejor que cabe'));
   }
 
   // ── 37. NINGUNA ACCION PISA UN COMANDO QUE YA EXISTIA ────────────────────
@@ -25857,10 +25884,97 @@ const escribe=(quien,extra={})=>handleMessage(sock,{key:{remoteJid:G,participant
         exige(r.yaNo === false, '*!inmune quitar* no lo quita');
       }
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
+    // Y AUNQUE LLEGUE SOLO CON SU @lid (25 nov). Uno de los dos números de
+    // SPAM_INMUNES se llevó el *Aviso 1 de 2*: su ráfaga vino solo con el @lid,
+    // sin teléfono en la cabecera, en la ficha ni en el mapa del bot. Ahora el
+    // @lid se apunta en cuanto llega con su teléfono (y vale tras un reinicio
+    // sin el mapa), si solo se sabe el @lid se le pregunta a la sesión de
+    // Baileys en local (nunca a WhatsApp), y lo castigado sin teléfono queda
+    // apuntado para `npm run estado`. Dos procesos: el segundo sin lidMap.json.
+    const caja2 = fs.mkdtempSync(path.join(os.tmpdir(), 'inmunes173b-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja2, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja2, 'data')); fs.mkdirSync(path.join(caja2, 'temp'));
+      fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja2, 'node_modules'), 'dir');
+      fs.writeFileSync(path.join(caja2, '.env'), 'OWNER_NUMBER=33600000174\nSPAM_INMUNES=50200000174\n');
+      const comun = [
+        "const fs = require('fs');",
+        "const { handleMessage } = require('./src/handlers/messageHandler');",
+        "const ST = require('./src/utils/spamTexto');",
+        "const EST = require('./src/utils/state');",
+        "const BOT = '34600000174@s.whatsapp.net';",
+        "let n = 0, gr = 0; const usync = [];",
+        "const montaSock = (G, partes, ev, pnDeLid = {}) => ({ user: { id: BOT }, readMessages: async () => {}, sendPresenceUpdate: async () => {},",
+        "  signalRepository: { lidMapping: { getPNForLID: async (l) => pnDeLid[l] || null, getLIDForPN: async (p) => { usync.push(p); return null; } } },",
+        "  sendMessage: async (j, c) => { if (c.delete) ev.push('borra'); else if (c.text) ev.push('texto'); return { key: { id: 'K' + (++n) } }; },",
+        "  groupMetadata: async () => ({ id: G, subject: 'Grupo 173', participants: [...partes, { id: BOT, admin: 'admin' }] }),",
+        "  groupParticipantsUpdate: async (g, ids, a) => { ev.push(a); return ids.map((j) => ({ jid: j, status: '200' })); },",
+        "  groupSettingUpdate: async (g, v) => { ev.push(v); },",
+        "  profilePictureUrl: async () => { throw new Error('sin foto'); } });",
+        "const mensaje = (G, quien, alt, ts, texto) => ({ key: { remoteJid: G, fromMe: false, id: 'L173' + (++n), participant: quien, ...(alt ? { participantAlt: alt } : {}), addressingMode: 'lid' }, messageTimestamp: ts, message: { conversation: texto } });",
+        "const rafaga = async (quien, partes, pnDeLid) => { const G = '120363000017' + String(++gr).padStart(4, '0') + '@g.us'; const ev = []; const sock = montaSock(G, partes, ev, pnDeLid);",
+        "  const t0 = Math.floor(Date.now() / 1000); for (let i = 0; i < ST.IGUALES; i++) await handleMessage(sock, mensaje(G, quien, null, t0, 'Juguemos Roblox')); return ev; };",
+      ];
+      const fase1 = [...comun,
+        "(async () => { await EST.initState();",
+        "  const G = '120363017400001@g.us'; const ev = [];",
+        "  await handleMessage(montaSock(G, [{ id: '91740000001@lid' }], ev), mensaje(G, '91740000001@lid', '50200000174@s.whatsapp.net', Math.floor(Date.now() / 1000), 'hola'));",
+        "  await new Promise((r) => setTimeout(r, 300));",
+        "  console.log('R173A' + JSON.stringify({ guardados: EST.inmunesSpamGuardados(), aprendidos: EST.lidsInmunesAprendidos(), ev, usync })); process.exit(0);",
+        "})().catch((e) => { console.log('R173A' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const fase2 = [...comun,
+        "(async () => { await EST.initState(); ST._usarEsperas({ reabrir: 60000 }); const r = {};",
+        "  r.soloLid = await rafaga('91740000001@lid', [{ id: '91740000001@lid', admin: 'admin' }]);",
+        "  r.sesion = await rafaga('91740000002@lid', [{ id: '91740000002@lid' }], { '91740000002@lid': '50200000174:0@s.whatsapp.net' });",
+        "  await new Promise((res) => setTimeout(res, 300));",
+        "  r.aprendido = EST.lidsInmunesAprendidos();",
+        "  r.otro = await rafaga('91740000009@lid', [{ id: '91740000009@lid' }]);",
+        "  await new Promise((res) => setTimeout(res, 300));",
+        "  try { r.castigos = JSON.parse(fs.readFileSync('data/spamCastigos.json', 'utf8')); } catch { r.castigos = null; }",
+        "  // Quitar el número quita su @lid aprendido: va atado a él.",
+        "  await EST.ponerInmuneSpam(['50200000175'], true); ST.aprenderLid('91740000003@lid', '50200000175@s.whatsapp.net');",
+        "  await new Promise((res) => setTimeout(res, 100));",
+        "  r.antesQuitar = ST.esInmune(['91740000003@lid']); await EST.ponerInmuneSpam(['50200000175'], false); r.trasQuitar = ST.esInmune(['91740000003@lid']);",
+        "  const dicho = []; await require('./src/commands/inmune').cmdInmune({ user: { id: BOT }, sendMessage: async (j, c) => { dicho.push(c.text || ''); return {}; } },",
+        "    { key: { remoteJid: '120363017400099@g.us', fromMe: false, id: 'L173Z', participant: '33600000174@s.whatsapp.net' }, message: { conversation: '!inmune' } }, [],",
+        "    { id: '120363017400099@g.us', participants: [{ id: '33600000174@s.whatsapp.net', admin: 'superadmin' }, { id: BOT, admin: 'admin' }] });",
+        "  r.lista = dicho.join(' ');",
+        "  r.usync = usync; console.log('R173B' + JSON.stringify(r)); process.exit(0);",
+        "})().catch((e) => { console.log('R173B' + JSON.stringify({ error: e.stack })); process.exit(0); });",
+      ].join('\n');
+      const ent2 = { ...process.env, OWNER_NUMBER: '33600000174', CO_OWNERS: '', LOG_LEVEL: 'error' };
+      delete ent2.SPAM_INMUNES;
+      const corre = (guion, marca) => {
+        const o = spawnSync('node', ['-e', guion], { cwd: caja2, encoding: 'utf8', timeout: 60000, env: ent2 });
+        const l = (o.stdout || '').split('\n').find((x) => x.startsWith(marca));
+        return l ? JSON.parse(l.slice(marca.length)) : { error: `sin respuesta: ${(o.stderr || '').split('\n').slice(0, 4).join(' ')}` };
+      };
+      const a = corre(fase1, 'R173A');
+      fs.rmSync(path.join(caja2, 'data', 'lidMap.json'), { force: true });
+      const b = a.error ? a : corre(fase2, 'R173B');
+      if (b.error) exige(false, `no pude probar el inmune que llega solo con su @lid: ${String(b.error).split('\n').slice(0, 3).join(' ')}`);
+      else {
+        exige((a.aprendidos || {})['91740000001@lid'] === '50200000174' && !(a.guardados || []).includes('91740000001@lid'),
+          `un inmune por número que escribe con su teléfono y su @lid no deja apuntado su @lid junto al número: ${JSON.stringify([a.aprendidos, a.guardados])}`);
+        exige(!b.soloLid.length, `un inmune que llega solo con su @lid (sin el mapa del bot) se lleva el castigo: ${JSON.stringify(b.soloLid)}`);
+        exige(!b.sesion.length && (b.aprendido || {})['91740000002@lid'] === '50200000174',
+          `con el par en la sesión de Baileys, el inmune se lleva el castigo o no queda apuntado: ${JSON.stringify(b.sesion)} ${JSON.stringify(b.aprendido)}`);
+        exige(b.otro.includes('announcement') && b.otro.includes('texto'), `a quien no es inmune ya no le llega el aviso: ${JSON.stringify(b.otro)}`);
+        exige(Array.isArray(b.castigos) && b.castigos.length === 1 && b.castigos[0].que === 'mensajes' && b.castigos[0].grupo === 'Grupo 173',
+          `el castigo sin teléfono no queda apuntado para npm run estado: ${JSON.stringify(b.castigos)}`);
+        exige(b.antesQuitar === true && b.trasQuitar === false,
+          `quitar un número de *!inmune* deja inmune su @lid aprendido: ${JSON.stringify([b.antesQuitar, b.trasQuitar])}`);
+        exige(/ya con su @lid/.test(b.lista || ''), `*!inmune* no dice qué números tienen ya su @lid: ${JSON.stringify(b.lista)}`);
+        exige(!(a.usync || []).length && !(b.usync || []).length,
+          `para saber si es inmune se le ha preguntado a WhatsApp (getLIDForPN): ${JSON.stringify([...(a.usync || []), ...(b.usync || [])])}`);
+      }
+    } finally { fs.rmSync(caja2, { recursive: true, force: true }); }
     // Y npm run estado dice cuántos ve y si hay una línea pegada.
     const est173 = fs.readFileSync(path.join(R, 'scripts/estado.js'), 'utf8');
     exige(/lleva pegada/.test(est173) && /de !inmune/.test(est173), '`npm run estado` ya no dice cuántos inmunes ve ni avisa de una línea pegada en el .env');
-    if (fallos === antes173) console.log(verde('   ✓ la línea pegada del .env se lee, !inmune guarda por número y por @lid, y ni texto, ni stickers, ni fotos castigan a un inmune'));
+    exige(/spamCastigos\.json/.test(est173), '`npm run estado` ya no enseña los castigos por spam hechos sin saber el teléfono');
+    if (fallos === antes173) console.log(verde('   ✓ la línea pegada del .env se lee, !inmune guarda por número y por @lid, el @lid de un inmune se apunta solo, y ni texto, ni stickers, ni fotos castigan a un inmune'));
   }
 
   // ── 174. EL GUARDIÁN LE GUARDA AL BOT LAS FOTOS DE VER UNA VEZ (16 nov) ────
@@ -26695,17 +26809,22 @@ const r = {};
           "hacer(['-f', 'lavfi', '-i', 'testsrc2=size=320x240:rate=15:duration=2', '-f', 'lavfi', '-i', 'sine=f=440:d=2', '-shortest', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-c:a', 'aac', path.join(D, 'consonido.mp4')]);",
           "hacer(['-f', 'lavfi', '-i', 'testsrc2=size=320x240:rate=15:duration=2', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', path.join(D, 'mudo.mp4')]);",
           "hacer(['-f', 'lavfi', '-i', 'testsrc=size=320x240:rate=1', '-frames:v', '1', path.join(D, 'foto.jpg')]);",
+          "hacer(['-f', 'lavfi', '-i', 'color=red:s=512x512', '-frames:v', '1', path.join(D, 'st.webp')]);",
+          "hacer(['-f', 'lavfi', '-i', 'sine=f=440:d=2', '-c:a', 'libopus', '-b:a', '48k', path.join(D, 'son.ogg')]);",
           "const VU = require('./src/utils/verUnaVez');",
           "let siguiente = null;",
           "VU.bajar = async () => fs.readFileSync(path.join(D, siguiente));",
+          "const SS = require('./src/utils/stickerSonido'); SS.instalar();",
+          "let audioBaja = true; SS.bajarAudio = async () => { if (!audioBaja) throw new Error('sin clave'); return fs.readFileSync(path.join(D, 'son.ogg')); };",
           "const { cmdSticker, cmdStickerSonido } = require('./src/commands/sticker');",
+          "const { proto } = require('@whiskeysockets/baileys');",
           "const G = '120363000000183001@g.us', DUENO = '33600000183@s.whatsapp.net', BOT = '34600000183@s.whatsapp.net';",
           "const meta = { id: G, participants: [{ id: BOT, admin: 'admin' }, { id: DUENO, admin: 'superadmin' }] };",
           "(async () => {",
           "  const r = {}; let envios = [];",
           "  const sock = { user: { id: BOT }, waUploadToServer: async () => ({ mediaUrl: 'https://x/u', directPath: '/v/u' }),",
           "    sendMessage: async (j, c) => { if (!c.text || !/Haciendo/.test(c.text)) envios.push(c.sticker ? 'sticker' : (c.text ? 'texto' : 'otro')); return { key: { id: 'x' } }; },",
-          "    relayMessage: async (j, m, o) => { envios.push('consonido:' + ((o && o.additionalAttributes && o.additionalAttributes.type) || '?')); return 'ID'; } };",
+          "    relayMessage: async (j, m, o) => { const a = m[SS.SONIDO] && m[SS.SONIDO].audio; envios.push('consonido:' + ((o && o.additionalAttributes && o.additionalAttributes.type) || '?') + (a && a.directPath === '/v/u' ? ':subido' : ':reusado')); return 'ID'; } };",
           "  const k = (id, message) => ({ key: { remoteJid: G, participant: DUENO, fromMe: false, id }, message, pushName: 'Dueño' });",
           "  const nodo = (m) => ({ mimetype: m, mediaKey: Buffer.alloc(32), directPath: '/x' });",
           "  const vid = (id) => k(id, { videoMessage: { ...nodo('video/mp4'), seconds: 2, caption: '!s' } });",
@@ -26714,6 +26833,14 @@ const r = {};
           "  await corre('s2ConSonido', 'consonido.mp4', () => cmdStickerSonido(sock, vid('b'), meta));",
           "  await corre('s2Mudo', 'mudo.mp4', () => cmdStickerSonido(sock, vid('c'), meta));",
           "  await corre('s2Foto', 'foto.jpg', () => cmdStickerSonido(sock, k('d', { imageMessage: { ...nodo('image/jpeg'), caption: '!s2' } }), meta));",
+          "  // Volver a sellar uno con sonido, citado como llega del teléfono (el 134).",
+          "  const conSonido = () => { const m = { messageContextInfo: { messageSecret: Buffer.alloc(32, 9) } }; Object.defineProperty(m, SS.SONIDO, { value: { sticker: { ...nodo('image/webp'), url: 'https://x/s' }, audio: { ...nodo('audio/ogg; codecs=opus'), url: 'https://x/a', directPath: '/v/a', seconds: 2, ptt: true } } }); return m; };",
+          "  const cita = (id) => k(id, proto.Message.decode(proto.Message.encode({ extendedTextMessage: { text: '!s2', contextInfo: { stanzaId: 'ST', participant: '91830000001@lid', quotedMessage: conSonido() } } }).finish()));",
+          "  await corre('s2Sello', 'st.webp', () => cmdStickerSonido(sock, cita('e'), meta));",
+          "  await corre('sSello', 'st.webp', () => cmdSticker(sock, cita('f'), meta));",
+          "  audioBaja = false; await corre('s2SelloSinBajar', 'st.webp', () => cmdStickerSonido(sock, cita('g'), meta)); audioBaja = true;",
+          "  await new Promise((res) => setTimeout(res, 200));",
+          "  try { r.fallos = JSON.parse(fs.readFileSync('data/stickerFallos.json', 'utf8')).map((x) => x.que); } catch { r.fallos = null; }",
           "  console.log('R183B' + JSON.stringify(r)); process.exit(0);",
           "})().catch((e) => { console.log('R183B' + JSON.stringify({ error: e.stack })); process.exit(0); });",
         ].join('\n');
@@ -26725,10 +26852,18 @@ const r = {};
         else {
           exige(JSON.stringify(r2.sConSonido) === '["sticker"]',
             `*!s* con un vídeo con sonido no da el sticker de siempre, sin sonido: ${JSON.stringify(r2.sConSonido)}`);
-          exige(JSON.stringify(r2.s2ConSonido) === '["consonido:text"]',
+          exige(JSON.stringify(r2.s2ConSonido) === '["consonido:text:subido"]',
             `*!s2* con un vídeo con sonido no manda el sticker con sonido como lo aceptan los teléfonos: ${JSON.stringify(r2.s2ConSonido)}`);
           exige(JSON.stringify(r2.s2Mudo) === '["sticker"]' && JSON.stringify(r2.s2Foto) === '["sticker"]',
             `*!s2* sin sonido que poner (vídeo mudo o foto) no hace el sticker de siempre: ${JSON.stringify([r2.s2Mudo, r2.s2Foto])}`);
+          // Volver a sellar uno con sonido (25 nov: «falla al inyectársela a
+          // stickers con audio»): su audio se baja y se sube otra vez, que es la
+          // forma probada en teléfonos; reutilizarlo tal cual no lo es.
+          exige(JSON.stringify(r2.s2Sello) === '["consonido:text:subido"]',
+            `*!s2* sobre un sticker con sonido no lo manda con su sonido subido otra vez: ${JSON.stringify(r2.s2Sello)}`);
+          exige(JSON.stringify(r2.sSello) === '["sticker"]', `*!s* sobre un sticker con sonido no da el sticker sin sonido: ${JSON.stringify(r2.sSello)}`);
+          exige(JSON.stringify(r2.s2SelloSinBajar) === '["sticker"]' && (r2.fallos || []).includes('bajar el sonido del sticker'),
+            `si su sonido no se puede bajar, *!s2* no saca el sticker normal o no deja el motivo para npm run estado: ${JSON.stringify([r2.s2SelloSinBajar, r2.fallos])}`);
         }
       } finally { fs.rmSync(caja2, { recursive: true, force: true }); }
       const { construirListas } = require(path.join(R, 'src/handlers/comandos'));
@@ -26738,6 +26873,7 @@ const r = {};
       exige(/stickerSonido\.audioDe\(found\.msg\)/.test(s), 'al volver a sellar con *!s2* un sticker con sonido se pierde el sonido');
       exige(/require\('\.\/utils\/stickerSonido'\)\.instalar\(\)/.test(soloCodigo('src/bot.js')), 'el bot no le enseña a Baileys el campo de los stickers con sonido antes de conectar');
       exige(!/stickerSonido/.test(soloCodigo('src/guardian.js')), 'el guardián toca los stickers con sonido: no es cosa suya');
+      exige(/stickerFallos\.json/.test(fs.readFileSync(path.join(R, 'scripts/estado.js'), 'utf8')), '`npm run estado` ya no dice dónde y por qué falló el último sticker');
     } finally { fs.rmSync(caja, { recursive: true, force: true }); }
     if (fallos === antes183) console.log(verde('   ✓ los stickers con sonido se leen, citados también; *!s* los hace sin sonido y *!s2* con el del vídeo, como los aceptan los teléfonos'));
   }

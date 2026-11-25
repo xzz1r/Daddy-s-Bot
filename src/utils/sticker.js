@@ -587,7 +587,17 @@ function buildExif(pack, author) {
 }
 
 // Inject EXIF chunk directly into WebP binary (RIFF manipulation)
-function injectExifIntoWebP(webp, exifBuf) {
+//
+// LO AJENO SOLO SE MARCA (25 nov). El dueño: «al inyectar una marca en stickers
+// de movimiento, sale con artefactos blancos». Lo de abajo (blend=no en los
+// fotogramas que cubren el lienzo, y quitar el flag de alfa) es para los
+// stickers QUE HACE EL BOT, que tienen todos sus fotogramas completos. Hay
+// stickers de otros que también guardan cada fotograma a lienzo completo, pero
+// con lo que no cambia en transparente para que se vea el anterior (conversores
+// de GIF, o ffmpeg con -cr_threshold, en bloques de 16x16): con blend=no eso
+// queda hueco, y sobre el fondo claro de WhatsApp se ve blanco. Así que a un
+// sticker ajeno solo se le cambia el EXIF; `propio` es para los del bot.
+function injectExifIntoWebP(webp, exifBuf, { propio = false } = {}) {
   if (webp.slice(0, 4).toString() !== 'RIFF') throw new Error('Not RIFF');
   if (webp.slice(8, 12).toString() !== 'WEBP') throw new Error('Not WebP');
 
@@ -628,7 +638,7 @@ function injectExifIntoWebP(webp, exifBuf) {
     // animacion sea del todo opaca, asi que se comprueba fotograma a fotograma
     // si hay alpha de verdad y solo se deja puesto cuando lo hay.
     const isAnim = !!(out[20] & 0x02); // Animation bit
-    if (isAnim) {
+    if (isAnim && propio) {
       let hasAlpha = false;
       // El lienzo, del propio VP8X: 'VP8X'(4) + tamanyo(4) + flags(4) = 24.
       const lienzoW = out.readUIntLE(24, 3);
@@ -721,13 +731,13 @@ function injectExifIntoWebP(webp, exifBuf) {
   return Buffer.concat([header, body]);
 }
 
-function addStickerMeta(webpBuffer, author) {
+function addStickerMeta(webpBuffer, author, { propio = false } = {}) {
   const exif = buildExif(config.sticker.pack, author || config.sticker.author);
   // Pure buffer ops — no parsing overhead, no double-load. If it ever throws on
   // a malformed WebP, ship the sticker without pack metadata instead of dragging
   // in a heavy parser as a fallback (node-webpmux used to be that fallback).
   try {
-    return injectExifIntoWebP(webpBuffer, exif);
+    return injectExifIntoWebP(webpBuffer, exif, { propio });
   } catch (err) {
     logger.warn(`addStickerMeta: binary inject failed, sending without pack: ${err.message}`);
     return webpBuffer;
@@ -1281,7 +1291,9 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
     // accepted/saveable) rather than whatever the last tier happened to output.
     const out = (buf && buf.length >= 100 && buf.length <= MAX_STICKER_BYTES) ? buf : smallest;
     if (!out || out.length < 100) throw new Error('Sticker animado vacío');
-    return addStickerMeta(out, author);
+    // Hecho aquí, con todos sus fotogramas completos: lleva el arreglo del
+    // fantasma (ver injectExifIntoWebP).
+    return addStickerMeta(out, author, { propio: true });
   } finally {
     // El temporal solo se borra si lo hemos creado aqui: cuando llega por
     // `rutaOrigen` es del que llama, y borrarlo le quitaria de debajo el fichero

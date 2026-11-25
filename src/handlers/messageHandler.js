@@ -2215,6 +2215,9 @@ async function handleMessage(sock, msg, opciones = {}) {
     // getSender ya anotó el par en lidToPhone; aquí solo se saca el teléfono
     // para el ranking y las guardas de owner.
     senderPn = altEsLid ? msg.key.participant : alt;
+    // El @lid de un inmune al spam se apunta en cuanto llega con su teléfono:
+    // otro día puede llegar solo con el @lid (ver aprenderLid en spamTexto).
+    if (jid.endsWith('@g.us')) spamTexto.aprenderLid(altEsLid ? alt : msg.key.participant, senderPn);
   }
 
   // Skip own messages that aren't commands (avoids bot responding to itself)
@@ -2714,12 +2717,14 @@ async function handleMessage(sock, msg, opciones = {}) {
         anotarTropiezo(`Spam de mensajes en ${jid} de +${numR}: sin metadata del grupo, no hago nada.`);
       } else if (esOwnerDelMensaje(msg, sender, senderPn, meta)) {
         logger.info(`spam de mensajes en ${jid} del tier dueño: no se toca`);
-      } else if (spamTexto.esInmune([sender, senderPn, msg.key.participantAlt, ...allForms(sender, meta)])) {
+      } else if (await spamTexto.esInmuneAhora(sock, [sender, senderPn, msg.key.participantAlt, ...allForms(sender, meta)])) {
         // SPAM_INMUNES y *!inmune* (dueño, 15 y 16 nov): sin aviso, sin cerrar y sin ban.
+        // Y aunque llegue solo con su @lid (25 nov): ver esInmuneAhora.
         logger.info(`spam de mensajes en ${jid} de +${numR}: es inmune al spam, no se toca`);
       } else if (!isBotAdmin(sock, meta)) {
         anotarTropiezo(`Spam de mensajes en ${jid} de +${numR} y NO soy admin: no puedo cerrar el grupo ni echar a nadie. Dame admin.`);
       } else {
+        spamTexto.apuntarCastigo(jid, meta.subject, [sender, senderPn, msg.key.participantAlt, ...allForms(sender, meta)], 'mensajes');
         const esAdmin = isAdmin(meta.participants, sender)
           || Boolean(senderPn && isAdmin(meta.participants, senderPn));
         await castigarSpamTexto(sock, jid, sender, meta, rafaga, esAdmin);
@@ -2771,9 +2776,10 @@ async function handleMessage(sock, msg, opciones = {}) {
       const protegido = !meta ||
         isGroupAdmin(sender, msg.key.fromMe, meta) ||
         esOwnerDelMensaje(msg, sender, senderPn, meta) ||
-        spamTexto.esInmune([sender, senderPn, msg.key.participantAlt, ...allForms(sender, meta)]);
+        await spamTexto.esInmuneAhora(sock, [sender, senderPn, msg.key.participantAlt, ...allForms(sender, meta)]);
 
       if (!protegido && isBotAdmin(sock, meta)) {
+        spamTexto.apuntarCastigo(jid, meta.subject, [sender, senderPn, msg.key.participantAlt, ...allForms(sender, meta)], 'stickers');
         // Se borra la ráfaga entera, no solo el último: los stickers no se
         // borran de uno en uno al llegar (a diferencia de las fotos), así que
         // aquí están todos los ids acumulados de la ventana.
@@ -2823,7 +2829,7 @@ async function handleMessage(sock, msg, opciones = {}) {
     const protegido = !meta ||
       isGroupAdmin(sender, msg.key.fromMe, meta) ||
       esOwnerDelMensaje(msg, sender, senderPn, meta) ||
-      spamTexto.esInmune([sender, senderPn, msg.key.participantAlt, ...allForms(sender, meta)]);
+      await spamTexto.esInmuneAhora(sock, [sender, senderPn, msg.key.participantAlt, ...allForms(sender, meta)]);
 
     if (!protegido && isBotAdmin(sock, meta)) {
       const borrar = (id) => sock.sendMessage(jid, {

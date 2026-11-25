@@ -311,19 +311,30 @@ function _usarEsperas({ reabrir } = {}) { esperaReabrir = reabrir ?? REABRIR_MS;
 // Y DOS LISTAS (16 nov): la del .env y la que el dueño guarda con *!inmune*
 // desde WhatsApp (utils/state.js). Una entrada con @ es un JID entero (el @lid
 // de quien se señaló respondiendo) y se compara tal cual.
+const digitos = (x) => String(x || '').split('@')[0].split(':')[0].replace(/\D/g, '');
+const sinNueveAR = (d) => (/^549\d{8,}$/.test(d) ? '54' + d.slice(3) : d);
+
+// Y los @lid aprendidos (25 nov, ver aprenderLid): solo los de un número que
+// sigue en la lista.
 function inmunesActuales() {
   const delEnv = require('../config').spamInmunes || [];
   let guardados = [];
-  try { guardados = require('./state').inmunesSpamGuardados(); } catch { guardados = []; }
-  return [...new Set([...delEnv, ...guardados])];
+  let aprendidos = {};
+  try {
+    const st = require('./state');
+    guardados = st.inmunesSpamGuardados();
+    aprendidos = st.lidsInmunesAprendidos ? st.lidsInmunesAprendidos() : {};
+  } catch { guardados = []; aprendidos = {}; }
+  const base = [...new Set([...delEnv, ...guardados])];
+  const numeros = new Set(base.filter((n) => !String(n).includes('@')).map((n) => sinNueveAR(digitos(n))));
+  const lids = Object.entries(aprendidos).filter(([, n]) => numeros.has(sinNueveAR(digitos(n)))).map(([l]) => l);
+  return [...new Set([...base, ...lids])];
 }
 
 function esInmune(formas, lista = null) {
   const inmunes = lista || inmunesActuales();
   if (!inmunes.length) return false;
   const { canonicalJid, bareJid } = require('./wa');
-  const digitos = (x) => String(x || '').split('@')[0].split(':')[0].replace(/\D/g, '');
-  const sinNueveAR = (d) => (/^549\d{8,}$/.test(d) ? '54' + d.slice(3) : d);
   const propios = new Set();
   const jids = new Set();
   for (const f of (formas || []).filter(Boolean)) {
@@ -340,8 +351,81 @@ function esInmune(formas, lista = null) {
     : propios.has(sinNueveAR(String(n).replace(/\D/g, '')))));
 }
 
+// EL @lid DE UN INMUNE SE APUNTA EN CUANTO SE LE VE CON SU TELÉFONO (25 nov).
+// El dueño, con la captura de uno de los dos números de SPAM_INMUNES llevándose
+// el *Aviso 1 de 2*: su ráfaga llegó solo con el @lid, sin el teléfono en la
+// cabecera, en la ficha del grupo ni en el mapa del bot, y con solo el número
+// en la lista no había con qué compararlo. Con el @lid guardado y atado a su
+// número (utils/state: si el número sale de la lista, el @lid deja de valer),
+// da igual cómo llegue después.
+function aprenderLid(lid, telefono) {
+  if (!telefono || !String(lid || '').endsWith('@lid')) return false;
+  const inmunes = inmunesActuales();
+  if (!inmunes.length || !esInmune([telefono], inmunes)) return false;
+  const { bareJid, canonicalJid } = require('./wa');
+  const bare = bareJid(lid);
+  if (inmunes.includes(bare)) return false;
+  const numero = sinNueveAR(digitos(canonicalJid(telefono)));
+  if (!numero) return false;
+  require('./state').aprenderLidInmune(bare, numero)
+    .catch((e) => logger.warn(`inmunes: no pude apuntar el @lid (${e.message})`));
+  logger.info('inmunes: apunto el @lid de un inmune que llegó con su teléfono');
+  return true;
+}
+
+// ¿ES INMUNE? Lo de siempre, y si de quien escribe solo se sabe el @lid, se le
+// pregunta a la sesión de Baileys por su teléfono: una lectura LOCAL (su caché
+// y su disco, ver resolverLid en utils/wa), nunca una consulta a WhatsApp. Un
+// @lid que la sesión no sabe no se vuelve a buscar en 10 minutos: en una
+// ráfaga de fotos serían diez lecturas de disco para nada.
+const lidsSinTelefono = new Map();
+const SIN_TELEFONO_MS = 10 * 60 * 1000;
+async function esInmuneAhora(sock, formas) {
+  const inmunes = inmunesActuales();
+  if (!inmunes.length) return false;
+  const { canonicalJid, resolverLid, bareJid } = require('./wa');
+  const todas = [...new Set((formas || []).filter(Boolean).map(String))];
+  const lids = todas.filter((f) => f.endsWith('@lid')).map((f) => bareJid(f));
+  const telefono = todas.map((f) => canonicalJid(f)).find((f) => /@s\.whatsapp\.net$/.test(String(f)));
+  if (esInmune(todas, inmunes)) {
+    if (telefono) for (const l of lids) aprenderLid(l, telefono);
+    return true;
+  }
+  if (telefono || !lids.length) return false;
+  for (const l of lids) {
+    if (Date.now() - (lidsSinTelefono.get(l) || 0) < SIN_TELEFONO_MS) continue;
+    const tel = await resolverLid(sock, l).catch(() => null);
+    if (!tel) {
+      if (lidsSinTelefono.size >= 2000) lidsSinTelefono.delete(lidsSinTelefono.keys().next().value);
+      lidsSinTelefono.set(l, Date.now());
+      continue;
+    }
+    if (esInmune([tel], inmunes)) { aprenderLid(l, tel); return true; }
+  }
+  return false;
+}
+
+// LO QUE SE CASTIGÓ SIN SABER EL TELÉFONO (25 nov). Si un inmune vuelve a
+// llevarse un castigo, `npm run estado` dice si fue porque de él solo se sabía
+// el @lid, en qué grupo y por qué. Las 30 últimas; sin números.
+let CASTIGOS_FILE = path.join(__dirname, '../../data/spamCastigos.json');
+async function apuntarCastigo(grupo, nombreGrupo, formas, que) {
+  const { canonicalJid } = require('./wa');
+  const conTelefono = (formas || []).filter(Boolean)
+    .some((f) => /@s\.whatsapp\.net$/.test(String(canonicalJid(f))));
+  if (conTelefono || !inmunesActuales().length) return;
+  try {
+    const lista = await readJsonOrEnoent(CASTIGOS_FILE, []).catch(() => []);
+    const nueva = (Array.isArray(lista) ? lista : []).slice(-29);
+    nueva.push({ t: Date.now(), grupo: String(nombreGrupo || grupo).slice(0, 40), que });
+    await atomicWriteJson(CASTIGOS_FILE, nueva);
+  } catch (e) { logger.warn(`spamTexto: no pude apuntar el castigo (${e.message})`); }
+}
+
+function _usarCastigos(f) { CASTIGOS_FILE = f; }
+
 module.exports = {
-  esInmune, inmunesActuales,
+  esInmune, inmunesActuales, aprenderLid, esInmuneAhora, apuntarCastigo, _usarCastigos,
   anotar, sancion, avisosDe, olvidarAvisos, textoAviso, textoBan, textoSinAdmin,
   apuntarReapertura, olvidarReapertura, reaperturasPendientes, esperaReapertura,
   IGUALES, VENTANA_S, GRACIA_MS, AVISO_DURA_MS, REABRIR_MS,
