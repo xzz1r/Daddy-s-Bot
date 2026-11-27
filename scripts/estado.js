@@ -878,6 +878,19 @@ if (!bot) {
     try { conSon = JSON.parse(require('fs').readFileSync(path.join(RAIZ, 'data/stickerConSonido.json'), 'utf8')); } catch { conSon = []; }
     const ultCS = Array.isArray(conSon) ? conSon[conSon.length - 1] : null;
     if (ultCS) bien(`último sticker con sonido recibido (${hace(ultCS.t)}): ${loQueTrae(ultCS)}`, reciente(ultCS.t));
+    // LO QUE TIENE APUNTADO *!k número* (27 nov). El dueño: «solo envía vídeos
+    // y no las fotos» (las de un álbum no se apuntaban). Cuántos de cada.
+    try {
+      const reg = JSON.parse(require('fs').readFileSync(path.join(RAIZ, 'data/registroMedios.json'), 'utf8'));
+      if (Array.isArray(reg) && reg.length) {
+        const { proto } = require('@whiskeysockets/baileys');
+        const cuenta = { imageMessage: 0, videoMessage: 0, documentMessage: 0, ptvMessage: 0 };
+        for (const x of reg) {
+          try { const m = proto.Message.decode(Buffer.from(x.m, 'base64')); for (const k of Object.keys(cuenta)) if (m[k]) cuenta[k]++; } catch { /* uno roto no cuenta */ }
+        }
+        bien(`registro de !k número: ${reg.length} medios · ${cuenta.imageMessage} fotos · ${cuenta.videoMessage + cuenta.ptvMessage} vídeos · ${cuenta.documentMessage} documentos`);
+      }
+    } catch { /* sin registro todavía */ }
     // LA ANATOMÍA DEL ÚLTIMO STICKER QUE BAJÓ EL BOT (27 nov), apuntada antes de
     // tocarlo: si son fotogramas enteros o parches, cuántos se mezclan con el
     // anterior llevando transparencia y lo que pesa cada uno.

@@ -48,7 +48,8 @@ const TIPOS = [
   ['documentMessage', 'document', 'documento'],
 ];
 
-// Quita los sobres (efímero, ver-una-vez en sus tres formas, documento con pie)
+// Quita los sobres (efímero, ver-una-vez en sus tres formas, documento con pie,
+// foto de álbum)
 // hasta dar con el contenido real.
 function desenvolver(m) {
   let cur = m;
@@ -58,7 +59,10 @@ function desenvolver(m) {
       cur.viewOnceMessage?.message ||
       cur.viewOnceMessageV2?.message ||
       cur.viewOnceMessageV2Extension?.message ||
-      cur.documentWithCaptionMessage?.message;
+      cur.documentWithCaptionMessage?.message ||
+      // Cada foto de un álbum llega envuelta aquí (27 nov): sin esto, ni el
+      // registro ni el *!k* respondiendo la encontraban.
+      cur.associatedChildMessage?.message;
     if (!dentro) break;
     cur = dentro;
   }

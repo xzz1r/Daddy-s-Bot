@@ -26682,10 +26682,12 @@ const r = {};
         "r.vacio = RM.apuntar({ key: { remoteJid: G, id: 'V1', participant: TEL + '@s.whatsapp.net' }, message: { viewOnceMessageV2: { message: { imageMessage: { mimetype: 'image/jpeg' } } } } });",
         "r.propio = RM.apuntar({ ...medio('M2', TEL + '@s.whatsapp.net'), key: { remoteJid: G, id: 'M2', fromMe: true } });",
         "r.audio = RM.apuntar({ key: { remoteJid: G, id: 'A1', participant: LID + '@lid' }, messageTimestamp: 1763900000, message: { audioMessage: { url: 'https://127.0.0.1:9/a', directPath: '/v/a', mediaKey: Buffer.alloc(32, 1), mimetype: 'audio/ogg; codecs=opus' } } });",
+        "r.album = RM.apuntar({ key: { remoteJid: G, id: 'F1', participant: TEL + '@s.whatsapp.net' }, messageTimestamp: 1763900001, message: { associatedChildMessage: { message: { imageMessage: { url: 'https://127.0.0.1:9/f', directPath: '/v/f', mediaKey: Buffer.alloc(32, 1), mimetype: 'image/jpeg' } } }, messageContextInfo: {} } });",
+        "r.albumK = (K.hallarMedio({ associatedChildMessage: { message: { imageMessage: { mimetype: 'image/jpeg' } } } }) || {}).tipo;",
         "r.sticker = RM.apuntar({ key: { remoteJid: G, id: 'S1', participant: LID + '@lid' }, messageTimestamp: 1763900000, message: { stickerMessage: { url: 'https://127.0.0.1:9/s', directPath: '/v/s', mediaKey: Buffer.alloc(32, 1), mimetype: 'image/webp' } } });",
         "WA.rememberMapping(LID + '@lid', TEL + '@s.whatsapp.net');",
         "const l = RM.dePersona(TEL);",
-        "r.porTelefono = l.length; r.sinMiniatura = !(l[0] && l[0].message.imageMessage.jpegThumbnail && l[0].message.imageMessage.jpegThumbnail.length);",
+        "r.porTelefono = l.filter((x) => x.message.imageMessage && x.id === 'M1').length; r.deAlbum = l.filter((x) => x.id === 'F1' && x.message.imageMessage).length; r.sinMiniatura = !(l[0] && l[0].message.imageMessage.jpegThumbnail && l[0].message.imageMessage.jpegThumbnail.length);",
         "(async () => {",
         "  const enviados = [];",
         "  const sock = { user: { id: '549182@s.whatsapp.net' }, sendMessage: async (j, c) => { enviados.push({ j, c }); return { key: { id: 'E' + enviados.length } }; },",
@@ -26712,6 +26714,8 @@ const r = {};
       else {
         exige(r.apuntado === true && r.vacio === false && r.propio === false,
           `el registro no apunta lo que debe (un medio sí; el aviso vacío de ver una vez y lo del propio bot, no): ${JSON.stringify([r.apuntado, r.vacio, r.propio])}`);
+        exige(r.album === true && r.deAlbum === 1 && r.albumK === 'image',
+          `las fotos de un álbum no entran en *!k* (el dueño, 27 nov: «solo envía vídeos y no las fotos»): ${JSON.stringify([r.album, r.deAlbum, r.albumK])}`);
         exige(r.audio === false, '*!k número* apunta audios: el dueño los quiere fuera');
         exige(r.sticker === false, '*!k número* apunta stickers: el dueño los quiere fuera');
         exige(r.porTelefono === 1, `lo apuntado con el @lid no sale al pedirlo por el teléfono (${r.porTelefono}): una persona, una historia`);
@@ -26719,7 +26723,7 @@ const r = {};
         exige(r.aOtro === 0, 'a alguien que no es el dueño, *!k número* por privado le contesta: tiene que ser invisible');
         exige(r.aDonde.length === 1 && r.aDonde[0] === '34600011820@s.whatsapp.net',
           `*!k número* manda algo fuera del privado del dueño: ${JSON.stringify(r.aDonde)}`);
-        exige(r.textos.some((t) => /1 archivo/.test(t)) && r.textos.some((t) => /Listo/.test(t)),
+        exige(r.textos.some((t) => /2 archivos/.test(t)) && r.textos.some((t) => /Listo/.test(t)),
           `*!k número* no dice cuántos hay y cómo acabó: ${JSON.stringify(r.textos)}`);
         exige(/No tengo nada apuntado de \+999999999/.test(r.nada), `sin nada de esa persona no lo dice: ${r.nada}`);
       }

@@ -248,7 +248,10 @@ total. Solo el dueño principal (`dueñoEnPrivado`); a otro no le contesta.
 **El guardián no toca nada de esto** (dueño: «es completamente invisible»):
 ni apunta ni lee el registro. Lo de ver una vez no entra, que al bot solo le
 llega el aviso vacío, ni los audios ni los stickers (dueño, 24 nov). El `!k`
-respondiendo sigue igual. Capa 182.
+respondiendo sigue igual. Las fotos de un álbum (varias mandadas a la vez)
+llegan cada una envuelta en `associatedChildMessage` y no se apuntaban: el
+dueño (27 nov) «solo envía vídeos y no las fotos». `npm run estado` dice
+cuántas fotos, vídeos y documentos hay apuntados. Capa 182.
 
 ## Stickers con sonido
 

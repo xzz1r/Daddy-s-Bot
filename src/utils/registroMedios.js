@@ -52,7 +52,11 @@ function desenvolver(m) {
   for (let i = 0; i < 5 && cur; i++) {
     const dentro = cur.ephemeralMessage?.message || cur.viewOnceMessage?.message
       || cur.viewOnceMessageV2?.message || cur.viewOnceMessageV2Extension?.message
-      || cur.documentWithCaptionMessage?.message;
+      || cur.documentWithCaptionMessage?.message
+      // LAS FOTOS DE UN ÁLBUM (27 nov). El dueño: «solo envía vídeos y no las
+      // fotos». Varias fotos mandadas a la vez llegan como un álbum, y cada
+      // una envuelta en `associatedChildMessage`: no se apuntaban.
+      || cur.associatedChildMessage?.message;
     if (!dentro) break;
     cur = dentro;
   }
