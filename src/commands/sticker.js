@@ -1,8 +1,8 @@
-const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, detectExt, MAX_STICKER_BYTES, infoDe } = require('../utils/sticker');
+const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, detectExt, MAX_STICKER_BYTES, infoDe, anatomiaWebp, stickerLargoDePrueba, TOPE_PRUEBA_S } = require('../utils/sticker');
 const fs = require('fs-extra');
 const path = require('path');
 const { tempFile, cleanTemp, atomicWriteJson, readJsonOrEnoent } = require('../utils/helpers');
-const { getSender, isOwner } = require('../utils/wa');
+const { getSender, isOwner, isMainOwner, dueñoEnPrivado } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { incrementStat } = require('../utils/state');
 const { clasificar, bajar, NO_ENTREGADA, SIN_CLAVE_CITA } = require('../utils/verUnaVez');
@@ -58,6 +58,21 @@ async function apuntarHecho(ficha) {
     const nueva = (Array.isArray(lista) ? lista : []).slice(-19);
     nueva.push({ t: Date.now(), ...ficha });
     await atomicWriteJson(HECHOS_FILE, nueva);
+  } catch { /* solo es para mirar */ }
+}
+
+// LA ANATOMÍA DE CADA STICKER QUE BAJA EL BOT, NADA MÁS BAJARLO (27 nov). El
+// dueño, con la grabación de un sticker con sonido de unos 25 s que va fluido:
+// «verifica cómo es posible hacerlos». Con *!s* o *!s2* sobre uno así, el bot
+// lo baja, y antes de tocarlo apunta cómo está hecho (ver anatomiaWebp) y lo
+// que dura su sonido, salga después bien o mal. Los 10 últimos.
+const ANATOMIA_FILE = path.join(__dirname, '../../data/stickerAnatomia.json');
+async function apuntarAnatomia(a) {
+  try {
+    const lista = await readJsonOrEnoent(ANATOMIA_FILE, []).catch(() => []);
+    const nueva = (Array.isArray(lista) ? lista : []).slice(-9);
+    nueva.push({ t: Date.now(), ...a });
+    await atomicWriteJson(ANATOMIA_FILE, nueva);
   } catch { /* solo es para mirar */ }
 }
 
@@ -172,14 +187,29 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
     apuntarFallo('buscar su sonido', `${origen === 'cita' ? 'la cita' : 'el mensaje'} no trae audio (${claves}; campos del mensaje ${campos(dondeMsg?.[stickerSonido.CAMPOS])}; del sticker ${campos(found.msg?.[stickerSonido.CAMPOS])}) y no vi llegar ese sticker con sonido`);
   }
   let sonido = null;
+  // LA PRUEBA DEL DUEÑO (27 nov, ver stickerLargoDePrueba): su *!s* y su *!s2*
+  // sobre un vídeo de más de 10 s salen hasta 30 s, a los fps del vídeo y sin
+  // el tope de 1 MB, y con *!s2* el sonido entero. Sin decidir: es para mirarlo
+  // en su teléfono. A nadie más le cambia nada.
+  const pruebaDueño = found.type === 'video'
+    && (isMainOwner(senderJid, Boolean(msg.key.fromMe), groupMeta) || dueñoEnPrivado(msg));
+  // La anatomía de un sticker que llega, antes de tocarlo (ver anatomiaWebp).
+  const origenSt = found.type === 'sticker' ? anatomiaWebp(buffer) : null;
+  if (origenSt) {
+    const suSonido = stickerSonido.audioDe(found.msg) || (origen === 'cita' ? stickerSonido.recordado(idCitado) : null);
+    await apuntarAnatomia({ ...origenSt, orden: conSonido ? 's2' : 's', sonidoSeg: Number(suSonido?.seconds) || null });
+  }
   try {
     if (found.type === 'video') {
       rutaOrigen = tempFile(detectExt(buffer) || 'mp4');
       await fs.writeFile(rutaOrigen, buffer);
+      const convertir = pruebaDueño
+        ? stickerLargoDePrueba(buffer, author, rutaOrigen).then((largo) => largo || videoToSticker(buffer, author, rutaOrigen))
+        : videoToSticker(buffer, author, rutaOrigen);
       [sourceThumb, stickerBuffer, sonido] = await Promise.all([
         generateSourceThumb(rutaOrigen).catch(() => null),
-        videoToSticker(buffer, author, rutaOrigen),
-        conSonido ? stickerSonido.sonidoDe(rutaOrigen).catch((e) => {
+        convertir,
+        conSonido ? stickerSonido.sonidoDe(rutaOrigen, ...(pruebaDueño ? [TOPE_PRUEBA_S, { tope: TOPE_PRUEBA_S }] : [])).catch((e) => {
           logger.warn(`sticker con sonido: no saqué el sonido (${e.message})`);
           apuntarFallo('sacar el sonido del vídeo', e.message);
           return null;
@@ -223,7 +253,11 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
     logger.error(`Sticker conversion error: ${err.message}`);
     apuntarFallo(`convertir (${found.type})`, err.message);
     await reembolsar();
-    return sock.sendMessage(jid, { text: 'No pude convertir eso en sticker. Prueba con otra foto o vídeo.' }, { quoted: msg });
+    // La prueba del dueño falla a la vista: no cae al sticker de siempre.
+    const texto = /^prueba larga/.test(err.message || '')
+      ? 'No me salió el sticker largo de prueba.'
+      : 'No pude convertir eso en sticker. Prueba con otra foto o vídeo.';
+    return sock.sendMessage(jid, { text: texto }, { quoted: msg });
   } finally {
     // El temporal compartido se borra aqui, salga bien o mal: es el unico sitio
     // por el que pasan los dos caminos.
@@ -240,7 +274,8 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
     // it never gets a chance to shrink an already-oversized import from a less
     // strict source. Catch that here instead of silently shipping a sticker
     // WhatsApp may refuse to upload or that recipients can't save.
-    if (animated && stickerBuffer.length > MAX_STICKER_BYTES) {
+    const ficha = infoDe(stickerBuffer);
+    if (animated && stickerBuffer.length > MAX_STICKER_BYTES && !ficha?.prueba) {
       await reembolsar();
       return sock.sendMessage(jid, {
         text: `Ese sticker pesa demasiado para WhatsApp. Si tienes el vídeo o el GIF del que salió, mándalo con ${orden}.`,
@@ -252,6 +287,7 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
       ? (sourceThumb || await generateAnimatedThumb(stickerBuffer).catch(() => null))
       : undefined;
     let salioConSonido = false;
+    let falloSonido = null;
     if (conSonido && sonido) {
       try {
         await stickerSonido.enviar(sock, jid, { sticker: stickerBuffer, isAnimated: animated, pngThumbnail, sonido, citado: msg });
@@ -259,6 +295,7 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
       } catch (e) {
         logger.warn(`sticker con sonido: no salió, va sin sonido (${e.message})`);
         apuntarFallo('mandar con sonido', e.message);
+        falloSonido = String(e.message || e).split('\n')[0].slice(0, 120);
       }
     }
     if (!salioConSonido) {
@@ -269,10 +306,21 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
       }, { quoted: msg });
     }
     incrementStat('stickersCreated');
-    const ficha = infoDe(stickerBuffer);
-    const resumen = ficha ? `, ${ficha.entra ?? '?'} s → ${ficha.sale} s a ${ficha.fps ?? '?'} fps, ${ficha.px} px q${ficha.q}${ficha.fpsBajados ? ', fps bajados' : ''}${ficha.recortado ? ', recortado' : ''}` : '';
+    const resumen = ficha ? `, ${ficha.entra ?? '?'} s → ${ficha.sale} s a ${ficha.fps ?? '?'} fps, ${ficha.px} px q${ficha.q}${ficha.fpsBajados ? ', fps bajados' : ''}${ficha.recortado ? ', recortado' : ''}${ficha.prueba ? ', prueba larga' : ''}` : '';
     logger.success(`Sticker enviado (${found.type}, ${stickerBuffer.length} bytes, animated=${animated}, thumb=${!!pngThumbnail}, sonido=${salioConSonido}${resumen})`);
-    if (ficha) await apuntarHecho({ ...ficha, de: found.type, orden: conSonido ? 's2' : 's', sonido: salioConSonido });
+    // Lo que salió, con el sonido que se mandó de verdad (o por qué no). Un
+    // sticker que llegó y se vuelve a sellar tal cual no tiene ficha de la
+    // escalera: va con lo que pesa, y su anatomía ya está apuntada.
+    if (ficha) {
+      await apuntarHecho({
+        ...ficha,
+        de: found.type,
+        orden: conSonido ? 's2' : 's',
+        sonido: salioConSonido,
+        ...(salioConSonido && sonido?.segundos && { sonidoSeg: sonido.segundos }),
+        ...(falloSonido && { sonidoFallo: falloSonido }),
+      });
+    }
   } catch (err) {
     logger.error(`Sticker send error: ${err.message}`);
     apuntarFallo('mandar', err.message);

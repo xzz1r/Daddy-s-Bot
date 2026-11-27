@@ -1486,6 +1486,56 @@ apunta en `data/stickerHechos.json` (las 20 últimas) y `npm run estado`
 enseña la última, en el resumen las dos horas siguientes: si ahí sale de 10 s
 y en el teléfono dura 5, lo corta el teléfono. Capas 142 y 188.
 
+**Stickers largos con sonido: la prueba del dueño, sin decidir** (27 nov). El
+dueño pasó un vídeo de X con la grabación de pantalla de un WhatsApp en
+Android: un sticker con el icono de sonido que pone una escena de dibujos.
+«Verifica cómo es posible hacerlos.» Medido en la grabación (720×536, 25,3 s,
+el mismo fichero que subió él):
+
+- **Dura al menos 24,8 s**: el primer plano vuelve a los 24,8 s (una sola
+  coincidencia, al final de la grabación; por eso «al menos»).
+- **Va tan fluido como la grabación**: la zona del sticker cambia en ~28 de
+  cada 30 fotogramas, con un cambio medio cuatro veces el ruido de una zona
+  quieta. No se puede decir «30 fps»: el H.264 de 285 kbps sigue retocando una
+  zona un fotograma después de cambiar.
+- **Suena entero**: sonido en los 25 s, sin un silencio de más de 0,4 s.
+
+Lo que la grabación no dice: el formato, lo que pesa y cómo está hecho. Lo
+que se publica no lo cubre: un análisis del APK habla de 10 s de sonido para
+los que se crean en la app, y el «1 MB» del bot viene de un aviso de 2020, no
+de una prueba. Que en octubre al dueño le llegaran stickers de más de 1 MB
+prueba que existen, no que se animen.
+
+Con lo que hace hoy el bot (fotogramas enteros), 25-30 s a 512 px y q60 pesan
+mucho: 25 s de animación, 6,1 MB; 30 s de cámara 1080p a 60 fps (30 fps en el
+sticker), 7,8 MB. Una pasada tarda aquí 13-22 s; en la VPS, con su 2,5 por
+fotograma, pasaría del tope de 45 s.
+
+Así que se prueba en el teléfono del dueño, sin tocar lo de nadie más:
+
+- **La prueba** (`stickerLargoDePrueba`, `utils/sticker.js`). El `!s` y el
+  `!s2` del dueño principal (en un grupo o en el privado del bot) sobre un
+  vídeo de más de 10 s: hasta 30 s, a los fps del vídeo (30 como mucho),
+  512 px, q60, una pasada con su tope de 150 s y sin el de 1 MB (uno de 10 MB
+  por si acaso). Con `!s` se prueba el peso y la duración; con `!s2`, además,
+  el sonido entero (`sonidoDe` con `tope`: el de siempre corta a 10 s en el
+  `-t` y en los segundos que dice). Si falla, lo dice («No me salió el
+  sticker largo de prueba.») y el motivo va a `npm run estado`: no cae al
+  sticker de siempre, que haría creer que salió. Mientras dura, ocupa la plaza
+  de ffmpeg: los demás stickers esperan.
+- **Lo que trae cada sticker que llega**, sin bajarlo (`anotarRecibido`):
+  formato, peso, medidas, si es animado o Lottie y lo que dura su sonido. El
+  último con sonido, aparte (`data/stickerConSonido.json`).
+- **La anatomía de lo que baja el bot**, antes de tocarlo (`anatomiaWebp`,
+  `data/stickerAnatomia.json`): fotogramas, duración, fps, si son enteros o
+  parches, cuántos se mezclan con el anterior llevando transparencia y lo que
+  pesa cada uno. Ojo: el `!s2` sobre un sticker ajeno largo lo recomprime y
+  le corta el sonido; lo que sale no es la prueba, la anatomía sí.
+
+Todo en `npm run estado`, en el resumen las dos horas siguientes. Lo que diga
+el teléfono del dueño (si se ve entero, fluido y con el sonido entero) decide
+si los topes de todos cambian. Capa 189.
+
 **La vista previa de lo que manda el bot** (21 nov, «la mejor calidad posible
 para lo que es WhatsApp; calidad y velocidad de la mano»). Una foto o un vídeo
 llevan dentro del mensaje su miniatura (`jpegThumbnail`), su tamaño (`width`,

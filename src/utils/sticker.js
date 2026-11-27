@@ -1039,7 +1039,7 @@ function startTierIndex(durationS) {
 // movimiento, pero da por iguales los cambios pequeños y la calidad cae: en un
 // vídeo de cámara fija, de 47,7 a 40,6 dB. Para pesar menos sin perder nada
 // está quitar los fotogramas repetidos de verdad (QUITA_REPETIDOS).
-async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512, fpsOrigen = 0, segundos = TOPE_ANIMADO_S, repetidos = false) {
+async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512, fpsOrigen = 0, segundos = TOPE_ANIMADO_S, repetidos = false, topeMs = FFMPEG_TIMEOUT_MS) {
   await ffmpegSemaphore.acquire();
   try {
     return await new Promise((resolve, reject) => {
@@ -1123,7 +1123,7 @@ async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512, f
       timer = setTimeout(() => {
         try { cmd.kill('SIGKILL'); } catch {}
         reject(new Error('ffmpeg timeout'));
-      }, FFMPEG_TIMEOUT_MS);
+      }, topeMs);
     });
   } finally {
     ffmpegSemaphore.release();
@@ -1426,6 +1426,146 @@ async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
   }
 }
 
+// ─── LA ANATOMÍA DE UN WEBP QUE LLEGA (27 nov) ──────────────────────────────
+//
+// El dueño, con la grabación de un sticker con sonido que en WhatsApp dura al
+// menos 24,8 s y va fluido: «verifica cómo es posible hacerlos». Lo que de
+// verdad lo dice es el fichero: lo que pesa, su lienzo, cuántos fotogramas y
+// cuánto duran, si son enteros o parches (solo el trozo que cambia), cuántos
+// se mezclan con el anterior llevando transparencia y lo que pesa cada uno.
+// Solo lee las cabeceras: no decodifica nada. Lo usa el comando al bajar un
+// sticker, antes de tocarlo.
+function anatomiaWebp(buf) {
+  if (!buf || buf.length < 16) return null;
+  if (buf.slice(0, 4).toString('latin1') !== 'RIFF' || buf.slice(8, 12).toString('latin1') !== 'WEBP') return null;
+  let ancho = 0, alto = 0, fotogramas = 0, ms = 0, parches = 0, mezclaConAlfa = 0, conAlfa = 0, sinPerdida = 0;
+  let msMin = Infinity, msMax = 0, exif = false;
+  const veces = new Map();
+  let pos = 12;
+  while (pos + 8 <= buf.length) {
+    const tipo = buf.slice(pos, pos + 4).toString('latin1');
+    const largo = buf.readUInt32LE(pos + 4);
+    if (pos + 8 + largo > buf.length) break;
+    if (tipo === 'VP8X' && largo >= 10) {
+      ancho = leer24(buf, pos + 12) + 1;
+      alto = leer24(buf, pos + 15) + 1;
+    } else if (tipo === 'EXIF') {
+      exif = true;
+    } else if (tipo === 'ANMF' && largo >= 16) {
+      fotogramas++;
+      const x = leer24(buf, pos + 8) * 2;
+      const y = leer24(buf, pos + 11) * 2;
+      const w = leer24(buf, pos + 14) + 1;
+      const h = leer24(buf, pos + 17) + 1;
+      const d = leer24(buf, pos + 20);
+      ms += d;
+      msMin = Math.min(msMin, d);
+      msMax = Math.max(msMax, d);
+      veces.set(d, (veces.get(d) || 0) + 1);
+      if (x !== 0 || y !== 0 || (ancho && (w !== ancho || h !== alto))) parches++;
+      const sub = buf.slice(pos + 24, pos + 28).toString('latin1');
+      const alfa = sub === 'ALPH' || sub === 'VP8L';
+      if (sub === 'ALPH') conAlfa++;
+      if (sub === 'VP8L') sinPerdida++;
+      // Bit 1 a cero: se mezcla con lo de antes. Solo cuenta si lleva alfa:
+      // es lo que deja ver el fotograma anterior por lo que no cambia.
+      if (!(buf[pos + 23] & 2) && alfa) mezclaConAlfa++;
+    }
+    pos += 8 + largo + (largo % 2);
+  }
+  const masComun = [...veces.entries()].sort((a, b) => b[1] - a[1])[0];
+  return {
+    bytes: buf.length,
+    ancho,
+    alto,
+    animado: fotogramas > 0,
+    fotogramas,
+    seg: Math.round(ms / 100) / 10,
+    fps: ms > 0 ? Math.round((fotogramas / (ms / 1000)) * 10) / 10 : null,
+    msFotograma: masComun ? masComun[0] : null,
+    msMin: fotogramas ? msMin : null,
+    msMax: fotogramas ? msMax : null,
+    parches,
+    mezclaConAlfa,
+    conAlfa,
+    sinPerdida,
+    exif,
+    kbPorFotograma: fotogramas ? Math.round((buf.length / fotogramas / 1024) * 10) / 10 : null,
+  };
+}
+
+// ─── LA PRUEBA DEL DUEÑO: UN STICKER LARGO SIN EL TOPE DE 1 MB (27 nov) ─────
+//
+// El dueño, con la grabación de un sticker con sonido que en WhatsApp dura al
+// menos 24,8 s, cambia en casi cada fotograma y suena entero: «verifica cómo
+// es posible hacerlos». No se sabe lo que pesa ese fichero, y el tope de 1 MB
+// (el que obliga a bajar a 12 fps a los 20 s) viene de un aviso de 2020, no de
+// una prueba. La única forma de saber si un teléfono reproduce uno así hecho
+// por el bot es mandarlo y mirarlo.
+//
+// PRUEBA, SIN DECIDIR. Solo el *!s* y el *!s2* del dueño principal, sobre un
+// vídeo de más de 10 s: hasta 30 s, a los fps del vídeo (30 como mucho), a
+// 512 px y q60, en una pasada y sin el tope de 1 MB (con uno de 10 MB por si
+// acaso). Con *!s* se prueba el peso y la duración; con *!s2*, además, el
+// sonido entero. Pesa mucho: 25 s de animación, 6,1 MB; 30 s de cámara 1080p a
+// 60 fps, 7,8 MB. Esa pasada tarda aquí 13-22 s, y en la VPS (2,5 veces más por
+// fotograma) pasaría del tope de 45 s: lleva el suyo, 150 s.
+//
+// SI FALLA, FALLA A LA VISTA. No cae al sticker de siempre, que haría creer
+// que la prueba salió: el error lleva delante «prueba larga» y el comando lo
+// dice. Un vídeo de 10 s o menos no es la prueba: devuelve null y el comando
+// sigue por el camino de siempre.
+const TOPE_PRUEBA_S = 30;
+const FPS_PRUEBA = 30;
+const Q_PRUEBA = 60;
+const PRUEBA_MAX_BYTES = 10 * 1024 * 1024;
+const PRUEBA_TIMEOUT_MS = 150_000;
+async function stickerLargoDePrueba(videoBuffer, author, rutaOrigen = null) {
+  const t0 = Date.now();
+  const detected = videoBuffer ? detectExt(videoBuffer) : null;
+  if (detected === 'webp') return null;
+  const inputFile = rutaOrigen || tempFile(detected || 'mp4');
+  const outputFile = tempFile('webp');
+  if (!rutaOrigen) await fs.writeFile(inputFile, videoBuffer);
+  try {
+    const medidas = await medidasDe(inputFile);
+    const durationS = medidas.segundos;
+    if (!(durationS > SIN_BAJAR_FPS_S)) return null;
+    const leer = Math.min(durationS, TOPE_PRUEBA_S);
+    const repetidos = FORMATOS_SIN_CONVERSION.test(medidas.pixFmt || '');
+    let out;
+    try {
+      await encodeAnimWebp(inputFile, outputFile, FPS_PRUEBA, Q_PRUEBA, 512, medidas.fps, leer, repetidos, PRUEBA_TIMEOUT_MS);
+      out = await fs.readFile(outputFile);
+    } catch (e) {
+      throw new Error(`prueba larga: ${String(e.message || e).split('\n')[0]}`);
+    }
+    if (repetidos) out = completarDuracion(out, leer * 1000);
+    if (!out || out.length < 100) throw new Error('prueba larga: salió vacío');
+    if (out.length > PRUEBA_MAX_BYTES) throw new Error(`prueba larga: pesa ${Math.round(out.length / 1024)} KB, más de ${PRUEBA_MAX_BYTES / 1048576} MB`);
+    const final = addStickerMeta(out, author, { propio: true });
+    INFO.set(final, {
+      entra: Math.round(durationS * 10) / 10,
+      sale: Math.round(duracionMs(out) / 100) / 10,
+      fotogramas: contarFotogramas(out),
+      fps: medidas.fps > 0 ? Math.round(Math.min(medidas.fps, FPS_PRUEBA) * 10) / 10 : FPS_PRUEBA,
+      q: Q_PRUEBA,
+      px: 512,
+      kb: Math.round(final.length / 1024),
+      pasadas: 1,
+      ms: Date.now() - t0,
+      fpsBajados: false,
+      recortado: false,
+      prueba: true,
+      ...(durationS > TOPE_PRUEBA_S && { cortadoA: TOPE_PRUEBA_S }),
+    });
+    return final;
+  } finally {
+    if (!rutaOrigen) await cleanTemp(inputFile);
+    await cleanTemp(outputFile);
+  }
+}
+
 // Raw GIF (image/gif attachment) → animated sticker. detectExt sees 'gif',
 // so videoToSticker writes a .gif temp file and ffmpeg reads it once through
 // with the same square-fit tiers — no separate code path needed.
@@ -1433,4 +1573,4 @@ async function gifToSticker(gifBuffer, author, rutaOrigen = null) {
   return videoToSticker(gifBuffer, author, rutaOrigen);
 }
 
-module.exports = { componerWebpAnimado, CANVAS_SIZE_FACTOR, _VF_ANIM: VF_ANIM, FFMPEG_TIMEOUT_MS, TOPE_ANIMADO_S, SIN_BAJAR_FPS_S, FOTOGRAMAS_TOPE, FPS_MINIMO, fpsParaDuracion, infoDe, _duracionMs: duracionMs, detectExt, desmontarWebpAnimado, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC, UMBRAL_REPETIDO, FORMATOS_SIN_CONVERSION, OBJETIVO_LIGERO, DESDE_LIGERO_S, _completarDuracion: completarDuracion, _contarFotogramas: contarFotogramas };
+module.exports = { componerWebpAnimado, CANVAS_SIZE_FACTOR, _VF_ANIM: VF_ANIM, FFMPEG_TIMEOUT_MS, TOPE_ANIMADO_S, SIN_BAJAR_FPS_S, FOTOGRAMAS_TOPE, FPS_MINIMO, fpsParaDuracion, infoDe, _duracionMs: duracionMs, anatomiaWebp, stickerLargoDePrueba, TOPE_PRUEBA_S, FPS_PRUEBA, Q_PRUEBA, PRUEBA_MAX_BYTES, PRUEBA_TIMEOUT_MS, detectExt, desmontarWebpAnimado, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC, UMBRAL_REPETIDO, FORMATOS_SIN_CONVERSION, OBJETIVO_LIGERO, DESDE_LIGERO_S, _completarDuracion: completarDuracion, _contarFotogramas: contarFotogramas };

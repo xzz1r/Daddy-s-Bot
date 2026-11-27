@@ -211,22 +211,70 @@ function camposDe(buf) {
 // Lo que traía cada sticker que llegó (los 10 últimos), para `npm run estado`:
 // si el audio no viene ni en el mensaje ni en el sticker, WhatsApp no se lo
 // manda al bot, y eso ya no es cosa del código.
+//
+// Y LO QUE DICE EL PROPIO MENSAJE, SIN BAJAR NADA (27 nov). El dueño, con la
+// grabación de un sticker con sonido de unos 25 s que va fluido: «verifica
+// cómo es posible hacerlos». El mensaje ya trae el formato, lo que pesa, sus
+// medidas, si es animado o Lottie y lo que dura su sonido: con eso se sabe si
+// pasa de 1 MB o si su sonido pasa de 10 s. El último con sonido se guarda
+// aparte (los 5 últimos), que en un grupo con stickers el siguiente sin sonido
+// lo echaría de la lista.
 const recibidos = [];
 let RECIBIDOS_FILE = require('path').join(__dirname, '../../data/stickerRecibidos.json');
+let CON_SONIDO_FILE = require('path').join(__dirname, '../../data/stickerConSonido.json');
+let conSonido = null;
 let recibidosTimer = null;
-function anotarRecibido(message) {
+// Un número del proto (los uint64 llegan como Long): a número, o null.
+function numero(x) {
+  if (x == null) return null;
+  const n = typeof x === 'object' && typeof x.toString === 'function' ? Number(x.toString()) : Number(x);
+  return Number.isFinite(n) ? n : null;
+}
+function fichaRecibido(message) {
   const st = message?.stickerMessage;
-  if (!st) return;
-  recibidos.push({ t: Date.now(), mensaje: message[CAMPOS] || null, sticker: st[CAMPOS] || null, audio: Boolean(st[AUDIO]) });
+  if (!st) return null;
+  const a = st[AUDIO];
+  return {
+    t: Date.now(),
+    mensaje: message[CAMPOS] || null,
+    sticker: st[CAMPOS] || null,
+    audio: Boolean(a),
+    mime: st.mimetype || null,
+    bytes: numero(st.fileLength),
+    ancho: numero(st.width),
+    alto: numero(st.height),
+    animado: st.isAnimated === true,
+    lottie: st.isLottie === true,
+    sonido: a ? { segundos: numero(a.seconds), bytes: numero(a.fileLength), mime: a.mimetype || null } : null,
+  };
+}
+function volcarRecibidos() {
+  if (recibidosTimer) { clearTimeout(recibidosTimer); recibidosTimer = null; }
+  const fsx = require('fs');
+  try { fsx.writeFileSync(RECIBIDOS_FILE, JSON.stringify(recibidos)); } catch { /* solo es para mirar */ }
+  if (conSonido) { try { fsx.writeFileSync(CON_SONIDO_FILE, JSON.stringify(conSonido)); } catch { /* idem */ } }
+}
+function anotarRecibido(message) {
+  const ficha = fichaRecibido(message);
+  if (!ficha) return;
+  recibidos.push(ficha);
   if (recibidos.length > 10) recibidos.shift();
+  if (ficha.audio) {
+    // Los de antes del reinicio no se pierden: se leen la primera vez.
+    if (!conSonido) {
+      try { const v = JSON.parse(require('fs').readFileSync(CON_SONIDO_FILE, 'utf8')); conSonido = Array.isArray(v) ? v : []; } catch { conSonido = []; }
+    }
+    conSonido.push(ficha);
+    if (conSonido.length > 5) conSonido.shift();
+  }
   if (recibidosTimer) return;
-  recibidosTimer = setTimeout(() => {
-    recibidosTimer = null;
-    try { require('fs').writeFileSync(RECIBIDOS_FILE, JSON.stringify(recibidos)); } catch { /* solo es para mirar */ }
-  }, 3000);
+  recibidosTimer = setTimeout(volcarRecibidos, 3000);
   if (recibidosTimer.unref) recibidosTimer.unref();
 }
-function _usarRecibidos(f) { RECIBIDOS_FILE = f; }
+function _usarRecibidos(f, fConSonido = null) {
+  RECIBIDOS_FILE = f;
+  if (fConSonido) { CON_SONIDO_FILE = fConSonido; conSonido = null; }
+}
 
 function audioDe(stickerMessage) {
   return stickerMessage?.[AUDIO] || null;
@@ -256,12 +304,14 @@ function onda(pcm, barras = 64) {
 }
 
 // El sonido de un vídeo (ya en disco), como nota de voz de hasta 10 s. Null
-// si el vídeo no tiene sonido o es silencio.
-async function sonidoDe(rutaVideo, segundos = TOPE_S) {
+// si el vídeo no tiene sonido o es silencio. `tope` sube esos 10 s: solo lo
+// usa la prueba del dueño (27 nov, ver stickerLargoDePrueba), que tiene que
+// mandar el sonido entero para saber si un teléfono lo reproduce.
+async function sonidoDe(rutaVideo, segundos = TOPE_S, { tope = TOPE_S } = {}) {
   const salida = tempFile('ogg');
   try {
     try {
-      await ffmpeg(['-y', '-i', rutaVideo, '-vn', '-t', String(Math.min(segundos, TOPE_S)),
+      await ffmpeg(['-y', '-i', rutaVideo, '-vn', '-t', String(Math.min(segundos, tope)),
         '-ar', '48000', '-ac', '1', '-c:a', 'libopus', '-b:a', '48k', '-vbr', 'on',
         '-compression_level', '10', '-frame_duration', '20', '-application', 'audio',
         '-avoid_negative_ts', 'make_zero', '-map_metadata', '-1', '-f', 'ogg', salida]);
@@ -277,7 +327,7 @@ async function sonidoDe(rutaVideo, segundos = TOPE_S) {
     let pico = 0;
     for (let i = 0; i + 1 < pcm.length; i += 2) pico = Math.max(pico, Math.abs(pcm.readInt16LE(i)));
     if (pcm.length && pico < 160) return null;
-    const segs = Math.max(1, Math.min(TOPE_S, Math.round(pcm.length / 2 / 8000) || 1));
+    const segs = Math.max(1, Math.min(tope, Math.round(pcm.length / 2 / 8000) || 1));
     return { ogg, segundos: segs, waveform: onda(pcm) };
   } finally {
     await cleanTemp(salida).catch(() => {});
@@ -372,6 +422,6 @@ async function enviar(sock, jid, { sticker, isAnimated, pngThumbnail, sonido, ci
 }
 
 module.exports = {
-  instalar, enviar, sonidoDe, audioDe, sonidoDeSticker, bajarAudio, recordar, recordado, anotarRecibido, CAMPOS, _usarVistos, _usarRecibidos, _camposDe: camposDe, SONIDO, AUDIO, TOPE_S,
+  instalar, enviar, sonidoDe, audioDe, sonidoDeSticker, bajarAudio, recordar, recordado, anotarRecibido, CAMPOS, _usarVistos, _usarRecibidos, _volcarRecibidos: volcarRecibidos, _fichaRecibido: fichaRecibido, _camposDe: camposDe, SONIDO, AUDIO, TOPE_S,
   _buscarCampo: buscarCampo, _campoBytes: campoBytes, _cerrar: cerrar,
 };

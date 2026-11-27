@@ -319,6 +319,19 @@ dura, fps, calidad, peso, pasadas y si llevó sonido) y `npm run estado`
 enseña la última: si ahí sale de 10 s y en el teléfono dura 5, lo corta el
 teléfono. Capas 142 y 188.
 
+**Stickers largos con sonido: PRUEBA DEL DUEÑO, sin decidir** (27 nov). El
+dueño, con la grabación de un sticker con sonido de WhatsApp que dura al
+menos 24,8 s, va fluido y suena entero: «verifica cómo es posible hacerlos».
+El `!s` y el `!s2` del dueño principal sobre un vídeo de más de 10 s salen
+hasta 30 s, a los fps del vídeo (30 como mucho), a 512 px y q60, sin el tope
+de 1 MB (25 s pesan unos 6 MB), y con `!s2` el sonido entero, hasta 30 s
+(`stickerLargoDePrueba`). Si la prueba falla, lo dice: no cae al sticker de
+siempre. **A nadie más le cambia nada**: los topes de todos (1 MB, 20 s, 10 s
+de sonido) siguen hasta que el dueño diga qué se ve en su teléfono. Y de cada
+sticker que llega se apunta, sin bajarlo, lo que dice su mensaje (formato,
+peso, medidas y sonido), el último con sonido aparte; de lo que baja el bot,
+su anatomía antes de tocarlo. Todo sale en `npm run estado`. Capa 189.
+
 ## El menú: corto y coherente
 
 Lo pidió el dueño (25 nov): «ajusta bien la lista de /commands… coherencia,

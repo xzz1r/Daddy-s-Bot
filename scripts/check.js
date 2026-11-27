@@ -27220,6 +27220,111 @@ const r = {};
     if (fallos === antes188) console.log(verde('   ✓ hasta 20 s con los 240 fotogramas de uno de 10; si ni el suelo cabe, menos fps antes que menos segundos; cada sticker deja su ficha'));
   }
 
+  // ── 189. LOS STICKERS LARGOS CON SONIDO: LO QUE TRAEN Y LA PRUEBA DEL DUEÑO (27 nov)
+  // El dueño, con la grabación de un sticker con sonido que en WhatsApp dura al
+  // menos 24,8 s, va fluido y suena entero: «verifica cómo es posible
+  // hacerlos». Lo que dice el mensaje de cada sticker que llega se apunta sin
+  // bajarlo (formato, peso, medidas, sonido), el último con sonido aparte; lo
+  // que baja el bot se desmonta antes de tocarlo; y el *!s*/*!s2* del dueño
+  // sobre un vídeo de más de 10 s es una PRUEBA sin el tope de 1 MB ni el de
+  // 10 s de sonido, que falla a la vista. A nadie más le cambia nada.
+  {
+    console.log('\n189. STICKERS LARGOS CON SONIDO: LO QUE TRAEN Y LA PRUEBA DEL DUEÑO');
+    const antes189 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const S = require(path.join(R, 'src/utils/sticker'));
+    const SS = require(path.join(R, 'src/utils/stickerSonido'));
+    const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'largo189-'));
+    const ruta = (n) => path.join(dir, n);
+    const ff = (args) => spawnSync(ffmpegPath, ['-v', 'error', '-y', ...args], { timeout: 120000 });
+    try {
+      // Lo de todos, sin tocar: la prueba es solo del dueño.
+      exige(S.MAX_STICKER_BYTES === 1024 * 1024 && SS.TOPE_S === 10 && S.TOPE_ANIMADO_S === 20,
+        `los topes de todos han cambiado (${S.MAX_STICKER_BYTES} bytes, ${SS.TOPE_S} s de sonido, ${S.TOPE_ANIMADO_S} s): la prueba larga es del dueño y está sin decidir`);
+      exige(S.TOPE_PRUEBA_S === 30 && S.Q_PRUEBA === 60 && S.PRUEBA_TIMEOUT_MS >= 120000,
+        `la prueba ya no es de 30 s a q60 con su propio tope de tiempo (${S.TOPE_PRUEBA_S} s, q${S.Q_PRUEBA}, ${S.PRUEBA_TIMEOUT_MS} ms): en la VPS pasaría del tope de 45 s`);
+
+      // 1) Lo que trae cada sticker, sin bajarlo, y el último con sonido aparte.
+      SS._usarRecibidos(ruta('recibidos.json'), ruta('conSonido.json'));
+      const largo = { toString: () => '2516582' };
+      const conSon = { stickerMessage: { mimetype: 'image/webp', fileLength: largo, width: 512, height: 512, isAnimated: true } };
+      conSon.stickerMessage[SS.AUDIO] = { seconds: 25, fileLength: 181000, mimetype: 'audio/ogg; codecs=opus' };
+      const sinSon = { stickerMessage: { mimetype: 'image/webp', fileLength: 40000, width: 512, height: 512 } };
+      SS.anotarRecibido(conSon);
+      SS.anotarRecibido(sinSon);
+      SS._volcarRecibidos();
+      const rec = JSON.parse(fs.readFileSync(ruta('recibidos.json'), 'utf8'));
+      const cs = JSON.parse(fs.readFileSync(ruta('conSonido.json'), 'utf8'));
+      const u = rec[rec.length - 1] || {};
+      exige(rec.length === 2 && u.bytes === 40000 && u.audio === false && u.animado === false,
+        `lo que trae un sticker sin sonido no queda apuntado (${JSON.stringify(u)})`);
+      const c = cs[cs.length - 1] || {};
+      exige(cs.length === 1 && c.bytes === 2516582 && c.ancho === 512 && c.animado === true && c.mime === 'image/webp'
+        && c.sonido && c.sonido.segundos === 25 && c.sonido.bytes === 181000,
+        `el último sticker con sonido no queda apuntado aparte con su peso y su sonido (${JSON.stringify(c)}): un sticker sin sonido detrás lo borraría`);
+
+      // 2) La anatomía de un WebP, solo con sus cabeceras.
+      ff(['-f', 'lavfi', '-i', 'testsrc=s=64x64:r=10:d=2', '-c:v', 'libwebp', '-loop', '0', '-q:v', '50', ruta('enteros.webp')]);
+      const a = fs.existsSync(ruta('enteros.webp')) ? S.anatomiaWebp(fs.readFileSync(ruta('enteros.webp'))) : null;
+      exige(a && a.fotogramas === 20 && Math.abs(a.seg - 2) <= 0.1 && Math.abs(a.fps - 10) <= 0.2 && a.parches === 0 && a.ancho === 64,
+        `la anatomía de un WebP de 20 fotogramas enteros a 10 fps sale mal (${JSON.stringify(a)})`);
+      const pa = ff(['-f', 'lavfi', '-i', 'color=c=black:s=128x128:r=10:d=2', '-f', 'lavfi', '-i', 'color=c=red:s=16x16:r=10:d=2',
+        '-filter_complex', "[0][1]overlay=x='t*40':y=50,format=rgba", '-c:v', 'libwebp_anim', '-loop', '0', '-lossless', '1', ruta('parches.webp')]);
+      if (pa.status === 0 && fs.existsSync(ruta('parches.webp'))) {
+        const b = S.anatomiaWebp(fs.readFileSync(ruta('parches.webp')));
+        exige(b && b.parches > 0, `un WebP de parches (solo lo que cambia) sale como de fotogramas enteros (${JSON.stringify(b)})`);
+      }
+      exige(S.anatomiaWebp(Buffer.from('no es un webp')) === null, 'la anatomía de algo que no es un WebP no da null');
+
+      // 3) La prueba larga: un vídeo de 16 s sale entero, a sus fps, a 512 y q60.
+      ff(['-f', 'lavfi', '-i', 'color=c=0x2a6f97:s=320x240:r=30:d=16', '-f', 'lavfi', '-i', 'color=c=yellow:s=40x40:r=30:d=16',
+        '-f', 'lavfi', '-i', 'sine=f=440:d=16', '-filter_complex', "[0][1]overlay=x='mod(t*150,280)':y=100[v]", '-map', '[v]', '-map', '2:a',
+        '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-shortest', ruta('v16.mp4')]);
+      ff(['-f', 'lavfi', '-i', 'testsrc=s=160x120:r=12:d=33', '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', ruta('v33.mp4')]);
+      ff(['-f', 'lavfi', '-i', 'testsrc=s=160x120:r=24:d=6', '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', ruta('v6.mp4')]);
+      if (!['v16.mp4', 'v33.mp4', 'v6.mp4'].every((n) => fs.existsSync(ruta(n)))) {
+        exige(false, 'no pude fabricar los vídeos de prueba (¿ffmpeg sin libx264?)');
+      } else {
+        const p16 = await S.stickerLargoDePrueba(fs.readFileSync(ruta('v16.mp4')), 'capa');
+        const f16 = S.infoDe(p16) || {};
+        exige(f16.prueba === true && Math.abs((f16.sale || 0) - 16) <= 0.3 && f16.fps === 30 && f16.q === 60 && f16.px === 512 && f16.fotogramas >= 450,
+          `un vídeo de 16 s a 30 fps no sale entero a sus 30 fps, 512 px y q60 en la prueba (${JSON.stringify(f16)})`);
+        const p33 = await S.stickerLargoDePrueba(fs.readFileSync(ruta('v33.mp4')), 'capa');
+        const f33 = S.infoDe(p33) || {};
+        exige(Math.abs((f33.sale || 0) - 30) <= 0.3 && f33.cortadoA === 30 && f33.fps === 12,
+          `uno de 33 s no se queda en 30 s, a sus 12 fps, diciendo que se cortó (${JSON.stringify(f33)})`);
+        exige((await S.stickerLargoDePrueba(fs.readFileSync(ruta('v6.mp4')), 'capa')) === null,
+          'uno de 6 s entra en la prueba larga: los de 10 s o menos van por el camino de siempre');
+        // El sonido entero en la prueba; los 10 s de siempre para todos.
+        const s10 = await SS.sonidoDe(ruta('v16.mp4'));
+        const s30 = await SS.sonidoDe(ruta('v16.mp4'), S.TOPE_PRUEBA_S, { tope: S.TOPE_PRUEBA_S });
+        exige(s10 && s10.segundos === 10, `el sonido de siempre ya no se corta a 10 s (${s10 && s10.segundos})`);
+        exige(s30 && s30.segundos >= 15, `en la prueba el sonido se sigue cortando (${s30 && s30.segundos} s de 16): el teléfono «enseñaría» que para a los 10`);
+      }
+
+      // 4) El comando: la prueba solo para el dueño principal, sin caer en
+      // silencio al sticker de siempre, y lo que baja se desmonta antes.
+      const cmd = soloCodigo('src/commands/sticker.js');
+      exige(/const pruebaDueño = found\.type === 'video'\s*&& \(isMainOwner\(senderJid, Boolean\(msg\.key\.fromMe\), groupMeta\) \|\| dueñoEnPrivado\(msg\)\)/.test(cmd)
+        && /pruebaDueño\s*\?\s*stickerLargoDePrueba\(/.test(cmd),
+        'la prueba larga ya no es solo del dueño principal: a cualquiera le saldrían stickers de varios MB sin decidir');
+      exige(/sonidoDe\(rutaOrigen, \.\.\.\(pruebaDueño \? \[TOPE_PRUEBA_S, \{ tope: TOPE_PRUEBA_S \}\] : \[\]\)\)/.test(cmd),
+        'el sonido de la prueba ya no va entero: con 10 s la prueba diría que el teléfono lo corta');
+      const conv = (cmd.match(/const convertir = pruebaDueño[\s\S]*?;/) || [''])[0];
+      exige(/\/\^prueba larga\/\.test\(err\.message/.test(cmd) && /!ficha\?\.prueba/.test(cmd) && conv && !/\.catch\(/.test(conv),
+        'la prueba larga ya no falla a la vista (cae al sticker de siempre), o el «pesa demasiado» la para: se creería que salió');
+      exige(/const origenSt = found\.type === 'sticker' \? anatomiaWebp\(buffer\)/.test(cmd) && /await apuntarAnatomia\(\{ \.\.\.origenSt/.test(cmd),
+        'lo que baja el bot ya no se desmonta antes de tocarlo');
+      const est = fs.readFileSync(path.join(R, 'scripts/estado.js'), 'utf8');
+      exige(/stickerConSonido\.json/.test(est) && /stickerAnatomia\.json/.test(est) && /prueba larga del dueño/.test(est) && /falló al mandarlo/.test(est),
+        'npm run estado ya no enseña el último sticker con sonido, la anatomía, la prueba larga o por qué no salió su sonido');
+    } catch (e) {
+      exige(false, `no pude probar los stickers largos con sonido: ${String(e.message).split('\n')[0]}`);
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+    if (fallos === antes189) console.log(verde('   ✓ lo que trae cada sticker queda apuntado sin bajarlo; la prueba larga del dueño sale entera, con su sonido, y falla a la vista; a los demás no les cambia nada'));
+  }
+
 
 
   // ── 176. LA PROTECCIÓN DEL TIER DUEÑO, CASO A CASO (16 nov) ─────────────────

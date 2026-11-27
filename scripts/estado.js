@@ -851,9 +851,45 @@ if (!bot) {
     let recibidosSt = [];
     try { recibidosSt = JSON.parse(require('fs').readFileSync(path.join(RAIZ, 'data/stickerRecibidos.json'), 'utf8')); } catch { recibidosSt = []; }
     const ultSt = Array.isArray(recibidosSt) ? recibidosSt[recibidosSt.length - 1] : null;
+    const coma = (n) => String(n).replace('.', ',');
+    const hace = (t) => {
+      const m = Math.max(0, Math.round((Date.now() - (t || 0)) / 60000));
+      return m < 60 ? `hace ${m} min` : m < 48 * 60 ? `hace ${Math.round(m / 60)} h` : `hace ${Math.round(m / 1440)} días`;
+    };
+    const reciente = (t) => Date.now() - (t || 0) < 2 * 3600 * 1000;
+    const peso = (b) => (b == null ? '?' : b >= 1048576 ? `${coma(Math.round(b / 104857.6) / 10)} MB` : `${Math.round(b / 1024)} KB`);
+    // LO QUE DICE EL MENSAJE DE UN STICKER, SIN BAJARLO (27 nov): formato,
+    // peso, medidas, animado o Lottie y lo que dura su sonido.
+    const loQueTrae = (f) => [
+      f.mime || 'sin formato',
+      peso(f.bytes),
+      f.ancho && f.alto ? `${f.ancho}×${f.alto}` : null,
+      f.lottie ? 'Lottie' : f.animado ? 'animado' : 'estático',
+      f.sonido ? `sonido de ${f.sonido.segundos ?? '?'} s (${f.sonido.mime || '?'}, ${peso(f.sonido.bytes)})` : null,
+    ].filter(Boolean).join(' · ');
     if (ultSt) {
       const c = (x) => (Array.isArray(x) ? x.join(',') : '?');
-      bien(`último sticker recibido: ${ultSt.audio ? 'con' : 'sin'} audio · campos del mensaje ${c(ultSt.mensaje)} · del sticker ${c(ultSt.sticker)}`, recientesSt.length > 0);
+      bien(`último sticker recibido: ${ultSt.audio ? 'con' : 'sin'} audio · campos del mensaje ${c(ultSt.mensaje)} · del sticker ${c(ultSt.sticker)}${ultSt.mime !== undefined ? ` · ${loQueTrae(ultSt)}` : ''}`,
+        recientesSt.length > 0 || reciente(ultSt.t));
+    }
+    // EL ÚLTIMO CON SONIDO QUE LLEGÓ, APARTE (27 nov): en un grupo con
+    // stickers, el siguiente sin sonido lo echaría de la línea de arriba.
+    let conSon = [];
+    try { conSon = JSON.parse(require('fs').readFileSync(path.join(RAIZ, 'data/stickerConSonido.json'), 'utf8')); } catch { conSon = []; }
+    const ultCS = Array.isArray(conSon) ? conSon[conSon.length - 1] : null;
+    if (ultCS) bien(`último sticker con sonido recibido (${hace(ultCS.t)}): ${loQueTrae(ultCS)}`, reciente(ultCS.t));
+    // LA ANATOMÍA DEL ÚLTIMO STICKER QUE BAJÓ EL BOT (27 nov), apuntada antes de
+    // tocarlo: si son fotogramas enteros o parches, cuántos se mezclan con el
+    // anterior llevando transparencia y lo que pesa cada uno.
+    let anat = [];
+    try { anat = JSON.parse(require('fs').readFileSync(path.join(RAIZ, 'data/stickerAnatomia.json'), 'utf8')); } catch { anat = []; }
+    const ultA = Array.isArray(anat) ? anat[anat.length - 1] : null;
+    if (ultA) {
+      const como = !ultA.animado ? 'estático'
+        : `${ultA.fotogramas} fotogramas en ${coma(ultA.seg)} s (${coma(ultA.fps)} fps, ${ultA.msMin === ultA.msMax ? `${ultA.msFotograma} ms` : `${ultA.msMin}-${ultA.msMax} ms`}) · `
+          + `${ultA.parches ? `${ultA.parches} parches` : 'fotogramas enteros'} · ${ultA.mezclaConAlfa} mezclados con transparencia · ${coma(ultA.kbPorFotograma)} KB por fotograma`;
+      bien(`último sticker que bajó el bot (!${ultA.orden}, ${hace(ultA.t)}): ${peso(ultA.bytes)} · ${ultA.ancho}×${ultA.alto} · ${como}${ultA.sonidoSeg ? ` · sonido de ${ultA.sonidoSeg} s` : ''}`,
+        reciente(ultA.t));
     }
     // EL ÚLTIMO STICKER ANIMADO QUE HIZO EL BOT (25 nov). El dueño: «parece que
     // el bot no hace stickers de más de 5 segundos». Si aquí sale de 10 s y en
@@ -863,14 +899,16 @@ if (!bot) {
     try { hechosSt = JSON.parse(require('fs').readFileSync(path.join(RAIZ, 'data/stickerHechos.json'), 'utf8')); } catch { hechosSt = []; }
     const ultH = Array.isArray(hechosSt) ? hechosSt[hechosSt.length - 1] : null;
     if (ultH && ultH.sale != null) {
-      const coma = (n) => String(n).replace('.', ',');
-      const min = Math.max(0, Math.round((Date.now() - (ultH.t || 0)) / 60000));
-      const cuando = min < 60 ? `hace ${min} min` : min < 48 * 60 ? `hace ${Math.round(min / 60)} h` : `hace ${Math.round(min / 1440)} días`;
       const origen = ultH.de === 'video' ? 'vídeo' : ultH.de === 'sticker' ? 'sticker' : 'GIF';
-      const porque = ultH.recortado ? ` (recortado: ni a ${coma(ultH.fps)} fps cabía en 1 MB)`
-        : ultH.fpsBajados ? ' (con menos fps para que cupiera entero)' : '';
-      bien(`último sticker animado (!${ultH.orden}, ${cuando}): ${origen} de ${ultH.entra != null ? coma(ultH.entra) : '?'} s → sticker de ${coma(ultH.sale)} s${porque} · ${ultH.fotogramas} fotogramas a ${coma(ultH.fps)} fps · ${ultH.px} px q${ultH.q} · ${ultH.kb} KB · ${ultH.pasadas} pasadas en ${coma(Math.round((ultH.ms || 0) / 100) / 10)} s${ultH.sonido ? ' · con sonido' : ''}`,
-        min < 120 || recientesSt.length > 0);
+      // LA PRUEBA DEL DUEÑO (27 nov) se dice como tal: sin el tope de 1 MB,
+      // y con el sonido que se mandó de verdad, o por qué no salió.
+      const porque = ultH.prueba ? ` (prueba larga del dueño, sin el tope de 1 MB${ultH.cortadoA ? `; el vídeo pasaba de ${ultH.cortadoA} s` : ''})`
+        : ultH.recortado ? ` (recortado: ni a ${coma(ultH.fps)} fps cabía en 1 MB)`
+          : ultH.fpsBajados ? ' (con menos fps para que cupiera entero)' : '';
+      const son = ultH.sonido ? ` · con sonido${ultH.sonidoSeg ? ` de ${ultH.sonidoSeg} s` : ''}`
+        : ultH.sonidoFallo ? ` · SIN sonido: falló al mandarlo (${ultH.sonidoFallo})` : '';
+      bien(`último sticker animado (!${ultH.orden}, ${hace(ultH.t)}): ${origen} de ${ultH.entra != null ? coma(ultH.entra) : '?'} s → sticker de ${coma(ultH.sale)} s${porque} · ${ultH.fotogramas} fotogramas a ${coma(ultH.fps)} fps · ${ultH.px} px q${ultH.q} · ${peso((ultH.kb || 0) * 1024)} · ${ultH.pasadas} pasadas en ${coma(Math.round((ultH.ms || 0) / 100) / 10)} s${son}`,
+        reciente(ultH.t) || recientesSt.length > 0);
     }
     if (recientesSt.length) {
       const ult = recientesSt[recientesSt.length - 1];
