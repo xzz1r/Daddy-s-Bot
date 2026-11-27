@@ -1521,6 +1521,12 @@ Lo que eso dice: uno así no se ve. Lo que no dice: dónde está la raya entre
 1 y 9 MB, ni si la pone el peso, los fotogramas o la duración. No se vuelve a
 abrir un camino sin tope sin probarlo antes en un teléfono.
 
+**24 fps como tope de todos** (dueño, 27 nov: «24 FPS es lo usado en cine…
+más allá de eso es ser greedy»). Los dos primeros escalones iban a 30 fps; ahora
+toda la escalera va a 24 (`FPS_TOPE`), y el escalón de q75, que solo servía para
+pasar de 30 a 24 sin bajar la calidad, se quitó. Lo que dura más de 10 s sigue
+repartiendo sus 240 fotogramas. Capa 184.
+
 **Fluidos a 24 fps dentro de 1 MB: medido y descartado** (27 nov). Para que
 uno de 20 s vaya a 24 fps sin pasar de 1 MB, cada fotograma tendría que
 guardar solo lo que cambia. Se midieron cuatro formas contra lo de hoy (12 fps

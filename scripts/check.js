@@ -26933,7 +26933,9 @@ const r = {};
     try {
       const techo = Math.max(...S.ANIM_TIERS.map((t) => t.quality));
       const t0 = S.ANIM_TIERS[0];
-      exige(techo <= 85 && t0.quality === 85 && t0.fps === 30 && t0.size === 512,
+      exige(S.FPS_TOPE === 24 && S.ANIM_TIERS.every((t) => t.fps <= 24),
+        `hay escalones por encima de 24 fps (${S.ANIM_TIERS.map((t) => t.fps).join(', ')}): el dueño (27 nov) los quiere a 24 como mucho, «más allá de eso es ser greedy»`);
+      exige(techo <= 85 && t0.quality === 85 && t0.fps === 24 && t0.size === 512,
         `la escalera arranca en q${t0.quality}@${t0.fps} y llega a q${techo}: por encima de q85 pesa el doble y no se ve (el dueño: «todos pesan más de 1 MB»)`);
 
       exige(S.UMBRAL_REPETIDO === 64, `el umbral de repetido es ${S.UMBRAL_REPETIDO}: por encima, en vídeos de cámara de verdad se empiezan a tirar fotogramas que se mueven`);
@@ -26985,8 +26987,9 @@ const r = {};
         exige(S.isAnimatedWebP(st), 'la foto fija ha dejado de salir como sticker animado');
         const sm = await S.videoToSticker(fs.readFileSync(mueve), 'capa');
         const dm = S.desmontarWebpAnimado(sm);
-        exige(dm && dm.cuadros.length >= 74,
-          `un vídeo que cambia en cada fotograma sale con ${dm?.cuadros.length} de 75: se están tirando fotogramas que se mueven`);
+        // 2,5 s a 30 fps salen a 24 (el tope, 27 nov): 60 fotogramas.
+        exige(dm && dm.cuadros.length >= 59 && dm.cuadros.length <= 61,
+          `un vídeo de 2,5 s que cambia en cada fotograma sale con ${dm?.cuadros.length} de 60: o se tiran fotogramas que se mueven, o pasa de 24 fps`);
       }
 
       // El esfuerzo que se escribe es el que se usa: sin -preset.

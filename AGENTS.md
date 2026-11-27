@@ -278,6 +278,10 @@ el sticker a la vista de Baileys); no se cambia sin probarlo en un móvil. Ver
 
 ## Stickers animados: lo justo, sin perder calidad
 
+**24 fps como mucho** (dueño, 27 nov: «24 FPS es lo usado en cine… como tope
+de FPS. Más allá de eso es ser greedy»). Ningún escalón de la escalera pasa de
+24 (`FPS_TOPE` en `src/utils/sticker.js`); los cortos arrancaban a 30. Capa 184.
+
 Lo pidió el dueño (25 nov): «optimiza el peso de los stickers sin sacrificar
 calidad; todos pesan más de 1 MB». La escalera de `src/utils/sticker.js`
 arranca en q85 (q95 pesaba el doble y no se veía) y **no se vuelve a poner un

@@ -168,7 +168,7 @@ function desmontarWebpAnimado(animBuf) {
 // pegado en el lienzo, escrito al video, y el siguiente.
 //
 // Devuelve la ruta del video (la borra quien llama) o null si no se pudo.
-const FPS_COMPUESTO = 30;
+const FPS_COMPUESTO = 24; // el tope de todos los stickers (ver FPS_TOPE)
 async function componerWebpAnimado(animBuf) {
   const d = desmontarWebpAnimado(animBuf);
   if (!d || d.cuadros.length < 2) return null;
@@ -185,7 +185,7 @@ async function componerWebpAnimado(animBuf) {
     total += ms;
   }
   // EL RITMO DEL ORIGEN, SI CABE. Con duraciones iguales (lo normal) sale un
-  // fotograma por fotograma; si el ritmo pasa de 30, se muestrea a 30, que es
+  // fotograma por fotograma; si el ritmo pasa de 24, se muestrea a 24, que es
   // lo que la escalera iba a hacer de todos modos.
   const mcd = (a, b) => (b ? mcd(b, a % b) : a);
   const paso = cuadros.reduce((g, c) => mcd(g, c.ms), 0);
@@ -471,8 +471,8 @@ const VF_STATIC = `scale=512:512:force_original_aspect_ratio=decrease,pad=512:51
 //
 // Esto no contradice lo de «24-30 fps» que pide el comentario de abajo: hoy no
 // hay treinta fotogramas de movimiento, hay doce con marcas de tiempo de
-// treinta. Si el origen viene a 60, el filtro sigue bajandolo a 30, que es para
-// lo que servia.
+// treinta. Si el origen viene a 60, el filtro sigue bajandolo, a 24 desde el
+// 27 nov (ver FPS_TOPE), que es para lo que servia.
 //
 // ─── LOS FOTOGRAMAS REPETIDOS, UNA SOLA VEZ (25 nov) ────────────────────────
 //
@@ -840,8 +840,14 @@ async function imageToSticker(imageBuffer, author) {
 // guideline is conservative — clients accept up to roughly double that in practice).
 const MAX_STICKER_BYTES = 1024 * 1024;
 
-// Hasta 10 s, los fps van de 24 a 30 y no bajan: la calidad y, al final, el
-// lienzo son lo que se toca para que quepa. Los escalones se prueban en orden
+// 24 FPS COMO MUCHO (dueño, 27 nov: «24 FPS es lo usado en cine… como tope de
+// FPS. Más allá de eso es ser greedy»). Los dos primeros escalones iban a 30:
+// ahora todos van a 24, y el q75 que había entre q85 y q80 solo estaba para
+// bajar de 30 a 24 sin tocar la calidad, así que sobra.
+const FPS_TOPE = 24;
+
+// Hasta 10 s, los fps son 24 y no bajan: la calidad y, al final, el lienzo son
+// lo que se toca para que quepa. Los escalones se prueban en orden
 // hasta que uno cabe en MAX_STICKER_BYTES. Desde el 25 nov hay dos salvedades
 // (ver TOPE_ANIMADO_S): lo que pasa de 10 s reparte 240 fotogramas, y si ni el
 // suelo cabe, se bajan sus fps (hasta 12) antes de acortar.
@@ -853,12 +859,12 @@ const ANIM_TIERS = [
   // En lo normal, SSIM 0,994 contra 0,988, y a doble tamaño el texto y las
   // caras son iguales; solo la textura más fina (suelo, follaje) sale algo más
   // lisa. Un clip corto que pesaba casi 1 MB se queda en la mitad.
-  { fps: 30, quality: 85, size: 512 },
-  { fps: 30, quality: 75, size: 512 },
+  { fps: 24, quality: 85, size: 512 },
   // `desde` marca en que escalon arranca un video segun lo que dure. Va en el
-  // propio escalon y no en una tabla de indices aparte: la escalera NO baja de
-  // calidad de forma monotona —aqui q80 va despues de q75 porque baja los fps
-  // en vez de la calidad— asi que cualquier regla por numero se equivoca.
+  // propio escalon y no en una tabla de indices aparte: si algún día la
+  // escalera vuelve a no bajar de calidad de forma monotona (hasta el 27 nov
+  // q80 iba despues de q75, porque bajaba los fps), una regla por numero se
+  // equivoca.
   { fps: 24, quality: 80, size: 512, desde: 3 },
   { fps: 24, quality: 70, size: 512, desde: 5 },
   { fps: 24, quality: 60, size: 512, desde: 8 },
@@ -1501,4 +1507,4 @@ async function gifToSticker(gifBuffer, author, rutaOrigen = null) {
   return videoToSticker(gifBuffer, author, rutaOrigen);
 }
 
-module.exports = { componerWebpAnimado, CANVAS_SIZE_FACTOR, _VF_ANIM: VF_ANIM, FFMPEG_TIMEOUT_MS, TOPE_ANIMADO_S, SIN_BAJAR_FPS_S, FOTOGRAMAS_TOPE, FPS_MINIMO, fpsParaDuracion, infoDe, _duracionMs: duracionMs, anatomiaWebp, detectExt, desmontarWebpAnimado, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC, UMBRAL_REPETIDO, FORMATOS_SIN_CONVERSION, OBJETIVO_LIGERO, DESDE_LIGERO_S, _completarDuracion: completarDuracion, _contarFotogramas: contarFotogramas };
+module.exports = { FPS_TOPE, componerWebpAnimado, CANVAS_SIZE_FACTOR, _VF_ANIM: VF_ANIM, FFMPEG_TIMEOUT_MS, TOPE_ANIMADO_S, SIN_BAJAR_FPS_S, FOTOGRAMAS_TOPE, FPS_MINIMO, fpsParaDuracion, infoDe, _duracionMs: duracionMs, anatomiaWebp, detectExt, desmontarWebpAnimado, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC, UMBRAL_REPETIDO, FORMATOS_SIN_CONVERSION, OBJETIVO_LIGERO, DESDE_LIGERO_S, _completarDuracion: completarDuracion, _contarFotogramas: contarFotogramas };
