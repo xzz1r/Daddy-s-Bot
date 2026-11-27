@@ -1521,6 +1521,29 @@ Lo que eso dice: uno así no se ve. Lo que no dice: dónde está la raya entre
 1 y 9 MB, ni si la pone el peso, los fotogramas o la duración. No se vuelve a
 abrir un camino sin tope sin probarlo antes en un teléfono.
 
+**Fluidos a 24 fps dentro de 1 MB: medido y descartado** (27 nov). Para que
+uno de 20 s vaya a 24 fps sin pasar de 1 MB, cada fotograma tendría que
+guardar solo lo que cambia. Se midieron cuatro formas contra lo de hoy (12 fps
+a los 20 s), al mismo peso y fotograma a fotograma contra el original: el
+codificador de animaciones de libwebp tal cual (`libwebp_anim`), el mismo sin
+deriva (lo quieto pegado a lo que se ve), una intermedia, y fotogramas enteros
+con lo quieto en transparente (el «anillo»). Con cuatro vídeos de 20 s:
+
+- **Los dibujos de la grabación del dueño**: tal cual, 35,7 dB a 24 fps contra
+  33,8 de hoy, pero con costuras a la vista en algún plano; sin deriva, 33,9 y
+  las mismas costuras.
+- **Cámara con fondo liso**: a 500 KB, hoy 37,4 dB contra 31,4 sin deriva. Solo
+  a 1 MB, el doble de peso, gana la de sin deriva (38,0), y el fondo sale en
+  mosaico. Tal cual, la imagen se queda atrás (33,8).
+- **Cámara a 1080p y 60 fps**: sin deriva, baja a q19 para caber. **CGI con
+  mucho detalle**: no cabe ni a q5.
+- **El anillo**: peor que hoy en todo.
+
+Y en el teléfono solo se han visto funcionar stickers de fotogramas enteros, de
+1 MB y 240 fotogramas como mucho. No se aplica. Lo que lo reabriría es lo que
+diga `npm run estado` de un sticker largo de otro bot que sí se vea: lo que
+pesa, cuántos fotogramas lleva y si son parches.
+
 Lo que queda, para saber cómo son los que sí se ven:
 
 - **Lo que trae cada sticker que llega**, sin bajarlo (`anotarRecibido`):
