@@ -891,6 +891,18 @@ if (!bot) {
         bien(`registro de !k número: ${reg.length} medios · ${cuenta.imageMessage} fotos · ${cuenta.videoMessage + cuenta.ptvMessage} vídeos · ${cuenta.documentMessage} documentos`);
       }
     } catch { /* sin registro todavía */ }
+    // Lo que llega a los grupos y por qué no se apunta (27 nov).
+    try {
+      const cu = JSON.parse(require('fs').readFileSync(path.join(RAIZ, 'data/registroMediosCuentas.json'), 'utf8'));
+      const lista = (o) => Object.entries(o || {}).map(([k, v]) => `${v} ${k}`).join(', ') || 'nada';
+      bien(`medios que llegan a los grupos desde ${new Date(cu.desde).toLocaleDateString('es')}: ${lista(cu.llegan)} · apuntados: ${lista(cu.apuntados)}`);
+      if (Object.keys(cu.fuera || {}).length) bien(`sin apuntar: ${lista(cu.fuera)}`);
+    } catch { /* sin cuentas todavía */ }
+    try {
+      const k = JSON.parse(require('fs').readFileSync(path.join(RAIZ, 'data/kNumeroUltimo.json'), 'utf8'));
+      const partes = Object.entries(k.tipos || {}).map(([t, f]) => `${t}: ${f.salen} de ${f.hay}${f.fallan ? ` (${f.fallan} fallan; el último ${f.ultimoFallo})` : ''}`);
+      bien(`último !k número (${hace(k.t)}, ${k.numero}): ${partes.join(' · ') || 'nada'}`, reciente(k.t));
+    } catch { /* aún no se ha usado */ }
     // LA ANATOMÍA DEL ÚLTIMO STICKER QUE BAJÓ EL BOT (27 nov), apuntada antes de
     // tocarlo: si son fotogramas enteros o parches, cuántos se mezclan con el
     // anterior llevando transparencia y lo que pesa cada uno.

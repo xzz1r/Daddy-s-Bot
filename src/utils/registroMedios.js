@@ -32,6 +32,32 @@ const TOPE_TOTAL = 5000;
 const TOPE_PERSONA = 300;
 const CAMPOS = ['imageMessage', 'videoMessage', 'documentMessage', 'ptvMessage'];
 
+// LO QUE LLEGA Y LO QUE NO SE APUNTA, CONTADO (27 nov). El dueño: «no enviaba
+// una sola foto del individuo, solo vídeos». Sin los datos de la VPS no se
+// sabe si esas fotos eran de ver una vez (al bot solo le llega el aviso),
+// venían en un sobre que no se abre o no llegaron. Aquí se cuenta, por tipo, lo
+// que llega a los grupos, lo que se apunta y por qué no lo demás, con los
+// sobres que no se conocen; sale en `npm run estado`.
+let CUENTAS = path.join(__dirname, '../../data/registroMediosCuentas.json');
+let cuentas = null;
+const SIN_MEDIO = new Set(['conversation', 'extendedTextMessage', 'reactionMessage', 'protocolMessage',
+  'senderKeyDistributionMessage', 'messageContextInfo', 'stickerMessage', 'audioMessage', 'pollUpdateMessage',
+  'pollCreationMessage', 'pollCreationMessageV2', 'pollCreationMessageV3', 'editedMessage', 'keepInChatMessage',
+  'pinInChatMessage', 'albumMessage', 'contactMessage', 'locationMessage', 'liveLocationMessage', 'eventMessage',
+  'templateMessage', 'buttonsResponseMessage', 'listResponseMessage', 'interactiveResponseMessage', 'callLogMesssage',
+  'groupInviteMessage', 'contactsArrayMessage', 'ptvMessage', 'commentMessage', 'encReactionMessage', 'newsletterAdminInviteMessage']);
+function cargarCuentas() {
+  if (cuentas) return cuentas;
+  cuentas = { desde: Date.now(), llegan: {}, apuntados: {}, fuera: {}, sobres: [] };
+  try {
+    const d = JSON.parse(fs.readFileSync(CUENTAS, 'utf8'));
+    if (d && typeof d === 'object' && d.llegan) cuentas = { ...cuentas, ...d };
+  } catch { /* se empieza de cero */ }
+  return cuentas;
+}
+function sumar(donde, clave) { const c = cargarCuentas(); c[donde][clave] = (c[donde][clave] || 0) + 1; }
+const NOMBRE = { imageMessage: 'foto', videoMessage: 'vídeo', documentMessage: 'documento', ptvMessage: 'vídeo' };
+
 // [{ id, g: grupo, a: autor, a2: su otra forma si vino, t: segundos, m: mensaje en base64 }]
 let lista = null;
 let timer = null;
@@ -76,14 +102,32 @@ function programarGuardado() {
 function apuntar(msg) {
   try {
     const g = msg?.key?.remoteJid;
-    if (!g || !String(g).endsWith('@g.us') || msg.key.fromMe || !msg.message) return false;
+    if (!g || !String(g).endsWith('@g.us') || msg.key.fromMe) return false;
+    if (!msg.message) {
+      // El aviso vacío de ver una vez: al bot no le llega la foto.
+      if (msg.key.isViewOnce === true) { sumar('llegan', 'ver una vez'); sumar('fuera', 'ver una vez (solo llega el aviso)'); programarGuardado(); }
+      return false;
+    }
     const c = desenvolver(msg.message);
     const campo = c && CAMPOS.find((f) => c[f]);
-    if (!campo) return false;
+    if (!campo) {
+      // Un sobre que no se conoce y que puede llevar un medio dentro.
+      const raras = Object.keys(c || {}).filter((k) => !SIN_MEDIO.has(k) && c[k]);
+      if (raras.length) {
+        const cu = cargarCuentas();
+        const firma = raras.sort().join('+');
+        cu.fuera[`sobre desconocido: ${firma}`] = (cu.fuera[`sobre desconocido: ${firma}`] || 0) + 1;
+        cu.sobres = [...(cu.sobres || []).filter((x) => x !== firma), firma].slice(-5);
+        programarGuardado();
+      }
+      return false;
+    }
     const nodo = c[campo];
+    const tipo = NOMBRE[campo] || campo;
+    sumar('llegan', tipo);
     // Sin clave o sin ruta no hay nada que bajar luego (el aviso vacío de ver
     // una vez llega así).
-    if (!nodo.mediaKey || !(nodo.directPath || nodo.url)) return false;
+    if (!nodo.mediaKey || !(nodo.directPath || nodo.url)) { sumar('fuera', `${tipo} sin clave o sin ruta`); programarGuardado(); return false; }
     const a = bareJid(msg.key.participant || msg.participant || '');
     if (!a) return false;
     const copia = { ...nodo };
@@ -94,6 +138,7 @@ function apuntar(msg) {
     const t = Number(typeof bruto?.toNumber === 'function' ? bruto.toNumber() : bruto || 0) || Math.floor(Date.now() / 1000);
     const l = cargar();
     if (l.some((x) => x.id === msg.key.id && x.g === g)) return false;
+    sumar('apuntados', tipo);
     const a2 = bareJid(msg.key.participantAlt || msg.key.participantPn || '');
     l.push({ id: msg.key.id, g, a, ...(a2 && a2 !== a ? { a2 } : {}), t, m });
     recortar(l, a);
@@ -139,12 +184,14 @@ function dePersona(quien, grupo = null) {
 
 async function flush() {
   if (timer) { clearTimeout(timer); timer = null; }
-  if (!persistir || !lista) return;
-  await atomicWriteJson(FICHERO, lista);
+  if (!persistir) return;
+  if (cuentas) await atomicWriteJson(CUENTAS, cuentas);
+  if (lista) await atomicWriteJson(FICHERO, lista);
 }
 
 module.exports = {
   apuntar, dePersona, flush,
+  cuentasDeRegistro: () => cargarCuentas(),
   _fichero: (f) => { FICHERO = f; lista = null; },
-  _reset: () => { lista = []; persistir = false; if (timer) { clearTimeout(timer); timer = null; } },
+  _reset: () => { lista = []; cuentas = null; CUENTAS = '/nonexistent/registroMediosCuentas.json'; persistir = false; if (timer) { clearTimeout(timer); timer = null; } },
 };

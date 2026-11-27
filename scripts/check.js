@@ -26683,6 +26683,9 @@ const r = {};
         "r.propio = RM.apuntar({ ...medio('M2', TEL + '@s.whatsapp.net'), key: { remoteJid: G, id: 'M2', fromMe: true } });",
         "r.audio = RM.apuntar({ key: { remoteJid: G, id: 'A1', participant: LID + '@lid' }, messageTimestamp: 1763900000, message: { audioMessage: { url: 'https://127.0.0.1:9/a', directPath: '/v/a', mediaKey: Buffer.alloc(32, 1), mimetype: 'audio/ogg; codecs=opus' } } });",
         "r.album = RM.apuntar({ key: { remoteJid: G, id: 'F1', participant: TEL + '@s.whatsapp.net' }, messageTimestamp: 1763900001, message: { associatedChildMessage: { message: { imageMessage: { url: 'https://127.0.0.1:9/f', directPath: '/v/f', mediaKey: Buffer.alloc(32, 1), mimetype: 'image/jpeg' } } }, messageContextInfo: {} } });",
+        "RM.apuntar({ key: { remoteJid: G, id: 'VO1', participant: TEL + '@s.whatsapp.net', isViewOnce: true }, message: null });",
+        "RM.apuntar({ key: { remoteJid: G, id: 'X1', participant: TEL + '@s.whatsapp.net' }, message: { sobreNuevoMessage: { message: { imageMessage: {} } } } });",
+        "r.cuentas = RM.cuentasDeRegistro();",
         "r.albumK = (K.hallarMedio({ associatedChildMessage: { message: { imageMessage: { mimetype: 'image/jpeg' } } } }) || {}).tipo;",
         "r.sticker = RM.apuntar({ key: { remoteJid: G, id: 'S1', participant: LID + '@lid' }, messageTimestamp: 1763900000, message: { stickerMessage: { url: 'https://127.0.0.1:9/s', directPath: '/v/s', mediaKey: Buffer.alloc(32, 1), mimetype: 'image/webp' } } });",
         "WA.rememberMapping(LID + '@lid', TEL + '@s.whatsapp.net');",
@@ -26702,12 +26705,14 @@ const r = {};
         "  enviados.length = 0;",
         "  await K.cmdK(sock, pide('!k', PRIV), null, true, ['999999999']);",
         "  r.nada = enviados.map((e) => e.c.text).join(' | ');",
+        "  try { r.ficha = JSON.parse(require('fs').readFileSync('./data/kNumeroUltimo.json', 'utf8')); } catch { r.ficha = null; }",
         "  console.log('R182' + JSON.stringify(r));",
         "  process.exit(0);",
         "})();",
       ].join('\n');
       const out = spawnSync('node', ['-e', guion], { cwd: caja, encoding: 'utf8', timeout: 90000,
         env: { ...process.env, OWNER_NUMBER: '34600011820', CO_OWNERS: '', LOG_LEVEL: 'error' } });
+      const TEL_COMPLETO_182 = '573000001820';
       const linea = (out.stdout || '').split('\n').find((l) => l.startsWith('R182'));
       const r = linea ? JSON.parse(linea.slice(4)) : null;
       if (!r) exige(false, `no pude probarlo: ${(out.stderr || '').split('\n').slice(0, 4).join(' ')}`);
@@ -26716,6 +26721,15 @@ const r = {};
           `el registro no apunta lo que debe (un medio sí; el aviso vacío de ver una vez y lo del propio bot, no): ${JSON.stringify([r.apuntado, r.vacio, r.propio])}`);
         exige(r.album === true && r.deAlbum === 1 && r.albumK === 'image',
           `las fotos de un álbum no entran en *!k* (el dueño, 27 nov: «solo envía vídeos y no las fotos»): ${JSON.stringify([r.album, r.deAlbum, r.albumK])}`);
+        const cu = r.cuentas || {};
+        exige(cu.llegan && cu.llegan.foto >= 2 && cu.apuntados && cu.apuntados.foto >= 2
+          && cu.fuera && cu.fuera['ver una vez (solo llega el aviso)'] === 1 && cu.fuera['sobre desconocido: sobreNuevoMessage'] === 1,
+          `no se cuenta lo que llega y por qué no se apunta (ver una vez, sobres que no se conocen): ${JSON.stringify(cu)}`);
+        const fi = r.ficha && r.ficha.tipos && r.ficha.tipos.image;
+        exige(fi && fi.hay === 2 && fi.salen + fi.fallan === 2 && (fi.salen === 2 || fi.ultimoFallo),
+          `el último *!k número* no deja su ficha por tipo (cuántas fotos había, cuántas salieron y por qué no): ${JSON.stringify(r.ficha)}`);
+        exige(!r.ficha || !String(r.ficha.numero).includes(TEL_COMPLETO_182),
+          'la ficha del último *!k número* guarda el número entero');
         exige(r.audio === false, '*!k número* apunta audios: el dueño los quiere fuera');
         exige(r.sticker === false, '*!k número* apunta stickers: el dueño los quiere fuera');
         exige(r.porTelefono === 1, `lo apuntado con el @lid no sale al pedirlo por el teléfono (${r.porTelefono}): una persona, una historia`);

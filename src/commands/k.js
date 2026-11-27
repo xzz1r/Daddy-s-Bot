@@ -387,6 +387,15 @@ async function kDeNumero(sock, msg, args) {
   } catch { nombres = {}; }
   let mandados = 0;
   let perdidos = 0;
+  // Cómo acabó cada tipo, para `npm run estado` (27 nov: «no enviaba una sola
+  // foto, solo vídeos»): cuántos había, cuántos salieron y el último fallo.
+  const ficha = { t: Date.now(), numero: numero.slice(0, 4) + '…' + numero.slice(-2), tipos: {} };
+  const marca = (tipo, que, motivo) => {
+    const f = ficha.tipos[tipo] || (ficha.tipos[tipo] = { hay: 0, salen: 0, fallan: 0 });
+    f[que]++;
+    if (motivo) f.ultimoFallo = String(motivo).slice(0, 160);
+  };
+  for (const x of lista) marca(hallarMedio(x.message)?.tipo || '?', 'hay');
   try {
     await sock.sendMessage(aqui, { text: `De +${numero}${asunto ? ` en *${asunto}*` : ''}: ${lista.length} archivo${lista.length === 1 ? '' : 's'}. Van.` });
     for (const x of lista) {
@@ -394,6 +403,7 @@ async function kDeNumero(sock, msg, args) {
       if (!medio) { perdidos++; continue; }
       const sobre = { key: { remoteJid: x.g, id: x.id, participant: x.a, fromMe: false }, message: x.message };
       let buf = null;
+      let porque = '';
       // Con tope: si hay que pedir que lo vuelvan a subir y no contestan, se
       // pasa al siguiente en vez de quedarse esperando.
       let reloj = null;
@@ -402,8 +412,8 @@ async function kDeNumero(sock, msg, args) {
           bajarMedio(sock, sobre, medio),
           new Promise((_, no) => { reloj = setTimeout(() => no(new Error('tope')), 45000); }),
         ]);
-      } catch { buf = null; } finally { clearTimeout(reloj); }
-      if (!buf || !buf.length) { perdidos++; continue; }
+      } catch (e) { buf = null; porque = `al bajarlo: ${e?.message || e}`; } finally { clearTimeout(reloj); }
+      if (!buf || !buf.length) { perdidos++; marca(medio.tipo, 'fallan', porque || 'bajó vacío'); continue; }
       const pie = `${medio.nombre} · *${nombres[x.g] || 'un grupo'}* · ${fechaCorta(x.t)}`;
       const tipoVista = { image: 'foto', video: 'video', audio: 'audio' }[medio.tipo];
       const previa = tipoVista ? await miniatura.paraReenviar(medio.nodo, buf, tipoVista) : {};
@@ -416,14 +426,20 @@ async function kDeNumero(sock, msg, args) {
       try {
         await sock.sendMessage(aqui, contenido);
         mandados++;
+        marca(medio.tipo, 'salen');
       } catch (e) {
         perdidos++;
+        marca(medio.tipo, 'fallan', `al mandarlo: ${e.message}`);
         logger.warn(`!k número: no pude mandar un ${medio.nombre} (${e.message})`);
       }
       await new Promise((r) => setTimeout(r, RESPIRO_MS));
     }
   } finally {
     enCursoK.delete(aqui);
+    try {
+      const { atomicWriteJson } = require('../utils/helpers');
+      await atomicWriteJson(require('path').join(__dirname, '../../data/kNumeroUltimo.json'), ficha);
+    } catch { /* solo es para mirar */ }
   }
   const fin = perdidos
     ? `Listo: ${mandados} de ${lista.length}. ${perdidos} ya no están en WhatsApp.`

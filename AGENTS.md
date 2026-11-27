@@ -250,8 +250,12 @@ ni apunta ni lee el registro. Lo de ver una vez no entra, que al bot solo le
 llega el aviso vacío, ni los audios ni los stickers (dueño, 24 nov). El `!k`
 respondiendo sigue igual. Las fotos de un álbum (varias mandadas a la vez)
 llegan cada una envuelta en `associatedChildMessage` y no se apuntaban: el
-dueño (27 nov) «solo envía vídeos y no las fotos». `npm run estado` dice
-cuántas fotos, vídeos y documentos hay apuntados. Capa 182.
+dueño (27 nov) «solo envía vídeos y no las fotos». Y como no se supo si
+eran solo esas («no enviaba una sola foto del individuo»), `npm run estado`
+dice cuántas fotos, vídeos y documentos hay apuntados, lo que llega a los
+grupos por tipo y por qué no se apuntó lo demás (ver una vez, sin clave,
+sobres que no se conocen), y cómo acabó el último `!k número` por tipo, con
+el último fallo. Capa 182.
 
 ## Stickers con sonido
 
