@@ -1486,7 +1486,7 @@ apunta en `data/stickerHechos.json` (las 20 últimas) y `npm run estado`
 enseña la última, en el resumen las dos horas siguientes: si ahí sale de 10 s
 y en el teléfono dura 5, lo corta el teléfono. Capas 142 y 188.
 
-**Stickers largos con sonido: la prueba del dueño, sin decidir** (27 nov). El
+**Stickers largos con sonido: la prueba del dueño, en negro y quitada** (27 nov). El
 dueño pasó un vídeo de X con la grabación de pantalla de un WhatsApp en
 Android: un sticker con el icono de sonido que pone una escena de dibujos.
 «Verifica cómo es posible hacerlos.» Medido en la grabación (720×536, 25,3 s,
@@ -1511,30 +1511,30 @@ mucho: 25 s de animación, 6,1 MB; 30 s de cámara 1080p a 60 fps (30 fps en el
 sticker), 7,8 MB. Una pasada tarda aquí 13-22 s; en la VPS, con su 2,5 por
 fotograma, pasaría del tope de 45 s.
 
-Así que se prueba en el teléfono del dueño, sin tocar lo de nadie más:
+Así que se probó en el teléfono del dueño, sin tocar lo de nadie más: su
+`!s`/`!s2` sobre un vídeo de más de 10 s salía hasta 30 s, a los fps del vídeo
+(30 como mucho), a 512 px y q60, sin el tope de 1 MB y con `!s2` el sonido
+entero. **Salió un sticker de 9 MB, todo en negro** (dueño, 27 nov: «hizo un
+sticker de 9 MB y estaba todo en negro»). Se quitó el mismo día: el 1 MB, los
+20 s y los 10 s de sonido valen para todos, también para el dueño (capa 189).
+Lo que eso dice: uno así no se ve. Lo que no dice: dónde está la raya entre
+1 y 9 MB, ni si la pone el peso, los fotogramas o la duración. No se vuelve a
+abrir un camino sin tope sin probarlo antes en un teléfono.
 
-- **La prueba** (`stickerLargoDePrueba`, `utils/sticker.js`). El `!s` y el
-  `!s2` del dueño principal (en un grupo o en el privado del bot) sobre un
-  vídeo de más de 10 s: hasta 30 s, a los fps del vídeo (30 como mucho),
-  512 px, q60, una pasada con su tope de 150 s y sin el de 1 MB (uno de 10 MB
-  por si acaso). Con `!s` se prueba el peso y la duración; con `!s2`, además,
-  el sonido entero (`sonidoDe` con `tope`: el de siempre corta a 10 s en el
-  `-t` y en los segundos que dice). Si falla, lo dice («No me salió el
-  sticker largo de prueba.») y el motivo va a `npm run estado`: no cae al
-  sticker de siempre, que haría creer que salió. Mientras dura, ocupa la plaza
-  de ffmpeg: los demás stickers esperan.
+Lo que queda, para saber cómo son los que sí se ven:
+
 - **Lo que trae cada sticker que llega**, sin bajarlo (`anotarRecibido`):
   formato, peso, medidas, si es animado o Lottie y lo que dura su sonido. El
   último con sonido, aparte (`data/stickerConSonido.json`).
 - **La anatomía de lo que baja el bot**, antes de tocarlo (`anatomiaWebp`,
   `data/stickerAnatomia.json`): fotogramas, duración, fps, si son enteros o
   parches, cuántos se mezclan con el anterior llevando transparencia y lo que
-  pesa cada uno. Ojo: el `!s2` sobre un sticker ajeno largo lo recomprime y
-  le corta el sonido; lo que sale no es la prueba, la anatomía sí.
+  pesa cada uno. Ojo: el `!s2` sobre un sticker ajeno largo le corta el sonido
+  a 10 s; la anatomía es la del que llegó.
 
-Todo en `npm run estado`, en el resumen las dos horas siguientes. Lo que diga
-el teléfono del dueño (si se ve entero, fluido y con el sonido entero) decide
-si los topes de todos cambian. Capa 189.
+Todo en `npm run estado`, en el resumen las dos horas siguientes: cuando al
+dueño le llegue uno largo de otro bot que sí se vea, ahí sale lo que pesa y
+cuántos fotogramas lleva. Capa 189.
 
 **La vista previa de lo que manda el bot** (21 nov, «la mejor calidad posible
 para lo que es WhatsApp; calidad y velocidad de la mano»). Una foto o un vídeo

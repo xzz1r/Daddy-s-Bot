@@ -304,10 +304,9 @@ function onda(pcm, barras = 64) {
 }
 
 // El sonido de un vídeo (ya en disco), como nota de voz de hasta 10 s. Null
-// si el vídeo no tiene sonido o es silencio. `tope` sube esos 10 s: solo lo
-// usa la prueba del dueño (27 nov, ver stickerLargoDePrueba), que tiene que
-// mandar el sonido entero para saber si un teléfono lo reproduce.
-async function sonidoDe(rutaVideo, segundos = TOPE_S, { tope = TOPE_S } = {}) {
+// si el vídeo no tiene sonido o es silencio.
+async function sonidoDe(rutaVideo, segundos = TOPE_S) {
+  const tope = TOPE_S;
   const salida = tempFile('ogg');
   try {
     try {

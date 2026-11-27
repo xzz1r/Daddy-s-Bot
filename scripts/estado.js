@@ -900,11 +900,9 @@ if (!bot) {
     const ultH = Array.isArray(hechosSt) ? hechosSt[hechosSt.length - 1] : null;
     if (ultH && ultH.sale != null) {
       const origen = ultH.de === 'video' ? 'vídeo' : ultH.de === 'sticker' ? 'sticker' : 'GIF';
-      // LA PRUEBA DEL DUEÑO (27 nov) se dice como tal: sin el tope de 1 MB,
-      // y con el sonido que se mandó de verdad, o por qué no salió.
-      const porque = ultH.prueba ? ` (prueba larga del dueño, sin el tope de 1 MB${ultH.cortadoA ? `; el vídeo pasaba de ${ultH.cortadoA} s` : ''})`
-        : ultH.recortado ? ` (recortado: ni a ${coma(ultH.fps)} fps cabía en 1 MB)`
-          : ultH.fpsBajados ? ' (con menos fps para que cupiera entero)' : '';
+      // Con el sonido que se mandó de verdad, o por qué no salió (27 nov).
+      const porque = ultH.recortado ? ` (recortado: ni a ${coma(ultH.fps)} fps cabía en 1 MB)`
+        : ultH.fpsBajados ? ' (con menos fps para que cupiera entero)' : '';
       const son = ultH.sonido ? ` · con sonido${ultH.sonidoSeg ? ` de ${ultH.sonidoSeg} s` : ''}`
         : ultH.sonidoFallo ? ` · SIN sonido: falló al mandarlo (${ultH.sonidoFallo})` : '';
       bien(`último sticker animado (!${ultH.orden}, ${hace(ultH.t)}): ${origen} de ${ultH.entra != null ? coma(ultH.entra) : '?'} s → sticker de ${coma(ultH.sale)} s${porque} · ${ultH.fotogramas} fotogramas a ${coma(ultH.fps)} fps · ${ultH.px} px q${ultH.q} · ${peso((ultH.kb || 0) * 1024)} · ${ultH.pasadas} pasadas en ${coma(Math.round((ultH.ms || 0) / 100) / 10)} s${son}`,

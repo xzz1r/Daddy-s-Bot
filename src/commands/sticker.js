@@ -1,8 +1,8 @@
-const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, detectExt, MAX_STICKER_BYTES, infoDe, anatomiaWebp, stickerLargoDePrueba, TOPE_PRUEBA_S } = require('../utils/sticker');
+const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, detectExt, MAX_STICKER_BYTES, infoDe, anatomiaWebp } = require('../utils/sticker');
 const fs = require('fs-extra');
 const path = require('path');
 const { tempFile, cleanTemp, atomicWriteJson, readJsonOrEnoent } = require('../utils/helpers');
-const { getSender, isOwner, isMainOwner, dueñoEnPrivado } = require('../utils/wa');
+const { getSender, isOwner } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { incrementStat } = require('../utils/state');
 const { clasificar, bajar, NO_ENTREGADA, SIN_CLAVE_CITA } = require('../utils/verUnaVez');
@@ -187,12 +187,11 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
     apuntarFallo('buscar su sonido', `${origen === 'cita' ? 'la cita' : 'el mensaje'} no trae audio (${claves}; campos del mensaje ${campos(dondeMsg?.[stickerSonido.CAMPOS])}; del sticker ${campos(found.msg?.[stickerSonido.CAMPOS])}) y no vi llegar ese sticker con sonido`);
   }
   let sonido = null;
-  // LA PRUEBA DEL DUEÑO (27 nov, ver stickerLargoDePrueba): su *!s* y su *!s2*
-  // sobre un vídeo de más de 10 s salen hasta 30 s, a los fps del vídeo y sin
-  // el tope de 1 MB, y con *!s2* el sonido entero. Sin decidir: es para mirarlo
-  // en su teléfono. A nadie más le cambia nada.
-  const pruebaDueño = found.type === 'video'
-    && (isMainOwner(senderJid, Boolean(msg.key.fromMe), groupMeta) || dueñoEnPrivado(msg));
+  // LA PRUEBA DEL DUEÑO, QUITADA (27 nov). Su *!s*/*!s2* sobre un vídeo de más
+  // de 10 s salía hasta 30 s, a los fps del vídeo (30 como mucho) y sin el tope
+  // de 1 MB: en su teléfono, el de 9 MB que salió se vio todo en negro. Se quitó
+  // el mismo día; el tope de 1 MB vale para todos. Ver MOTOR.md.
+
   // La anatomía de un sticker que llega, antes de tocarlo (ver anatomiaWebp).
   const origenSt = found.type === 'sticker' ? anatomiaWebp(buffer) : null;
   if (origenSt) {
@@ -203,13 +202,10 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
     if (found.type === 'video') {
       rutaOrigen = tempFile(detectExt(buffer) || 'mp4');
       await fs.writeFile(rutaOrigen, buffer);
-      const convertir = pruebaDueño
-        ? stickerLargoDePrueba(buffer, author, rutaOrigen).then((largo) => largo || videoToSticker(buffer, author, rutaOrigen))
-        : videoToSticker(buffer, author, rutaOrigen);
       [sourceThumb, stickerBuffer, sonido] = await Promise.all([
         generateSourceThumb(rutaOrigen).catch(() => null),
-        convertir,
-        conSonido ? stickerSonido.sonidoDe(rutaOrigen, ...(pruebaDueño ? [TOPE_PRUEBA_S, { tope: TOPE_PRUEBA_S }] : [])).catch((e) => {
+        videoToSticker(buffer, author, rutaOrigen),
+        conSonido ? stickerSonido.sonidoDe(rutaOrigen).catch((e) => {
           logger.warn(`sticker con sonido: no saqué el sonido (${e.message})`);
           apuntarFallo('sacar el sonido del vídeo', e.message);
           return null;
@@ -253,11 +249,7 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
     logger.error(`Sticker conversion error: ${err.message}`);
     apuntarFallo(`convertir (${found.type})`, err.message);
     await reembolsar();
-    // La prueba del dueño falla a la vista: no cae al sticker de siempre.
-    const texto = /^prueba larga/.test(err.message || '')
-      ? 'No me salió el sticker largo de prueba.'
-      : 'No pude convertir eso en sticker. Prueba con otra foto o vídeo.';
-    return sock.sendMessage(jid, { text: texto }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No pude convertir eso en sticker. Prueba con otra foto o vídeo.' }, { quoted: msg });
   } finally {
     // El temporal compartido se borra aqui, salga bien o mal: es el unico sitio
     // por el que pasan los dos caminos.
@@ -275,7 +267,7 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
     // strict source. Catch that here instead of silently shipping a sticker
     // WhatsApp may refuse to upload or that recipients can't save.
     const ficha = infoDe(stickerBuffer);
-    if (animated && stickerBuffer.length > MAX_STICKER_BYTES && !ficha?.prueba) {
+    if (animated && stickerBuffer.length > MAX_STICKER_BYTES) {
       await reembolsar();
       return sock.sendMessage(jid, {
         text: `Ese sticker pesa demasiado para WhatsApp. Si tienes el vídeo o el GIF del que salió, mándalo con ${orden}.`,
@@ -306,7 +298,7 @@ async function hacerSticker(sock, msg, groupMeta, { conSonido = false } = {}) {
       }, { quoted: msg });
     }
     incrementStat('stickersCreated');
-    const resumen = ficha ? `, ${ficha.entra ?? '?'} s → ${ficha.sale} s a ${ficha.fps ?? '?'} fps, ${ficha.px} px q${ficha.q}${ficha.fpsBajados ? ', fps bajados' : ''}${ficha.recortado ? ', recortado' : ''}${ficha.prueba ? ', prueba larga' : ''}` : '';
+    const resumen = ficha ? `, ${ficha.entra ?? '?'} s → ${ficha.sale} s a ${ficha.fps ?? '?'} fps, ${ficha.px} px q${ficha.q}${ficha.fpsBajados ? ', fps bajados' : ''}${ficha.recortado ? ', recortado' : ''}` : '';
     logger.success(`Sticker enviado (${found.type}, ${stickerBuffer.length} bytes, animated=${animated}, thumb=${!!pngThumbnail}, sonido=${salioConSonido}${resumen})`);
     // Lo que salió, con el sonido que se mandó de verdad (o por qué no). Un
     // sticker que llegó y se vuelve a sellar tal cual no tiene ficha de la
